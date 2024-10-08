@@ -233,9 +233,6 @@ public class CompanyUtils {
 //        if (employeeUpdateRequest.getRoles() != null){
 //            user.setRoles(Collections.singletonList(String.valueOf(employeeUpdateRequest.getRoles())));
 //        }
-        if (employeeUpdateRequest.getEmailId() != null){
-            user.setEmailId(employeeUpdateRequest.getEmailId());
-        }
         if (employeeUpdateRequest.getLocation() != null){
             user.setLocation(employeeUpdateRequest.getLocation());
         }

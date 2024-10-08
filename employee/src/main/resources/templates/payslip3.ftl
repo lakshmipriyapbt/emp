@@ -159,7 +159,7 @@
                     </td>
                     <td>
                         <div class="logo">
-                            <img src="${company.imageFile}" />
+                            <img src="${company.imageFile}" alt="Company Logo"/>
                         </div>
                     </td>
                 </tr>
@@ -227,7 +227,7 @@
             <div class="salary-details">
                 <table class="salary-table">
                     <tr>
-                        <th>Earnings (A)</th>
+                        <th style="width:30%;">Earnings (A)</th>
                         <th>Amount (A)</th>
                         <th>Deductions (B)</th>
                         <th>Amount (B)</th>
@@ -237,9 +237,7 @@
                         <td>
                             <table class="allowance-fields">
                                 <!-- Loop through Allowances -->
-                                <tr>
-                                    <td>Basic Salary</td>
-                                </tr>
+
                                 <#list allowanceList as allowance>
                                     <#list allowance?keys as key>
                                         <tr>
@@ -258,9 +256,6 @@
                         <td>
                             <table class="allowance-values">
                                 <!-- Loop through Allowances to Get Amounts -->
-                                <tr>
-                                    <td>${payslipEntity.salary.basicSalary}</td> <!-- Basic Salary Amount -->
-                                </tr>
                                 <#list allowanceList as allowance>
                                     <#list allowance?keys as key>
                                         <tr>

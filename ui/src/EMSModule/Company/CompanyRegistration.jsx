@@ -608,7 +608,7 @@ const CompanyRegistration = () => {
                         maxLength={10}
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
-                        {...register("landNo", {
+                        {...register("alternateNo", {
                           pattern: {
                             value: /^(?!0000000000)[0-9]{10}$/,
                             message:

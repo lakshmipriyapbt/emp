@@ -260,7 +260,7 @@
     <div class="salary-details">
         <table class="salary-table">
             <tr>
-                <th class="emp-heading" style= "padding: 20px;">Earnings (A)</th>
+                <th class="emp-heading" style= "padding: 20px;width:30%;">Earnings (A)</th>
                 <th class="emp-heading" style= "padding: 20px;">Amount (A)</th>
                 <th class="emp-heading" style= "padding: 20px;">Deductions (B)</th>
                 <th class="emp-heading" style= "padding: 20px;">Amount (B)</th>
@@ -270,9 +270,6 @@
                 <td>
                     <table class="allowance-fields">
                         <!-- Loop through Allowances -->
-                        <tr>
-                            <td>Basic Salary</td>
-                        </tr>
                         <#list allowanceList as allowance>
                             <#list allowance?keys as key>
                                 <tr>
@@ -291,9 +288,7 @@
                 <td>
                     <table class="allowance-values">
                         <!-- Loop through Allowances to Get Amounts -->
-                        <tr>
-                            <td>${payslipEntity.salary.basicSalary}</td> <!-- Basic Salary Amount -->
-                        </tr>
+
                         <#list allowanceList as allowance>
                             <#list allowance?keys as key>
                                 <tr>

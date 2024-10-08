@@ -4,6 +4,7 @@ import { AttendanceManagementApi, EmployeeGetApi } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
+import * as XLSX from 'xlsx'; 
 
 const ManageAttendance = () => {
   const {
@@ -22,14 +23,12 @@ const ManageAttendance = () => {
         const data = await EmployeeGetApi();
         const formattedData = data
           .filter((employee) => employee.firstName !== null)
-          .map(({ id, firstName, lastName, employeeId, emailId, workingDays }) => ({
-            label: `${firstName} ${lastName} (${employeeId})`,
-            value: id,
+          .map(({ employeeId, firstName, lastName, emailId, workingDays }) => ({
+            employeeId,
             firstName,
             lastName,
-            employeeId,
             emailId,
-            workingDays
+            workingDays,
           }));
         setEmployees(formattedData);
       } catch (error) {
@@ -47,13 +46,13 @@ const ManageAttendance = () => {
 
   const onSubmit = async (data) => {
     const formData = new FormData();
-    formData.append("file", data.attendanceFile[0]); // Assuming single file upload
+    formData.append("file", data.attendanceFile[0]);
     try {
       const response = await AttendanceManagementApi(formData);
 
       if (response.data.path) {
         toast.success("Attendance Added Successfully");
-        reset(); // Reset form after successful submission
+        reset();
       } else {
         toast.error(response.data.error.message);
       }
@@ -72,26 +71,13 @@ const ManageAttendance = () => {
     console.error(error.response);
   };
 
-  const convertToCSV = (data) => {
-    const header = ['First Name', 'Last Name', 'Employee ID', 'Email ID', 'Working Days'];
-    const rows = data.map(({ firstName, lastName, employeeId, emailId, workingDays }) => 
-        [firstName, lastName, employeeId, emailId, workingDays]
-    );
-
-    return [header, ...rows].map(e => e.join(",")).join("\n");
+  const downloadExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(employees, { header: ["employeeId", "firstName", "lastName", "emailId", "workingDays"] });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
+    XLSX.writeFile(workbook, "attendance_data.xlsx");
 };
 
-const downloadExcel = () => {
-    const csv = convertToCSV(employees);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.setAttribute('download', 'EmployeeData.csv'); // Set file name
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-};
 
   return (
     <LayOut>
@@ -135,7 +121,7 @@ const downloadExcel = () => {
                         <input
                           className="form-control"
                           type="file"
-                           accept=".xlsx,.xls,.csv"
+                          accept=".xlsx,.xls,.csv"
                           {...register("attendanceFile", {
                             required: "Upload Attendance File",
                           })}

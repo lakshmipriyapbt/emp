@@ -110,7 +110,7 @@
 
 <body>
     <div class="logo">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Cigniti_logo.svg/2560px-Cigniti_logo.svg.png"
+        <img src="${company.imageFile}"
             alt="Company Logo" />
         <p class="company">
             ${company.companyAddress}<br />
@@ -178,7 +178,7 @@
 
     <table class="salary-table">
         <tr>
-            <th>Earnings (A)</th>
+            <th style="width:30%;">Earnings (A)</th>
             <th>Amount (A)</th>
             <th>Deductions (B)</th>
             <th>Amount (B)</th>
@@ -186,7 +186,7 @@
         <tr>
             <td>
                 <table class="allowance-fields">
-                    <tr><td>Basic Salary</td></tr>
+
                     <#list allowanceList as allowance>
                         <#list allowance?keys as key>
                             <tr><td>${key}</td></tr>
@@ -197,7 +197,6 @@
             </td>
             <td>
                 <table class="allowance-values">
-                    <tr><td>${payslipEntity.salary.basicSalary}</td></tr>
                     <#list allowanceList as allowance>
                         <#list allowance?keys as key>
                             <tr><td>${allowance[key]}</td></tr>

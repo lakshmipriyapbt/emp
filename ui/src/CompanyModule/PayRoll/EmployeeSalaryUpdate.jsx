@@ -257,16 +257,6 @@ const EmployeeSalaryUpdate = () => {
                                                     <div className="card-header">
                                                         <h5 className="card-title">Allowances</h5>
                                                         <hr />
-                                                        <div className="col-12 mb-2">
-                                                            <label className="form-label">Basic Salary<span style={{ color: "red" }}>*</span></label>
-                                                            <input
-                                                                type="text"
-                                                                className="form-control"
-                                                                value={basicSalary}
-                                                                autoComplete="off"
-                                                                readOnly
-                                                            />
-                                                        </div>
                                                         {structure.salaryConfigurationEntity?.allowances && Object.keys(structure.salaryConfigurationEntity.allowances).length > 0 ? (
                                                             Object.keys(structure.salaryConfigurationEntity.allowances).map((allowance) => (
                                                                 <div key={allowance} className="mb-2">

@@ -224,6 +224,7 @@ const EmployeeRegistration = () => {
       location: data.location,
       manager: data.manager,
       //roles: roles,
+      mobileNo: data.mobileNo,
       status: data.status,
       accountNo: data.accountNo,
       ifscCode: data.ifscCode,
@@ -606,6 +607,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       <label className="form-label">Email Id <span style={{ color: "red" }}>*</span></label>
                       <input
                         type={isUpdating ? "email" : "email"}
+                        readOnly={isUpdating}
                         className="form-control"
                         placeholder="Enter Email Id"
                         name="emailId"
@@ -861,7 +863,6 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     {isUpdating && (
                       <div className="col-lg-1"></div>
                     )}
-
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
                       <label className="form-label mb-3">Status <span style={{ color: "red" }}>*</span></label>
                       <Controller
@@ -889,6 +890,37 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       {errors.status && <p className="errorMsg"> Status is Required</p>}
                     </div>
                     <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                          <label className="form-label">
+                            Mobile Number <span style={{ color: "red" }}>*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            className="form-control"
+                            placeholder="Enter Contact Number"
+                            autoComplete="off"
+                            maxLength={10}
+                            onInput={toInputSpaceCase}
+                            onKeyDown={handleEmailChange}
+                            {...register("mobileNo", {
+                              required: "Contact Number is Required",
+                              pattern: {
+                                value: /^(?!0000000000)[0-9]{10}$/,
+                                message:
+                                "Mobile Number should be exactly 10 digits long, should contain only numbers, and cannot be all zeros.",
+                              },
+                              validate: {
+                                notRepeatingDigits: value => {
+                                  const isRepeating = /^(\d)\1{9}$/.test(value); // Check for repeated digits
+                                  return !isRepeating || "Mobile Number cannot consist of the same digit repeated.";
+                                }
+                              }
+                            })}
+                          />
+                          {errors.mobileNo && (
+                            <p className="errorMsg">{errors.mobileNo.message}</p>
+                          )}
+                        </div>
                     {/* {isUpdating ? (
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
                         <label className="form-label">Role <span style={{ color: "red" }}>*</span></label>

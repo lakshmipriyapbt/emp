@@ -72,9 +72,12 @@ public enum EmployeeErrorMessageKey {
     UNABLE_GET_SALARY_STRUCTURE("unable.get.salary.structure"),
     UNABLE_SAVE_COMPANY_SALARY("unable.save.company.salary"),
     COMPANY_SALARY_ALREADY_EXIST("company.salary.already.exist"),
-    INVALID_NO_DAYA("invalid.no.days"),
+    INVALID_NO_DAYS("invalid.no.days"),
     COMPANY_CIN_NO_REQUIRED("company.cin.no.required"),
-    COMPANY_REG_NO_REQUIRED("company.reg.no.required");
+    COMPANY_REG_NO_REQUIRED("company.reg.no.required"),
+    EMPLOYEE_DETAILS_MISMATCH("employee.details"),
+    INVALID_ATTENDANCE_DATE("invalid.date"),
+    COMPANY_NOT_EXIST("company.not.exist");
 
     private final String key;
 

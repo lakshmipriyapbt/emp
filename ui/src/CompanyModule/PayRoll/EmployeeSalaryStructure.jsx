@@ -336,7 +336,7 @@ useEffect(() => {
     });
   
     // Extract "Basic Salary" from allowances
-    const basicSalaryValue = parseFloat(allowancesData["Basic Salary"]) || 0; // Ensure it's a number
+    // const basicSalaryValue = parseFloat(allowancesData["Basic Salary"]) || 0; // Ensure it's a number
   
     // Populate deductions similarly
     Object.entries(deductions).forEach(([key, value]) => {
@@ -349,7 +349,7 @@ useEffect(() => {
       fixedAmount: fixedAmount.toFixed(2), // Convert to string if necessary
       variableAmount: variableAmount.toFixed(2), // Convert to string if necessary
       grossAmount: grossAmountValue.toFixed(2), // Convert to string if necessary
-      "Basic Salary": basicSalaryValue.toFixed(2), // Place with the key as "Basic Salary"
+      // "Basic Salary": basicSalaryValue.toFixed(2), // Place with the key as "Basic Salary"
       salaryConfigurationEntity: {
         allowances: allowancesData,
         deductions: deductionsData,

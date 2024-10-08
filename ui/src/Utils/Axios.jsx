@@ -301,7 +301,7 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
 
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`,
+    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/template/3/download/${payslipId}`,
       {
         responseType: 'blob', // Handle the response as a binary blob
         headers: {

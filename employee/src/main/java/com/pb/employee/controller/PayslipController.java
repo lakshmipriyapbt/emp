@@ -2,6 +2,7 @@ package com.pb.employee.controller;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.PayslipRequest;
+import com.pb.employee.request.PayslipUpdateRequest;
 import com.pb.employee.request.SalaryRequest;
 import com.pb.employee.service.PayslipService;
 import com.pb.employee.util.Constants;
@@ -117,4 +118,29 @@ public class PayslipController {
         return payslipService.downloadPayslip(companyName, payslipId, employeeId,templateNumber, request);
     }
 
+    @RequestMapping(value = "/payslip", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.payslip.employee.tag}", description = "${api.payslip.employee.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
+    public ResponseEntity<?> generateEmployeeAllPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                     @Parameter(required = true, description = "${api.salaryPayload.description}")
+                                                     @RequestBody @Valid PayslipRequest payslipRequest) throws EmployeeException, IOException {
+        return payslipService.generatePaySlipForEmployees(payslipRequest);
+    }
+
+
+    @RequestMapping(value = "/employee/{employeeId}/payslip/{payslipId}", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.payslip.employee.tag}", description = "${api.payslip.employee.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
+    public ResponseEntity<?> savePayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                         @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                         @RequestBody @Valid PayslipUpdateRequest payslipsRequest,
+                                         @PathVariable String payslipId,
+                                         @PathVariable String employeeId) throws EmployeeException{
+        return payslipService.savePayslip(payslipsRequest, payslipId, employeeId);
+    }
 }

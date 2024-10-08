@@ -207,7 +207,7 @@ const EmployeeSalaryList = () => {
                       <div className="col mb-3">
                         <div className="form-group">
                           <label>Basic Salary:</label>
-                          <input type="text" className="form-control" defaultValue={editingData?.basicSalary || ''} readOnly />
+                          <input type="text" className="form-control" defaultValue={editingData?.allowances?.basicSalary || ''} readOnly />
                         </div>
                       </div>
                       <div className="col mb-3">

@@ -159,9 +159,6 @@ public class EmployeeUtils {
         if (!user.getEmployeeType().equals(employeeUpdateRequest.getEmployeeType())){
             noOfChanges+=1;
         }
-        if (!user.getEmailId().equals(employeeUpdateRequest.getEmailId())){
-            noOfChanges +=1;
-        }
         if (!user.getDesignation().equals(employeeUpdateRequest.getDesignation())){
             noOfChanges +=1;
         }

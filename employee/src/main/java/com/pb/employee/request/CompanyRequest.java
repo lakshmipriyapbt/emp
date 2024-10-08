@@ -34,7 +34,6 @@ public class CompanyRequest {
     private String companyAddress;
 
     @Schema(example = "companyRegNo")
-    @NotNull(message = "{companyRegNo.notnull.message}")
     @Pattern(regexp = "^((?!\\s)(?!.*\\s$)[A-Z0-9\\s]{1,21}|null|)$", message = "{companyRegNo.pattern.message}")
     private String companyRegNo;
 

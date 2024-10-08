@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PayslipEntity implements Entity  {
+
     private String payslipId;
     private String employeeId;
     private  String salaryId;

@@ -321,7 +321,7 @@ function Profile() {
                         maxLength={10}
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
-                        {...register("mobileNo", {
+                        {...register("alternateNo", {
                           required: "Alternate Number is Required",
                           pattern: {
                             value: /^[0-9]{10}$/,
@@ -337,27 +337,27 @@ function Profile() {
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
-                        Contact Number <span style={{ color: "red" }}>*</span>
+                        Mobile Number <span style={{ color: "red" }}>*</span>
                       </label>
                       <input
                         type="tel"
                         className="form-control"
-                        placeholder="Enter Contact Number"
+                        placeholder="Enter Mobile Number"
                         autoComplete="off"
                         maxLength={10}
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
-                        {...register("landNo", {
-                          required: "Contact Number is Required",
+                        {...register("mobileNo", {
+                          required: "Mobile Number is Required",
                           pattern: {
                             value: /^[0-9]{10}$/,
                             message:
-                              "Contact Number should contain only 10 numbers. ",
+                              "Mobile Number should contain only 10 numbers. ",
                           },
                         })}
                       />
-                      {errors.landNo && (
-                        <p className="errorMsg">{errors.landNo.message}</p>
+                      {errors.mobileNo && (
+                        <p className="errorMsg">{errors.mobileNo.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
@@ -429,16 +429,6 @@ function Profile() {
                         />
                       </div>
                       <div className="col-lg-1"></div>
-                      <div className="col-12 col-md-6 col-lg-5 mb-3">
-                        <label className="form-label">Company Registration Number</label>
-                        <input
-                          type="text"
-                          id="companyRegNo"
-                          className="form-control"
-                          {...register("companyRegNo")}
-                          readOnly
-                        />
-                      </div>
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
                         <label className="form-label">Company GST Number</label>
                         <input

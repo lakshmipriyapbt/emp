@@ -12,7 +12,7 @@ import { ModalTitle, ModalHeader, ModalBody } from 'react-bootstrap';
 
 const AttendanceReport = () => {
 
-  const { register, handleSubmit, formState: { errors }, reset,watch } = useForm({mode:'onChange'});
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm({ mode: 'onChange' });
   const [employees, setEmployees] = useState([]);
   const [showFields, setShowFields] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -43,8 +43,6 @@ const AttendanceReport = () => {
     setEmployeeId(selectedOption.value);
     const selectedEmployee = employees.find(emp => emp.value === selectedOption.value);
     setSelectedEmployeeDetails(selectedEmployee);
-
-    
   };
 
   const handleCloseDeleteModal = () => {
@@ -335,7 +333,7 @@ const AttendanceReport = () => {
                         label: year,
                         value: year,
                       }))}
-                      onChange={(selectedOption) => setSelectedYear( selectedOption.value)}
+                      onChange={(selectedOption) => setSelectedYear(selectedOption.value)}
                       placeholder="Select Year"
                     />
                   </div>
@@ -355,7 +353,7 @@ const AttendanceReport = () => {
                       style={{ paddingBottom: "8px" }}
                       className="btn btn-primary"
                       onClick={filterByMonthYear}
-                      disabled={!selectedYear|| !employeeId}
+                      disabled={!selectedYear || !employeeId}
                     >
                       Go
                     </button>
@@ -368,10 +366,10 @@ const AttendanceReport = () => {
                     <>
                       Pay Slip Details for{" "}
                       {finalEmployeeDetails.firstName
-                            ? `${finalEmployeeDetails.firstName} ${finalEmployeeDetails.lastName} (${finalEmployeeDetails.employeeId})`
-                            : 'All Employees'}
-                        {selectedYear && ` - ${selectedYear}`}
-                        {selectedMonth && ` - ${getMonthNames()[selectedMonth - 1]}`}
+                        ? `${finalEmployeeDetails.firstName} ${finalEmployeeDetails.lastName} (${finalEmployeeDetails.employeeId})`
+                        : 'All Employees'}
+                      {selectedYear && ` - ${selectedYear}`}
+                      {selectedMonth && ` - ${getMonthNames()[selectedMonth - 1]}`}
                     </>
                   ) : (
                     formatDateHeader()
@@ -439,28 +437,24 @@ const AttendanceReport = () => {
                     <div className='col-12 col-md-6 col-lg-4 mb-2'>
                       <label>No. Of Working Days</label>
                       <input
-                        type="Number"
+                        type="number"
                         name='noOfWorkingDays'
-                        maxLength={2}
                         className="form-control"
-
-                        {...register("noOfWorkingDays", { 
-                          required: true,
+                        {...register("noOfWorkingDays", {
+                          required: "No. of working days is required",
                           pattern: {
                             value: /^\d+$/,
-                            message: "Allow only Numbers",
+                            message: "Only numbers are allowed",
                           },
                           min: {
                             value: 0,
-                            message: "Not Exceed less than 0 days",
+                            message: "Cannot be less than 0 days",
                           },
-                          max: {
-                            value: 30,
-                            message: "Not Exceed more than 30 days",
-                          },
-                          validate: (value) => {
-                            const totalWorkingDays = watch("totalWorkingDays"); // Use watch to get the value of totalWorkingDays
-                            return value <= totalWorkingDays || "Cannot exceed total working days.";
+                          validate: {
+                            maxTotal: (value) => {
+                              const totalWorkingDays = watch("totalWorkingDays"); // Use watch to get the value of totalWorkingDays
+                              return value <= totalWorkingDays || "Cannot exceed total working days.";
+                            },
                           },
                         })}
                       />

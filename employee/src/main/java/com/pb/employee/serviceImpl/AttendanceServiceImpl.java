@@ -104,14 +104,15 @@ public class AttendanceServiceImpl implements AttendanceService {
                             HttpStatus.BAD_REQUEST);
                 }
 
-                int intworkingdays= Integer.parseInt(attendanceRequest.getNoOfWorkingDays());
-                if(intworkingdays<0){
-                    log.error("invalid no. of days");
-                    return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_DAYA)))),
+                // Validate the number of working days
+                int intworkingdays = Integer.parseInt(attendanceRequest.getNoOfWorkingDays());
+                if (intworkingdays < 0) {
+                    log.error("Invalid number of days");
+                    return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_DAYS)))),
                             HttpStatus.BAD_REQUEST);
                 }
 
-
+                // Validate employee status
                 if (EmployeeStatus.INACTIVE.getStatus().equals(employee.getStatus())) {
                     log.error("The employee is inactive {}", employeeId);
                     return new ResponseEntity<>(
@@ -120,7 +121,18 @@ public class AttendanceServiceImpl implements AttendanceService {
                                             .getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE)))),
                             HttpStatus.CONFLICT);
                 }
+
+                // Validate the attendance date period (e.g., September 25th - October 7th)
+                if (!isAttendancePeriodValid(attendanceRequest.getYear(), attendanceRequest.getMonth())) {
+                    log.error("Attendance date is outside the allowed period for year: {}, month: {}", attendanceRequest.getYear(), attendanceRequest.getMonth());
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().
+                                    createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                            .getMessage(EmployeeErrorMessageKey.INVALID_ATTENDANCE_DATE)))),
+                            HttpStatus.BAD_REQUEST);
+                }
             }
+
             // If all validations pass, add attendance
             for (AttendanceRequest attendanceRequest : attendanceRequests) {
                 addAttendanceOfEmployees(attendanceRequest);
@@ -135,6 +147,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
+
 
     @Override
     public ResponseEntity<?> getAllEmployeeAttendance(String companyName, String employeeId, String month, String year) throws IOException, EmployeeException {
@@ -246,7 +259,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             int numberOfDays = Integer.parseInt(updateRequest.getNoOfWorkingDays());
             if (numberOfDays<0){
                 log.error("Invalid no. of days");
-                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_DAYA)))),
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_DAYS)))),
                         HttpStatus.BAD_REQUEST);
             }
         } catch (Exception ex) {
@@ -282,7 +295,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 // Get current year and month
                 LocalDate now = LocalDate.now();
                 String currentYear = String.valueOf(now.getYear());
-                String currentMonth = now.getMonth().name().substring(0, 1) + now.getMonth().name().substring(1).toLowerCase(); // Capitalize only first letter
+                String currentMonth = now.getMonth().minus(1).name().substring(0, 1).toUpperCase()
+                        + now.getMonth().minus(1).name().substring(1).toLowerCase();
                 while (rowIt.hasNext()) {
                     Row currentRow = rowIt.next();
                     log.info("Processing row number: {}", currentRow.getRowNum());
@@ -412,5 +426,30 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
+    private boolean isAttendancePeriodValid(String year, String month) {
+        LocalDate now = LocalDate.now();
+        LocalDate startDate;
+        LocalDate endDate;
 
+        // Parse the provided year and month into LocalDate
+        int yearInt = Integer.parseInt(year);
+        Month attendanceMonth = Month.valueOf(month.toUpperCase());
+
+        // Calculate the start and end date for attendance (25th of the current month to 7th of the next month)
+        if (attendanceMonth == Month.DECEMBER) {
+            // If it's December, the next month will be January of the next year
+            startDate = LocalDate.of(yearInt, Month.DECEMBER, 25);
+            endDate = LocalDate.of(yearInt + 1, Month.JANUARY, 7);
+        } else if (attendanceMonth == Month.JANUARY) {
+            // If it's January, the previous month is December of the previous year
+            startDate = LocalDate.of(yearInt - 1, Month.DECEMBER, 25);
+            endDate = LocalDate.of(yearInt, Month.JANUARY, 7);
+        } else {
+            // For other months, calculate the start and end dates normally
+            startDate = LocalDate.of(yearInt, attendanceMonth, 25);
+            endDate = LocalDate.of(yearInt, attendanceMonth.plus(1), 7);
+        }
+        // Check if the current date is within the valid range
+        return !now.isBefore(startDate) && !now.isAfter(endDate);
+    }
 }

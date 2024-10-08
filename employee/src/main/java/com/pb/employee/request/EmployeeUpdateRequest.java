@@ -27,10 +27,6 @@ public class EmployeeUpdateRequest {
     @Size(min = 3, max = 20, message = "{employeeType.size.message}")
     private String employeeType;
 
-    @Schema(example = "emailId")
-    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
-    @NotBlank(message = "{emailId.notnull.message}")
-    private String emailId;
 
     @Schema(example = "designationId")
     @Size(min = 2, max = 100, message = "{designation.size.message}")
