@@ -40,7 +40,7 @@ fixed:
 
 es:
   esHost: localhost
-  esPort: 9301
+  esPort: 9501
 
 springdoc:
   swagger-ui:
