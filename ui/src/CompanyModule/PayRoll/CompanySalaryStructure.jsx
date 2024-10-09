@@ -191,6 +191,7 @@ const CompanySalaryStructure = () => {
     };
 
     const selectedAllowances = allowanceFields.filter((field) => fieldCheckboxes.allowances[field.label]);
+    jsonData.allowances["Other Allowance"] = 0;
     const selectedDeductions = deductionFields.filter((field) => fieldCheckboxes.deductions[field.label]);
 
     selectedAllowances.forEach((field) => {
@@ -417,6 +418,26 @@ const CompanySalaryStructure = () => {
                         </div>
                       </div>
                     ))}
+                    <div className="row bbl ptb25">
+                      <div className="col-auto mt-2">
+                        <input
+                          type="checkbox"
+                          checked={true} 
+                          disabled={true} 
+                        />
+                      </div>
+                      <div className="col-sm-3">
+                        <input
+                          type='text'
+                          className='form-control'
+                          readOnly
+                          value="Other Allowance"
+                          onChange={(e) => handleLabelChange('Other Allowance', e.target.value)} 
+                          placeholder="Label Name"
+                          disabled={!isEditing}
+                        />
+                      </div>
+                    </div>
                     <div className="row">
                       <div className="col-sm-12">
                         <button type="button" onClick={() => {

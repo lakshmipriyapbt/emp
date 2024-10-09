@@ -90,7 +90,6 @@
         .salary-table td {
             border: 1px solid black;
             border-collapse: collapse;
-            padding: 4px;
         }
 
         table {
@@ -159,7 +158,7 @@
                     </td>
                     <td>
                         <div class="logo">
-                            <img src="${company.imageFile}" alt="Company Logo"/>
+                            <img src="${company.imageFile}" />
                         </div>
                     </td>
                 </tr>
@@ -256,6 +255,7 @@
                         <td>
                             <table class="allowance-values">
                                 <!-- Loop through Allowances to Get Amounts -->
+
                                 <#list allowanceList as allowance>
                                     <#list allowance?keys as key>
                                         <tr>
@@ -280,6 +280,25 @@
                                         </tr>
                                     </#list>
                                 </#list>
+                                <tr>
+                                    <td>LOP</td> <!-- Add LOP -->
+                                </tr>
+                                <tr>
+                                    <td>Total Deductions (B)</td> <!-- Add LOP -->
+                                </tr>
+                                <tr>
+                                    <th style="border-left: 900px ; border-right: 900px;">Taxes (C)</th> <!-- Add LOP -->
+                                </tr>
+                                <tr>
+                                    <td>Income Tax</td> <!-- Add Income Tax -->
+                                </tr>
+                                <tr>
+                                    <td>Pf Tax</td> <!-- Add Pf Tax -->
+                                </tr>
+                                <tr>
+                                    <td>Total Tax (C)</td> <!-- Add Total Deductions -->
+                                </tr>
+
                             </table>
                         </td>
 
@@ -293,8 +312,30 @@
                                         </tr>
                                     </#list>
                                 </#list>
+
+                                <tr>
+                                    <td>${payslipEntity.salary.lop!0}</td>
+                                </tr> <!-- Display LOP amount, default to 0 if null or empty -->
+                                <tr>
+                                    <td>${payslipEntity.salary.totalDeductions}</td>
+                                </tr> <!-- Display LOP amount -->
+                                <tr>
+                                    <th style="border-left: 900px ; border-right: 900px;">Amount (C)</th>
+                                </tr> <!-- Display Income Tax amount -->
+                                <tr>
+                                    <td>${payslipEntity.salary.incomeTax}</td>
+                                </tr> <!-- Display Income Tax amount -->
+                                <tr>
+                                    <td>${payslipEntity.salary.pfTax}</td>
+                                </tr> <!-- Display Income Tax amount -->
+                                <tr>
+                                    <td>${payslipEntity.salary.totalTax}</td>
+                                </tr> <!-- Display Total Deductions -->
+
+
                             </table>
                         </td>
+
                     </tr>
                     <!-- Net Pay Row -->
                     <tr>

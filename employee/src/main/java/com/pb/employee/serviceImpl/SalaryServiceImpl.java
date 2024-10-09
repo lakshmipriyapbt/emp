@@ -74,6 +74,13 @@ public class SalaryServiceImpl implements SalaryService {
                 salaryConfigurationEntity = openSearchOperations.getSalaryStructureByCompanyDate(employeeSalaryRequest.getCompanyName());
                 log.debug("Fetched Salary Configurations: {}", salaryConfigurationEntity);
 
+                if (salaryConfigurationEntity == null){
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().
+                                    createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                            .getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_NOT_FOUND)))),
+                            HttpStatus.FORBIDDEN);
+                }
                 for (SalaryConfigurationEntity salaryConfiguration : salaryConfigurationEntity) {
                     if (salaryConfiguration.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
                         employeesSalaryProperties = CompanyUtils.maskEmployeesSalaryProperties(employeeSalaryRequest, salaryId, employeeId, salaryConfiguration);

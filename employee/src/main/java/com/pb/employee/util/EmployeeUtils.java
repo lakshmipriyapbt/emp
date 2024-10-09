@@ -102,7 +102,7 @@ public class EmployeeUtils {
         Map<String, Object> responseBody = new HashMap<>();
 
             for (EmployeeEntity employeeEntity : employees) {
-                String employeeId = null, aadhaarId = null, panNo = null, uanNo = null, accountNo = null;
+                String employeeId = null, aadhaarId = null, panNo = null, uanNo = null, accountNo = null, mobileNo=null;
                 if (employeeEntity.getEmployeeId() != null && employeeEntity.getEmployeeId().equals(employeeRequest.getEmployeeId())) {
                     responseBody.put(Constants.DUPLICATE_EMPLOYEE_ID, employeeRequest.getEmployeeId());
 
@@ -111,6 +111,12 @@ public class EmployeeUtils {
                     aadhaarId = new String((Base64.getDecoder().decode(employeeEntity.getAadhaarId().toString().getBytes())));
                     if (aadhaarId.equals(employeeRequest.getAadhaarId())) {
                         responseBody.put(Constants.DUPLICATE_AADHAAR_ID, employeeRequest.getAadhaarId());
+                    }
+                }
+                if (employeeEntity.getMobileNo()!=null) {
+                    mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
+                    if (mobileNo.equals(employeeRequest.getMobileNo())) {
+                        responseBody.put(Constants.DUPLICATE_MOBILE_NO, employeeRequest.getMobileNo());
                     }
                 }
                 if (employeeEntity.getPanNo() != null) {

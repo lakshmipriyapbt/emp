@@ -77,7 +77,8 @@ public enum EmployeeErrorMessageKey {
     COMPANY_REG_NO_REQUIRED("company.reg.no.required"),
     EMPLOYEE_DETAILS_MISMATCH("employee.details"),
     INVALID_ATTENDANCE_DATE("invalid.date"),
-    COMPANY_NOT_EXIST("company.not.exist");
+    COMPANY_NOT_EXIST("company.not.exist"),
+    COMPANY_SALARY_NOT_FOUND("company.salary.not.found");
 
     private final String key;
 

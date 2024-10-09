@@ -12,13 +12,16 @@ public class AgeValidator implements ConstraintValidator<ValidAge, EmployeeReque
     @Override
     public boolean isValid(EmployeeRequest employeeRequest, ConstraintValidatorContext context) {
         if (employeeRequest.getDateOfBirth() == null || employeeRequest.getDateOfHiring() == null) {
-            return true; // This validation is not about null checks, so we skip validation if dates are not present
+            return true; // Skip validation if dates are not present
         }
 
         LocalDate dateOfBirth = LocalDate.parse(employeeRequest.getDateOfBirth());
         LocalDate dateOfHiring = LocalDate.parse(employeeRequest.getDateOfHiring());
 
-        return Period.between(dateOfBirth, dateOfHiring).getYears() >= 21;
+        int ageAtHiring = Period.between(dateOfBirth, dateOfHiring).getYears();
+
+        return ageAtHiring >= 20 && ageAtHiring <= 65;
     }
+
 }
 

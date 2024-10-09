@@ -32,13 +32,5 @@ public class AllowanceRequest {
     @Size(min = 3, max = 20, message = "{pfContributionEmployee.size}")
     private String pfContributionEmployee;
 
-    @Schema(example = "specialAllowance")
-    @Pattern(regexp = "^\\d+(\\.\\d{1,2})?$", message = "{specialAllowance.format}")
-    @Size(min = 1, max = 20, message = "{specialAllowance.size}")
-    private String specialAllowance;
 
-    @Schema(example = "otherAllowances")
-    @Pattern(regexp = "^\\d+(\\.\\d{1,2})?$", message = "{otherAllowances.format}")
-    @Size(min = 1, max = 20, message = "{otherAllowances.size}")
-    private String otherAllowances;
 }

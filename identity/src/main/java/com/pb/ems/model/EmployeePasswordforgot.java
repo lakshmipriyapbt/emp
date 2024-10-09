@@ -30,8 +30,4 @@ public class EmployeePasswordforgot {
     @JsonProperty("company")
     private String company;
 
-    @NotEmpty(message = "{user.company.message}")
-    @Schema(required = true,  description = "${login.company.description}", example = "pathbreaker")
-    @JsonProperty("companyFullName")
-    private String companyName;
 }

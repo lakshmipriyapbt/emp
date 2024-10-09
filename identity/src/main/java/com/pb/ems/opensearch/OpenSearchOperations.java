@@ -1,5 +1,7 @@
 package com.pb.ems.opensearch;
 
+import com.pb.ems.exception.ErrorMessageHandler;
+import com.pb.ems.exception.IdentityErrorMessageKey;
 import com.pb.ems.exception.IdentityException;
 import com.pb.ems.model.CompanyEntity;
 import com.pb.ems.model.EmployeeEntity;
@@ -10,6 +12,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.Result;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
 import org.opensearch.client.opensearch.core.*;
+import org.opensearch.client.opensearch.core.search.Hit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class OpenSearchOperations {
@@ -155,6 +160,7 @@ public class OpenSearchOperations {
         }
         return null;
     }
+
     public void updateCompany(CompanyEntity company) throws IOException {
         String index = Constants.INDEX_EMS;
         String comapanyId = company.getId();
@@ -169,5 +175,40 @@ public class OpenSearchOperations {
         if (response.result() != Result.Updated && response.result() != Result.Created) {
             throw new IOException("Failed to update employee: " + comapanyId);
         }
+    }
+
+    public List<CompanyEntity> getCompanyByData(String companyName, String type, String shortName) throws IdentityException {
+        logger.debug("Getting the Resource by name {}, {},{}", companyName, type, shortName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(type)));
+        if(companyName != null) {
+            boolQueryBuilder = boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.COMPANY_NAME).query(companyName)));
+        }
+        if(shortName != null) {
+            boolQueryBuilder = boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.SHORT_NAME).query(shortName)));
+        }
+
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<CompanyEntity> searchResponse = null;
+        try {
+            searchResponse = esClient.search(t -> t.index(Constants.INDEX_EMS).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), CompanyEntity.class);
+        } catch (IOException e) {
+            e.getStackTrace();
+            logger.error(e.getMessage());
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        List<Hit<CompanyEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of hits {}", hits.size());
+        List<CompanyEntity> subscriberEntities = new ArrayList<>();
+        if(hits.size() > 0) {
+            for(Hit<CompanyEntity> hit : hits){
+                subscriberEntities.add(hit.source());
+            }
+        }
+        return subscriberEntities;
     }
 }

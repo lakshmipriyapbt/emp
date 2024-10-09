@@ -35,8 +35,7 @@ const EmployeeSalaryStructure = () => {
   const [basicSalary, setBasicSalary] = useState(0)
   const [hra, setHra] = useState(0);
   const [monthlySalary, setMonthlySalary] = useState(0);
-  const [totalTax, setTotalTax] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [lossOfPayPerDay, setLossOfPayPerDay] = useState(0);
   const [totalPF, setTotalPF] = useState(0);
   const [showFields, setShowFields] = useState(false);
@@ -120,26 +119,57 @@ const EmployeeSalaryStructure = () => {
     }
   }, [id, salaryId, setValue]);
 
+  // useEffect(() => {
+  //   const fetchSalaryStructures = async () => {
+  //     try {
+  //       const response = await CompanySalaryStructureGetApi();
+  //       const allSalaryStructures = response.data.data;
+  //       const activeSalaryStructures = allSalaryStructures.filter(structure => structure.status === "Active");
+
+  //       if (activeSalaryStructures.length > 0) {
+  //         setSalaryStructure(activeSalaryStructures);
+  //         setAllowances(activeSalaryStructures[0].allowances);
+  //         setDeductions(activeSalaryStructures[0].deductions);
+  //       }
+  //     } catch (error) {
+  //       console.error("API fetch error:", error);
+  //       setError('Error fetching salary structures.');
+  //     }
+  //   };
+
+  //   fetchSalaryStructures();
+  // }, []);
+
   useEffect(() => {
     const fetchSalaryStructures = async () => {
       try {
         const response = await CompanySalaryStructureGetApi();
         const allSalaryStructures = response.data.data;
-        const activeSalaryStructures = allSalaryStructures.filter(structure => structure.status === "Active");
-        
-        if (activeSalaryStructures.length > 0) {
-          setSalaryStructure(activeSalaryStructures);
-          setAllowances(activeSalaryStructures[0].allowances);
-          setDeductions(activeSalaryStructures[0].deductions);
+
+        if (allSalaryStructures.length === 0) {
+          setError('Company Salary Structure is not defined');
+          setSalaryStructure([]);
+        } else {
+          const activeSalaryStructures = allSalaryStructures.filter(structure => structure.status === "Active");
+
+          if (activeSalaryStructures.length > 0) {
+            setSalaryStructure(activeSalaryStructures);
+            setAllowances(activeSalaryStructures[0].allowances);
+            setDeductions(activeSalaryStructures[0].deductions);
+            setError(''); // Clear error if salary structures are found
+          } else {
+            setError('No active salary structure found');
+          }
         }
       } catch (error) {
-        console.error("API fetch error:", error);
         setError('Error fetching salary structures.');
+        console.error("API fetch error:", error);
       }
     };
 
     fetchSalaryStructures();
   }, []);
+
 
   const calculateTotalDeductions = () => {
     let total = 0;
@@ -170,65 +200,90 @@ const EmployeeSalaryStructure = () => {
     });
     return total;
   };
-  
+
   const handleAllowanceChange = (key, value) => {
     const newAllowances = { ...allowances, [key]: value };
     setAllowances(newAllowances);
-  
+
     const totalAllow = calculateTotalAllowances(newAllowances);
     const newOtherAllowances = grossAmount - totalAllow;
-  
-    // Check for errors and set the error message accordingly
+
+    // Check for errors
     if (newOtherAllowances < 0) {
       setErrorMessage("Total allowances exceed gross amount. Please adjust allowances.");
+      setIsSubmitDisabled(true); // Disable the button
     } else {
       setErrorMessage(""); // Clear error message if valid
+      setIsSubmitDisabled(false); // Enable the button
     }
-  
-    // Update total allowances only if valid
+
+    // Update total allowances
     const validOtherAllowances = Math.max(0, newOtherAllowances);
     setTotalAllowances(totalAllow + validOtherAllowances);
-  
-    // Update other allowances only if valid
+
     setAllowances((prevAllowances) => ({
       ...prevAllowances,
       otherAllowances: validOtherAllowances.toFixed(2),
     }));
   };
 
+  useEffect(() => {
+    const totalAllow = calculateTotalAllowances();
+    const newOtherAllowances = grossAmount - totalAllow;
+
+    // Check for errors
+    if (newOtherAllowances < 0) {
+      setErrorMessage("Total allowances exceed gross amount. Please adjust allowances.");
+      setIsSubmitDisabled(true); // Disable the button
+    } else {
+      setErrorMessage(""); // Clear error message if valid
+      setIsSubmitDisabled(false); // Enable the button
+    }
+
+    // Update total allowances
+    const validOtherAllowances = Math.max(0, newOtherAllowances);
+    setTotalAllowances(totalAllow + validOtherAllowances);
+
+    setAllowances((prevAllowances) => ({
+      ...prevAllowances,
+      otherAllowances: validOtherAllowances.toFixed(2),
+    }));
+  }, [allowances, grossAmount]);
+
+
   const handleDeductionChange = (key, value) => {
     const newDeductions = { ...deductions, [key]: value };
     setDeductions(newDeductions);
-  }; 
+  };
 
-useEffect(() => {
-  const totalDed = calculateTotalDeductions();
-  setTotalDeductions(totalDed);
-}, [deductions, grossAmount]);
+  useEffect(() => {
+    const totalDed = calculateTotalDeductions();
+    setTotalDeductions(totalDed);
+  }, [deductions, grossAmount]);
 
-//Calculate total allowances when allowances or grossAmount change
-useEffect(() => {
-  const totalAllow = calculateTotalAllowances();
-  const newOtherAllowances = grossAmount - totalAllow;
+  //Calculate total allowances when allowances or grossAmount change
+  useEffect(() => {
+    const totalAllow = calculateTotalAllowances();
+    const newOtherAllowances = grossAmount - totalAllow;
 
-  // Check for errors and set the error message accordingly
-  if (newOtherAllowances < 0) {
-    setErrorMessage("Total allowances exceed gross amount. Please adjust allowances.");
-  } else {
-    setErrorMessage(""); // Clear error message if valid
-  }
+    // Check for errors and set the error message accordingly
+    if (newOtherAllowances < 0) {
+      setErrorMessage("Total allowances exceed gross amount. Please adjust allowances.");
+    } else {
+      setErrorMessage(""); // Clear error message if valid
+    }
 
-  // Update total allowances only if valid
-  const validOtherAllowances = Math.max(0, newOtherAllowances);
-  setTotalAllowances(totalAllow + validOtherAllowances);
+    // Update total allowances only if valid
+    const validOtherAllowances = Math.max(0, newOtherAllowances);
+    setTotalAllowances(totalAllow + validOtherAllowances);
 
-  // Update other allowances
-  setAllowances((prevAllowances) => ({
-    ...prevAllowances,
-    otherAllowances: validOtherAllowances.toFixed(2),
-  }));
-  
-}, [allowances, grossAmount]);
+    // Update other allowances
+    setAllowances((prevAllowances) => ({
+      ...prevAllowances,
+      otherAllowances: validOtherAllowances.toFixed(2),
+    }));
+
+  }, [allowances, grossAmount]);
 
   const calculateAllowances = () => {
     calculateTotalAllowances();
@@ -309,68 +364,136 @@ useEffect(() => {
 
   const companyName = user.company;
 
+  // const onSubmit = (data) => {
+  //   // Get the values from the state/props before using them
+  //   const fixedAmount = parseFloat(data.fixedAmount) || 0; // Ensure this is parsed
+  //   const variableAmount = parseFloat(data.variableAmount) || 0; // Ensure this is parsed
+  //   const grossAmountValue = parseFloat(grossAmount) || 0; // Ensure this is defined and parsed
+  //   const totalEarningsValue = parseFloat(totalAllowances) || 0; // Ensure this is defined and parsed
+  //   const netSalaryValue = parseFloat(netSalary) || 0; // Use state netSalary
+  //   const totalDeductionsValue = parseFloat(totalDeductions) || 0; // Ensure this is defined and parsed
+  //   const pfTaxValue = parseFloat(pfTax) || 0; // Ensure this is defined and parsed
+  //   const incomeTax = data.incomeTax; // Ensure this is defined
+  //   const statusValue = data.status; // Set as needed
+
+  //   // Check if variableAmount, fixedAmount, and grossAmount are all 0
+  //   if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
+  //     return; // Exit if all amounts are zero
+  //   }
+
+  //   // Construct the allowances and deductions objects
+  //   const allowancesData = {}; // Initialize allowances object
+  //   const deductionsData = {}; // Initialize deductions object
+
+  //   // Populate allowances based on your application logic
+  //   Object.entries(allowances).forEach(([key, value]) => {
+  //     allowancesData[key] = value; // Adjust according to your logic
+  //   });
+
+  //   // Extract "Basic Salary" from allowances
+  //   // const basicSalaryValue = parseFloat(allowancesData["Basic Salary"]) || 0; // Ensure it's a number
+
+  //   // Populate deductions similarly
+  //   Object.entries(deductions).forEach(([key, value]) => {
+  //     deductionsData[key] = value; // Adjust according to your logic
+  //   });
+
+  //   // Construct the final data object
+  //   const dataToSubmit = {
+  //     companyName: companyName, // Replace with actual value from state/props
+  //     fixedAmount: fixedAmount.toFixed(2), // Convert to string if necessary
+  //     variableAmount: variableAmount.toFixed(2), // Convert to string if necessary
+  //     grossAmount: grossAmountValue.toFixed(2), // Convert to string if necessary
+  //     // "Basic Salary": basicSalaryValue.toFixed(2), // Place with the key as "Basic Salary"
+  //     salaryConfigurationEntity: {
+  //       allowances: allowancesData,
+  //       deductions: deductionsData,
+  //     },
+  //     totalEarnings: totalEarningsValue.toFixed(2), // Convert to string if necessary
+  //     netSalary: netSalaryValue.toFixed(2), 
+  //     totalDeductions: totalDeductionsValue.toFixed(2), // Convert to string if necessary
+  //     pfTax: pfTaxValue.toFixed(2), // Convert to string if necessary
+  //     incomeTax: incomeTax, // Convert to string if necessary
+  //     status: statusValue,
+  //   };
+
+  //   console.log("Post Data:", dataToSubmit);
+  //   const apiCall = salaryId
+  //     ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit) // Update existing data
+  //     : () => EmployeeSalaryPostApi(employeeId, dataToSubmit); // Add new data
+
+  //   apiCall()
+  //     .then((response) => {
+  //       toast.success(salaryId ? "Employee Salary Updated Successfully" : "Employee Salary Added Successfully");
+  //       setErrorMessage(""); // Clear error message on success
+  //       setShowFields(false);
+  //       navigate('/employeeview');
+  //     })
+  //     .catch((error) => {
+  //       handleApiErrors(error);
+  //     });
+  // };
+
   const onSubmit = (data) => {
-    // Get the values from the state/props before using them
-    const fixedAmount = parseFloat(data.fixedAmount) || 0; // Ensure this is parsed
-    const variableAmount = parseFloat(data.variableAmount) || 0; // Ensure this is parsed
-    const grossAmountValue = parseFloat(grossAmount) || 0; // Ensure this is defined and parsed
-    const totalEarningsValue = parseFloat(totalAllowances) || 0; // Ensure this is defined and parsed
-    const netSalaryValue = parseFloat(netSalary) || 0; // Use state netSalary
-    const totalDeductionsValue = parseFloat(totalDeductions) || 0; // Ensure this is defined and parsed
-    const pfTaxValue = parseFloat(pfTax) || 0; // Ensure this is defined and parsed
-    const incomeTax = data.incomeTax; // Ensure this is defined
-    const statusValue = data.status; // Set as needed
-  
+    // Check if there's an error related to salary structures
+    if (error) {
+      toast.error(error); // Display the error message using toast
+      return; // Exit if there's an error
+    }
+
+    // If no error, proceed with the form submission logic
+    const fixedAmount = parseFloat(data.fixedAmount) || 0;
+    const variableAmount = parseFloat(data.variableAmount) || 0;
+    const grossAmountValue = parseFloat(grossAmount) || 0;
+    const totalEarningsValue = parseFloat(totalAllowances) || 0;
+    const netSalaryValue = parseFloat(netSalary) || 0;
+    const totalDeductionsValue = parseFloat(totalDeductions) || 0;
+    const pfTaxValue = parseFloat(pfTax) || 0;
+    const incomeTax = data.incomeTax;
+    const statusValue = data.status;
+
     // Check if variableAmount, fixedAmount, and grossAmount are all 0
     if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
       return; // Exit if all amounts are zero
     }
-  
+
     // Construct the allowances and deductions objects
-    const allowancesData = {}; // Initialize allowances object
-    const deductionsData = {}; // Initialize deductions object
-  
-    // Populate allowances based on your application logic
+    const allowancesData = {};
+    const deductionsData = {};
+
     Object.entries(allowances).forEach(([key, value]) => {
-      allowancesData[key] = value; // Adjust according to your logic
+      allowancesData[key] = value;
     });
-  
-    // Extract "Basic Salary" from allowances
-    // const basicSalaryValue = parseFloat(allowancesData["Basic Salary"]) || 0; // Ensure it's a number
-  
-    // Populate deductions similarly
+
     Object.entries(deductions).forEach(([key, value]) => {
-      deductionsData[key] = value; // Adjust according to your logic
+      deductionsData[key] = value;
     });
-  
-    // Construct the final data object
+
     const dataToSubmit = {
-      companyName: companyName, // Replace with actual value from state/props
-      fixedAmount: fixedAmount.toFixed(2), // Convert to string if necessary
-      variableAmount: variableAmount.toFixed(2), // Convert to string if necessary
-      grossAmount: grossAmountValue.toFixed(2), // Convert to string if necessary
-      // "Basic Salary": basicSalaryValue.toFixed(2), // Place with the key as "Basic Salary"
+      companyName: companyName,
+      fixedAmount: fixedAmount.toFixed(2),
+      variableAmount: variableAmount.toFixed(2),
+      grossAmount: grossAmountValue.toFixed(2),
       salaryConfigurationEntity: {
         allowances: allowancesData,
         deductions: deductionsData,
       },
-      totalEarnings: totalEarningsValue.toFixed(2), // Convert to string if necessary
-      netSalary: netSalaryValue.toFixed(2), 
-      totalDeductions: totalDeductionsValue.toFixed(2), // Convert to string if necessary
-      pfTax: pfTaxValue.toFixed(2), // Convert to string if necessary
-      incomeTax: incomeTax, // Convert to string if necessary
+      totalEarnings: totalEarningsValue.toFixed(2),
+      netSalary: netSalaryValue.toFixed(2),
+      totalDeductions: totalDeductionsValue.toFixed(2),
+      pfTax: pfTaxValue.toFixed(2),
+      incomeTax: incomeTax,
       status: statusValue,
     };
-  
-    console.log("Post Data:", dataToSubmit);
+
     const apiCall = salaryId
-      ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit) // Update existing data
-      : () => EmployeeSalaryPostApi(employeeId, dataToSubmit); // Add new data
-  
+      ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit)
+      : () => EmployeeSalaryPostApi(employeeId, dataToSubmit);
+
     apiCall()
       .then((response) => {
         toast.success(salaryId ? "Employee Salary Updated Successfully" : "Employee Salary Added Successfully");
-        setErrorMessage(""); // Clear error message on success
+        setError(''); // Clear error message on success
         setShowFields(false);
         navigate('/employeeview');
       })
@@ -378,7 +501,14 @@ useEffect(() => {
         handleApiErrors(error);
       });
   };
-  
+
+  {
+    error && (
+      <div className="error-message" style={{ color: 'red', marginBottom: '10px' }}>
+        {error}
+      </div>
+    )
+  }
 
   return (
     <LayOut>
@@ -425,13 +555,6 @@ useEffect(() => {
                               pattern: {
                                 value: /^[0-9]+$/,
                                 message: "These filed accepcts only Integers",
-                              },
-                              validate: {
-                                notZero: value => value !== "0" || "Value cannot be 0"
-                              },
-                              minLength: {
-                                value: 5,
-                                message: "Minimum 5 Numbers Required"
                               },
                               maxLength: {
                                 value: 10,
@@ -513,106 +636,105 @@ useEffect(() => {
                       </div>
                     </div>
                   </div>
-                  </div>
-                  {loading ? (
-                    <Loader /> // Show loader while loading
-                  ) : (
+                </div>
+                {loading ? (
+                  <Loader /> // Show loader while loading
+                ) : (
                   showCards && (
                     <>
-                  <div className="row d-flex">
-                    <div className="col-6 mb-4">
-                      <div className="card">
-                        <div className="card-header">
-                          <h5 className="card-title">Allowances</h5>
-                        </div>
-                        <div className="card-body">
-                        {errorMessage && <span className="text-danger m-2 text-center">{errorMessage}</span>}
-                        {Object.keys(allowances).map((key) => (
-                          <div key={key} className="mb-3">
-                            <label>
-                              {key}: <span className="text-danger" data-toggle="tooltip" title="This value from Company Salary Structure">({allowances[key]})</span>
-                            </label>
-                            <input
-                              className="form-control"
-                              type="text" // Allow for '%' characters
-                              value={allowances[key]}
-                              onChange={(e) => handleAllowanceChange(key, e.target.value)} // Use e.target.value
-                            />
-                          </div>
-                        ))}
-                          <label>Total Allowances: </label>
-                          <input
-                            className="form-control"
-                            type="number"
-                            name="totalAllowance"
-                            value={totalAllowances}
-                            readOnly // Keep total as read-only if calculated automatically
-                          />
-                            <span className="text-center">{error && <div className="text-danger">{error}</div>}</span>
-                        </div>
-                      </div>
-                      <div className="card">
-                    <div className="card-header ">
-                      <div className="d-flex justify-content-start align-items-start">
-                        <h5 className="card-title me-2">Status</h5>
-                        <span className="text-danger">
-                          {errors.companyType && (
-                            <p className="mb-0">{errors.status.message}</p>
-                          )}
-                        </span>
-                      </div>
-                      <hr
-                        className="dropdown-divider"
-                        style={{ borderTopColor: "#d7d9dd", width: "100%" }}
-                      />
-                    </div>
-                    <div className="card-body">
-                      <div className="row">
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <div>
-                            <label>
+                      <div className="row d-flex">
+                        <div className="col-6 mb-4">
+                          <div className="card">
+                            <div className="card-header">
+                              <h5 className="card-title">Allowances</h5>
+                            </div>
+                            <div className="card-body">
+                              {errorMessage && <span className="text-danger m-2 text-center">{errorMessage}</span>}
+                              {Object.keys(allowances).map((key) => (
+                                <div key={key} className="mb-3">
+                                  <label>
+                                    {key}: <span className="text-danger" data-toggle="tooltip" title="This value from Company Salary Structure">({allowances[key]})</span>
+                                  </label>
+                                  <input
+                                    className="form-control"
+                                    type="text" // Allow for '%' characters
+                                    value={allowances[key]}
+                                    onChange={(e) => handleAllowanceChange(key, e.target.value)} // Use e.target.value
+                                  />
+                                </div>
+                              ))}
+                              <label>Total Allowances: </label>
                               <input
-                                type="radio"
-                                name="status"
-                                value="Active"
-                                style={{ marginRight: "10px" }}
-                                {...register("status", {
-                                  required: "Please Select Status",
-                                })}
+                                className="form-control"
+                                type="number"
+                                name="totalAllowance"
+                                value={totalAllowances}
+                                readOnly // Keep total as read-only if calculated automatically
                               />
-                              Active
-                            </label>
+                            </div>
+                          </div>
+                          <div className="card">
+                            <div className="card-header ">
+                              <div className="d-flex justify-content-start align-items-start">
+                                <h5 className="card-title me-2">Status</h5>
+                                <span className="text-danger">
+                                  {errors.companyType && (
+                                    <p className="mb-0">{errors.status.message}</p>
+                                  )}
+                                </span>
+                              </div>
+                              <hr
+                                className="dropdown-divider"
+                                style={{ borderTopColor: "#d7d9dd", width: "100%" }}
+                              />
+                            </div>
+                            <div className="card-body">
+                              <div className="row">
+                                <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                  <div>
+                                    <label>
+                                      <input
+                                        type="radio"
+                                        name="status"
+                                        value="Active"
+                                        style={{ marginRight: "10px" }}
+                                        {...register("status", {
+                                          required: "Please Select Status",
+                                        })}
+                                      />
+                                      Active
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="col-lg-1"></div>
+                                <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                  <label className="ml-3">
+                                    <input
+                                      type="radio"
+                                      name="status"
+                                      value="InActive"
+                                      style={{ marginRight: "10px" }}
+                                      {...register("status", {
+                                        required: "Please Select Status",
+                                      })}
+                                    />
+                                    InActive
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="col-lg-1"></div>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="ml-3">
-                            <input
-                              type="radio"
-                              name="status"
-                              value="InActive"
-                              style={{ marginRight: "10px" }}
-                              {...register("status", {
-                                required: "Please Select Status",
-                              })}
-                            />
-                            InActive
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                    </div>
 
-                    {/* Deductions Card */}
-                    <div className="col-6 mb-4">
-                      <div className="card">
-                        <div className="card-header">
-                          <h5 className="card-title">Deductions</h5>
-                        </div>
-                        <div className="card-body">
+                        {/* Deductions Card */}
+                        <div className="col-6 mb-4">
+                          <div className="card">
+                            <div className="card-header">
+                              <h5 className="card-title">Deductions</h5>
+                            </div>
+                            <div className="card-body">
 
-                        {Object.entries(deductions).map(([key, value]) => (
+                              {Object.entries(deductions).map(([key, value]) => (
                                 <div key={key} className="mb-3">
                                   <label>
                                     {key}: <span className="text-danger">({deductions[key]})</span>
@@ -625,94 +747,103 @@ useEffect(() => {
                                   />
                                 </div>
                               ))}
-                          <div className="mb-3">
-                            <label>Total Deductions</label>
-                            <input
-                              className="form-control"
-                              type="number"
-                              value={totalDeductions.toFixed(2)} // Display total deductions
-                              readOnly // Make it read-only
-                            />
+                              <div className="mb-3">
+                                <label>Total Deductions</label>
+                                <input
+                                  className="form-control"
+                                  type="number"
+                                  value={totalDeductions.toFixed(2)} // Display total deductions
+                                  readOnly // Make it read-only
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                         <div className="card">
-                    <div className="card-header ">
-                      <div className="d-flex justify-content-start align-items-start">
-                        <h5 className="card-title me-2">TDS</h5>
-                        <span className="text-danger">
-                          {errors.incomeTax && (
-                            <p className="mb-0">{errors.incomeTax.message}</p>
-                          )}
-                        </span>
-                      </div>
-                      <hr
-                        className="dropdown-divider"
-                        style={{ borderTopColor: "#d7d9dd", width: "100%" }}
-                      />
-                    </div>
-                    <div className="card-body">
-                      <div className="row">
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <div>
-                            <label>
-                              <input
-                                type="radio"
-                                name="incomeTax"
-                                value="old"
-                                style={{ marginRight: "10px" }}
-                                {...register("incomeTax", {
-                                  required: "Please Select Tax",
-                                })}
+                          <div className="card">
+                            <div className="card-header ">
+                              <div className="d-flex justify-content-start align-items-start">
+                                <h5 className="card-title me-2">TDS</h5>
+                                <span className="text-danger">
+                                  {errors.incomeTax && (
+                                    <p className="mb-0">{errors.incomeTax.message}</p>
+                                  )}
+                                </span>
+                              </div>
+                              <hr
+                                className="dropdown-divider"
+                                style={{ borderTopColor: "#d7d9dd", width: "100%" }}
                               />
-                              Old Regime
-                            </label>
+                            </div>
+                            <div className="card-body">
+                              <div className="row">
+                                <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                  <div>
+                                    <label>
+                                      <input
+                                        type="radio"
+                                        name="incomeTax"
+                                        value="old"
+                                        style={{ marginRight: "10px" }}
+                                        {...register("incomeTax", {
+                                          required: "Please Select Tax",
+                                        })}
+                                      />
+                                      Old Regime
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="col-lg-1"></div>
+                                <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                  <label className="ml-3">
+                                    <input
+                                      type="radio"
+                                      name="incomeTax"
+                                      value="new"
+                                      style={{ marginRight: "10px" }}
+                                      {...register("incomeTax", {
+                                        required: "Please Select Tax",
+                                      })}
+                                    />
+                                    New Regime
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="card">
+                            <div className="card-header">
+                              <h5 className="card-title">Net Salary</h5>
+                            </div>
+                            <div className="card-body">
+                              <div className="mb-3">
+                                <label>Net Salary</label>
+                                <input
+                                  className="form-control"
+                                  type="text"
+                                  name="netSalary"
+                                  value={netSalary.toFixed(2)}
+                                  readOnly // Make it read-only
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="col-lg-1"></div>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="ml-3">
-                            <input
-                              type="radio"
-                              name="incomeTax"
-                              value="new"
-                              style={{ marginRight: "10px" }}
-                              {...register("incomeTax", {
-                                required: "Please Select Tax",
-                              })}
-                            />
-                            New Regime
-                          </label>
-                        </div>
                       </div>
-                    </div>
-                  </div>
-                      <div className="card">
-                        <div className="card-header">
-                          <h5 className="card-title">Net Salary</h5>
+                      {error && (
+                        <div className="error-message" style={{ color: 'red', marginBottom: '10px', textAlign: "center" }}>
+                          <b>{error}</b>
                         </div>
-                        <div className="card-body">
-                          <div className="mb-3">
-                            <label>Net Salary</label>
-                            <input
-                              className="form-control"
-                              type="text"
-                              name="netSalary"
-                              value={netSalary.toFixed(2)}
-                              readOnly // Make it read-only
-                            />
-                          </div>
-                        </div>
+                      )}
+                      <div className="col-12 text-end" style={{ marginTop: "60px" }}>
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={!!errorMessage} // Disable button if errorMessage exists
+                        >
+                          {isUpdating ? 'Update' : 'Submit'}
+                        </button>
                       </div>
-                    </div>
-                  </div>
-                <div className="col-12 text-end" style={{ marginTop: "60px" }}>
-                  <button type="submit" className="btn btn-primary">
-                    {isUpdating ? 'Update' : 'Submit'}
-                  </button>
-                </div>
-                </>
-                  )  
+                    </>
+                  )
                 )}
               </>
             ) : (

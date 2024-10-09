@@ -99,6 +99,30 @@ const EmsLogin = () => {
     return true; // Return true if all conditions are satisfied
   };
 
+  const toInputLowerCase = (e) => {
+    const input = e.target;
+    let value = input.value;
+    // Remove leading spaces
+    value = value.replace(/^\s+/g, '');
+
+    // Initially disallow spaces if there are no non-space characters
+    if (!/\S/.test(value)) {
+      // If no non-space characters are present, prevent spaces
+      value = value.replace(/\s+/g, '');
+    } else {
+      // Allow spaces if there are non-space characters
+      value = value.toLowerCase();
+      value = value.replace(/^\s+/g, ''); // Remove leading spaces
+      const words = value.split(' ');
+      const capitalizedWords = words.map(word => {
+        return word.charAt(0).toLowerCase() + word.slice(1);
+      });
+      value = capitalizedWords.join(' ');
+    }
+    // Update input value
+    input.value = value;
+  };
+
   return (
     <main className="newLoginMainWrapper">
        {loading &&(<Loader/>)}
@@ -122,12 +146,13 @@ const EmsLogin = () => {
                             name="email"
                             placeholder="Email"
                             autoComplete="off"
+                            onInput={toInputLowerCase}
                             onKeyDown={handleEmailChange}
                             {...register("username", {
                               required: "Email is Required.",
                               pattern: {
-                              value: /^\S[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                              message: "Email is not valid.",
+                                value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                                message: "Invalid email format it allows Only .com, .in, .org, .net, .edu, .gov are allowed",
                               },
                               })}
                             />

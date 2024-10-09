@@ -22,7 +22,6 @@
     .salary-table, .salary-table th, .salary-table td {
             border: 1px solid black;
             border-collapse: collapse;
-            padding: 4px;
         }
      table
      {
@@ -42,7 +41,7 @@
      margin: 20px 0;
      }
      .address {
-     margin-top:190px;
+     margin-top:150px;
      text-align: center;
     }
     .allowance-fields, .allowance-values{
@@ -144,71 +143,111 @@
                         <th>Amount (B)</th>
                     </tr>
                    <tr>
-                        <!-- Column for Allowances and Amounts -->
-                        <td>
-                            <table class = "allowance-fields">
-                                <!-- Loop through Allowances -->
+                                           <!-- Column for Allowances and Amounts -->
+                                           <td>
+                                               <table class="allowance-fields">
+                                                   <!-- Loop through Allowances -->
 
-                                <#list allowanceList as allowance>
-                                    <#list allowance?keys as key>
-                                        <tr>
-                                            <td>${key}</td>
-                                        </tr>
-                                    </#list>
-                                </#list>
-                                 <tr>
-                                   <td>Total Earnings (A)</td>
-                                </tr>
+                                                   <#list allowanceList as allowance>
+                                                       <#list allowance?keys as key>
+                                                           <tr>
+                                                               <td>${key}</td>
+                                                           </tr>
+                                                       </#list>
+                                                   </#list>
+                                                   <tr>
+                                                       <td>Total Earnings (A)</td>
+                                                   </tr>
 
-                            </table>
-                        </td>
+                                               </table>
+                                           </td>
 
 
-                        <td>
-                            <table class = "allowance-values">
-                                <!-- Loop through Allowances to Get Amounts -->
+                                           <td>
+                                               <table class="allowance-values">
+                                                   <!-- Loop through Allowances to Get Amounts -->
 
-                                <#list allowanceList as allowance>
-                                    <#list allowance?keys as key>
-                                        <tr>
-                                            <td>${allowance[key]}</td> <!-- Display allowance amount -->
-                                        </tr>
-                                    </#list>
-                                </#list>
-                                 <tr>
-                                   <td>${payslipEntity.salary.totalEarnings}</td> <!-- Total Earnings Amount -->
-                                  </tr>
-                            </table>
-                        </td>
+                                                   <#list allowanceList as allowance>
+                                                       <#list allowance?keys as key>
+                                                           <tr>
+                                                               <td>${allowance[key]}</td> <!-- Display allowance amount -->
+                                                           </tr>
+                                                       </#list>
+                                                   </#list>
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.totalEarnings}</td> <!-- Total Earnings Amount -->
+                                                   </tr>
+                                               </table>
+                                           </td>
 
-                        <!-- Column for Deductions and Amounts -->
-                        <td>
-                            <table class = "deduction-fields">
-                                <!-- Loop through Deductions -->
-                                <#list deductionList as deduction>
-                                    <#list deduction?keys as key>
-                                        <tr>
-                                            <td>${key}</td>
-                                        </tr>
-                                    </#list>
-                                </#list>
-                            </table>
-                        </td>
+                                           <!-- Column for Deductions and Amounts -->
+                                           <td>
+                                               <table class="deduction-fields">
+                                                   <!-- Loop through Deductions -->
+                                                   <#list deductionList as deduction>
+                                                       <#list deduction?keys as key>
+                                                           <tr>
+                                                               <td>${key}</td>
+                                                           </tr>
+                                                       </#list>
+                                                   </#list>
+                                                   <tr>
+                                                       <td>LOP</td> <!-- Add LOP -->
+                                                   </tr>
+                                                   <tr>
+                                                       <td>Total Deductions (B)</td> <!-- Add LOP -->
+                                                   </tr>
+                                                   <tr>
+                                                       <th style="border-left: 900px ; border-right: 900px;">Taxes (C)</th> <!-- Add LOP -->
+                                                   </tr>
+                                                   <tr>
+                                                       <td>Income Tax</td> <!-- Add Income Tax -->
+                                                   </tr>
+                                                   <tr>
+                                                       <td>Pf Tax</td> <!-- Add Pf Tax -->
+                                                   </tr>
+                                                   <tr>
+                                                       <td>Total Tax (C)</td> <!-- Add Total Deductions -->
+                                                   </tr>
 
-                        <td>
-                            <table class = "deduction-values">
-                                <!-- Loop through Deductions to Get Amounts -->
-                                <#list deductionList as deduction>
-                                    <#list deduction?keys as key>
-                                        <tr>
-                                            <td>${deduction[key]}</td> <!-- Display deduction amount -->
-                                        </tr>
-                                    </#list>
-                                </#list>
-                            </table>
-                        </td>
-                    </tr>
-                <!-- Net Pay Row -->
+                                               </table>
+                                           </td>
+
+                                           <td>
+                                               <table class="deduction-values">
+                                                   <!-- Loop through Deductions to Get Amounts -->
+                                                   <#list deductionList as deduction>
+                                                       <#list deduction?keys as key>
+                                                           <tr>
+                                                               <td>${deduction[key]}</td> <!-- Display deduction amount -->
+                                                           </tr>
+                                                       </#list>
+                                                   </#list>
+
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.lop!0}</td>
+                                                   </tr> <!-- Display LOP amount, default to 0 if null or empty -->
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.totalDeductions}</td>
+                                                   </tr> <!-- Display LOP amount -->
+                                                   <tr>
+                                                       <th style="border-left: 900px ; border-right: 900px;">Amount (C)</th>
+                                                   </tr> <!-- Display Income Tax amount -->
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.incomeTax}</td>
+                                                   </tr> <!-- Display Income Tax amount -->
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.pfTax}</td>
+                                                   </tr> <!-- Display Income Tax amount -->
+                                                   <tr>
+                                                       <td>${payslipEntity.salary.totalTax}</td>
+                                                   </tr> <!-- Display Total Deductions -->
+
+
+                                               </table>
+                                           </td>
+                   </tr>
+                   <!-- Net Pay Row -->
                 <tr>
                     <th>Net Pay (A-B-C)</th>
                     <td colspan="3"><strong>${payslipEntity.salary.netSalary}</strong></td>

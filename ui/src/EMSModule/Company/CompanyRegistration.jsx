@@ -58,7 +58,7 @@ const CompanyRegistration = () => {
         password: data.password,
         companyAddress: data.companyAddress,
         mobileNo: data.mobileNo,
-        landNo: data.landNo,
+        alternateNo: data.alternateNo,
         name: data.name,
         personalMailId: data.personalMailId,
         personalMobileNo: data.personalMobileNo,
@@ -622,8 +622,8 @@ const CompanyRegistration = () => {
                           }
                         })}
                       />
-                      {errors.landNo && (
-                        <p className="errorMsg">{errors.landNo.message}</p>
+                      {errors.alternateNo && (
+                        <p className="errorMsg">{errors.alternateNo.message}</p>
                       )}
                     </div>
                     {editMode && (

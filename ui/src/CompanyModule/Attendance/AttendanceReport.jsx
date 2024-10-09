@@ -265,7 +265,7 @@ const AttendanceReport = () => {
       },
       ...(!isAttendance && !selectedYear && !selectedMonth ? [{
         name: <h6><b>Name</b></h6>,
-        selector: (row) => `${row.firstName} ${row.lastName}`,
+        selector: (row) =>  `${row.firstName} ${row.lastName}`,
         width: "200px",
       }] : []),
       ...(!isAllAttendance && selectedYear ? [{
@@ -327,26 +327,40 @@ const AttendanceReport = () => {
                     />
                   </div>
                   <div className="col-md-3 mt-3">
-                    <label className="form-label">Select Year <span style={{ color: "red" }}>*</span></label>
-                    <Select
-                      options={getRecentYears().map((year) => ({
-                        label: year,
-                        value: year,
-                      }))}
-                      onChange={(selectedOption) => setSelectedYear(selectedOption.value)}
-                      placeholder="Select Year"
-                    />
+                    <label className="form-label">Select Year</label>
+                    <select
+                      className="form-select"
+                      style={{ paddingBottom: '6px' }}
+                      value={selectedYear}
+                      onChange={(e) =>
+                        filterByMonthYear(selectedMonth, e.target.value)
+                      }
+                    >
+                      <option value="">Select Year</option>
+                      {getRecentYears().map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="col-md-3 mt-3">
                     <label className="form-label">Select Month</label>
-                    <Select
-                      options={getMonthNames().map((month, index) => ({
-                        label: month,
-                        value: index + 1,
-                      }))}
-                      onChange={(selectedOption) => setSelectedMonth(selectedOption.value)}
-                      placeholder="Select Month"
-                    />
+                    <select
+                      className="form-select"
+                      style={{ paddingBottom: '6px' }}
+                      value={selectedMonth}
+                      onChange={(e) =>
+                        filterByMonthYear(e.target.value, selectedYear)
+                      }
+                    >
+                      <option value="">Select Month</option>
+                      {getMonthNames().map((month, index) => (
+                        <option key={index} value={(index + 1).toString()}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="col-md-3 mt-5">
                     <button

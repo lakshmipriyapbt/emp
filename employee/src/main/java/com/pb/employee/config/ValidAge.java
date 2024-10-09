@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidAge {
-    String message() default "Employee must be at least 21 years old at the time of hiring.";
+    String message() default "Employee must be 20 to 65 age between.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

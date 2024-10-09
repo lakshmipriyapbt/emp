@@ -14,5 +14,4 @@ public class EmployeePasswordforgot {
     private String username;
     private String password;
     private String company;
-    private String companyName;
 }

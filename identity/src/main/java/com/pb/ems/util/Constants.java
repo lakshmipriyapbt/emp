@@ -28,6 +28,9 @@ public class Constants {
     public static final String COMPANY = "company";
     public static final String DEFAULT = "default";
     public static final String COMPANY_ID = "companyId";
+    public static final String TYPE = "type";
+    public static final String COMPANY_NAME = "companyName";
+    public static final String SHORT_NAME = "shortName";
 }
 
 

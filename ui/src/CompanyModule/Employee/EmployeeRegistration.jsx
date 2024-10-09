@@ -521,7 +521,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                           required: "Employee Id is Required",
                           pattern: {
                             value: /^(?=.*\d)[A-Z0-9]+$/,
-                            message: "Must include at least one number and cannot contain only letters.",
+                            message: "These fields accepts only Integers and Alphanumerical Characters",
                           },
                           minLength: {
                             value: 1,
@@ -864,7 +864,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       <div className="col-lg-1"></div>
                     )}
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label mb-3">Status <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">Status <span style={{ color: "red" }}>*</span></label>
                       <Controller
                         name="status"
                         control={control}
@@ -903,7 +903,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                             onInput={toInputSpaceCase}
                             onKeyDown={handleEmailChange}
                             {...register("mobileNo", {
-                              required: "Contact Number is Required",
+                              required: "Mobile Number is Required",
                               pattern: {
                                 value: /^(?!0000000000)[0-9]{10}$/,
                                 message:
