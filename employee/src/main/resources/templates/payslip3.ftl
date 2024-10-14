@@ -111,12 +111,7 @@
 
         .allowance-fields,
         .allowance-values {
-            margin-bottom: 28px;
-        }
-
-        .deduction-fields,
-        .deduction-values {
-            margin-bottom: 28px;
+            margin-bottom: 50px;
         }
 
         .allowance-fields,

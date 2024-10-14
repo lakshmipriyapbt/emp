@@ -45,13 +45,9 @@ public class SalaryUpdateRequest {
     private String netSalary;
 
     @Schema(example = "totalDeduction")
-    @Pattern(regexp = "^\\d+(\\.\\d{1,2})?$", message = "{totalDeduction.format}")
-    @Size(min = 2, max = 20, message = "{totalDeduction.size.message}")
     private String totalDeductions;
 
     @Schema(example = "incomeTax")
-    @Pattern(regexp = "^(new|old)$", message = "{incomeTax.format}")
-    @Size(min = 3, max = 4, message = "{incomeTax.size.message}")
     private String incomeTax;
 
     @Schema(example = "status")

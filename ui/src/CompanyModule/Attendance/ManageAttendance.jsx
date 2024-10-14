@@ -4,7 +4,7 @@ import { AttendanceManagementApi, EmployeeGetApi } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
-import * as XLSX from 'xlsx'; 
+import * as XLSX from 'xlsx';
 
 const ManageAttendance = () => {
   const {
@@ -23,11 +23,13 @@ const ManageAttendance = () => {
         const data = await EmployeeGetApi();
         const formattedData = data
           .filter((employee) => employee.firstName !== null)
-          .map(({ employeeId, firstName, lastName, emailId, workingDays }) => ({
+          .map(({ employeeId, firstName, lastName, emailId, Month, Year, workingDays }) => ({
             employeeId,
             firstName,
             lastName,
             emailId,
+            Month,
+            Year,
             workingDays,
           }));
         setEmployees(formattedData);
@@ -70,13 +72,22 @@ const ManageAttendance = () => {
     }
     console.error(error.response);
   };
-
+  
   const downloadExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(employees, { header: ["employeeId", "firstName", "lastName", "emailId", "workingDays"] });
+    const currentDate = new Date();
+    const currentMonth = currentDate.toLocaleString('default', { month: 'long' }); 
+    const currentYear = currentDate.getFullYear();
+    const updatedEmployees = employees.map(employee => ({
+      ...employee,
+      Month: currentMonth,
+      Year: currentYear
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(updatedEmployees, { header: ["employeeId", "firstName", "lastName", "emailId", "Month", "Year", "workingDays"] });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
     XLSX.writeFile(workbook, "attendance_data.xlsx");
-};
+  };
 
 
   return (

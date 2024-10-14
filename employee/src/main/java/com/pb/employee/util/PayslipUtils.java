@@ -78,26 +78,34 @@ public class PayslipUtils {
             salary.setGrossAmount(String.valueOf(gross));
         }
 
-        if (salaryRequest.getPfTax() != null) {
-            byte[] decodedTax = Base64.getDecoder().decode(salaryRequest.getPfTax());
-            tax = Double.parseDouble(new String(decodedTax));
-            tax = tax/12.0;
-            salary.setPfTax(String.valueOf(Math.round(tax)));
-        }
-        if (salaryRequest.getIncomeTax() != null) {
-            byte[] decodedItax = Base64.getDecoder().decode(salaryRequest.getIncomeTax());
-            itax = Double.parseDouble(new String(decodedItax));
-            itax = itax/12.0;
-            salary.setIncomeTax(String.valueOf(Math.round(itax)));
-
-        }
-        if (salaryRequest.getTotalTax() != null) {
-            ttax = tax + itax;
-            ttax = (double) Math.round(ttax);
+        if (noOfWorkingDays == 0){
+            tax = 0.0;
+            ttax = 0.0;
+            itax=0.0;
             salary.setTotalTax(String.valueOf(ttax));
+            salary.setPfTax(String.valueOf(tax));
+            salary.setIncomeTax(String.valueOf(itax));
+        }else {
+            if (salaryRequest.getPfTax() != null) {
+                byte[] decodedTax = Base64.getDecoder().decode(salaryRequest.getPfTax());
+                tax = Double.parseDouble(new String(decodedTax));
+                tax = tax / 12.0;
+                salary.setPfTax(String.valueOf(Math.round(tax)));
+            }
+            if (salaryRequest.getIncomeTax() != null) {
+                byte[] decodedItax = Base64.getDecoder().decode(salaryRequest.getIncomeTax());
+                itax = Double.parseDouble(new String(decodedItax));
+                itax = itax / 12.0;
+                salary.setIncomeTax(String.valueOf(Math.round(itax)));
+
+            }
+            if (salaryRequest.getTotalTax() != null) {
+                ttax = tax + itax;
+                ttax = (double) Math.round(ttax);
+                salary.setTotalTax(String.valueOf(ttax));
+            }
         }
-
-
+        double allowance = 0.0;
         if(salaryRequest.getSalaryConfigurationEntity().getAllowances() != null) {
             Map<String, String> decodedAllowances = new HashMap<>();
 
@@ -107,30 +115,42 @@ public class PayslipUtils {
                 decodedAllowances.put(entry.getKey(), calculatedValue);
 
                 // Sum the allowances
+                allowance += Double.parseDouble(calculatedValue);
             }
             salary.getSalaryConfigurationEntity().setAllowances(decodedAllowances);
 
         }
-        if (salaryRequest.getTotalEarnings() != null){
-            byte[] decodedTax = Base64.getDecoder().decode(salaryRequest.getTotalEarnings());
-            te = Double.parseDouble(new String(decodedTax));
-            te = te/12.0;
-            salary.setTotalEarnings(String.valueOf(Math.round(te)));
-        }
+
 
         double totalDeduction = 0.0;
         if (salaryRequest.getSalaryConfigurationEntity().getDeductions()!=null){
             Map<String, String> decodeDeductions = new HashMap<>();
-            for (Map.Entry<String, String> entry : salaryRequest.getSalaryConfigurationEntity().getDeductions().entrySet()){
-                String unmaskValues = unMaskValue(entry.getValue());
-                String calculatedValue = persentageOrValue(unmaskValues, gross);
-                decodeDeductions.put(entry.getKey(), calculatedValue);
+            if (noOfWorkingDays == 0){
+                for (Map.Entry<String, String> entry : salaryRequest.getSalaryConfigurationEntity().getDeductions().entrySet()){
+                    decodeDeductions.put(entry.getKey(), String.valueOf(0));
+                    totalDeduction = 0;
+                }
+                salary.getSalaryConfigurationEntity().setDeductions(decodeDeductions);
+            }else {
+                for (Map.Entry<String, String> entry : salaryRequest.getSalaryConfigurationEntity().getDeductions().entrySet()) {
+                    String unmaskValues = unMaskValue(entry.getValue());
+                    String calculatedValue = persentageOrValue(unmaskValues, gross);
+                    decodeDeductions.put(entry.getKey(), calculatedValue);
 
-                totalDeduction += Double.parseDouble(calculatedValue);
+                    totalDeduction += Double.parseDouble(calculatedValue);
+                }
+
+                salary.getSalaryConfigurationEntity().setDeductions(decodeDeductions);
             }
-            salary.getSalaryConfigurationEntity().setDeductions(decodeDeductions);
-
         }
+        if (salaryRequest.getTotalEarnings() != null){
+            te = allowance;
+            salary.setTotalEarnings(String.valueOf(Math.round(te)));
+        }
+        if (noOfWorkingDays ==0){
+            lop = te;
+            totalDeduction +=lop;
+        }else {
         int noOfLeaves = totalWorkingDays - noOfWorkingDays;
         if (noOfLeaves > 1) {
             double monthlySalary = (gross / 12);
@@ -142,13 +162,14 @@ public class PayslipUtils {
         }else {
             lop = (double) 0;
         }
+        }
         salary.setLop(String.valueOf(lop));
         salary.setTotalDeductions(String.valueOf(Math.round(totalDeduction)));
 
-        if (totalDeduction !=  0.0){
+
+
             net = te-totalDeduction-ttax;
             salary.setNetSalary(String.valueOf(Math.round(net)));
-        }
 
 
         PayslipEntity payslipEntity = objectMapper.convertValue(payslipRequest, PayslipEntity.class);

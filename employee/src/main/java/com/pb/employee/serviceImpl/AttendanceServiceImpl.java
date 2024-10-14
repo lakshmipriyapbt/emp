@@ -122,19 +122,25 @@ public class AttendanceServiceImpl implements AttendanceService {
                             HttpStatus.CONFLICT);
                 }
 
-                // Validate the attendance date period (e.g., September 25th - October 7th)
-                if (!isAttendancePeriodValid(attendanceRequest.getYear(), attendanceRequest.getMonth())) {
-                    log.error("Attendance date is outside the allowed period for year: {}, month: {}", attendanceRequest.getYear(), attendanceRequest.getMonth());
-                    return new ResponseEntity<>(
-                            ResponseBuilder.builder().build().
-                                    createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
-                                            .getMessage(EmployeeErrorMessageKey.INVALID_ATTENDANCE_DATE)))),
-                            HttpStatus.BAD_REQUEST);
-                }
+
             }
 
             // If all validations pass, add attendance
             for (AttendanceRequest attendanceRequest : attendanceRequests) {
+                // Get current year and month
+                LocalDate now = LocalDate.now();
+                int currentYear = now.getYear();
+                int currentMonth = now.getMonthValue();
+                if (Integer.parseInt(attendanceRequest.getYear()) == currentYear && MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue() == currentMonth) {
+                    // If the current month, check if it's before or on the 25th
+                    if (now.getDayOfMonth() <= 25) {
+                        return new ResponseEntity<>(
+                                ResponseBuilder.builder().build().
+                                        createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                                .getMessage(EmployeeErrorMessageKey.INVALID_ATTENDANCE_DATE)))),
+                                HttpStatus.NOT_FOUND);                      }
+                }
+
                 addAttendanceOfEmployees(attendanceRequest);
             }
 
@@ -276,6 +282,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private List<AttendanceRequest> parseExcelFile(MultipartFile file, String company) throws Exception {
         List<AttendanceRequest> attendanceRequests = new ArrayList<>();
         String fileName = file.getOriginalFilename();
+
         if (fileName != null && (fileName.endsWith(".xls") || fileName.endsWith(".xlsx"))) {
             try (InputStream excelIs = file.getInputStream()) {
                 log.info("Successfully opened input stream for file: {}", fileName);
@@ -286,71 +293,77 @@ public class AttendanceServiceImpl implements AttendanceService {
                     log.error("Failed to create workbook for file: {}", e.getMessage(), e);
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_CREATE), HttpStatus.INTERNAL_SERVER_ERROR);
                 }
+
                 Sheet sheet = wb.getSheetAt(0);
                 log.info("Successfully retrieved sheet: '{}', with {} rows.", sheet.getSheetName(), sheet.getPhysicalNumberOfRows());
                 Iterator<Row> rowIt = sheet.rowIterator();
+
                 if (!rowIt.hasNext()) {
                     log.warn("No rows found in the sheet '{}'", sheet.getSheetName());
                 }
-                // Get current year and month
-                LocalDate now = LocalDate.now();
-                String currentYear = String.valueOf(now.getYear());
-                String currentMonth = now.getMonth().minus(1).name().substring(0, 1).toUpperCase()
-                        + now.getMonth().minus(1).name().substring(1).toLowerCase();
+
+
                 while (rowIt.hasNext()) {
                     Row currentRow = rowIt.next();
                     log.info("Processing row number: {}", currentRow.getRowNum());
+
                     if (currentRow.getRowNum() == 0) {
                         log.info("Skipping header row.");
                         continue;
                     }
-                    if (StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(0)))
-                            || StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(1)))
-                            || StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(2)))
-                            || StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(3)))
-                            || StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(4)))) {
+
+                    // Check for empty critical cells
+                    if (StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(0))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(1))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(2))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(3))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(4))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(5))) ||
+                            StringUtils.isEmptyOrWhitespace(getCellValue(currentRow.getCell(6)))) {
+
                         log.warn("Skipping row {} as one or more critical cells are empty", currentRow.getRowNum());
                         continue;
                     }
+
                     AttendanceRequest attendanceRequest = new AttendanceRequest();
                     attendanceRequest.setCompany(company);
                     attendanceRequest.setEmployeeId(getCellValue(currentRow.getCell(0)));
                     attendanceRequest.setFirstName(getCellValue(currentRow.getCell(1)));
                     attendanceRequest.setLastName(getCellValue(currentRow.getCell(2)));
                     attendanceRequest.setEmailId(getCellValue(currentRow.getCell(3)));
-                    // Set default year and month
-                    attendanceRequest.setYear(currentYear);
-                    attendanceRequest.setMonth(currentMonth);
-                    // Determine the number of days in the given month and year
-                    int year = Integer.parseInt(currentYear);
-                    Month month = MONTH_NAME_MAP.get(currentMonth); // Use the map to get Month object
+
+                    Month month = MONTH_NAME_MAP.get(getCellValue(currentRow.getCell(4)));
+                    String year = getCellValue(currentRow.getCell(5));
+
                     if (month == null) {
-                        log.error("Invalid month name provided: {}", currentMonth);
+                        log.error("Invalid month name provided: {}", month);
                         throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_MONTH_NAME), HttpStatus.BAD_REQUEST);
                     }
-                    YearMonth yearMonth = YearMonth.of(year, month);
-                    int totalDaysInMonth = yearMonth.lengthOfMonth(); // Total days in the month
+
+                    attendanceRequest.setMonth(getCellValue(currentRow.getCell(4)));
+                    attendanceRequest.setYear(year);
+
+                    YearMonth yearMonth = YearMonth.of(Integer.parseInt(year), month);
+                    int totalDaysInMonth = yearMonth.lengthOfMonth();
+
+                    // Validate current month and attendance date
                     // Validate noOfWorkingDays
-                    String noOfWorkingDaysStr = getCellValue(currentRow.getCell(4));
+                    String noOfWorkingDaysStr = getCellValue(currentRow.getCell(6));
                     int noOfWorkingDays;
                     try {
-                        // Convert to Double first, then to Integer
                         double noOfWorkingDaysDouble = Double.parseDouble(noOfWorkingDaysStr);
-                        noOfWorkingDays = (int) Math.round(noOfWorkingDaysDouble); // Use rounding to handle fractional values
-                        // Check if noOfWorkingDays is less than or equal to totalDaysInMonth
+                        noOfWorkingDays = (int) Math.round(noOfWorkingDaysDouble);
                         if (noOfWorkingDays > totalDaysInMonth) {
                             log.error("No of working days '{}' exceeds total days in the month '{}'", noOfWorkingDays, totalDaysInMonth);
-                            throw new EmployeeException(ErrorMessageHandler
-                                    .getMessage(EmployeeErrorMessageKey.INVALID_NO_OF_WORKING_DAYS),
-                                    HttpStatus.BAD_REQUEST);
+                            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_OF_WORKING_DAYS), HttpStatus.BAD_REQUEST);
                         }
-                        // Set totalWorkingDays as total days in month since it is not provided
                         attendanceRequest.setTotalWorkingDays(String.valueOf(totalDaysInMonth));
                         attendanceRequest.setNoOfWorkingDays(String.valueOf(noOfWorkingDays));
                     } catch (NumberFormatException e) {
                         log.error("Error parsing numeric values for working days: {}", e.getMessage());
                         throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NUMBER_EXCEPTION), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
+
                     attendanceRequests.add(attendanceRequest);
                     log.info("Added attendance request for employee ID: {}", attendanceRequest.getEmployeeId());
                 }
@@ -435,19 +448,19 @@ public class AttendanceServiceImpl implements AttendanceService {
         int yearInt = Integer.parseInt(year);
         Month attendanceMonth = Month.valueOf(month.toUpperCase());
 
-        // Calculate the start and end date for attendance (25th of the current month to 7th of the next month)
+        // Calculate the start and end date for attendance (25th of the current month to 15th of the next month)
         if (attendanceMonth == Month.DECEMBER) {
             // If it's December, the next month will be January of the next year
             startDate = LocalDate.of(yearInt, Month.DECEMBER, 25);
-            endDate = LocalDate.of(yearInt + 1, Month.JANUARY, 7);
+            endDate = LocalDate.of(yearInt + 1, Month.JANUARY, 15);
         } else if (attendanceMonth == Month.JANUARY) {
             // If it's January, the previous month is December of the previous year
             startDate = LocalDate.of(yearInt - 1, Month.DECEMBER, 25);
-            endDate = LocalDate.of(yearInt, Month.JANUARY, 7);
+            endDate = LocalDate.of(yearInt, Month.JANUARY, 15);
         } else {
             // For other months, calculate the start and end dates normally
             startDate = LocalDate.of(yearInt, attendanceMonth, 25);
-            endDate = LocalDate.of(yearInt, attendanceMonth.plus(1), 7);
+            endDate = LocalDate.of(yearInt, attendanceMonth.plus(1), 15);
         }
         // Check if the current date is within the valid range
         return !now.isBefore(startDate) && !now.isAfter(endDate);

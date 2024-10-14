@@ -13,6 +13,7 @@ const EmployeeSalaryUpdate = () => {
     const [salaryStructures, setSalaryStructures] = useState([]);
     const [basicSalary, setBasicSalary] = useState(0);
     const [totalEarnings, setTotalEarnings] = useState(0);
+    const [incomeTax, setIncomeTax] = useState(0);
     const [totalAmount, setTotalAmount] = useState(0);
     const [variableAmount, setVariableAmount] = useState(0);
     const [isReadOnly, setIsReadOnly] = useState(false);
@@ -60,6 +61,7 @@ const EmployeeSalaryUpdate = () => {
             setMonthlySalary(response.data.data.monthlySalary);
             setStatus(response.data.data.status);
             setTotalEarnings(response.data.data.totalEarnings);
+            setIncomeTax(response.data.data.incomeTax);
             setTotalAmount(response.data.data.netSalary);
             setAllowances(response.data.data.allowances || {});
             setDeductions(response.data.data.deductions || {});
@@ -85,11 +87,9 @@ const EmployeeSalaryUpdate = () => {
             variableAmount,
             grossAmount,
             totalEarnings,
-            allowances: {
-                allowances
-            },
-            deductions: {
-                deductions
+            salaryConfigurationRequest: {
+                allowances: data.allowances || {},  // Pass the updated allowances from the form
+                deductions: data.deductions || {},  // Pass the updated deductions from the form
             },
             netSalary: totalAmount,
             status: data.status,
@@ -156,27 +156,8 @@ const EmployeeSalaryUpdate = () => {
                                                 className="form-control"
                                                 autoComplete="off"
                                                 maxLength={10}
-                                                // {...register("variableAmount", {
-                                                //     required: "Variable amount is required",
-                                                //     pattern: {
-                                                //         value: /^[0-9]+$/,
-                                                //         message: "These filed accepcts only Integers",
-                                                //     },
-                                                //     validate: {
-                                                //         notZero: value => value !== "0" || "Value cannot be 0"
-                                                //     },
-                                                //     minLength: {
-                                                //         value: 5,
-                                                //         message: "Minimum 5 Numbers Required"
-                                                //     },
-                                                //     maxLength: {
-                                                //         value: 10,
-                                                //         message: "Maximum 10 Numbers Allowed"
-                                                //     },
-                                                // })}
-                                                // readOnly={isReadOnly}
                                                 readOnly
-                                                value={variableAmount}
+                                                value={Math.floor(variableAmount)}
                                                 onChange={handleVariableAmountChange}
                                             />
                                             {errors.variableAmount && (
@@ -193,27 +174,8 @@ const EmployeeSalaryUpdate = () => {
                                                 className="form-control"
                                                 autoComplete="off"
                                                 maxLength={10}
-                                                // {...register("fixedAmount", {
-                                                //     required: "Fixed amount is required",
-                                                //     pattern: {
-                                                //         value: /^[0-9]+$/,
-                                                //         message: "These filed accepcts only Integers",
-                                                //     },
-                                                //     minLength: {
-                                                //         value: 5,
-                                                //         message: "Minimum 5 Numbers Required"
-                                                //     },
-                                                //     maxLength: {
-                                                //         value: 10,
-                                                //         message: "Maximum 10 Numbers Allowed"
-                                                //     },
-                                                //     validate: {
-                                                //         notZero: value => value !== "0" || "Value cannot be 0"
-                                                //     }
-                                                // })}
-                                                // readOnly={isReadOnly}
                                                 readOnly
-                                                value={fixedAmount}
+                                                value={Math.floor(fixedAmount)}
                                                 onChange={handleFixedAmountChange}
                                             />
                                             {errors.fixedAmount && (
@@ -228,7 +190,7 @@ const EmployeeSalaryUpdate = () => {
                                                 type="text"
                                                 className="form-control"
                                                 autoComplete="off"
-                                                value={grossAmount}
+                                                value={Math.floor(grossAmount)}
                                                 readOnly
                                             />
                                         </div>
@@ -238,7 +200,7 @@ const EmployeeSalaryUpdate = () => {
                                             <input
                                                 type="text"
                                                 className="form-control"
-                                                value={monthlySalary}
+                                                value={Math.floor(monthlySalary)}
                                                 readOnly
                                             />
                                         </div>
@@ -258,31 +220,43 @@ const EmployeeSalaryUpdate = () => {
                                                         <h5 className="card-title">Allowances</h5>
                                                         <hr />
                                                         {structure.salaryConfigurationEntity?.allowances && Object.keys(structure.salaryConfigurationEntity.allowances).length > 0 ? (
-                                                            Object.keys(structure.salaryConfigurationEntity.allowances).map((allowance) => (
-                                                                <div key={allowance} className="mb-2">
-                                                                    <label className='form-label'>{formatFieldName(allowance)}</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        className="form-control"
-                                                                        readOnly={isReadOnly}
-                                                                        defaultValue={structure.salaryConfigurationEntity.allowances[allowance]}
-                                                                        {...register(`allowances.${allowance}`, {
-                                                                            required: "Value is required",
-                                                                            pattern: {
-                                                                                value: /^[0-9]*$/,
-                                                                                message: "This field accepts only integers",
-                                                                            },
-                                                                        })}
-                                                                        onChange={(e) => {
-                                                                            const value = e.target.value;
-                                                                            setValue(`allowances.${allowance}`, value);
-                                                                        }}
-                                                                    />
-                                                                    {errors.allowances?.[allowance] && (
-                                                                        <p className="text-danger">{errors.allowances[allowance]?.message}</p>
-                                                                    )}
-                                                                </div>
-                                                            ))
+                                                            Object.keys(structure.salaryConfigurationEntity.allowances).map((allowance) => {
+                                                                const allowanceValue = structure.salaryConfigurationEntity.allowances[allowance];
+                                                                const isPercentage = typeof allowanceValue === 'string' && allowanceValue.includes('%');
+                                                                let displayValue = allowanceValue;
+
+                                                                if (!isPercentage) {
+                                                                    displayValue = Math.floor(allowanceValue);
+                                                                }
+                                                                const maxLength = 10;  
+
+                                                                return (
+                                                                    <div key={allowance} className="mb-2">
+                                                                        <label className='form-label'>{formatFieldName(allowance)}</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="form-control"
+                                                                            readOnly={isReadOnly}
+                                                                            defaultValue={displayValue} 
+                                                                            {...register(`allowances.${allowance}`, {
+                                                                                required: "Value is required",
+                                                                                pattern: {
+                                                                                    value: isPercentage ? /^\d{1,9}%$/ : /^\d{1,10}$/,  
+                                                                                    message: "This field accepts up to 10 digits, with an optional '%' at the end",
+                                                                                },
+                                                                            })}
+                                                                            maxLength={maxLength} 
+                                                                            onChange={(e) => {
+                                                                                const value = e.target.value;
+                                                                                setValue(`allowances.${allowance}`, value); 
+                                                                            }}
+                                                                        />
+                                                                        {errors.allowances?.[allowance] && (
+                                                                            <p className="text-danger">{errors.allowances[allowance]?.message}</p>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })
                                                         ) : (
                                                             <p>No allowances found.</p>
                                                         )}
@@ -291,7 +265,7 @@ const EmployeeSalaryUpdate = () => {
                                                             <input
                                                                 type="text"
                                                                 className="form-control"
-                                                                value={totalEarnings}
+                                                                value={Math.floor(totalEarnings)}
                                                                 readOnly
                                                             />
                                                         </div>
@@ -311,7 +285,7 @@ const EmployeeSalaryUpdate = () => {
                                                                         type="text"
                                                                         className="form-control"
                                                                         readOnly={isReadOnly}
-                                                                        defaultValue={structure.salaryConfigurationEntity.deductions[deduction]}
+                                                                        defaultValue={Math.floor(structure.salaryConfigurationEntity.deductions[deduction])}
                                                                         {...register(`deductions.${deduction}`, {
                                                                             required: "Value is required",
                                                                             pattern: {
@@ -332,6 +306,15 @@ const EmployeeSalaryUpdate = () => {
                                                         ) : (
                                                             <p>No deductions found.</p>
                                                         )}
+                                                        <div className="col-12" style={{ marginTop: "10px" }}>
+                                                            <label className="form-label">Income Tax<span style={{ color: "red" }}>*</span></label>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                value={Math.floor(incomeTax)}
+                                                                readOnly
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -350,7 +333,7 @@ const EmployeeSalaryUpdate = () => {
                                                                 name="status"
                                                                 control={control}
                                                                 defaultValue={status}
-                                                                readOnly={isReadOnly}
+                                                                disabled={status === "InActive"}
                                                                 rules={{ required: true }}
                                                                 render={({ field }) => (
                                                                     <Select
@@ -384,7 +367,7 @@ const EmployeeSalaryUpdate = () => {
                                                             <input
                                                                 type="text"
                                                                 className="form-control"
-                                                                value={totalAmount}
+                                                                value={Math.floor(totalAmount)}
                                                                 readOnly
                                                             />
                                                         </div>

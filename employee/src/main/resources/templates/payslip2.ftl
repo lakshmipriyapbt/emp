@@ -59,7 +59,6 @@
         .salary-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
             padding: 0;
         }
 
@@ -90,6 +89,10 @@
             border: none;
             font-size: medium;
 
+        }
+        .deduction-fields,
+        .deduction-values {
+        border: none;
         }
 
         .allowance-fields td,
@@ -240,7 +243,7 @@
                                            <td>Total Deductions (B)</td> <!-- Add LOP -->
                                        </tr>
                                        <tr>
-                                           <th style="border-left: 2900px ; border-right: 2900px; background-color: #9EEAF9;">Taxes (C)</th> <!-- Add LOP -->
+                                           <th colspan="2" style="width: 20%; font-size: medium; border: 1px solid black; border-left: 90px; border-right: 90px;" >Taxes (C)</th> <!-- Add LOP -->
                                        </tr>
                                        <tr>
                                            <td>Income Tax</td> <!-- Add Income Tax -->
@@ -273,7 +276,7 @@
                                            <td>${payslipEntity.salary.totalDeductions}</td>
                                        </tr> <!-- Display LOP amount -->
                                        <tr>
-                                           <th style="border-left: 900px ; border-right: 900px; background-color: #9EEAF9;">Amount (C)</th>
+                                           <th colspan="2" style="width: 50%; font-size: medium; border: 1px solid black; border-left: 1px; border-right: 1px;">Amount (C)</th>
                                        </tr> <!-- Display Income Tax amount -->
                                        <tr>
                                            <td>${payslipEntity.salary.incomeTax}</td>

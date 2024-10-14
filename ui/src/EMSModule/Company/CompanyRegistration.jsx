@@ -250,6 +250,22 @@ const CompanyRegistration = () => {
     });
   };
 
+  const validateREGISTER = (value) => {
+    const spaceError = "Spaces are not allowed in the Register Number.";
+    const patternError = "Invalid Register Number format";
+
+    if (/\s/.test(value)) {
+      return spaceError; // Return space error if spaces are found
+    }
+
+    // Check the pattern for the CIN Number
+    if (!/^([LU]{1})([0-9]{5})([A-Z]{2})([0-9]{4})([A-Z]{3})([0-9]{6})$/.test(value)) {
+      return patternError; // Return pattern error if it doesn't match
+    }
+
+    return true; // Return true if all checks pass
+  };
+
   const validateCIN = (value) => {
     const spaceError = "Spaces are not allowed in the CIN Number.";
     const patternError = "Invalid CIN Number format";
@@ -266,8 +282,8 @@ const CompanyRegistration = () => {
     return true; // Return true if all checks pass
   };
   const validateGST = (value) => {
-    const spaceError = "Spaces are not allowed in the CIN Number.";
-    const patternError = "Invalid CIN Number format";
+    const spaceError = "Spaces are not allowed in the GST Number.";
+    const patternError = "Invalid GST Number format";
 
     if (/\s/.test(value)) {
       return spaceError; // Return space error if spaces are found
@@ -281,8 +297,8 @@ const CompanyRegistration = () => {
     return true; // Return true if all checks pass
   };
   const validatePAN = (value) => {
-    const spaceError = "Spaces are not allowed in the CIN Number.";
-    const patternError = "Invalid CIN Number format";
+    const spaceError = "Spaces are not allowed in the PAN Number.";
+    const patternError = "Invalid PAN Number format";
 
     if (/\s/.test(value)) {
       return spaceError; // Return space error if spaces are found
@@ -732,7 +748,7 @@ const CompanyRegistration = () => {
                               value: 21,
                               message: "Registration Number must not exceed 21 characters",
                             },
-                            validate: validateCIN
+                            validate: validateREGISTER
                           })}
                           disabled={editMode}
                         />

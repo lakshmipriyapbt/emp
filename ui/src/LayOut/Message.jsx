@@ -7,6 +7,7 @@ import './NewLogin/Message.css'
 
 function Message() {
     const { register, handleSubmit, formState: { errors }, reset } = useForm({
+        mode: 'onChange',
         defaultValues: {
             companyName: '',
         },
@@ -31,19 +32,19 @@ function Message() {
         const inputValue = e.target.value;
         let newValue = "";
         for (let i = 0; i < inputValue.length; i++) {
-          const char = inputValue.charAt(i);
-          if (char.match(/[a-z]/)) {
-            // Only allow lowercase letters
-            newValue += char;
-          }
+            const char = inputValue.charAt(i);
+            if (char.match(/[a-z]/)) {
+                // Only allow lowercase letters
+                newValue += char;
+            }
         }
-          e.target.value = newValue;
-      };
+        e.target.value = newValue;
+    };
 
     const onSubmit = (data) => {
         closeModal()
         const { companyName } = data;
-        localStorage.setItem('companyName',companyName)
+        localStorage.setItem('companyName', companyName)
         reset();
         navigate(`/${companyName}/login`);
 
@@ -52,16 +53,16 @@ function Message() {
     const handleEmailChange = (e) => {
         // Get the current value of the input field
         const value = e.target.value;
-    
+
         // Check if the value is empty
         if (value.trim() !== "") {
-          return; // Allow space button
+            return; // Allow space button
         }
         // Prevent space character entry if the value is empty
         if (e.keyCode === 32) {
-          e.preventDefault();
+            e.preventDefault();
         }
-      };
+    };
 
     return (
         <main className="d-flex w-100" style={{ background: '#fff' }}>
@@ -112,6 +113,14 @@ function Message() {
                                                 value: /^[a-z]+$/,
                                                 message: "This field accepts only lowercase alphabetic characters without spaces",
                                             },
+                                            minLength: {
+                                                value: 2,
+                                                message: "minimum 2 characters Required",
+                                            },
+                                            maxLength: {
+                                                value: 16,
+                                                message: " Maximum 16 characters allowed",
+                                            },
                                         })}
                                     />
                                     {errors.companyName && (
@@ -131,4 +140,4 @@ function Message() {
     );
 }
 
-export default Message;
+export default Message;

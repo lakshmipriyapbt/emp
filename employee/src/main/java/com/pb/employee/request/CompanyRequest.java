@@ -34,7 +34,7 @@ public class CompanyRequest {
     private String companyAddress;
 
     @Schema(example = "companyRegNo")
-    @Pattern(regexp = "^((?!\\s)(?!.*\\s$)[A-Z0-9\\s]{1,21}|null|)$", message = "{companyRegNo.pattern.message}")
+    @Pattern(regexp = "^(|null|(L|U)\\d{5}[A-Z]{2}\\d{4}[A-Z]{3}\\d{6}$)", message = "{companyRegNo.pattern.message}")
     private String companyRegNo;
 
     @Schema(example = "mobileNo")
@@ -46,9 +46,9 @@ public class CompanyRequest {
     @Pattern(regexp = "^(|0|\\d{10})$", message = "{invalid.alternateNo}")
     private String alternateNo;
 
-    @Schema(example = "gstNo")
+    @Schema(example = "12ABCDE3456Z1")
     @NotNull(message = "{gstNo.notnull.message}")
-    @Pattern(regexp = "^(?!\\s)(?!.*\\s$)[A-Z0-9\\s]{1,21}$", message = "{invalid.gstNo}")
+    @Pattern(regexp = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9]Z[0-9A-Z]$", message = "{invalid.gstNo}")
     private String gstNo;
 
     @Schema(example = "panNo")
@@ -86,7 +86,7 @@ public class CompanyRequest {
     private String companyType;
 
     @Schema(example = "cinNo")
-    @Pattern(regexp = "^([A-Z0-9]{21}|null|)$", message = "{invalid.cinNo}")
+    @Pattern(regexp = "^(|null|(L|U)\\d{5}[A-Z]{2}\\d{4}[A-Z]{3}\\d{6}$)", message = "{invalid.cinNo}")
     private String cinNo;
 
 

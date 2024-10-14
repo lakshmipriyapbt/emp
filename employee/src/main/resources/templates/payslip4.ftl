@@ -44,13 +44,8 @@
      margin-top:150px;
      text-align: center;
     }
-    .allowance-fields, .allowance-values{
-      margin-bottom: 28px;
-    }
-   .deduction-fields, .deduction-values{
-          margin-bottom: 28px;
-        }
     .allowance-fields, .allowance-values {
+         margin-bottom:40px;
          border: none; /* No border for allowance tables */
      }
 

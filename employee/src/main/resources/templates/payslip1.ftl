@@ -98,15 +98,10 @@
             border: 1px solid black;
             border-collapse: collapse;
         }
-        .allowance-fields,
-        .allowance-values {
-            margin-bottom: 28px;
-        }
-
-        .deduction-fields,
-        .deduction-values {
-            margin-bottom: 28px;
-        }
+       .allowance-fields,
+       .allowance-values {
+          margin-bottom: 50px;
+       }
 
         .allowance-fields,
         .allowance-values {
@@ -123,7 +118,6 @@
         .deduction-fields,
         .deduction-values {
             border: none;
-            /* No border for allowance tables */
         }
 
         .deduction-fields td,

@@ -236,7 +236,7 @@ const CompanyView = () => {
                   </div>
                   <div className='col-12 col-md-6 col-lg-4'></div>
                   <div className='col-12 col-md-6 col-lg-4'>
-                    <input type='search' className="form-control" placeholder='search by Company Name, Authorized Name '
+                    <input type='search' className="form-control" placeholder='Search by Company Name, Authorized Name '
                       value={search}
                       onChange={(e) => getFilteredList(e.target.value)}
                     />

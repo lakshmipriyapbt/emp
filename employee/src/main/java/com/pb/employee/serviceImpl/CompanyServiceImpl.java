@@ -61,6 +61,13 @@ public class CompanyServiceImpl implements CompanyService {
             }
             List<CompanyEntity> companyEntities = openSearchOperations.getCompanies();
 
+            Map<String, Object> duplicateValuesInTheCompany = CompanyUtils.duplicateValuesInCompany(companyRequest);
+            if (!duplicateValuesInTheCompany.isEmpty()) {
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().failureResponse(duplicateValuesInTheCompany),
+                        HttpStatus.CONFLICT
+                );
+            }
             Map<String, Object> duplicateValues = CompanyUtils.duplicateValues(companyRequest, companyEntities);
             if (!duplicateValues.isEmpty()) {
                 return new ResponseEntity<>(
@@ -162,6 +169,13 @@ public class CompanyServiceImpl implements CompanyService {
                         HttpStatus.BAD_REQUEST);
             }
             List<CompanyEntity> companyEntities = openSearchOperations.getCompanies();
+            Map<String, Object> duplicateValuesInTheCompany = CompanyUtils.duplicateValuesInTheCompany(companyUpdateRequest, companyEntities);
+            if (!duplicateValuesInTheCompany.isEmpty()) {
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().failureResponse(duplicateValuesInTheCompany),
+                        HttpStatus.CONFLICT
+                );
+            }
             companyEntities.removeIf(company -> company.getId().equals(companyId));
             Map<String, Object> duplicateValues = CompanyUtils.duplicateUpdateValues(companyUpdateRequest, companyEntities);
             if (!duplicateValues.isEmpty()) {

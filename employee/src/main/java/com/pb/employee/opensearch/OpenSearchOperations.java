@@ -161,18 +161,21 @@ public class OpenSearchOperations {
         return null;
     }
     public DepartmentEntity getDepartmentById(String resourceId, String type, String index) throws IOException {
-        if(type != null) {
-            resourceId = type+"_"+resourceId;
-        }
-        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
-                .index(index).build();
+        GetRequest getRequest = new GetRequest.Builder()
+                .id(resourceId)
+                .index(index)
+                .build();
 
         GetResponse<DepartmentEntity> searchResponse = esClient.get(getRequest, DepartmentEntity.class);
         if(searchResponse != null && searchResponse.source() != null){
-            return searchResponse.source();
+            if (searchResponse.source().getType().equals(Constants.DEPARTMENT)) {
+                return searchResponse.source();
+            }
         }
         return null;
     }
+
+
 
     public DesignationEntity getDesignationById(String resourceId, String type, String index) throws IOException {
         if(type != null) {
@@ -182,10 +185,13 @@ public class OpenSearchOperations {
                 .index(index).build();
         GetResponse<DesignationEntity> searchResponse = esClient.get(getRequest, DesignationEntity.class);
         if(searchResponse != null && searchResponse.source() != null){
-            return searchResponse.source();
+            if (searchResponse.source().getType().equals(Constants.DESIGNATION)) {
+                return searchResponse.source();
+            }
         }
         return null;
     }
+
     public EmployeeSalaryEntity getSalaryById(String resourceId, String type, String index) throws IOException {
         if(type != null) {
             resourceId = type+"_"+resourceId;

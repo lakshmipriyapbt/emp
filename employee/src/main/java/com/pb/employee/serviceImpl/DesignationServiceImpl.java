@@ -102,10 +102,10 @@ public class DesignationServiceImpl implements DesignationService {
     @Override
     public ResponseEntity<?> getDesignationById(String companyName, String designationId) throws EmployeeException {
         log.info("getting details of {}", designationId);
-        Object entity = null;
+        DesignationEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         try {
-            entity = openSearchOperations.getById(designationId, null, index);
+            entity = openSearchOperations.getDesignationById(designationId, null, index);
         } catch (Exception ex) {
             log.error("Exception while fetching designation details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION),

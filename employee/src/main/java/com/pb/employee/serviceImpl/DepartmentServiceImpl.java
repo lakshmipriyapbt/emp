@@ -105,10 +105,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public ResponseEntity<?> getDepartmentById(String companyName, String departmentId) throws EmployeeException {
         log.info("getting details of {}", departmentId);
-        Object entity = null;
+        DepartmentEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         try {
-            entity = openSearchOperations.getById(departmentId, null, index);
+            entity = openSearchOperations.getDepartmentById(departmentId, null, index);
 
         } catch (Exception ex) {
             log.error("Exception while fetching department details {}", ex);

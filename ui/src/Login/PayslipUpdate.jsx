@@ -197,16 +197,58 @@ const PayslipUpdate = () => {
                         </tr>
                       );
                     })}
-                    {Object.entries(payslipData.salary?.salaryConfigurationEntity?.deductions || {}).slice(Object.keys(payslipData.salary?.salaryConfigurationEntity?.allowances || {}).length).map(([key, value]) => (
-                      <tr key={key}>
-                        <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
-                        <td className="earnings" style={{ textAlign: "left" }}></td>
-                        <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>{formatFieldName(key)}</td>
-                        <td className="deductions" style={{ textAlign: "left" }}>{value}</td>
-                      </tr>
-                    ))}
+
+                    {Object.entries(payslipData.salary?.salaryConfigurationEntity?.deductions || {})
+                      .slice(Object.keys(payslipData.salary?.salaryConfigurationEntity?.allowances || {}).length)
+                      .map(([key, value]) => (
+                        <tr key={key}>
+                          <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                          <td className="earnings" style={{ textAlign: "left" }}></td>
+                          <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>{formatFieldName(key)}</td>
+                          <td className="deductions" style={{ textAlign: "left" }}>{value}</td>
+                        </tr>
+                      ))}
+
+                    {/* Static rows for specific deductions */}
                     <tr>
-                      <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left" }}>Net Salary (A-B)</td>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                      <td className="earnings" style={{ textAlign: "left" }}></td>
+                      <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>LOP</td>
+                      <td className="deductions" style={{ textAlign: "left" }}>{payslipData.salary?.lop || 0}</td>
+                    </tr>
+                    <tr>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                      <td className="earnings" style={{ textAlign: "left" }}></td>
+                      <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>Total Deductions (B)</td>
+                      <td className="deductions" style={{ textAlign: "left" }}><b>{payslipData.salary?.totalDeductions || 0}</b></td>
+                    </tr>
+                    <tr>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                      <td className="earnings" style={{ textAlign: "left" }}></td>
+                      <th style={{ padding: "4px", width: "300px", textAlign: "left" }}>Taxes (C)</th>
+                      <th style={{ padding: "4px", width: "300px", textAlign: "left" }}>Amount</th>
+                    </tr>
+                    <tr>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                      <td className="earnings" style={{ textAlign: "left" }}></td>
+                      <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>PF Tax</td>
+                      <td className="deductions" style={{ textAlign: "left" }}>{payslipData.salary?.pfTax || 0}</td>
+                    </tr>
+                    <tr>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+                      <td className="earnings" style={{ textAlign: "left" }}></td>
+                      <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>Income Tax</td>
+                      <td className="deductions" style={{ textAlign: "left" }}>{payslipData.salary?.incomeTax || 0}</td>
+                    </tr>
+                    <tr>
+                      <td className="earnings" style={{ padding: "4px", textAlign: "left" }}>Total Earnings (A)</td>
+                      <td className="earnings" style={{ textAlign: "left" }}><b>{payslipData.salary?.totalEarnings || 0}</b></td>
+                      <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>Total Tax(C)</td>
+                      <td className="deductions" style={{ textAlign: "left" }}><b>{payslipData.salary?.totalTax || 0}</b></td>
+                    </tr>
+                    {/* Remaining rows for net salary and in words */}
+                    <tr>
+                      <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left" }}>Net Salary (A-B-C)</td>
                       <td className="earnings" colSpan={3} style={{ textAlign: "left" }}><b>{payslipData.salary?.netSalary || 0}</b></td>
                     </tr>
                     <tr>
