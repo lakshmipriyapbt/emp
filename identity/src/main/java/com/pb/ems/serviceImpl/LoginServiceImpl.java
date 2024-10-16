@@ -165,7 +165,8 @@ public class LoginServiceImpl implements LoginService {
                 long currentTime = Instant.now().getEpochSecond();
                 log.debug("the user found checking the otp..");
 
-                if (!request.getOtp().equals(otp)) {
+                Long userOtp = Long.valueOf(request.getOtp());
+                if (!userOtp.equals(otp)) {
                     log.error("Invalid OTP for user.. ");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
                             HttpStatus.FORBIDDEN);

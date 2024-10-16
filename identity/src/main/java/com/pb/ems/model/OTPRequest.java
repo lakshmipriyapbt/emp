@@ -10,8 +10,8 @@ import lombok.Setter;
 @Setter
 public class OTPRequest{
 
-    @Schema(required = true,  description = "${login.otp.description}", example = "123456")
-    private Long otp;
+    @Schema(required = true, description = "${login.otp.description}", example = "123456")
+    private String otp;
 
     @NotEmpty(message = "{user.username.message}")
     @Schema(required = true,  description = "${login.username.description}", example = "path@gmail.com")

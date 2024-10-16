@@ -617,6 +617,21 @@ const SideNav = () => {
                     </a>
                   </li>
                 </ul>
+                <ul
+                  id="settingsManagement"
+                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""
+                    }`}
+                >
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/offerLetters" ? "active" : ""
+                      }`}
+                  >
+                    <a className="sidebar-link" href={"/offerLetters"}>
+                      Offer Letters
+                    </a>
+                  </li>
+                </ul>
               </li>
             </>
           )}

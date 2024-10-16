@@ -24,6 +24,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -112,17 +113,39 @@ public class PayslipServiceImpl implements PayslipService {
 
         try {
             List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
+            List<SalaryConfigurationEntity> salaryConfigurationList = openSearchOperations.getSalaryStructureByCompanyDate(payslipRequest.getCompanyName());
+
+            // Filter only the active salary structures
+            List<SalaryConfigurationEntity> activeSalaryConfigurations = salaryConfigurationList.stream()
+                    .filter(salaryConfig -> salaryConfig.getStatus().equals(EmployeeStatus.ACTIVE.getStatus()))
+                    .collect(Collectors.toList());
+
+            // Check if there are any active salary configurations
+            if (activeSalaryConfigurations.isEmpty()) {
+                log.error("No active salary configurations found for company {}", payslipRequest.getCompanyName());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_SALARY_STRUCTURE),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
             for (EmployeeEntity employee : employeeEntities) {
+                // Check if employee is CompanyAdmin
+                if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
+                    log.info("Skipping payslip generation for CompanyAdmin employeeId {}", employee.getId());
+                    continue; // Skip to the next employee if the type is CompanyAdmin
+                }
+
+                // Fetch employee salaries
                 List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
-                if (salaryEntities == null ) {
+                if (salaryEntities == null || salaryEntities.isEmpty()) {
                     log.error("Employee Salary with employeeId {} is not found", employee.getId());
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY),
                             HttpStatus.INTERNAL_SERVER_ERROR);
                 }
 
+                // Generate attendance ID
                 String attendanceId = ResourceIdUtils.generateAttendanceId(payslipRequest.getCompanyName(), employee.getId(), payslipRequest.getYear(), payslipRequest.getMonth());
 
+                // Fetch attendance
                 attendanceEntities = openSearchOperations.getAttendanceById(attendanceId, null, index);
                 if (attendanceEntities == null) {
                     log.error("Employee Attendance is not found for employee {}", employee.getId());
@@ -143,13 +166,26 @@ public class PayslipServiceImpl implements PayslipService {
                 // Generate and save payslip for the current employee
                 List<PayslipEntity> payslipPropertiesList = new ArrayList<>();
                 for (EmployeeSalaryEntity salary : salaryEntities) {
-                    if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())){
-                        PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities);
-                        PayslipUtils.forFormatNumericalFields(payslipProperties);
-                        payslipProperties = PayslipUtils.maskEmployeePayslip(payslipProperties, salary, attendanceEntities);
-                        generatedPayslips.add(payslipProperties);
-                        payslipPropertiesList.add(payslipProperties);
-                   }
+                    // Process only active salary entities
+                    if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
+                        // Iterate through the active salary configurations
+                        for (SalaryConfigurationEntity salaryConfig : activeSalaryConfigurations) {
+                            salary.setSalaryConfigurationEntity(salaryConfig);
+
+                            // Create payslip based on active salary and salary configuration
+                            PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(
+                                    salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities);
+
+                            PayslipUtils.forFormatNumericalFields(payslipProperties);
+
+                            // Pass salary and salaryConfig to maskEmployeePayslip
+                            payslipProperties = PayslipUtils.maskEmployeePayslip(payslipProperties, salary, attendanceEntities);
+
+                            // Add the generated payslip to the list
+                            generatedPayslips.add(payslipProperties);
+                            payslipPropertiesList.add(payslipProperties);
+                        }
+                    }
                 }
 
                 // Save all payslips for the current employee
@@ -157,8 +193,6 @@ public class PayslipServiceImpl implements PayslipService {
                     openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
                 }
             }
-
-            // Return response with generated payslips and employees without attendance
 
         } catch (IOException | EmployeeException ex) {
             log.error("Error generating payslips: {}", ex.getMessage());
@@ -180,6 +214,8 @@ public class PayslipServiceImpl implements PayslipService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
     }
+
+
 
     @Override
     public ResponseEntity<?> getPayslipById(String companyName, String employeeId, String payslipId) throws EmployeeException, IOException {
@@ -442,7 +478,7 @@ public class PayslipServiceImpl implements PayslipService {
         for (Map<String, Object> allowance : unorderedAllowances) {
             for (String key : allowance.keySet()) {
                 // Add to dynamic allowances if it is not HRA, PF Contribution Employee or Other Allowance
-                if (!key.equals(Constants.HRA) && !key.equals(Constants.PF_CONTRIBUTION_EMPLOYEE) && !key.equals(Constants.OTHER_ALLOWANCE)) {
+                if (!key.equals(Constants.HRA) && !key.equals(Constants.PF_CONTRIBUTION_EMPLOYEE)) {
                     dynamicAllowanceKeys.add(key);
                 }
             }
@@ -468,14 +504,6 @@ public class PayslipServiceImpl implements PayslipService {
             }
         }
 
-        // Add Other Allowance last
-        for (Map<String, Object> allowance : unorderedAllowances) {
-            if (allowance.containsKey(Constants.OTHER_ALLOWANCE)) {
-                orderedAllowances.add(allowance);
-                unorderedAllowances.remove(allowance); // Remove from unordered list
-                break; // Exit loop after adding Other Allowance
-            }
-        }
 
         // Add any remaining allowances (if any) that don't match above criteria
         orderedAllowances.addAll(unorderedAllowances);

@@ -221,21 +221,25 @@ const EmployeeView = () => {
     const filtered = employees.filter((item) => {
       const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
       const email = item.emailId.toLowerCase();
-      const department = item.department.toLowerCase();
+      const departmentName = item.departmentName.toLowerCase();
       const dateOfHiring = new Date(item.dateOfHiring)
         .toLocaleDateString()
         .toLowerCase();
-      const employeeId = item.employeeId.toString().toLowerCase()
+      const employeeId = item.employeeId.toString().toLowerCase();
+      const status = item.status.toLowerCase();
+  
       return (
         fullName.includes(searchTerm.toLowerCase()) ||
         email.includes(searchTerm.toLowerCase()) ||
-        department.includes(searchTerm.toLowerCase()) ||
+        departmentName.includes(searchTerm.toLowerCase()) ||
         dateOfHiring.includes(searchTerm.toLowerCase()) ||
-        employeeId.includes(searchTerm.toLowerCase())
+        employeeId.includes(searchTerm.toLowerCase()) ||
+        status.includes(searchTerm.toLowerCase()) 
       );
     });
     setFilteredData(filtered);
   };
+  
   console.log(filteredData)
 
   const filterByMonthYear = (selectedMonth, selectedYear) => {

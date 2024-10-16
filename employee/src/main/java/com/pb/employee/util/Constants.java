@@ -1,13 +1,9 @@
 package com.pb.employee.util;
 
 
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriBuilder;
 
-import java.net.URI;
-import java.util.function.Function;
+import org.springframework.stereotype.Component;
+
 
 @Component
 public class Constants {
@@ -86,7 +82,6 @@ public class Constants {
     public static final String TOTAL_TAX_SMALL = "totalTax" ;
     public static final String PF_TAX = "PF Tax";
     public static final String INCOME_TAX = "Income Tax";
-    public static final String OTHER_ALLOWANCE = "Other Allowances";
     public static final String PF_CONTRIBUTION_EMPLOYEE = "PF Contribution Employee";
     public static final String SALARY_STRUCTURE ="salary_structure" ;
     public static final String NEW ="new" ;

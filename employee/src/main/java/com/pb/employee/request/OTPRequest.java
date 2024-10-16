@@ -11,7 +11,7 @@ import lombok.Setter;
 @Builder
 public class OTPRequest {
 
-    private Long otp;
+    private String otp;
     private String username;
     private String company;
 

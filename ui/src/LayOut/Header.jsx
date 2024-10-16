@@ -5,6 +5,7 @@ import Reset from "./Reset";
 import { useAuth } from "../Context/AuthContext";
 import { EmployeeGetApiById } from "../Utils/Axios";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 
 const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -91,6 +92,7 @@ const Header = ({ toggleSidebar }) => {
 
   const handleLogOut = () => {
     localStorage.clear();
+    toast.success('Logout Successful');
     navigate("/");
   };
 

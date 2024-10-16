@@ -3,7 +3,6 @@ package com.pb.employee.serviceImpl;
 
 
 import com.pb.employee.common.ResponseBuilder;
-import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -221,29 +220,49 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public ResponseEntity<?> deleteEmployeeAttendanceById(String companyName, String employeeId, String attendanceId) throws EmployeeException {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
-        AttendanceEntity entity = null;
+
         try {
-            entity = openSearchOperations.getAttendanceById(attendanceId, null, index);
-            if (entity==null){
+            // Fetch attendance and payslips in parallel if supported by your operations
+            AttendanceEntity entity = openSearchOperations.getAttendanceById(attendanceId, null, index);
+
+            if (entity == null) {
                 log.error("Exception while fetching employee for the attendance {}", employeeId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
+
             if (!entity.getEmployeeId().equals(employeeId)) {
                 log.error("Employee ID mismatch for attendance {}: expected {}, found", attendanceId, employeeId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
+
+            // Fetch payslips only if the attendance entity is valid
+            List<PayslipEntity> payslipEntities = openSearchOperations.getEmployeePayslip(companyName, employeeId, null, null);
+            Set<String> attendanceIdsInPayslips = payslipEntities.stream()
+                    .map(PayslipEntity::getAttendanceId)
+                    .collect(Collectors.toSet());
+
+            // Check if the attendance ID exists in payslips
+            if (attendanceIdsInPayslips.contains(attendanceId)) {
+                return ResponseEntity.badRequest()
+                        .body(ResponseBuilder.builder().build()
+                                .createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_ATTENDANCE)))));
+            }
+
+            // Proceed to delete attendance
             openSearchOperations.deleteEntity(attendanceId, index);
-        }
-        catch (Exception ex) {
+        } catch (EmployeeException ex) {
+            log.error("Business logic exception while deleting attendance for employees {}: {}", attendanceId, ex.getMessage());
+            throw ex; // Re-throw specific exceptions
+        } catch (Exception ex) {
             log.error("Exception while deleting attendance for employees {}: {}", attendanceId, ex.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_ATTENDANCE),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETED), HttpStatus.OK);
 
+        return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETED));
     }
 
     @Override
@@ -267,6 +286,19 @@ public class AttendanceServiceImpl implements AttendanceService {
                 log.error("Invalid no. of days");
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_NO_DAYS)))),
                         HttpStatus.BAD_REQUEST);
+            }
+            // Fetch payslips only if the attendance entity is valid
+            List<PayslipEntity> payslipEntities = openSearchOperations.getEmployeePayslip(company, employeeId, null, null);
+            Set<String> attendanceIdsInPayslips = payslipEntities.stream()
+                    .map(PayslipEntity::getAttendanceId)
+                    .collect(Collectors.toSet());
+
+            // Check if the attendance ID exists in payslips
+            if (attendanceIdsInPayslips.contains(attendanceId)) {
+                return ResponseEntity.badRequest()
+                        .body(ResponseBuilder.builder().build()
+                                .createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.UNABLE_UPDATE_ATTENDANCE)))));
             }
         } catch (Exception ex) {
             log.error("Exception while fetching user {}:", employeeId, ex);

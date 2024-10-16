@@ -247,7 +247,7 @@ const ViewPaySlips = () => {
             <div className="row d-flex justify-content-around">
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label">Select Employee</label>
+                  <label className="form-label" style={{paddingTop:"10px"}}>Select Employee</label>
                   <Controller
                     name="employeeId"
                     control={control}
@@ -274,7 +274,7 @@ const ViewPaySlips = () => {
               </div>
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label">Select Year</label>
+                  <label className="form-label" style={{paddingTop:"10px"}}>Select Year</label>
                   <Select
                     options={years}
                     value={years.find((option) => option.value === selectedYear) || ""}
@@ -285,7 +285,7 @@ const ViewPaySlips = () => {
               </div>
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label">Select Month</label>
+                  <label className="form-label" style={{paddingTop:"10px"}}>Select Month</label>
                   <Select
                     options={months}
                     value={months.find((month) => month.value === selectedMonth) || ""}

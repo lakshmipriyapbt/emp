@@ -85,7 +85,8 @@ public class LoginController {
     public ResponseEntity<?> validateCompanyOtp(@RequestBody OTPRequest request) throws IdentityException, MethodArgumentNotValidException {
         String otp = String.valueOf(request.getOtp());
         if (otp == null || !otp.matches("^\\d{6}$")) {
-            return ResponseEntity.badRequest().body("Invalid OTP format. Must be a 6-digit number.");
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                    HttpStatus.BAD_REQUEST);
         }
         return loginService.validateCompanyOtp(request);
 

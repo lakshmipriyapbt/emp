@@ -269,11 +269,6 @@ const AttendanceReport = () => {
                 selector: (row) => `${row.firstName} ${row.lastName}`,
                 width: "200px",
             }] : []),
-            ...(!isAllAttendance && selectedYear ? [{
-                name: <h6><b>Name</b></h6>,
-                selector: (row) => `${row.firstName} ${row.lastName}`,
-                width: "150px",
-            }] : []),
             ...(!isAttendance && selectedYear ? [{
                 name: <h6><b>Name</b></h6>,
                 selector: (row) => `${row.firstName} ${row.lastName}`,
@@ -320,7 +315,7 @@ const AttendanceReport = () => {
                             <div className="card-header">
                                 <div className="row d-flex justify-content-center" style={{ paddingLeft: '50px' }}>
                                     <div className="col-md-3 mt-3">
-                                        <label className="form-label">Select Employee</label>
+                                        <label className="card-title">Select Employee</label>
                                         <Select
                                             options={employees}
                                             onChange={handleEmployeeChange}
@@ -336,7 +331,7 @@ const AttendanceReport = () => {
                                         {selectedEmployee && <p>Selected: {selectedEmployee.label}</p>}
                                     </div>
                                     <div className="col-md-3 mt-3">
-                                        <label className="form-label">Select Year</label>
+                                        <label className="card-title">Select Year</label>
                                         <select
                                             className="form-select"
                                             style={{ paddingBottom: '6px', zIndex: "1" }}
@@ -355,7 +350,7 @@ const AttendanceReport = () => {
                                         </select>
                                     </div>
                                     <div className="col-md-3 mt-3">
-                                        <label className="form-label">Select Month</label>
+                                        <label className="card-title">Select Month</label>
                                         <select
                                             className="form-select"
                                             style={{ paddingBottom: '6px' }}

@@ -240,6 +240,9 @@ public class PayslipUtils {
         if (payslipRequest.getSalary().getTotalTax() != null) { //annual
             ttax  = Base64.getEncoder().encodeToString((payslipRequest.getSalary().getTotalTax()).getBytes());
         }
+        if (payslipRequest.getSalary().getLop() != null) { //annual
+            lop  = Base64.getEncoder().encodeToString((payslipRequest.getSalary().getLop()).getBytes());
+        }
 
         if (payslipRequest.getSalary().getSalaryConfigurationEntity().getAllowances() != null) {
             for (Map.Entry<String, String> entry : payslipRequest.getSalary().getSalaryConfigurationEntity().getAllowances().entrySet()) {
@@ -272,6 +275,7 @@ public class PayslipUtils {
         salary.getSalaryConfigurationEntity().setDeductions(deductions);
         salary.setPfTax(tax);
         salary.setTotalTax(ttax);
+        salary.setLop(lop);
         payslipEntity.setSalary(salary);
         payslipEntity.setAttendance(attendanceEntity);
         payslipEntity.setType(Constants.PAYSLIP);
@@ -357,6 +361,9 @@ public class PayslipUtils {
         if (payslipRequest.getSalary().getNetSalary() != null) {
             net = new String(Base64.getDecoder().decode(payslipRequest.getSalary().getNetSalary()));
         }
+        if (payslipRequest.getSalary().getLop() != null) {
+            lop = new String(Base64.getDecoder().decode(payslipRequest.getSalary().getLop()));
+        }
 
         payslipRequest.getSalary().setFixedAmount(fix);
         payslipRequest.getSalary().setGrossAmount(gross);
@@ -367,6 +374,8 @@ public class PayslipUtils {
         payslipRequest.getSalary().setIncomeTax(itax);
         payslipRequest.getSalary().setPfTax(tax);
         payslipRequest.getSalary().setTotalDeductions(tded);
+        payslipRequest.getSalary().setLop(lop);
+
         String inWords =  numberToWords(Double.valueOf(net));
         payslipRequest.setInWords(inWords + " Rupees Only.");
         payslipRequest.getAttendance().setNoOfWorkingDays(noOfWorkingDays);
@@ -437,6 +446,7 @@ public class PayslipUtils {
             payslipProperties.getSalary().setVariableAmount(formatValue(payslipProperties.getSalary().getVariableAmount()));
             payslipProperties.getSalary().setTotalDeductions(formatValue(payslipProperties.getSalary().getTotalDeductions()));
             payslipProperties.getSalary().setTotalTax(formatValue(payslipProperties.getSalary().getTotalTax()));
+            payslipProperties.getSalary().setLop(formatValue(payslipProperties.getSalary().getLop()));
 
             if (payslipProperties.getSalary().getSalaryConfigurationEntity().getAllowances() != null) {
                 Map<String, String> formatAllowance = new HashMap<>();

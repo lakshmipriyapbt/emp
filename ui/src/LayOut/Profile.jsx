@@ -121,11 +121,19 @@ function Profile() {
 
   const onChangePicture = (e) => {
     const file = e.target.files[0];
+    const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'];
+  
     if (file) {
-      setPostImage(file);
+      if (!validTypes.includes(file.type)) {
+        setErrorMessage('Please upload a valid file type (PNG, JPG, SVG, JPEG, PDF).');
+        e.target.value = '';
+      } else {
+        setErrorMessage(''); 
+        setPostImage(file); 
+      }
     }
   };
-
+  
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
 
