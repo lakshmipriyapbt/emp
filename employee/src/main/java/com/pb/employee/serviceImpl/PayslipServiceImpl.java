@@ -92,6 +92,8 @@ public class PayslipServiceImpl implements PayslipService {
             attendance=openSearchOperations.getAttendanceById(attendanceId,null,index);
             PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(entity, payslipRequest, paySlipId, employeeId, attendance);
             PayslipUtils.forFormatNumericalFields(payslipProperties);
+            payslipProperties.setDepartment(employee.getDepartmentName());
+            payslipProperties.setDesignation(employee.getDesignationName());
             payslipProperties = PayslipUtils.maskEmployeePayslip(payslipProperties,entity,attendance);
             Entity result = openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
         } catch (Exception exception) {
@@ -104,12 +106,14 @@ public class PayslipServiceImpl implements PayslipService {
     }
 
 
+
     @Override
     public ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         AttendanceEntity attendanceEntities = null;
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
         List<String> employeesWithoutAttendance = new ArrayList<>();
+        List<String> employeesWithoutSalaryStructure = new ArrayList<>(); // New list for employees without salary structure
 
         try {
             List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
@@ -123,23 +127,23 @@ public class PayslipServiceImpl implements PayslipService {
             // Check if there are any active salary configurations
             if (activeSalaryConfigurations.isEmpty()) {
                 log.error("No active salary configurations found for company {}", payslipRequest.getCompanyName());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_SALARY_STRUCTURE),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_SALARY_STRUCTURE), HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             for (EmployeeEntity employee : employeeEntities) {
+                List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
+
                 // Check if employee is CompanyAdmin
                 if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
                     log.info("Skipping payslip generation for CompanyAdmin employeeId {}", employee.getId());
                     continue; // Skip to the next employee if the type is CompanyAdmin
                 }
 
-                // Fetch employee salaries
-                List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
+                // Check for employee salary
                 if (salaryEntities == null || salaryEntities.isEmpty()) {
                     log.error("Employee Salary with employeeId {} is not found", employee.getId());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
+                    employeesWithoutSalaryStructure.add(employee.getFirstName()+ " " +employee.getLastName()); // Add to the new list
+                    continue;
                 }
 
                 // Generate attendance ID
@@ -170,20 +174,27 @@ public class PayslipServiceImpl implements PayslipService {
                     if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
                         // Iterate through the active salary configurations
                         for (SalaryConfigurationEntity salaryConfig : activeSalaryConfigurations) {
-                            salary.setSalaryConfigurationEntity(salaryConfig);
 
-                            // Create payslip based on active salary and salary configuration
-                            PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(
-                                    salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities);
+                            if (salaryConfig.getId().equals(salary.getSalaryConfigurationEntity().getId())) {
 
-                            PayslipUtils.forFormatNumericalFields(payslipProperties);
+                                // Create payslip based on active salary and salary configuration
+                                PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities);
 
-                            // Pass salary and salaryConfig to maskEmployeePayslip
-                            payslipProperties = PayslipUtils.maskEmployeePayslip(payslipProperties, salary, attendanceEntities);
+                                payslipProperties.setDepartment(employee.getDepartmentName());
+                                payslipProperties.setDesignation(employee.getDesignationName());
+                                PayslipUtils.forFormatNumericalFields(payslipProperties);
 
-                            // Add the generated payslip to the list
-                            generatedPayslips.add(payslipProperties);
-                            payslipPropertiesList.add(payslipProperties);
+                                // Pass salary and salaryConfig to maskEmployeePayslip
+                                payslipProperties = PayslipUtils.maskEmployeePayslip(payslipProperties, salary, attendanceEntities);
+
+                                // Add the generated payslip to the list
+                                generatedPayslips.add(payslipProperties);
+                                payslipPropertiesList.add(payslipProperties);
+                            }else {
+                                log.error("Employee Salary Entity is not a active one {}", employee.getEmployeeId());
+                                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_COMPANY_SALARY_INACTIVE),
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
+                            }
                         }
                     }
                 }
@@ -194,26 +205,36 @@ public class PayslipServiceImpl implements PayslipService {
                 }
             }
 
-        } catch (IOException | EmployeeException ex) {
-            log.error("Error generating payslips: {}", ex.getMessage());
-            throw ex; // Re-throw the caught exception for higher level handling
 
+
+        } catch (EmployeeException e) {
+            // Handle specific EmployeeException for employee salary structures
+            log.error("Error related to employee salary structure: {}", e.getMessage());
+            throw e; // Rethrow the exception after logging
         } catch (Exception ex) {
             log.error("Unexpected error generating payslips: {}", ex.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
         responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
-        if (generatedPayslips.size() == 0){
-            log.error("attendance are not found for the employees {}", employeesWithoutAttendance);
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_GET_ATTENDANCE), employeesWithoutAttendance),
-                    HttpStatus.BAD_REQUEST);
+
+        if (!employeesWithoutSalaryStructure.isEmpty() && generatedPayslips.size() == 0) {
+            String employeeIds = String.join(", ", employeesWithoutSalaryStructure); // Join employee IDs into a string
+            log.error("No salary structure defined for employees: {}", employeeIds);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY_STRUCTURE), employeeIds), HttpStatus.BAD_REQUEST);
         }
+        if (generatedPayslips.size() == 0) {
+            log.error("Attendance not found for the employees {}", employeesWithoutAttendance);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_GET_ATTENDANCE), employeesWithoutAttendance), HttpStatus.BAD_REQUEST);
+        }
+
+
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
     }
+
 
 
 

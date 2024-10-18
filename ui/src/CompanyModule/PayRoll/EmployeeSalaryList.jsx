@@ -163,7 +163,7 @@ const EmployeeSalaryList = () => {
         {employeeSalaryView.length > 0 ? (
           employeeSalaryView.map((item, index) => (
             <div key={index} className="card mb-3">
-              <div className="card-header d-flex justify-content-between align-items-center" style={{ cursor: 'pointer' }}>
+              <div className="card-header bg-light d-flex justify-content-between align-items-center" style={{ cursor: 'pointer' }}>
                 <h5 className="mb-0"> {index + 1}. Net Salary: {item.netSalary}</h5>
                 <div className="d-flex align-items-center">
                   <span className="me-3" style={getStatusStyle(item.status)}>{item.status}</span>

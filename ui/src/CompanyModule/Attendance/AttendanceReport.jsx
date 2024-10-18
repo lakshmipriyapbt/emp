@@ -163,6 +163,13 @@ const AttendanceReport = () => {
     };
 
     const handleDelete = async () => {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        const monthNames = getMonthNames();
+        const currentMonthName = monthNames[currentMonth - 1];
+
         try {
             await AttendanceDeleteById(selectedEmployeeId, selectedAttendanceId);
             toast.success("Attendance Record Deleted Successfully", {
@@ -174,7 +181,7 @@ const AttendanceReport = () => {
             });
             setTimeout(() => {
                 handleCloseDeleteModal();
-                fetchAttendanceData(employeeId, selectedMonth, selectedYear);
+                fetchAllAttendanceData(null, currentMonthName, currentYear);
                 setRefreshData((prev) => !prev);
             }, 1500);
         } catch (error) {
@@ -315,7 +322,7 @@ const AttendanceReport = () => {
                             <div className="card-header">
                                 <div className="row d-flex justify-content-center" style={{ paddingLeft: '50px' }}>
                                     <div className="col-md-3 mt-3">
-                                        <label className="card-title">Select Employee</label>
+                                        <label className="card-title">Select Employee <span className='text-danger'>*</span></label>
                                         <Select
                                             options={employees}
                                             onChange={handleEmployeeChange}
@@ -331,7 +338,7 @@ const AttendanceReport = () => {
                                         {selectedEmployee && <p>Selected: {selectedEmployee.label}</p>}
                                     </div>
                                     <div className="col-md-3 mt-3">
-                                        <label className="card-title">Select Year</label>
+                                        <label className="card-title">Select Year <span className='text-danger fw-100'>*</span></label>
                                         <select
                                             className="form-select"
                                             style={{ paddingBottom: '6px', zIndex: "1" }}

@@ -71,7 +71,7 @@ public class EmployeeRequest {
     private String department;
 
     @Schema(example = "location")
-    @Pattern(regexp = "^(?!\\d+$)(?!^[A-Za-z]+$)(?!^[A-Za-z]+\\s*,?\\s*[A-Za-z]+$)(?:(?:[A-Z][a-z]*)(?:\\s+[A-Z][a-z0-9]*)*(?:[\\s,./'-]+[A-Za-z0-9]+)*(?:\\s*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)?)?$", message = "{location.format}")
+    @Pattern(regexp = "^(?!.*\\s{2,})(?!^([a-zA-Z]{1}\\s?){2,}$)(?!^[A-Z](?:\\s[A-Z])*$)(?!^[\\s]*$)[A-Za-z0-9]+(?:[\\s.,'#&*()^/][A-Za-z0-9]+)*(?:[\\s.,'#&*()/-]*[A-Za-z0-9]+)*(?:[\\s]*[.,#&*()/-]*\\s*)*$", message = "{location.format}")
     @Size(min = 2, max = 200, message = "{location.notnull.message}")
     private String location;
 
@@ -96,8 +96,7 @@ public class EmployeeRequest {
     private String panNo;
 
     @Schema(example = "uanNo")
-    @Pattern(regexp = "^\\d{12}$", message = "{invalid.uanNo}")
-    @NotBlank(message = "{uanNo.notnull.message}")
+    @Pattern(regexp = "^(\\d{12}|null|)$", message = "{invalid.uanNo}")
     private String uanNo;
 
     @Schema(example = "aadhaarId")

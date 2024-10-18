@@ -104,7 +104,7 @@ const Body = () => {
                         <div className="d-flex align-items-center mb-2">
                           <PeopleFill color='blue' size={30} className="me-3" />
                           <div>
-                            <h5 className="card-title">Total Employees</h5>
+                            <h5 className="card-title" style={{color:"black"}}>Total Employees</h5>
                             <h1 className="mt-1">{data.totalEmployeesCount}</h1>
                           </div>
                         </div>
@@ -117,7 +117,7 @@ const Body = () => {
                         <div className="d-flex align-items-center mb-2">
                           <PersonFillCheck color='green' size={30} className="me-3" />
                           <div>
-                            <h5 className="card-title">Active Employees</h5>
+                            <h5 className="card-title" style={{color:"black"}}>Active Employees</h5>
                             <h1 className="mt-1">{data.activeEmployeesCount}</h1>
                           </div>
                         </div>
@@ -130,7 +130,7 @@ const Body = () => {
                         <div className="d-flex align-items-center mb-2">
                           <PersonFillExclamation color='red' size={30} className="me-3" />
                           <div>
-                            <h5 className="card-title">InActive Employees</h5>
+                            <h5 className="card-title" style={{color:"black"}}>InActive Employees</h5>
                             <h1 className="mt-1">{data.inactiveEmployeesCount}</h1>
                           </div>
                         </div>

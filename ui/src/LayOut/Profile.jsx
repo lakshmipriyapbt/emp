@@ -16,8 +16,11 @@ function Profile() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [error, setError] = useState(null);
+  const [imgError,setImgError]=useState(null);
   const { user = {}, logoFileName } = useAuth();
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -121,16 +124,41 @@ function Profile() {
 
   const onChangePicture = (e) => {
     const file = e.target.files[0];
-    const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'];
-  
     if (file) {
-      if (!validTypes.includes(file.type)) {
-        setErrorMessage('Please upload a valid file type (PNG, JPG, SVG, JPEG, PDF).');
-        e.target.value = '';
-      } else {
-        setErrorMessage(''); 
-        setPostImage(file); 
+      // Check file size (200KB)
+      if (file.size > 200 * 1024) {
+        setImgError("File size must be less than 200KB.");
+        return;
       }
+
+      // Check file type
+      const validTypes = ["image/png", "image/jpeg", "image/svg+xml", "application/pdf"];
+      if (!validTypes.includes(file.type)) {
+        setImgError("Only .png, .jpg, .jpeg, .svg, and .pdf files are allowed.");
+        return;
+      }
+
+      // Create an image element to check dimensions
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = () => {
+        // Check dimensions
+        if (img.height > 80) {
+          setImgError("Image height must be less than or equal to 80px.");
+        } else if (img.width > 200) {
+          setImgError("Image width must be less than or equal to 200px.");
+        } else {
+          setImgError(''); // Clear errors if all checks pass
+          setPostImage(file); // Set the valid image file
+          console.log("File is valid and ready for upload:", file);
+        }
+      };
+
+      img.onerror = () => {
+        setImgError("Invalid image file.");
+      };
+
     }
   };
   
@@ -264,8 +292,11 @@ function Profile() {
                         }}
                       >
                         <CameraFill />
+                       
                       </div>
+                    
                     </div>
+                    <span className="text-danger align-start">Max-Height=80px; Max-Width=200px; Max-Size=200 KB </span>
                   </div>
                   <div className="col-12 col-md-6 mb-3">
                     {logoFileName && (
@@ -274,7 +305,7 @@ function Profile() {
                         src={`${logoFileName}`}
                         accept=".png, .jpg. ,svg ,.jpeg, .pdf"
                         alt="Company Logo"
-                        style={{ height: "55px", width: "160px" }}
+                        style={{ height: "80px", width: "200px" }}
                       />
                     )}
                   </div>
@@ -520,7 +551,7 @@ function Profile() {
                             required: "Personal Email Id is Required",
                             pattern: {
                               value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                              message: "Invalid email format it allows Only .com, .in, .org, .net, .edu, .gov are allowed",
+                              message: "Invalid Email Format",
                             },
                           })}
                         />
@@ -614,10 +645,11 @@ function Profile() {
               type="file"
               className="form-control"
               accept=".png, .jpg, .svg, .jpeg, .pdf"
+              
               onChange={onChangePicture}
             />
             {errorMessage && (
-              <p className="text-danger" style={{ marginLeft: "2%" }}>{errorMessage}</p>
+              <p className="text-danger" style={{ marginLeft: "2%" }}>{imgError}</p>
             )}
           </ModalBody>
           <ModalFooter>

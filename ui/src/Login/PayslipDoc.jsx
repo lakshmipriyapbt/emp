@@ -54,17 +54,22 @@ const PayslipDoc = () => {
   const handleDownload = async () => {
     if (employeeId && payslipId) {
       try {
-        await EmployeePaySlipDownloadById(employeeId, payslipId);
-        toast.success("Payslip downloaded successfully");
+        const success = await EmployeePaySlipDownloadById(employeeId, payslipId);
+        if (success) {
+          toast.success("Payslip downloaded successfully");
+        } else {
+          toast.error("Failed to download payslip");
+        }
       } catch (err) {
         console.error("Error downloading payslip:", err);
         toast.error("Failed to download payslip");
       }
     } else {
       console.error("Employee ID or Payslip ID is missing");
+      toast.error("Employee ID or Payslip ID is missing");
     }
   };
-
+  
   useEffect(() => {
     setLoading(true);
     if (employeeId) {
@@ -164,17 +169,16 @@ const PayslipDoc = () => {
                     <tr>
                       <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Designation</th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>{employeeDetails.designationName}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Location</th>
+                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}></th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>
-                        {employeeDetails.location ?
+                      {/* {employeeDetails.location && typeof employeeDetails.location === 'string' ?
                           (() => {
                             const parts = employeeDetails.location.trim().split(',');
-                            const state = parts.slice(-2, -1)[0].trim();
-                            const address = parts.slice(-3, -2)[0].trim();
+                            const state = parts.slice(-2, -1)[0]?.trim() || ''; // Optional chaining and fallback
+                            const address = parts.slice(-3, -2)[0]?.trim() || ''; // Optional chaining and fallback
                             return `${address}, ${state}`;
-                          })() :
-                          ''
-                        }
+                          })() : ''
+                        } */}
                       </td>
                     </tr>
                     <tr>

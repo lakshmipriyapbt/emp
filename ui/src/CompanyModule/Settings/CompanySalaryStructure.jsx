@@ -55,6 +55,7 @@ const CompanySalaryStructure = () => {
     }
   };
 
+  /**Tab Navigation */
   const handleLabelChange = (index, value) => {
     const fields = activeTab === 'nav-home' ? allowanceFields : deductionFields;
     const newFields = [...fields];
@@ -66,6 +67,7 @@ const CompanySalaryStructure = () => {
     }
   };
 
+  /**OnChange event for tab navigation */
   const handleTypeChange = (index, value) => {
     const fields = activeTab === 'nav-home' ? allowanceFields : deductionFields;
     const newFields = [...fields];
@@ -77,6 +79,7 @@ const CompanySalaryStructure = () => {
     }
   };
 
+  /**Checkbox functionality */
   const handleCheckboxChange = (index) => {
     const fields = activeTab === 'nav-home' ? allowanceFields : deductionFields;
     const fieldLabel = fields[index].label;
@@ -184,45 +187,67 @@ const CompanySalaryStructure = () => {
 
   const onSubmit = async (data) => {
     const jsonData = {
-      companyName: user.company,
-      status: data.status,
-      allowances: {},
-      deductions: {},
+        companyName: user.company,
+        status: data.status,
+        allowances: {},
+        deductions: {},
     };
 
     const selectedAllowances = allowanceFields.filter((field) => fieldCheckboxes.allowances[field.label]);
     const selectedDeductions = deductionFields.filter((field) => fieldCheckboxes.deductions[field.label]);
 
+    // Validation: Check if any selected allowance or deduction has an empty value
+    const errors = {};
     selectedAllowances.forEach((field) => {
-      if (field.label && field.value) {
-        jsonData.allowances[field.label] = field.type === "percentage" ? `${field.value}%` : field.value;
-      }
+        if (!field.value) {
+            errors[field.label] = "Value is required for selected allowance.";
+        }
     });
 
     selectedDeductions.forEach((field) => {
-      if (field.label && field.value) {
-        jsonData.deductions[field.label] = field.type === "percentage" ? `${field.value}%` : field.value;
-      }
+        if (!field.value) {
+            errors[field.label] = "Value is required for selected deduction.";
+        }
+    });
+
+    // If there are errors, show alert and return early
+    if (Object.keys(errors).length > 0) {
+        alert("Please fill in the required values for the selected allowances and deductions.");
+        setValidationErrors(errors);
+        return; // Prevent submission
+    }
+
+    selectedAllowances.forEach((field) => {
+        if (field.label && field.value) {
+            jsonData.allowances[field.label] = field.type === "percentage" ? `${field.value}%` : field.value;
+        }
+    });
+
+    selectedDeductions.forEach((field) => {
+        if (field.label && field.value) {
+            jsonData.deductions[field.label] = field.type === "percentage" ? `${field.value}%` : field.value;
+        }
     });
 
     console.log("Submitting data:", jsonData);
 
     try {
-      const response = await CompanySalaryStructurePostApi(jsonData);
-      toast.success("Salary structure submitted successfully!");
-      reset();
-      navigate('/companySalaryView');
-      window.location.reload();
+        const response = await CompanySalaryStructurePostApi(jsonData);
+        toast.success("Salary structure submitted successfully!");
+        reset();
+        navigate('/companySalaryView');
+        window.location.reload();
     } catch (error) {
-      if (error.response) {
-        console.error("Error response from backend:", error.response.data);
-        toast.error(`Error: ${error.response.data.message || 'An error occurred'}`);
-      } else {
-        console.error("Fetch error:", error);
-        toast.error("An unexpected error occurred. Please try again.");
-      }
+        if (error.response) {
+            console.error("Error response from backend:", error.response.data);
+            toast.error(`Error: ${error.response.data.message || 'An error occurred'}`);
+        } else {
+            console.error("Fetch error:", error);
+            toast.error("An unexpected error occurred. Please try again.");
+        }
     }
-  };
+};
+
 
   const formatFieldName = (fieldName) => {
     return fieldName
@@ -492,46 +517,46 @@ const CompanySalaryStructure = () => {
                     </div>
                   </div>
                 </div>
-                <div className="row mt-3 align-items-center">
-                  <div className="col-2">
-                    <label className="form-label mb-0">Status :- </label>
-                  </div>
-                  <div className="col-6">
-                    <Controller
-                      name="status"
-                      control={control}
-                      defaultValue=""
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <Select
-                          {...field}
-                          options={[
+                <div className="row col-12 mt-3 align-items-center">
+    <div className="col-6">
+        <div className="row d-flex flex-column">
+            <label className="form-label mb-0">Status: {errors.status && <p className="errorMsg text-danger">Status is required</p>}
+            </label>
+            <Controller
+                name="status"
+                control={control}
+                defaultValue=""
+                rules={{ required: true }}
+                render={({ field }) => (
+                    <Select
+                        {...field}
+                        options={[
                             { value: "Active", label: "Active" },
                             { value: "InActive", label: "InActive" },
-                          ]}
-                          value={
+                        ]}
+                        value={
                             field.value
-                              ? { value: field.value, label: ["Active", "InActive"].find(option => option === field.value) }
-                              : null
-                          }
-                          onChange={(val) => field.onChange(val.value)}
-                          isDisabled={!isSubmitEnabled()}
-                          placeholder="Select Status"
-                        />
-                      )}
+                                ? { value: field.value, label: field.value }
+                                : null
+                        }
+                        onChange={(val) => field.onChange(val.value)}
+                        isDisabled={!isSubmitEnabled()}
+                        placeholder="Select Status"
                     />
-                    {errors.status && <p className="errorMsg text-danger">Status is Required</p>}
-                  </div>
-                  <div className="col-4 text-end">
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={!isSubmitEnabled()}
-                    >
-                      Submit All
-                    </button>
-                  </div>
-                </div>
+                )}
+            />
+        </div>
+    </div>
+    <div className="col-4 text-end">
+        <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={!isSubmitEnabled()}
+        >
+            Submit All
+        </button>
+    </div>
+</div>
               </div>
             </div>
           </form>

@@ -82,6 +82,14 @@ const Reset = ({ companyName, onClose, show }) => {
     onClose(); // Call the original onClose function
   };
 
+  const handleReset = () => {
+    reset(); // Clear all input fields
+    setOldPasswordShown(false);
+    setNewPasswordShown(false);
+    setConfirmPasswordShown(false);
+    setError(null);
+  };
+
   return (
 
     <Modal
@@ -186,7 +194,10 @@ const Reset = ({ companyName, onClose, show }) => {
               )}
             </div>
 
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 ">
+            <button className="btn btn-secondary me-2" type="button" onClick={handleReset}>
+                Reset
+              </button>
               <button className="btn btn-primary" type="submit" disabled={loading}>
                 {loading ? "Loading..." : "Submit"}
               </button>

@@ -178,7 +178,31 @@ const Department = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
-
+  const validateName = (value) => {
+    if (!value || value.trim().length === 0) {
+      return "Department Name is Required.";
+    } else if (!/^[A-Za-z ]+$/.test(value)) {
+      return "Only Alphabetic Characters are Allowed.";
+    } else {
+      const words = value.split(" ");
+      
+      for (const word of words) {
+        if (word.length < 2 || word.length > 40) {
+          return "Invalid Format of Department.";
+        }
+      }
+      
+      if (/^\s|\s$/.test(value)) {
+        return "No Leading or Trailing Spaces Allowed.";
+      } else if (/\s{2,}/.test(value)) {
+        return "No Multiple Spaces Between Words Allowed.";
+      }
+    }
+  
+    return true; // Return true if all conditions are satisfied
+  };
+  
+  
 
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
@@ -296,10 +320,10 @@ const Department = () => {
                   <div className='col-12 col-md-6 col-lg-4'>
                     <button
                       onClick={() => setAddDeparment(true)}
-                      className={editingId ? "btn btn-danger" : "btn btn-primary"}
+                      className= "btn btn-primary"
                       type='submit'
                     >
-                      {loading ? "Loading..." : (editingId ? "Update Department" : "Add Department")}
+                    Add Department
 
                     </button>
                   </div>
@@ -351,6 +375,12 @@ const Department = () => {
                   <div className="modal-content">
                     <ModalHeader>
                       <ModalTitle>{editingId ? "Update Department" : "Add Department"}</ModalTitle>
+                      <button
+                        type="button"
+                        className="btn-close" // Bootstrap's close button class
+                        aria-label="Close"
+                        onClick={handleCloseAddDepartmentModal} // Function to close the modal
+                      ></button>
                     </ModalHeader>
                     <ModalBody>
                       <form onSubmit={handleSubmit(onSubmit)} id='designationForm'>
@@ -368,18 +398,9 @@ const Department = () => {
                                 autoComplete='off'
                                 {...register("name", {
                                   required: "Department is Required",
-                                  pattern: {
-                                    value: /^[A-Za-z ]+$/,
-                                    message: "This Field accepts only Alphabetic Characters",
+                                  validate:{
+                                       validateName,
                                   },
-                                  minLength: {
-                                    value: 2,
-                                    message: "Minimun 2 characters required"
-                                  },
-                                  maxLength: {
-                                    value: 20,
-                                    message: "Maximum 20 characters required"
-                                  }
                                 })}
                               />
                               {errors.name && (<p className='errorMsg'>{errors.name.message}</p>)}

@@ -275,22 +275,16 @@ const EmployeeRegistration = () => {
 
       reset();
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        const message = error.response.data.message;
-        const data = error.response.data.data;
-
-        let errorDetails = 'No additional details available.';
-
-        if (data && typeof data === 'object') {
-          // Format error details dynamically
-          errorDetails = Object.entries(data)
-            .map(([key, value]) => `${key}: ${value || 'N/A'}`)
-            .join('\n');
+      if (error.response && error.response.data) {
+        const { error: errorData } = error.response.data;
+  
+        if (errorData && errorData.messages && Array.isArray(errorData.messages)) {
+          const message = errorData.messages.join('\n'); // Join messages with new lines
+          setErrorMessage(message);
+        } else {
+          const message = error.response.data.message || "An unexpected error occurred.";
+          setErrorMessage(message);
         }
-
-        const alertMessage = `${message}\n=>\n${errorDetails}`;
-        setErrorMessage(alertMessage);
-
       } else {
         handleApiErrors(error);
       }
@@ -304,6 +298,7 @@ const EmployeeRegistration = () => {
     // }
     if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
       const errorMessage = error.response.data.error.message;
+      setErrorMessage(errorMessage)
       toast.error(errorMessage);
     } else {
       // toast.error("Network Error !");
@@ -410,6 +405,54 @@ const validatePassword = (value) => {
   if (errors.length > 0) {
     return `Password must contain ${errors.join(", ")}.`;
   }
+  return true; // Return true if all conditions are satisfied
+};
+
+const validateName = (value) => {
+  if (!value || value.trim().length === 0) {
+    return "Manager Name is Required.";
+  } else if (!/^[A-Za-z ]+$/.test(value)) {
+    return "Only Alphabetic Characters are Allowed.";
+  } else {
+    const words = value.split(" ");
+    
+    for (const word of words) {
+      if (word.length < 3 || word.length > 30) {
+        return "Invalid Format of Manager.";
+      }
+    }
+    
+    if (/^\s|\s$/.test(value)) {
+      return "No Leading or Trailing Spaces Allowed.";
+    } else if (/\s{2,}/.test(value)) {
+      return "No Multiple Spaces Between Words Allowed.";
+    }
+  }
+
+  return true; // Return true if all conditions are satisfied
+};
+
+const validateLocation = (value) => {
+  if (!value || value.trim().length === 0) {
+    return "Location is Required.";
+  } else if (!/^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,&*.()^\-/]*$/.test(value)) {
+    return "Only Alphabetic Characters are Allowed.";
+  } else {
+    const words = value.split(" ");
+    
+    for (const word of words) {
+      if (word.length < 3 || word.length > 200) {
+        return "Invalid Format of Location.";
+      }
+    }
+    
+    if (/^\s|\s$/.test(value)) {
+      return "No Leading or Trailing Spaces Allowed.";
+    } else if (/\s{2,}/.test(value)) {
+      return "No Multiple Spaces Between Words Allowed.";
+    }
+  }
+
   return true; // Return true if all conditions are satisfied
 };
 
@@ -561,8 +604,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                             message: "Minimum 3 characters Required",
                           },
                           maxLength: {
-                            value: 60,
-                            message: "Maximum 60 characters Required",
+                            value: 100,
+                            message: "Maximum 100 characters Required",
                           },
                         })}
                       />
@@ -594,8 +637,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                             message: "Minimum 1 character Required",
                           },
                           maxLength: {
-                            value: 60,
-                            message: "Maximum 60 characters Required",
+                            value: 100,
+                            message: "Maximum 100 characters Required",
                           },
                         })}
                       />
@@ -618,7 +661,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                           required: "Email Id is Required",
                           pattern: {
                             value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                            message: "Invalid email format it allows Only .com, .in, .org, .net, .edu, .gov are allowed",
+                            message: "Invalid Email Format",
                           },
                         })}
                       />
@@ -628,7 +671,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Date of Hiring <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">Date of Joining <span style={{ color: "red" }}>*</span></label>
                       <input
                         type={isUpdating ? "date" : "date"}
                         readOnly={isUpdating}
@@ -639,10 +682,11 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         max={threeMonthsFromNow}
                         {...register("dateOfHiring", {
                           required: true,
+                          validate:validateDate
                         })}
                       />
                       {errors.dateOfHiring && (
-                        <p className="errorMsg">Date of Hiring is Required</p>
+                        <p className="errorMsg">{errors.dateOfHiring.message||"Date of Joining is Required"}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
@@ -739,19 +783,10 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         onKeyDown={handleEmailChange}
                         {...register("manager", {
                           required: "Manager is Required",
-                          pattern: {
-                            value: /^[A-Za-z ]+$/,
-                            message:
-                              "These fields accepts only Alphabetic Characters",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "minimum 3 character Required",
-                          },
-                          maxLength: {
-                            value: 60,
-                            message: "Maximum 60 characters Required",
-                          },
+
+                        validate:{
+                          validateName,
+                        }
                         })}
                       />
                       {errors.manager && (
@@ -770,18 +805,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         onKeyDown={handleEmailChange}
                         {...register("location", {
                           required: "Location is Required",
-                          pattern: {
-                            value: /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,&*.()^\-/]*$/,
-                            message: "Invalid Location",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "minimum 3 characters Required",
-                          },
-                          maxLength: {
-                            value: 200,
-                            message: "Maximum 200 characters Required",
-                          },
+                         validate:{
+                          validateLocation
+                         }
                         })}
                       />
                       {errors.location && (
@@ -839,7 +865,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     )}
                    {!isUpdating && (
                       <div className="col-lg-1"></div>
-                    )}                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    )}                  
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Date of Birth <span style={{ color: "red" }}>*</span></label>
                       <input
                         type={isUpdating ? "date" : "date"}
@@ -850,6 +877,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         autoComplete="off"
                         {...register("dateOfBirth", {
                           required: true,
+                          validate: (value) => validateDateOfBirth(value, dateOfHiring) // Custom validation
+
                         })}
                         max={getCurrentDate()}
                         {...register("dateOfBirth", {
@@ -857,7 +886,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         })}
                       />
                       {errors.dateOfBirth && (
-                        <p className="errorMsg">Date of Birth is Required</p>
+                        <p className="errorMsg">{errors.dateOfBirth.message|| "Date of Birth is Required"}</p>
                       )}
                     </div>
                     {isUpdating && (

@@ -401,7 +401,7 @@ const CompanyLogin = () => {
                                     required: "Email is Required.",
                                     pattern: {
                                       value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                                      message: "Invalid email format it allows Only .com, .in, .org, .net, .edu, .gov are allowed",
+                                      message: "Invalid Email Format",
                                     },
                                     })}
                                   />
@@ -440,12 +440,12 @@ const CompanyLogin = () => {
                                 </small>
                             </div>
                           
-                            <div>
+                            {/* <div>
                                 <div class="form-check align-items-center">
                                     <input id='customControlInline' type="checkbox" class="form-check-input" value="remember-me" name="remember-me"  />
                                     <label class="form-check-label text-small" for="customControlInline">Remember me</label>
                                 </div>
-                            </div>
+                            </div> */}
                             </>
                           )}
                           {otpSent && !otpExpired && (   

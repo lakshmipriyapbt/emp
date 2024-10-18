@@ -371,7 +371,7 @@ const GeneratePaySlip = () => {
           </div>
         </div>
       </div>
-      {show && (
+      {/* {show && ( */}
         <div className="col-12">
           <div className="card">
             <div className="card-header">
@@ -399,7 +399,7 @@ const GeneratePaySlip = () => {
             </div>
           </div>
         </div>
-      )}
+       {/* )} */}
     </LayOut>
   );
 };

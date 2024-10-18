@@ -29,8 +29,8 @@ public class CompanyRequest {
 
     @Schema(example = "companyAddress")
     @Size(min = 2, max = 200, message = "{companyAddress.notnull.message}")
-    @Pattern(regexp = /*"^(?!.*\\s{2,})(?!^([a-zA-Z]{1}\\s?){2,}$)(?!^[A-Z](?:\\s[A-Z])*$)(?!^[\\s]*$)[A-Za-z0-9]+(?:[\\s.,'#&*()^/][A-Za-z0-9]+)*(?:[\\s.,'#&*()/-]*[A-Za-z0-9]+)*(?:[\\s]*[.,#&*()/-]*\\s*)*$",*/
-            "^(?!\\d+$)(?!^[A-Za-z]+$)(?!^[A-Za-z]+\\s*,?\\s*[A-Za-z]+$)(?:(?:[A-Z][a-z]*)(?:\\s+[A-Z][a-z0-9]*)*(?:[\\s,./'-]+[A-Za-z0-9]+)*(?:\\s*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)?)?$",
+    @Pattern(regexp = "^(?!.*\\s{2,})(?!^([a-zA-Z]{1}\\s?){2,}$)(?!^[A-Z](?:\\s[A-Z])*$)(?!^[\\s]*$)[A-Za-z0-9]+(?:[\\s.,'#&*()^/][A-Za-z0-9]+)*(?:[\\s.,'#&*()/-]*[A-Za-z0-9]+)*(?:[\\s]*[.,#&*()/-]*\\s*)*$",
+            /*"^(?!\\d+$)(?!^[A-Za-z]+$)(?!^[A-Za-z]+\\s*,?\\s*[A-Za-z]+$)(?:(?:[A-Z][a-z]*)(?:\\s+[A-Z][a-z0-9]*)*(?:[\\s,./'-]+[A-Za-z0-9]+)*(?:\\s*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)?)?$",*/
             message = "{companyAddress.pattern.message}")
     private String companyAddress;
 
@@ -44,6 +44,7 @@ public class CompanyRequest {
     private String mobileNo;
 
     @Schema(example = "alternateNo")
+    @Pattern(regexp = "^((?!([0-9])\\1{9})\\d{10}|null|0|)$", message = "{invalid.alternateNo}")
     private String alternateNo;
 
     @Schema(example = "12ABCDE3456Z1")
@@ -72,7 +73,7 @@ public class CompanyRequest {
     private String personalMobileNo;
 
     @Schema(example = "address")
-    @Pattern(regexp = "^(?!\\d+$)(?!^[A-Za-z]+$)(?!^[A-Za-z]+\\s*,?\\s*[A-Za-z]+$)(?:(?:[A-Z][a-z]*)(?:\\s+[A-Z][a-z0-9]*)*(?:[\\s,./'-]+[A-Za-z0-9]+)*(?:\\s*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*,\\s*[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)?)?$",
+    @Pattern(regexp = "^(?!.*\\s{2,})(?!^([a-zA-Z]{1}\\s?){2,}$)(?!^[A-Z](?:\\s[A-Z])*$)(?!^[\\s]*$)[A-Za-z0-9]+(?:[\\s.,'#&*()^/][A-Za-z0-9]+)*(?:[\\s.,'#&*()/-]*[A-Za-z0-9]+)*(?:[\\s]*[.,#&*()/-]*\\s*)*$",
             message = "{address.pattern.message}")
     @Size(min = 10, max = 300, message = "{address.notnull.message}")
     private String address;

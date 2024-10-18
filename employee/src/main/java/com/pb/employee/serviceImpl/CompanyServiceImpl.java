@@ -184,6 +184,13 @@ public class CompanyServiceImpl implements CompanyService {
                         HttpStatus.CONFLICT
                 );
             }
+
+            int noOfChanges = EmployeeUtils.duplicateCompanyProperties(user, companyUpdateRequest);
+            if (noOfChanges==0){
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_DATA_EXIST)))),
+                        HttpStatus.CONFLICT);
+            }
         } catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", companyId, ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),

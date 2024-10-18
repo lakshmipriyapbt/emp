@@ -37,6 +37,7 @@ import EmployeeSalaryUpdate from '../CompanyModule/PayRoll/EmployeeSalaryUpdate'
 import CompanySalaryView from '../CompanyModule/Settings/CompanySalaryView';
 import PayslipUpdate from '../Login/PayslipUpdate';
 import OfferLetters from '../CompanyModule/Settings/OfferLetters';
+import ExperienceLetter from '../CompanyModule/Settings/Experience/ExperienceLetter';
 
 const Rout = () => {
   const location = useLocation();
@@ -136,6 +137,7 @@ const Rout = () => {
       <Route path='/offerLetter' element={<OfferLetter />}></Route>
       <Route path='/payslipLetter' element={<PaySlipLetter />}></Route>
       <Route path='/hikeLetter' element={<HikeLetter />}></Route>
+      <Route path='/experienceLetter' element={<ExperienceLetter/>}></Route>
       <Route path='/existingEmployee' element={<ExistingLetter />}></Route>
       <Route path='/forgotPassword' element={<ForgotPassword/>}></Route>
     </Routes>

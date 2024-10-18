@@ -10,6 +10,8 @@ const PayslipUpdate = () => {
   const [payslipData, setPayslipData] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [allowances, setAllowances] = useState(payslipData.salary?.salaryConfigurationEntity?.allowances || {});
+  const [deductions, setDeductions] = useState(payslipData.salary?.salaryConfigurationEntity?.deductions || {});
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
@@ -50,6 +52,19 @@ const PayslipUpdate = () => {
     }
   };
 
+  const handleAllowanceChange = (key, value) => {
+    setAllowances(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleDeductionChange = (key, value) => {
+    setDeductions(prev => ({ ...prev, [key]: value }));
+  };
+
+  const formatFieldName = (key) => {
+    // Your existing logic to format the field name
+    return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+  };
+
   const handleUpdate = async () => {
     if (employeeId && payslipId) {
       try {
@@ -83,12 +98,12 @@ const PayslipUpdate = () => {
     return <div>No data available</div>;
   }
 
-  const formatFieldName = (fieldName) => {
-    return fieldName
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
-  };
+  // const formatFieldName = (fieldName) => {
+  //   return fieldName
+  //     .replace(/([A-Z])/g, ' $1')
+  //     .replace(/^./, (str) => str.toUpperCase())
+  //     .trim();
+  // };
 
   return (
     <LayOut>
@@ -131,32 +146,57 @@ const PayslipUpdate = () => {
             <div className="payslip-details" style={{ border: "1px solid black" }}>
               <div style={{ padding: "20px" }}>
                 <table style={{ borderCollapse: "collapse", border: "1px solid black", width: "100%" }}>
-                  <tbody>
-                    <tr>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Employee ID</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.employeeId}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Date of Hiring</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.dateOfHiring}</td>
-                    </tr>
-                    <tr>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Department</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.departmentName}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Designation</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.designationName}</td>
-                    </tr>
-                    <tr>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Bank Name</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.bankName}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>Account Number</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.accountNo}</td>
-                    </tr>
-                    <tr>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>UAN Number</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.uanNo}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left" }}>PAN Number</th>
-                      <td style={{ padding: "4px", textAlign: "left" }}>{employeeDetails.panNo}</td>
-                    </tr>
-                  </tbody>
+                <tbody>
+        {Object.entries(allowances).map(([key, value], index) => {
+          const deductionKey = Object.keys(deductions)[index];
+          const deductionValue = deductions[deductionKey];
+
+          return (
+            <tr key={key}>
+              <td className="earnings" style={{ padding: "4px", textAlign: "left" }}>{formatFieldName(key)}</td>
+              <td className="earnings" style={{ textAlign: "left" }}>
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => handleAllowanceChange(key, e.target.value)}
+                />
+              </td>
+              <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>
+                {deductionKey ? formatFieldName(deductionKey) : ''}
+              </td>
+              <td className="deductions" style={{ textAlign: "left" }}>
+                <input
+                  type="text"
+                  value={deductionValue || ''}
+                  onChange={(e) => handleDeductionChange(deductionKey, e.target.value)}
+                />
+              </td>
+            </tr>
+          );
+        })}
+        {Object.entries(deductions).slice(Object.keys(allowances).length).map(([key, value]) => (
+          <tr key={key}>
+            <td className="earnings" style={{ padding: "4px", textAlign: "left" }}></td>
+            <td className="earnings" style={{ textAlign: "left" }}></td>
+            <td className="deductions" style={{ padding: "4px", textAlign: "left" }}>{formatFieldName(key)}</td>
+            <td className="deductions" style={{ textAlign: "left" }}>
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => handleDeductionChange(key, e.target.value)}
+              />
+            </td>
+          </tr>
+        ))}
+        <tr>
+          <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left" }}>Net Salary (A-B)</td>
+          <td className="earnings" colSpan={3} style={{ textAlign: "left" }}><b>{payslipData.salary?.netSalary || 0}</b></td>
+        </tr>
+        <tr>
+          <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left" }}>Net Pay (in words):</td>
+          <td className="earnings" colSpan={3} style={{ textAlign: "left" }}><b>{payslipData.inWords || ""}</b></td>
+        </tr>
+      </tbody>
                 </table>
               </div>
               <div className="lop" style={{ padding: "20px" }}>

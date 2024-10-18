@@ -310,7 +310,7 @@ const ViewPaySlips = () => {
             </div>
             {showFields ? (
               <div>
-                <h5 className="card-title mt-4">
+                <h5 className="card-title mt-4 text-dark" >
                   PaySlip Details for {selectedEmployeeDetails.firstName ? `${selectedEmployeeDetails.firstName} ${selectedEmployeeDetails.lastName} (${selectedEmployeeDetails.employeeId})` : 'All Employees'}
                   {selectedYear && ` - ${selectedYear}`}
                   {selectedMonth && ` - ${getMonthNames()[selectedMonth - 1]}`}

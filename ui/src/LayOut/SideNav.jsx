@@ -218,7 +218,7 @@ const SideNav = () => {
               className="align-middle"
               src=""
               alt="Loading Logo"
-              style={{ height: "55px", width: "160px", color: "black" }}
+              style={{ height: "80px", width: "200px", color: "black" }}
             />
           ) : (
             <span>
@@ -629,6 +629,21 @@ const SideNav = () => {
                   >
                     <a className="sidebar-link" href={"/offerLetters"}>
                       Offer Letters
+                    </a>
+                  </li>
+                </ul>
+                <ul
+                  id="settingsManagement"
+                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""
+                    }`}
+                >
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/experienceLetter" ? "active" : ""
+                      }`}
+                  >
+                    <a className="sidebar-link" href={"/experienceLetter"}>
+                      Experience Letter
                     </a>
                   </li>
                 </ul>

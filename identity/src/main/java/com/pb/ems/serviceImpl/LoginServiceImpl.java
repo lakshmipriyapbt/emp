@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -105,7 +106,15 @@ public class LoginServiceImpl implements LoginService {
                     HttpStatus.FORBIDDEN);
         }
         Long otp = generateOtp();
-        sendOtpByEmail(request.getUsername(), otp);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendOtpByEmail(request.getUsername(), otp);
+            } catch (Exception e) {
+                log.error("Unable to generate and send otp ");
+                throw new RuntimeException(e);
+            }
+        });
         openSearchOperations.saveOtpToUser(employee, otp,request.getCompany());
         List<String> roles = new ArrayList<>();
         String token= null;

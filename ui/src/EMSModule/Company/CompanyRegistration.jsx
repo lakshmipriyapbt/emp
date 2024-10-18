@@ -54,62 +54,55 @@ const CompanyRegistration = () => {
 
   const onSubmit = async (data) => {
     try {
-      const updateData = {
-        password: data.password,
-        companyAddress: data.companyAddress,
-        mobileNo: data.mobileNo,
-        alternateNo: data.alternateNo,
-        name: data.name,
-        personalMailId: data.personalMailId,
-        personalMobileNo: data.personalMobileNo,
-        address: data.address,
-        companyType: data.companyType,
-        // Add other fields as needed
-      };
-         // Conditionally add CIN number or Company Registration Number
-    if (data.companyType === "Private Limited") {
-      updateData.cinNumber = data.cinNumber; // Post CIN number
-    } else if (data.companyType === "Firm") {
-      updateData.companyRegistrationNumber = data.companyRegistrationNumber; // Post Company Registration Number
-    }
-      if (location.state && location.state.id) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await companyUpdateByIdApi(location.state.id, updateData);
-        setTimeout(() => {
-          toast.success("Company Updated Successfully");
-          navigate("/companyView");
-        }, 1000);
-      } else {
-        await CompanyRegistrationApi(data);
-        setTimeout(() => {
-          toast.success("Company Created Successfully");
-          navigate("/companyView");
-        }, 1000);
+        const updateData = {
+            password: data.password,
+            companyAddress: data.companyAddress,
+            mobileNo: data.mobileNo,
+            alternateNo: data.alternateNo,
+            name: data.name,
+            personalMailId: data.personalMailId,
+            personalMobileNo: data.personalMobileNo,
+            address: data.address,
+            companyType: data.companyType,
+        };
 
-      }
-      reset();
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        const message = error.response.data.message;
-        const data = error.response.data.data;
-
-        let errorDetails = 'No additional details available.';
-
-        if (data && typeof data === 'object') {
-          // Format error details dynamically
-          errorDetails = Object.entries(data)
-            .map(([key, value]) => `${key}: ${value || 'N/A'}`)
-            .join('\n');
+        // Conditionally add CIN number or Company Registration Number
+        if (data.companyType === "Private Limited") {
+            updateData.cinNumber = data.cinNumber;
+        } else if (data.companyType === "Firm") {
+            updateData.companyRegistrationNumber = data.companyRegistrationNumber;
         }
 
-        const alertMessage = `${message}\n=>\n${errorDetails}`;
-        setErrorMessage(alertMessage);
+        if (location.state && location.state.id) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await companyUpdateByIdApi(location.state.id, updateData);
+            setTimeout(() => {
+                toast.success("Company Updated Successfully");
+                navigate("/companyView");
+            }, 1000);
+        } else {
+            await CompanyRegistrationApi(data);
+            setTimeout(() => {
+                toast.success("Company Created Successfully");
+                navigate("/companyView");
+            }, 1000);
+        }
 
-      } else {
-        handleApiErrors(error);
-      }
+        reset();
+    } catch (error) {
+        if (error.response && error.response.data) {
+            const errorMessages = error.response.data.error?.messages || [];
+            const alertMessage = errorMessages.length 
+                ? errorMessages.join('\n') 
+                : 'An unexpected error occurred. Please try again.';
+
+            setErrorMessage(alertMessage); // Set the error message for display
+        } else {
+            handleApiErrors(error);
+        }
     }
-  };
+};
+
 
   useEffect(() => {
     if (location && location.state && location.state.id) {
@@ -432,8 +425,8 @@ const CompanyRegistration = () => {
                             message: "minimum 2 characters Required",
                           },
                           maxLength: {
-                            value: 32,
-                            message: "maximum 32 characters allowed",
+                            value: 100,
+                            message: "maximum 100 characters allowed",
                           },
                         })}
                         disabled={editMode}
@@ -466,8 +459,8 @@ const CompanyRegistration = () => {
 
                           },
                           maxLength: {
-                            value: 16,
-                            message: "minimum 2 and maximum 16 characters allowed",
+                            value: 30,
+                            message: "minimum 2 and maximum 30 characters allowed",
                           },
                         })}
                         disabled={editMode}
@@ -669,8 +662,8 @@ const CompanyRegistration = () => {
                             message: "minimum 3 characters allowed",
                           },
                           maxLength: {
-                            value: 100,
-                            message: "maximum 100 characters allowed",
+                            value: 200,
+                            message: "maximum 200 characters allowed",
                           },
                         })}
                       />
@@ -846,8 +839,8 @@ const CompanyRegistration = () => {
                             message: "Minimun 3 characters Required",
                           },
                           maxLength: {
-                            value: 35,
-                            message: "Name must not exceed 35 characters",
+                            value: 100,
+                            message: "Name must not exceed 100 characters",
                           },
                           pattern: {
                             value: /^[a-zA-Z\s]*$/,
@@ -938,8 +931,8 @@ const CompanyRegistration = () => {
                         {...register("address", {
                           required: "Address is Required",
                           maxLength: {
-                            value: 100,
-                            message: "Name must not exceed 100 characters",
+                            value: 200,
+                            message: "Name must not exceed 200 characters",
                           },
                           minLength: {
                             value: 3,
@@ -962,7 +955,7 @@ const CompanyRegistration = () => {
           </div>
           <div className="col-lg-1"></div>
           {errorMessage && (
-            <div className="alert alert-info mt-4 text-center">
+            <div className="alert alert-danger mt-4 text-center">
               {errorMessage}
             </div>
           )}

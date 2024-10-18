@@ -147,7 +147,8 @@ const EmployeeSalaryUpdate = () => {
                                 <div className="card-header">
                                     <h5 className="card-title"> Salary Details </h5>
                                     <hr />
-                                    <div className="row">
+                                    </div>
+                                    <div className=" card-body row">
                                         <div className="col-md-5 mb-3">
                                             <label className="form-label">Variable Amount</label>
                                             <input
@@ -205,7 +206,7 @@ const EmployeeSalaryUpdate = () => {
                                             />
                                         </div>
                                     </div>
-                                </div>
+                                
                             </div>
                         </div>
                         <div className="row">
@@ -219,6 +220,8 @@ const EmployeeSalaryUpdate = () => {
                                                     <div className="card-header">
                                                         <h5 className="card-title">Allowances</h5>
                                                         <hr />
+                                                        </div>
+                                                        <div className='card-body'>
                                                         {structure.salaryConfigurationEntity?.allowances && Object.keys(structure.salaryConfigurationEntity.allowances).length > 0 ? (
                                                             Object.keys(structure.salaryConfigurationEntity.allowances).map((allowance) => {
                                                                 const allowanceValue = structure.salaryConfigurationEntity.allowances[allowance];
@@ -269,14 +272,17 @@ const EmployeeSalaryUpdate = () => {
                                                                 readOnly
                                                             />
                                                         </div>
-                                                    </div>
+                                                        </div>
+                                                   
                                                 </div>
                                             </div>
                                             <div className="col-6">
                                                 <div className="card">
                                                     <div className="card-header">
                                                         <h5 className="card-title">Deductions</h5>
-                                                        <hr />
+                                                        <hr />\
+                                                        </div>
+                                                        <div className='card-body'>
                                                         {structure.salaryConfigurationEntity?.deductions && Object.keys(structure.salaryConfigurationEntity.deductions).length > 0 ? (
                                                             Object.keys(structure.salaryConfigurationEntity.deductions).map((deduction) => (
                                                                 <div key={deduction} className="mb-2">
@@ -325,7 +331,8 @@ const EmployeeSalaryUpdate = () => {
                                                     <div className="card-header">
                                                         <h5 className="card-title">Status</h5>
                                                         <hr />
-                                                        <div className="col-12">
+                                                        </div>
+                                                        <div className="card-body col-12">
                                                             <label className="form-label">
                                                                 Status<span style={{ color: 'red' }}>*</span>
                                                             </label>
@@ -354,7 +361,7 @@ const EmployeeSalaryUpdate = () => {
                                                             />
                                                             {errors.status && <p className="errorMsg"> Status is Required</p>}
                                                         </div>
-                                                    </div>
+                                                   
                                                 </div>
                                             </div>
                                             <div className="col-6">
@@ -362,7 +369,8 @@ const EmployeeSalaryUpdate = () => {
                                                     <div className="card-header">
                                                         <h5 className="card-title"> Net Salary </h5>
                                                         <hr />
-                                                        <div className="col-12">
+                                                        </div>
+                                                        <div className="card-body col-12">
                                                             <label className="form-label">Total Amount<span style={{ color: "red" }}>*</span></label>
                                                             <input
                                                                 type="text"
@@ -371,7 +379,7 @@ const EmployeeSalaryUpdate = () => {
                                                                 readOnly
                                                             />
                                                         </div>
-                                                    </div>
+                                                   
                                                 </div>
                                             </div>
                                         </div>

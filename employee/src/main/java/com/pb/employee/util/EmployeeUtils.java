@@ -127,7 +127,7 @@ public class EmployeeUtils {
                 }
                 if (employeeEntity.getUanNo() != null) {
                     uanNo = new String((Base64.getDecoder().decode(employeeEntity.getUanNo().toString().getBytes())));
-                    if (uanNo.equals(employeeRequest.getUanNo())) {
+                    if (uanNo.equals(employeeRequest.getUanNo()) && !uanNo.isEmpty()) {
                         responseBody.put(Constants.DUPLICATE_UAN_NO, employeeRequest.getUanNo());
                     }
                 }
@@ -271,6 +271,49 @@ public class EmployeeUtils {
             return value; // Return as is if null or empty
         }
         return new String(Base64.getDecoder().decode(value)); // Correctly decode without extra bytes conversion
+    }
+
+    public static int duplicateCompanyProperties(CompanyEntity user, CompanyUpdateRequest companyUpdateRequest) {
+        int noOfChanges = 0;
+        if(!user.getCompanyAddress().equals(companyUpdateRequest.getCompanyAddress())){
+           noOfChanges +=1;
+        }
+        if (user.getMobileNo() !=null){
+           String mobileNo = new String(Base64.getDecoder().decode(user.getMobileNo()));
+           if (!mobileNo.equals(companyUpdateRequest.getMobileNo())){
+            noOfChanges +=1;
+           }
+        }
+        if (user.getAlternateNo() !=null){
+           String alternate = new String(Base64.getDecoder().decode(user.getAlternateNo()));
+           if (!alternate.equals(companyUpdateRequest.getAlternateNo())){
+                noOfChanges +=1;
+           }
+        }
+
+        if(!user.getName().equals(companyUpdateRequest.getName())){
+            noOfChanges +=1;
+        }
+        if (user.getPersonalMobileNo() !=null){
+            String prMobileNo = new String(Base64.getDecoder().decode(user.getPersonalMobileNo()));
+            if (!prMobileNo.equals(companyUpdateRequest.getPersonalMobileNo())){
+                noOfChanges +=1;
+            }
+        }
+        if (user.getPersonalMailId() !=null){
+            String prMailId = new String(Base64.getDecoder().decode(user.getPersonalMailId()));
+            if (!prMailId.equals(companyUpdateRequest.getPersonalMailId())){
+                noOfChanges +=1;
+            }
+        }
+        if(!user.getAddress().equals(companyUpdateRequest.getAddress())){
+            noOfChanges +=1;
+        }
+        if(!user.getCompanyType().equals(companyUpdateRequest.getCompanyType())){
+            noOfChanges +=1;
+        }
+
+    return noOfChanges;
     }
 
 }

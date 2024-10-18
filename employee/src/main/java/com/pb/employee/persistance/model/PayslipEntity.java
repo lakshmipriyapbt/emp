@@ -22,4 +22,7 @@ public class PayslipEntity implements Entity  {
     private String year;
     private String inWords;
     private String type;
+
+    private String department;    // Store department when payslip is generated
+    private String designation;
 }

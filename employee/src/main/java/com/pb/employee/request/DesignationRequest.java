@@ -21,6 +21,6 @@ public class DesignationRequest {
 
     @Schema(example = "designation")
     @Pattern(regexp = "^(?!.*\\b([A-Z])\\s\\1\\s\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\.? ?[A-Z])? ?[A-Z][a-z]+)$", message = "{designation.format}")
-    @Size(min = 2, max = 20, message = "{designation.size.message}")
+    @Size(min = 2, max = 40, message = "{designation.size.message}")
     private String name;
 }

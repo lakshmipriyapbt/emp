@@ -76,21 +76,30 @@ public class SalaryConfigurationServiceImpl implements SalaryConfigurationServic
         try {
             // Retrieve existing salary configurations
             salaryConfigurationEntities = openSearchOperations.getSalaryStructureByCompanyDate(salaryConfigurationRequest.getCompanyName());
-            for (SalaryConfigurationEntity existingConfig : salaryConfigurationEntities) {
-                if (existingConfig != null) {
-                    boolean areAllowancesEqual = areAllowancesEqual(existingConfig.getAllowances(), salaryConfigurationRequest.getAllowances());
-                    if (areAllowancesEqual) {
-                        return new ResponseEntity<>(
-                                ResponseBuilder.builder().build().
-                                        createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
-                                                .getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_ALREADY_EXIST)))),
-                                HttpStatus.CONFLICT);
-                    } else {
-                        existingConfig.setStatus(EmployeeStatus.INACTIVE.getStatus());
-                        openSearchOperations.saveEntity(existingConfig, existingConfig.getId(), index);
-                    }
-                }
+//            for (SalaryConfigurationEntity existingConfig : salaryConfigurationEntities) {
+//                if (existingConfig != null) {
+//                    boolean areAllowancesEqual = areAllowancesEqual(existingConfig.getAllowances(), salaryConfigurationRequest.getAllowances());
+//                    if (areAllowancesEqual) {
+//                        return new ResponseEntity<>(
+//                                ResponseBuilder.builder().build().
+//                                        createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+//                                                .getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_ALREADY_EXIST)))),
+//                                HttpStatus.CONFLICT);
+//                    } else {
+//                        existingConfig.setStatus(EmployeeStatus.INACTIVE.getStatus());
+//                        openSearchOperations.saveEntity(existingConfig, existingConfig.getId(), index);
+//                    }
+//                }
+
+            if (salaryConfigurationEntities !=null){
+                log.error("Company Salary is already exist", salaryConfigurationEntities.getFirst().getId());
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().
+                                createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_ALREADY_EXIST)))),
+                        HttpStatus.CONFLICT);
             }
+
 
             SalaryConfigurationEntity salaryStructure = CompanyUtils.maskSalaryStructureProperties(salaryConfigurationRequest, resourceId);
             openSearchOperations.saveEntity(salaryStructure, resourceId, index);

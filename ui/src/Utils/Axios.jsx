@@ -301,16 +301,14 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
 
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/template/3/download/${payslipId}`,
-      {
-        responseType: 'blob', // Handle the response as a binary blob
-        headers: {
-          'Accept': 'application/pdf', // Accept PDF format
-        }
+    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/template/3/download/${payslipId}`, {
+      responseType: 'blob', // Handle the response as a binary blob
+      headers: {
+        'Accept': 'application/pdf', // Accept PDF format
       }
-    );
- 
-    // Handle the response (e.g., trigger a file download)
+    });
+
+    // Create a URL for the blob and trigger the download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -320,10 +318,14 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     a.remove();
     window.URL.revokeObjectURL(url);
 
+    return true; // Indicate success
+
   } catch (error) {
     console.error('Download error:', error);
+    throw error; // Rethrow error for handling in the calling function
   }
 };
+
 
 export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
   const company = localStorage.getItem("comapnyName")
