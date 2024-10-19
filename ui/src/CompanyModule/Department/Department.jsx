@@ -188,7 +188,7 @@ const Department = () => {
       
       for (const word of words) {
         if (word.length < 2 || word.length > 40) {
-          return "Invalid Format of Department.";
+          return "Invalid Length of Department.";
         }
       }
       

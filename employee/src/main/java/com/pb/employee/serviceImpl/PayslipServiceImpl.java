@@ -699,7 +699,7 @@ public class PayslipServiceImpl implements PayslipService {
         PayslipEntity payslipEntity = null;
         String index = ResourceIdUtils.generateCompanyIndex(payslipsRequest.getCompanyName());
         try{
-            List<CompanyEntity> companyEntity = openSearchOperations.getCompanyByData(null, null, payslipsRequest.getCompanyName());
+            List<CompanyEntity> companyEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, payslipsRequest.getCompanyName());
             if (companyEntity ==null){
                 log.error("Company Details Are Not Exist{}", payslipsRequest.getCompanyName());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST),

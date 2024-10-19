@@ -87,8 +87,6 @@ const EmployeeSalaryStructure = () => {
     });
   }, []);
 
-
-
   useEffect(() => {
     if (id && salaryId) {
       EmployeeSalaryGetApiById(id, salaryId)
@@ -170,7 +168,6 @@ const EmployeeSalaryStructure = () => {
     fetchSalaryStructures();
   }, []);
 
-
   const calculateTotalDeductions = () => {
     let total = 0;
     Object.entries(deductions).forEach(([key, value]) => {
@@ -249,7 +246,6 @@ const EmployeeSalaryStructure = () => {
       otherAllowances: validOtherAllowances.toFixed(2),
     }));
   }, [allowances, grossAmount]);
-
 
   const handleDeductionChange = (key, value) => {
     const newDeductions = { ...deductions, [key]: value };
@@ -678,7 +674,7 @@ const EmployeeSalaryStructure = () => {
                               <div className="d-flex justify-content-start align-items-start">
                                 <h5 className="card-title me-2">Status</h5>
                                 <span className="text-danger">
-                                  {errors.companyType && (
+                                  {errors.status && (
                                     <p className="mb-0">{errors.status.message}</p>
                                   )}
                                 </span>

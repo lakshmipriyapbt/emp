@@ -55,6 +55,14 @@ public class SalaryServiceImpl implements SalaryService {
 
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
+            if (entity.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
+                log.error("employee is inActive {}", employeeId);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().
+                                createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE)))),
+                        HttpStatus.CONFLICT);
+            }
             if (entity != null) {
                 salary = openSearchOperations.getEmployeeSalaries(employeeSalaryRequest.getCompanyName(), employeeId);
                 if (salary != null && !salary.isEmpty()) {
@@ -210,9 +218,12 @@ public class SalaryServiceImpl implements SalaryService {
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
             employee = openSearchOperations.getEmployeeById(employeeId, null, index);
-            if (employee != null &&employee.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
-                log.error("Employee is inActive {}", employee.getFirstName());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE),
+            if (employee !=null && entity.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
+                log.error("employee is inActive {}", employeeId);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().
+                                createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE)))),
                         HttpStatus.CONFLICT);
             }
             if (!entity.getEmployeeId().equals(employeeId)) {

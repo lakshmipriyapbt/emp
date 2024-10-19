@@ -1099,7 +1099,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">UAN Number <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">UAN Number</label>
                       <input
                         type="text"
                         className="form-control"
@@ -1110,7 +1110,6 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("uanNo", {
-                          required: "UAN Number is Required",
                           pattern: {
                             value: /^\d{12}$/,
                             message:

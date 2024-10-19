@@ -169,7 +169,7 @@ const PayslipDoc = () => {
                     <tr>
                       <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Designation</th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>{employeeDetails.designationName}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}></th>
+                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Location</th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>
                       {/* {employeeDetails.location && typeof employeeDetails.location === 'string' ?
                           (() => {
@@ -179,6 +179,7 @@ const PayslipDoc = () => {
                             return `${address}, ${state}`;
                           })() : ''
                         } */}
+                        {employeeDetails.location}
                       </td>
                     </tr>
                     <tr>

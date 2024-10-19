@@ -71,7 +71,7 @@ const CompanySalaryView = () => {
                 </div>
                 <div className="row">
                     {salaryStructures.map((structure, index) => {
-                        const isReadOnly = structure.status === 'InActive';
+                       // const isReadOnly = structure.status === 'InActive';
                         return (
                             <div key={structure.id}>
                                 <div className="card">
@@ -104,7 +104,7 @@ const CompanySalaryView = () => {
                                                                 <input
                                                                     type="text"
                                                                     className="form-control"
-                                                                    readOnly={isReadOnly}
+                                                                    readOnly
                                                                     defaultValue={structure.allowances[allowance]}
                                                                     {...register(`allowances.${allowance}`, {
                                                                         required: "Value is required",
@@ -134,7 +134,7 @@ const CompanySalaryView = () => {
                                                                 <input
                                                                     type="text"
                                                                     className="form-control"
-                                                                    readOnly={isReadOnly}
+                                                                    readOnly
                                                                     defaultValue={structure.deductions[deduction]}
                                                                     {...register(`deductions.${ deduction }`, {
                                                                         required: "Value is required",

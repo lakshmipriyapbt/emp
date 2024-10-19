@@ -235,18 +235,15 @@ public class EmployeeUtils {
             salaryEntity.setIncomeTax(itax);
         }
 
+        if(salaryEntity.getNetSalary() != null) {
+            net = new String((Base64.getDecoder().decode(salaryEntity.getNetSalary().toString().getBytes())));
+            salaryEntity.setNetSalary(net);
+        }
         if(salaryEntity.getTotalTax() != null) {
             ttax = new String((Base64.getDecoder().decode(salaryEntity.getTotalTax().toString().getBytes())));
             salaryEntity.setTotalTax(ttax);
         }
 
-        if(salaryEntity.getNetSalary() != null) {
-            net = new String((Base64.getDecoder().decode(salaryEntity.getNetSalary().toString().getBytes())));
-            salaryEntity.setNetSalary(net);
-        } if(salaryEntity.getTotalTax() != null) {
-            ttax = new String((Base64.getDecoder().decode(salaryEntity.getTotalTax().toString().getBytes())));
-            salaryEntity.setTotalTax(ttax);
-        }
         if (salaryEntity.getSalaryConfigurationEntity().getAllowances() != null) {
             Map<String, String> decodedAllowances = new HashMap<>();
             for (Map.Entry<String, String> entry : salaryEntity.getSalaryConfigurationEntity().getAllowances().entrySet()) {

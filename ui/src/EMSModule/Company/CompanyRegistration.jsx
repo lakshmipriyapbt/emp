@@ -76,33 +76,38 @@ const CompanyRegistration = () => {
         if (location.state && location.state.id) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             await companyUpdateByIdApi(location.state.id, updateData);
-            setTimeout(() => {
-                toast.success("Company Updated Successfully");
-                navigate("/companyView");
-            }, 1000);
+            toast.success("Company Updated Successfully");
         } else {
             await CompanyRegistrationApi(data);
-            setTimeout(() => {
-                toast.success("Company Created Successfully");
-                navigate("/companyView");
-            }, 1000);
+            toast.success("Company Created Successfully");
         }
 
+        navigate("/companyView");
         reset();
     } catch (error) {
-        if (error.response && error.response.data) {
-            const errorMessages = error.response.data.error?.messages || [];
-            const alertMessage = errorMessages.length 
-                ? errorMessages.join('\n') 
-                : 'An unexpected error occurred. Please try again.';
-
-            setErrorMessage(alertMessage); // Set the error message for display
-        } else {
-            handleApiErrors(error);
-        }
-    }
+      if (error.response) {
+          const { status, data } = error.response;
+          console.error('Update error status:', status);
+          console.error('Update error data:', data);
+  
+          if (status === 409) {
+              toast.error('Conflict error: Check for duplicate entries or unique constraints.');
+          } else {
+              const { message, data: duplicateData } = data;
+              const errorMessage = `
+                  ${message}
+                  Issues:
+                  ${Object.entries(duplicateData || {}).map(([key, value]) => `${key}: ${value || 'N/A'}`).join('\n')}
+              `.trim();
+              toast.error(errorMessage);
+          }
+      } else {
+          console.error('An unexpected error occurred:', error);
+          toast.error('An unexpected error occurred. Please try again.');
+      }
+  }
+  
 };
-
 
   useEffect(() => {
     if (location && location.state && location.state.id) {
@@ -283,7 +288,7 @@ const CompanyRegistration = () => {
     }
 
     // Check the pattern for the CIN Number
-    if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(value)) {
+    if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9]{1}Z[0-9A-Z]{1}$/.test(value)) {
       return patternError; // Return pattern error if it doesn't match
     }
 
@@ -927,7 +932,7 @@ const CompanyRegistration = () => {
                         autoComplete="off"
                         onInput={toInputTitleCase}
                         onKeyDown={handleEmailChange}
-                        maxLength={100}
+                        maxLength={200}
                         {...register("address", {
                           required: "Address is Required",
                           maxLength: {
@@ -955,7 +960,7 @@ const CompanyRegistration = () => {
           </div>
           <div className="col-lg-1"></div>
           {errorMessage && (
-            <div className="alert alert-danger mt-4 text-center">
+            <div className="alert alert-info mt-4 text-center">
               {errorMessage}
             </div>
           )}

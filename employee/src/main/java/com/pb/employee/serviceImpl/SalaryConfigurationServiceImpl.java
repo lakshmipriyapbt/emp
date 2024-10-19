@@ -91,7 +91,7 @@ public class SalaryConfigurationServiceImpl implements SalaryConfigurationServic
 //                    }
 //                }
 
-            if (salaryConfigurationEntities !=null){
+            if (salaryConfigurationEntities != null && salaryConfigurationEntities.size()!=0){
                 log.error("Company Salary is already exist", salaryConfigurationEntities.getFirst().getId());
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().
