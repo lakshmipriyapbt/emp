@@ -1,5 +1,5 @@
 server:
-  port: 9003
+  port: 9004
   servlet:
     contextPath: /ems
   ssl:
@@ -40,7 +40,7 @@ fixed:
 
 es:
   esHost: localhost
-  esPort: 9501
+  esPort: 9502
 
 springdoc:
   swagger-ui:

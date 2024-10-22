@@ -1,5 +1,5 @@
 server:
-  port: 8013
+  port: 8014
   servlet:
     contextPath: /ems
   ssl:
@@ -28,7 +28,7 @@ fixed:
   otp: 123456
 es:
   esHost: localhost
-  esPort: 9501
+  esPort: 9502
 springdoc:
   swagger-ui:
     tagsSorter: alpha
