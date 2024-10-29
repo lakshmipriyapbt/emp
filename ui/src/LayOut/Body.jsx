@@ -86,8 +86,7 @@ const Body = () => {
         <div className="row h-100">
           {user && user.userRole && user.userRole.includes("ems_admin") ? (
             <iframe
-              src="http://122.175.43.71:5703/s/ems/app/dashboards#/view/deba4a73-baa2-4c62-aa78-089197311bcb?_g=(refreshInterval%3A(pause%3A!t%2Cvalue%3A60000)%2Ctime%3A(from%3Anow-15m%2Cto%3Anow))&hide-filter-bar=true"
-              height="100%"
+            src="https://ems.pathbreakertech.in/kibana/"              height="100%"
               width="100%"
               title="EMS Dashboard"
               style={{ border: 'none' }}
