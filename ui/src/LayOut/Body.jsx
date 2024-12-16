@@ -88,7 +88,7 @@ const Body = () => {
            
                 <div className='card'>
                   <iframe
-                    src="https://ems.pathbreakertech.in/kibana/s/ems/app/dashboards#/view/b2cd369d-3e89-48bf-b730-ef6c754cb270?[…]!t,value:60000),time:(from:now-15m,to:now))"height="1000" width="800"
+                    src="https://ems.pathbreakertech.in/kibana/s/ems/app/dashboards#/view/b2cd369d-3e89-48bf-b730-ef6c754cb270?embed=true&fullscreen=true"height="1000" width="800"
                     title="EMS Dashboard"
                       style={{ border: 'none'}}
                   ></iframe>
