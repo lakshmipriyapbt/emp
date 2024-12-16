@@ -29,6 +29,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,6 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Autowired
     private  OpenSearchOperations openSearchOperations;
-
 
     private static final Map<String, Month> MONTH_NAME_MAP = createMonthNameMap();
 
@@ -66,7 +66,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                                         .getMessage(EmployeeErrorMessageKey.EMPTY_FILE)))),
                         HttpStatus.NOT_FOUND);
             }
-
             // Validate all attendance requests before adding
             for (AttendanceRequest attendanceRequest : attendanceRequests) {
                 String index = ResourceIdUtils.generateCompanyIndex(attendanceRequest.getCompany());
@@ -84,6 +83,21 @@ public class AttendanceServiceImpl implements AttendanceService {
                                             .getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND)))),
                             HttpStatus.NOT_FOUND);
                 }
+                LocalDate hiringDate = LocalDate.parse(employee.getDateOfHiring());
+                YearMonth hiringMonthYear = YearMonth.from(hiringDate);  // Extract year and month from hiring date
+                YearMonth attendanceMonthYear = YearMonth.of(
+                        Integer.parseInt(attendanceRequest.getYear()),
+                        MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue()
+                );
+               // Check if the attendance date is before the hiring date
+                if (attendanceMonthYear.isBefore(hiringMonthYear)) {
+                    log.error("Attendance date is before the hiring date for employee ID: {}", employeeId);
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().createFailureResponse(
+                                    new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_HIRING_DATE)))),
+                            HttpStatus.BAD_REQUEST);
+                }
+
                 String requestEmployeeId = attendanceRequest.getEmployeeId();
                 log.debug("Received employee ID as a string: " + requestEmployeeId);
 
@@ -120,29 +134,40 @@ public class AttendanceServiceImpl implements AttendanceService {
                                             .getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE)))),
                             HttpStatus.CONFLICT);
                 }
-
-
             }
-
             // If all validations pass, add attendance
             for (AttendanceRequest attendanceRequest : attendanceRequests) {
-                // Get current year and month
+                // Get current date information
                 LocalDate now = LocalDate.now();
                 int currentYear = now.getYear();
                 int currentMonth = now.getMonthValue();
-                if (Integer.parseInt(attendanceRequest.getYear()) == currentYear && MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue() == currentMonth) {
+                int attendanceYear = Integer.parseInt(attendanceRequest.getYear());
+                int attendanceMonth = MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue();
+
+                // Check if attendance is for the current month and year
+                if (attendanceYear == currentYear && attendanceMonth == currentMonth) {
                     // If the current month, check if it's before or on the 25th
                     if (now.getDayOfMonth() <= 25) {
                         return new ResponseEntity<>(
                                 ResponseBuilder.builder().build().
                                         createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
                                                 .getMessage(EmployeeErrorMessageKey.INVALID_ATTENDANCE_DATE)))),
-                                HttpStatus.NOT_FOUND);                      }
+                                HttpStatus.NOT_FOUND
+                        );
+                    }
                 }
-
+                // Disallow future attendance
+                else if (attendanceYear > currentYear || (attendanceYear == currentYear && attendanceMonth > currentMonth)) {
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().
+                                    createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                            .getMessage(EmployeeErrorMessageKey.INVALID_ATTENDANCE_DATE)))),
+                            HttpStatus.NOT_FOUND
+                    );
+                }
+                // Add attendance for past dates or current month after 25th
                 addAttendanceOfEmployees(attendanceRequest);
             }
-
         } catch (Exception e) {
             log.error("Error processing the uploaded file: {}", e.getMessage(), e);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -152,7 +177,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
-
 
     @Override
     public ResponseEntity<?> getAllEmployeeAttendance(String companyName, String employeeId, String month, String year) throws IOException, EmployeeException {
@@ -214,8 +238,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 
     @Override
     public ResponseEntity<?> deleteEmployeeAttendanceById(String companyName, String employeeId, String attendanceId) throws EmployeeException {
@@ -409,8 +431,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         return attendanceRequests;
     }
-
-
     private String getCellValue(Cell cell) {
         if (cell == null) {
             return "";

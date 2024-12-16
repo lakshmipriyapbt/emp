@@ -3,24 +3,30 @@ import { EmployeeSalaryGetApi } from '../Utils/Axios';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ChevronRight } from 'react-bootstrap-icons';
 import LayOut from '../LayOut/LayOut';
-import { userId } from '../Utils/Auth';
+import { useAuth } from '../Context/AuthContext';
 
 const EmployeeSalaryById = () => {
   const [employeeSalaryView, setEmployeeSalaryView] = useState([]);
   const [expanded, setExpanded] = useState({});
   const location = useLocation();
- 
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const toggleExpand = (index) => {
     setExpanded(prevState => ({ ...prevState, [index]: !prevState[index] }));
   };
 
   useEffect(() => {
-    if (userId) {
-      EmployeeSalaryGetApi(userId).then(response => {
+    if (user.userId) {
+      EmployeeSalaryGetApi(user.userId).then(response => {
         setEmployeeSalaryView(response.data.data);
       });
     }
-  }, [userId]);
+  }, [user.userId]);
+
+  const handleEditClick = (salaryId, event) => {
+    event.stopPropagation(); // Prevent the card from toggling when editing
+    navigate(`/employeeSalaryView?salaryId=${salaryId}&employeeId=${user.userId}`); // Navigate with both parameters
+  };
 
   return (
     <LayOut>
@@ -45,9 +51,9 @@ const EmployeeSalaryById = () => {
         {employeeSalaryView.length > 0 ? (
           employeeSalaryView.map((item, index) => (
             <div key={index} className="card mb-3">
-              <div className="card-header d-flex justify-content-between align-items-center" onClick={() => toggleExpand(index)} style={{ cursor: 'pointer' }}>
-                <h5 className="mb-0"> {index + 1}. Net Salary: {item.netSalary}</h5>
-                <ChevronRight size={18} />
+              <div className="card-header d-flex justify-content-between align-items-center"onClick={(e) => handleEditClick(item.salaryId, e)}>
+                <h5 style={{color:"#fff"}} className="mb-0"> {index + 1}. Net Salary: {item.netSalary}</h5>
+                <ChevronRight size={18} color='#fff' />
               </div>
               {expanded[index] && (
                 <div className="card-body">
@@ -86,13 +92,13 @@ const EmployeeSalaryById = () => {
                   <div className="col mb-3">
                       <div className="form-group">
                         <label>Basic Salary:</label>
-                        <input type="text" className="form-control" value={item.basicSalary} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.allowances.basicSalary} readOnly />
                       </div>
                     </div>
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>Travel Allowance:</label>
-                        <input type="text" className="form-control" value={item.allowances.travelAllowance} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.allowances.travelAllowance} readOnly />
                       </div>
                     </div>
                     {/* <div className="col mb-3">
@@ -104,7 +110,7 @@ const EmployeeSalaryById = () => {
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>HRA:</label>
-                        <input type="text" className="form-control" value={item.allowances.hra} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.allowances.hra} readOnly />
                       </div>
                     </div>
                   </div>
@@ -112,13 +118,13 @@ const EmployeeSalaryById = () => {
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>Special Allowance:</label>
-                        <input type="text" className="form-control" value={item.allowances.specialAllowance} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.allowances.specialAllowance} readOnly />
                       </div>
                     </div>
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>Other Allowances:</label>
-                        <input type="text" className="form-control" value={item.allowances.otherAllowances} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.allowances.otherAllowances} readOnly />
                       </div>
                     </div>
                     <div className="col-12 mb-3">
@@ -138,13 +144,13 @@ const EmployeeSalaryById = () => {
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>PF (Employee):</label>
-                        <input type="text" className="form-control" value={item.deductions.pfEmployee} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.deductions.pfEmployee} readOnly />
                       </div>
                     </div>
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>PF (Employer):</label>
-                        <input type="text" className="form-control" value={item.deductions.pfEmployer} readOnly />
+                        <input type="text" className="form-control" value={item.salaryConfigurationEntity?.deductions.pfEmployer} readOnly />
                       </div>
                     </div>
                   </div>
@@ -152,19 +158,19 @@ const EmployeeSalaryById = () => {
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>PF Tax:</label>
-                        <input type="text" className="form-control" value={item.deductions.pfTax} readOnly />
+                        <input type="text" className="form-control" value={item.pfTax} readOnly />
                       </div>
                     </div>
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>Income Tax:</label>
-                        <input type="text" className="form-control" value={item.deductions.incomeTax} readOnly />
+                        <input type="text" className="form-control" value={item.incomeTax} readOnly />
                       </div>
                     </div>
                     <div className="col mb-3">
                       <div className="form-group">
                         <label>Total Tax:</label>
-                        <input type="text" className="form-control" value={item.deductions.totalTax} readOnly />
+                        <input type="text" className="form-control" value={item.totalTax} readOnly />
                       </div>
                     </div>
                   </div>

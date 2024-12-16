@@ -24,6 +24,9 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateTemplateResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.TEMPLATE, id);
+    }
     public static String generateSalaryResourceId(String employeeId, String time) {
         return generateGlobalResourceId(ResourceType.SALARY,employeeId, time);
     }
@@ -51,6 +54,9 @@ public class ResourceIdUtils {
     }
     public static String generateSalaryConfigurationResourceId(String companyName, String timestamp) {
         return generateGlobalResourceId(ResourceType.SALARY_STRUCTURE, companyName, timestamp);
+    }
+    public static String generateRelievingId(String companyName, String relievingDate, String resignationDate) {
+        return generateGlobalResourceId(ResourceType.RELIEVING, companyName, relievingDate,resignationDate);
     }
 
     /**
@@ -87,30 +93,38 @@ public class ResourceIdUtils {
             prefix = Constants.SALARY_STRUCTURE + "-";
 
         }
+        if (type == ResourceType.RELIEVING) {
+            prefix = Constants.RELIEVING + "-";
+
+        }
         if (type == ResourceType.PAYSLIP) {
             prefix = Constants.PAYSLIP +"-"+ args[0] + "-"+args[1]+"-";
 
         }
-           
-            StringBuilder md5Input = new StringBuilder();
-            for (Object arg : args) {
-                if (arg != null) {
-                    if (md5Input.length() == 0) {
-                        md5Input.append(arg.toString());
-                    } else {
-                        md5Input.append(":").append(arg.toString());
-                    }
+        if (type == ResourceType.TEMPLATE) {
+            prefix = Constants.TEMPLATE +"-";
+
+        }
+
+        StringBuilder md5Input = new StringBuilder();
+        for (Object arg : args) {
+            if (arg != null) {
+                if (md5Input.length() == 0) {
+                    md5Input.append(arg.toString());
+                } else {
+                    md5Input.append(":").append(arg.toString());
                 }
             }
-            String md5Hash;
-            if (isCaseSensitive) {
-                md5Hash = org.springframework.util.DigestUtils.md5DigestAsHex(md5Input.toString().getBytes()).toLowerCase();
-
-            } else {
-                md5Hash = org.springframework.util.DigestUtils.md5DigestAsHex(md5Input.toString().toLowerCase().getBytes()).toLowerCase();
-
-            }
-            return prefix + md5Hash;
         }
+        String md5Hash;
+        if (isCaseSensitive) {
+            md5Hash = org.springframework.util.DigestUtils.md5DigestAsHex(md5Input.toString().getBytes()).toLowerCase();
+
+        } else {
+            md5Hash = org.springframework.util.DigestUtils.md5DigestAsHex(md5Input.toString().toLowerCase().getBytes()).toLowerCase();
+
+        }
+        return prefix + md5Hash;
+    }
 
 }

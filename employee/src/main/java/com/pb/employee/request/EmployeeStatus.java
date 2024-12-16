@@ -9,7 +9,8 @@ public enum EmployeeStatus {
 
     ACTIVE("Active"),
     INACTIVE("InActive"),
-    PENDING("Pending");
+    PENDING("Pending"),
+    NOTICE_PERIOD("NoticePeriod");
 
     private final String status;
 }

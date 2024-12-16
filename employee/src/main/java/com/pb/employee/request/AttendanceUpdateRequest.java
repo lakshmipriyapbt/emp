@@ -19,7 +19,6 @@ public class AttendanceUpdateRequest {
     @Schema(example = "noOfWorkingDays")
     @NotNull(message = "{noOfWorkingDays.notnull.message}")
     @DecimalMax(value = "31", message = "{no.of.working.days}")
-    @Pattern(regexp = "^\\d{2}$", message = "{no.of.working.days}")
     @Digits(integer = 9, fraction = 0, message = "{no.of.working.days}")
     private String noOfWorkingDays;
 }

@@ -103,7 +103,7 @@ public class PayslipController {
                                                        @PathVariable String payslipId) throws EmployeeException {
         return payslipService.deleteEmployeePayslipById(companyName, employeeId, payslipId);
     }
-    @RequestMapping(value = "/{companyName}/employee/{employeeId}/template/{templateNumber}/download/{payslipId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{companyName}/employee/{employeeId}/download/{payslipId}", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
             summary = "${api.getPayslip.tag}", description = "${api.getPayslip.description}")
     @ResponseStatus(HttpStatus.OK)
@@ -113,14 +113,13 @@ public class PayslipController {
                                                   @PathVariable String companyName,
                                                   @PathVariable String payslipId,
                                                   @PathVariable String employeeId,
-                                                  @PathVariable int templateNumber,
                                                   HttpServletRequest request) {
-        return payslipService.downloadPayslip(companyName, payslipId, employeeId,templateNumber, request);
+        return payslipService.downloadPayslip(companyName, payslipId, employeeId, request);
     }
 
     @RequestMapping(value = "/payslip", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.payslip.employee.tag}", description = "${api.payslip.employee.description}")
+            summary = "${api.payslip.employee.response.tag}", description = "${api.payslip.employee.response.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
     public ResponseEntity<?> generateEmployeeAllPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
@@ -133,14 +132,14 @@ public class PayslipController {
 
     @RequestMapping(value = "/employee/{employeeId}/payslip/{payslipId}", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.payslip.employee.tag}", description = "${api.payslip.employee.description}")
+            summary = "${api.save.payslip.employee.tag}", description = "${api.save.payslip.employee.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
     public ResponseEntity<?> savePayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
                                          @RequestBody @Valid PayslipUpdateRequest payslipsRequest,
                                          @PathVariable String payslipId,
-                                         @PathVariable String employeeId) throws EmployeeException{
+                                         @PathVariable String employeeId) throws EmployeeException, IOException{
         return payslipService.savePayslip(payslipsRequest, payslipId, employeeId);
     }
 }

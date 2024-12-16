@@ -28,4 +28,7 @@ public class PayslipUpdateRequest {
     @Pattern(regexp = "^\\d+$", message = "${invalid.year}")
     private String year;
 
+    private String department;    // Store department when payslip is generated
+    private String designation;
+
 }

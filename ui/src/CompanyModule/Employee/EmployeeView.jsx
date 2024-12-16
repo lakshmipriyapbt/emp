@@ -1,13 +1,10 @@
-
 import React, { useState, useEffect } from "react";
-import { HandbagFill, PencilSquare, Wallet, XSquareFill } from "react-bootstrap-icons";
+import { PencilSquare, Wallet} from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { Bounce, toast } from "react-toastify";
-import DeletePopup from "../../Utils/DeletePopup";
+import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { EmployeeDeleteApiById, EmployeeGetApi } from "../../Utils/Axios";
+import { EmployeeGetApi } from "../../Utils/Axios";
 
 const EmployeeView = () => {
   const [view, setView] = useState([]);
@@ -20,22 +17,9 @@ const EmployeeView = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState(null); // State to store the ID of the item to be deleted
-
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
-    setSelectedItemId(null); // Reset the selected item ID
-  };
-
-  const handleShowDeleteModal = (id) => {
-    setSelectedItemId(id); // Set the ID of the item to be deleted
-    setShowDeleteModal(true);
-  };
-
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
-      (i + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 })
+      new Date(0, i).toLocaleString("en-US", { month: "long" })
     );
   };
 
@@ -48,38 +32,24 @@ const EmployeeView = () => {
     return years;
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    let day = date.getDate();
-
-    // Ensure two-digit month and day
-    month = month < 10 ? `0${month}` : month;
-    day = day < 10 ? `0${day}` : day;
-
-    return `${year}-${month}-${day}`;
-  };
-
-
-    const fetchData = async () => {
-      try {
-        const data = await EmployeeGetApi(); // Assuming EmployeeGetApi is a function returning a Promise
-        const filteredData = data
-          .filter(employee => employee.firstName !== null)
-          .map(({ referenceId, ...rest }) => rest);
-        // Set state only if data is valid
-        if (Array.isArray(filteredData)) {
-          setEmployees(filteredData);
-          setFilteredData(filteredData);
-        } else {
-          console.error('Employee data is not an array:', data);
-        }
-      } catch (error) {
-        handleApiErrors(error);
+  const fetchData = async () => {
+    try {
+      const data = await EmployeeGetApi(); // Assuming EmployeeGetApi is a function returning a Promise
+      const filteredData = data
+        .filter(employee => employee.firstName !== null)
+        .map(({ referenceId, ...rest }) => rest);
+      // Set state only if data is valid
+      if (Array.isArray(filteredData)) {
+        setEmployees(filteredData);
+        setFilteredData(filteredData);
+      } else {
+        console.error('Employee data is not an array:', data);
       }
-    };
-    useEffect(() => {
+    } catch (error) {
+      handleApiErrors(error);
+    }
+  };
+  useEffect(() => {
     fetchData();
   }, []); // Ensure the dependency array is empty to run once on mount
 
@@ -100,7 +70,7 @@ const EmployeeView = () => {
 
 
   const handleEdit = (id) => {
-    Navigate(`/employeeRegistration`, { state: { id } }); 
+    Navigate(`/employeeRegistration`, { state: { id } });
   };
 
   const statusMappings = {
@@ -108,13 +78,28 @@ const EmployeeView = () => {
       label: (
         <b
           style={{
-            backgroundColor: "green",
-            color: "white",
             borderRadius: "5px",
-            padding: "2px",
+            padding: "3px 6px",
+            color: "#fff",
+            background: "green"
           }}
+          // className="bg-primary"
         >
           Active
+        </b>
+      ),
+    },
+    NoticePeriod: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+          }}
+          className="bg-warning"
+        >
+          Notice Period
         </b>
       ),
     },
@@ -122,11 +107,12 @@ const EmployeeView = () => {
       label: (
         <b
           style={{
-            backgroundColor: "red",
-            color: "white",
             borderRadius: "5px",
-            padding: "2px",
+            padding: "3px 6px",
+            color: "#fff",
+            background:"red",
           }}
+          // className="bg-danger"
         >
           InActive
         </b>
@@ -134,16 +120,11 @@ const EmployeeView = () => {
     },
   };
 
-  const paginationComponentOptions = {
-    noRowsPerPage: true,
-  };
-
-
   const columns = [
     {
-      name: <h6><b>S No</b></h6>,
+      name: <h6><b>#</b></h6>,
       selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
-      width: "70px",
+      width: "50px",
     },
     {
       name: <h6><b>ID</b></h6>,
@@ -154,28 +135,32 @@ const EmployeeView = () => {
       name: <h6><b>Name</b></h6>,
       selector: row => (
         <div title={`${row.firstName} ${row.lastName}`}>
-          {`${row.firstName.slice(0, 8)}`}
-        </div>
+           {`${row.firstName.length > 18 ? row.firstName.slice(0, 10) + '...' : row.firstName} ${row.lastName.length > 10 ? row.lastName.slice(0, 10) + '...' : row.lastName}`}
+        </div>      
       ),
-      width: "130px",
+      width: "190px",
     },
     {
       name: <h6><b>Email Id</b></h6>,
       selector: row => (
         <div title={row.emailId}>
-          {row.emailId.slice(0, 8)}
+          {row.emailId.length > 20 ? `${row.emailId.slice(0, 20)}...` : row.emailId}
         </div>
       ),
-      width: "150px",
+      width: "210px",
     },
     {
       name: <h6><b>Department</b></h6>,
-      selector: row => row.departmentName,
-      width:"130px",
+      selector: row => (
+        <div title={row.departmentName}>
+        {row.departmentName.length > 10 ? `${row.departmentName.slice(0, 10)}...` : row.departmentName}
+      </div>
+      ),
+      width: "140px",
     },
     {
       name: <h6><b>Date Of Hiring</b></h6>,
-      selector:row=> row.dateOfHiring,
+      selector: row => row.dateOfHiring,
       format: row => {
         const date = new Date(row.dateOfHiring);
         const day = date.getDate().toString().padStart(2, '0');
@@ -183,14 +168,14 @@ const EmployeeView = () => {
         const year = date.getFullYear();
         return `${day}-${month}-${year}`;
       },
-      width:'160px'
+      width: '150px'
     },
 
     {
       name: <h6><b>Status</b></h6>,
       selector: row => row.status,
       cell: (row) => statusMappings[row.status]?.label || "Unknown",
-      width:"120px"
+      width: "110px"
     },
     {
       name: <h5><b>Actions</b></h5>,
@@ -207,14 +192,7 @@ const EmployeeView = () => {
     }
   ];
 
-  const dateFormatting = (dateString) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Pad month with leading zero if needed
-    const day = date.getDate().toString().padStart(2, "0"); // Pad day with leading zero if needed
 
-    return `${year}-${month}-${day}`;
-  };
 
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
@@ -227,19 +205,19 @@ const EmployeeView = () => {
         .toLowerCase();
       const employeeId = item.employeeId.toString().toLowerCase();
       const status = item.status.toLowerCase();
-  
+
       return (
         fullName.includes(searchTerm.toLowerCase()) ||
         email.includes(searchTerm.toLowerCase()) ||
         departmentName.includes(searchTerm.toLowerCase()) ||
         dateOfHiring.includes(searchTerm.toLowerCase()) ||
         employeeId.includes(searchTerm.toLowerCase()) ||
-        status.includes(searchTerm.toLowerCase()) 
+        status.includes(searchTerm.toLowerCase())
       );
     });
     setFilteredData(filtered);
   };
-  
+
   console.log(filteredData)
 
   const filterByMonthYear = (selectedMonth, selectedYear) => {
@@ -376,11 +354,11 @@ const EmployeeView = () => {
                 </div>
               </div>
               <DataTable
-               columns={columns}
-               data={filteredData.length > 0 ? filteredData : view}
-               pagination
-               onChangePage={page => setCurrentPage(page)}
-               onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
+                columns={columns}
+                data={filteredData.length > 0 ? filteredData : view}
+                pagination
+                onChangePage={page => setCurrentPage(page)}
+                onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
               />
             </div>
           </div>

@@ -58,7 +58,6 @@ const Department = () => {
         companyName: user.company,
         name: data.name,
       };
-
       if (editingId) {
         await DepartmentPutApiById(editingId, formData);
         setTimeout(() => {
@@ -97,17 +96,10 @@ const Department = () => {
           theme: "colored",
           autoClose: 1000,
         });
-        
+
         // Fetch departments after deletion
         const updatedDepartments = departments.filter(department => department.id !== selectedItemId);
-        setDepartments(updatedDepartments);
-  
-        // If no departments are left, we can force a fetch or reset state
-        if (updatedDepartments.length === 0) {
-          // Optionally fetch the departments again if needed
-          // fetchDepartments(); // Uncomment this if you want to refetch from API
-        }
-  
+        setDepartments(updatedDepartments)
         setTimeout(() => {
           // Only if you want to refetch after a delay
           fetchDepartments();
@@ -118,7 +110,7 @@ const Department = () => {
       }
     }
   };
-  
+
 
   const handleApiErrors = (error) => {
     if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
@@ -152,62 +144,78 @@ const Department = () => {
     const input = e.target;
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
+
     // Remove leading spaces
     value = value.replace(/^\s+/g, '');
-    // Ensure only alphabets and spaces are allowed
+
+    // Ensure only alphabets, numbers, spaces, and allowed special characters like /, -, ., etc.
     const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
     value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
-    // Capitalize the first letter of each word
+
+    // Capitalize the first letter of each word but leave the rest as-is (case-sensitive) and allow special characters
     const words = value.split(' ');
-    // Capitalize the first letter of each word and lowercase the rest
     const capitalizedWords = words.map(word => {
       if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        // Capitalize first letter of each word, leave the rest as-is
+        return word.charAt(0).toUpperCase() + word.slice(1);
       }
-      return '';
+      return word;
     });
+
     // Join the words back into a string
     let formattedValue = capitalizedWords.join(' ');
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 3) {
-      formattedValue = formattedValue.slice(0, 3) + formattedValue.slice(3).replace(/\s+/g, ' ');
-    }
+
     // Update input value
     input.value = formattedValue;
+
     // Restore the cursor position
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
   const validateName = (value) => {
-    if (!value || value.trim().length === 0) {
+    // Trim leading and trailing spaces before further validation
+    const trimmedValue = value.trim();
+  
+    // Check if value is empty after trimming (meaning it only had spaces)
+    if (trimmedValue.length === 0) {
       return "Department Name is Required.";
-    } else if (!/^[A-Za-z ]+$/.test(value)) {
-      return "Only Alphabetic Characters are Allowed.";
+    }
+
+    // Allow alphabetic characters, numbers, spaces, and some special characters like /, !, @, #, &...
+    else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
+      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
     } else {
-      const words = value.split(" ");
-      
+      const words = trimmedValue.split(" ");
+  
+      // Check for minimum and maximum word length
       for (const word of words) {
-        if (word.length < 2 || word.length > 40) {
-          return "Invalid Length of Department.";
+        // If the word is a single character and it's not the only word in the string, skip this rule
+        if (word.length < 2 && words.length === 1) {
+          return "Minimum Length 2 Characters Required.";  // If any word is shorter than 2 characters and it's a single word
+        } else if (word.length > 40) {
+          return "Max Length 40 Characters Required.";  // If any word is longer than 40 characters
         }
       }
-      
-      if (/^\s|\s$/.test(value)) {
-        return "No Leading or Trailing Spaces Allowed.";
-      } else if (/\s{2,}/.test(value)) {
+  
+      // Check for multiple spaces between words
+      if (/\s{2,}/.test(trimmedValue)) {
         return "No Multiple Spaces Between Words Allowed.";
+      }
+  
+      // Check if the value has leading or trailing spaces (shouldn't happen due to trimming)
+      if (/^\s/.test(value)) {
+        return "Leading space not allowed.";  // Leading space error
+      } else if (/\s$/.test(value)) {
+        return "Spaces at the end are not allowed.";  // Trailing space error
       }
     }
   
     return true; // Return true if all conditions are satisfied
-  };
-  
-  
+  };  
 
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
     if (searchTerm === '') {
-      console.log(departments)
       setFilteredDepartments(departments);
     } else {
       const filteredList = departments.filter(department =>
@@ -216,9 +224,6 @@ const Department = () => {
       setFilteredDepartments(filteredList);
     }
   };
-
-  console.log(filteredDepartments);
-
 
   const handlePageChange = page => {
     setCurrentPage(page);
@@ -239,15 +244,16 @@ const Department = () => {
   // Compute the serial number for each row
   const getSerialNumber = (index) => startIndex + index + 1;
 
-
   const columns = [
     {
-      name: <h5><b>S No</b></h5>,
+      name: <h5><b>#</b></h5>,
       selector: (row, index) => getSerialNumber(index),
+      width: "400px"
     },
     {
       name: <h5><b>Department Name</b></h5>,
       selector: (row) => row.name,
+      width: "500px",
     },
     {
       name: <h5><b>Actions</b></h5>,
@@ -271,7 +277,9 @@ const Department = () => {
             <XSquareFill size={22} color='#da542e' />
           </button>
         </div>
+
       )
+
     }
   ];
 
@@ -316,14 +324,14 @@ const Department = () => {
           <div className="col-12 col-lg-12 col-xxl-12 d-flex">
             <div className="card flex-fill">
               <div className="card-header">
-                <div className='row mb-2'>
+                <div className='row'>
                   <div className='col-12 col-md-6 col-lg-4'>
                     <button
                       onClick={() => setAddDeparment(true)}
-                      className= "btn btn-primary"
+                      className="btn btn-primary"
                       type='submit'
                     >
-                    Add Department
+                      Add Department
 
                     </button>
                   </div>
@@ -373,7 +381,8 @@ const Department = () => {
               >
                 <div className="modal-dialog modal-dialog-centered">
                   <div className="modal-content">
-                    <ModalHeader>
+                    {/* <ModalHeader> */}
+                    <div className="modal-header d-flex justify-content-between w-100">
                       <ModalTitle>{editingId ? "Update Department" : "Add Department"}</ModalTitle>
                       <button
                         type="button"
@@ -381,7 +390,8 @@ const Department = () => {
                         aria-label="Close"
                         onClick={handleCloseAddDepartmentModal} // Function to close the modal
                       ></button>
-                    </ModalHeader>
+                      {/* </ModalHeader> */}
+                    </div>
                     <ModalBody>
                       <form onSubmit={handleSubmit(onSubmit)} id='designationForm'>
                         <div className="card-body" style={{ width: "1060px", paddingBottom: "0px" }}>
@@ -392,14 +402,13 @@ const Department = () => {
                                 className="form-control"
                                 placeholder="Enter Department"
                                 name='name'
-                                id='designation'
                                 onInput={toInputTitleCase}
                                 onKeyDown={handleEmailChange}
                                 autoComplete='off'
                                 {...register("name", {
                                   required: "Department is Required",
-                                  validate:{
-                                       validateName,
+                                  validate: {
+                                    validateName,
                                   },
                                 })}
                               />
@@ -409,18 +418,18 @@ const Department = () => {
                         </div>
                         <div className='modal-footer'>
                           <button
-                            className={editingId ? "btn btn-danger" : "btn btn-primary"}
-                            type='submit'
-                            disabled={loading}
-                          >
-                            {loading ? "Loading..." : (editingId ? "Update Department" : "Add Department")}
-                          </button>
-                          <button
                             type='button'
                             className="btn btn-secondary"
                             onClick={handleCloseAddDepartmentModal}
                           >
                             Cancel
+                          </button>
+                          <button
+                            className={editingId ? "btn btn-danger" : "btn btn-primary"}
+                            type='submit'
+                            disabled={loading}
+                          >
+                            {loading ? "Loading..." : (editingId ? "Update Department" : "Add Department")}
                           </button>
                         </div>
                       </form>

@@ -1,7 +1,6 @@
 package com.pb.employee.serviceImpl;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
@@ -10,10 +9,7 @@ import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
-import com.pb.employee.request.CompanyImageUpdate;
-import com.pb.employee.request.CompanyRequest;
-import com.pb.employee.request.CompanyUpdateRequest;
-import com.pb.employee.request.EmployeePasswordReset;
+import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
 import com.pb.employee.util.CompanyUtils;
 import com.pb.employee.util.Constants;
@@ -43,7 +39,6 @@ public class CompanyServiceImpl implements CompanyService {
     @Autowired
     private  OpenSearchOperations openSearchOperations;
 
-
     @Override
     public ResponseEntity<?> registerCompany(CompanyRequest companyRequest) throws EmployeeException{
         // Check if a company with the same short or company name already exists
@@ -52,7 +47,6 @@ public class CompanyServiceImpl implements CompanyService {
         String index = ResourceIdUtils.generateCompanyIndex(companyRequest.getShortName());
         Object entity = null;
         try{
-
             entity = openSearchOperations.getById(resourceId, null, Constants.INDEX_EMS);
             if(entity != null) {
                 log.error("Company details existed{}", companyRequest.getCompanyName());
@@ -80,7 +74,6 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY), companyRequest.getCompanyName()),
                     HttpStatus.BAD_REQUEST);
         }
-
         String companyType = companyRequest.getCompanyType();
         if (companyType.equals(Constants.PRIVATE)){
             if (companyRequest.getCinNo()==null || companyRequest.getCinNo().isEmpty()){
@@ -202,10 +195,10 @@ public class CompanyServiceImpl implements CompanyService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
-
     @Override
     public ResponseEntity<?> updateCompanyImageById(String companyId,  CompanyImageUpdate companyImageUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
+        List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
         try {
             user = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             if (user == null) {
@@ -220,9 +213,37 @@ public class CompanyServiceImpl implements CompanyService {
 
         CompanyEntity entity = CompanyUtils.maskCompanyImageUpdateProperties(user, companyImageUpdate, companyId);
         if (!multipartFile.isEmpty()){
+            // Validate file type
+            String contentType = multipartFile.getContentType();
+
+            if (!allowedFileTypes.contains(contentType)) {
+                // Return an error response if file type is invalid
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
+            }
             multiPartFileStore(multipartFile, entity);
+        }
+        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        return new ResponseEntity<>(
+                ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+    }
+    @Override
+    public ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
+        CompanyEntity user;
+        try {
+            user = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
+            if (user == null) {
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
+                        HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception ex) {
+            log.error("Exception while fetching user {}, {}", companyId, ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-
+        CompanyEntity entity = CompanyUtils.maskCompanyStampImageUpdateProperties(user, companyStampUpdate);
+        if (!multipartFile.isEmpty()){
+            multiPartFileStoreForStamp(multipartFile, entity);
         }
         openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
@@ -233,6 +254,15 @@ public class CompanyServiceImpl implements CompanyService {
             String filename = folderPath+company.getShortName()+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
             company.setImageFile(company.getShortName()+"_"+file.getOriginalFilename());
+            ResponseEntity.ok(filename);
+        }
+    }
+
+    private void multiPartFileStoreForStamp(MultipartFile file, CompanyEntity company) throws IOException, EmployeeException {
+        if(!file.isEmpty()){
+            String filename = folderPath+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename();
+            file.transferTo(new File(filename));
+            company.setStampImage(company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
@@ -301,6 +331,12 @@ public class CompanyServiceImpl implements CompanyService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
                         HttpStatus.NOT_FOUND);
             }
+            // Check if the old password and new password are the same to throw exception
+            if (employeePasswordReset.getPassword().equals(employeePasswordReset.getNewPassword())) {
+                log.error("you can't update with the previous password");
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(Constants.USED_PASSWORD)),
+                        HttpStatus.BAD_REQUEST);
+            }
             String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
             employee.setPassword(newPassword);
             if (employee.getCompanyId() != null) {
@@ -320,5 +356,4 @@ public class CompanyServiceImpl implements CompanyService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
-
 }

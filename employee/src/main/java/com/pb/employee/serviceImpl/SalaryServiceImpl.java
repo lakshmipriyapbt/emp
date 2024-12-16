@@ -41,7 +41,6 @@ public class SalaryServiceImpl implements SalaryService {
     @Autowired
     private EmployeeServiceImpl employeeService;
 
-
     @Override
     public ResponseEntity<?> addSalary(EmployeeSalaryRequest employeeSalaryRequest, String employeeId) throws EmployeeException {
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -224,6 +223,12 @@ public class SalaryServiceImpl implements SalaryService {
                         ResponseBuilder.builder().build().
                                 createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
                                         .getMessage(EmployeeErrorMessageKey.EMPLOYEE_INACTIVE)))),
+                        HttpStatus.CONFLICT);
+            }
+            int noOfChanges = EmployeeUtils.duplicateSalaryProperties(entity, salaryUpdateRequest);
+            if (noOfChanges==0){
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.SALARY_ALREADY_EXIST)))),
                         HttpStatus.CONFLICT);
             }
             if (!entity.getEmployeeId().equals(employeeId)) {

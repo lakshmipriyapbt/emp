@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useAuth } from "../Context/AuthContext";
 import { employeeId } from "./Auth";
+import { json } from "react-router-dom";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -97,7 +98,6 @@ export const companyViewByIdApi = (companyId) => {
     });
 };
 
-
 export const companyDetailsByIdApi = async (companyId) => {
   return axiosInstance.get(`/company/${companyId}`);
 }
@@ -107,7 +107,14 @@ export const companyDeleteByIdApi = async (companyId) => {
 };
 
 export const companyUpdateByIdApi = async (companyId, data) => {
-  axiosInstance.patch(`/company/${companyId}`, data);
+  try {
+    const response = await axiosInstance.patch(`/company/${companyId}`, data);
+    return response.data;  // Return the response data for further handling in the calling function
+  } catch (error) {
+    // Ensure errors are propagated properly by rethrowing the error
+    console.error('Error during company update:', error);  // Optional logging
+    throw error;  // Rethrow the error so it can be caught in onSubmit's catch block
+  }
 };
 
 export const companyPasswordUpdateById = async (companyId) => {
@@ -263,8 +270,16 @@ export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) =>
   return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);
 }
 
+export const EmployeePayslipResponse = (data) => {
+  return axiosInstance.post("/payslip", data);
+}
+
 export const EmployeePayslipGeneration = (data) => {
   return axiosInstance.post("/salary", data);
+}
+
+export const EmployeePayslipUpdate = (employeeId, payslipId, payload) => {
+  return axiosInstance.post(`/employee/${employeeId}/payslip/${payslipId}`, payload);
 }
 
 export const EmployeePayslipGetById = (employeeId, payslipId, month, year) => {
@@ -298,10 +313,9 @@ export const AllEmployeePayslipsGet = (month, year) => {
 
 export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
   const company = localStorage.getItem("companyName");
-
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/template/3/download/${payslipId}`, {
+    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
         'Accept': 'application/pdf', // Accept PDF format
@@ -325,7 +339,6 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     throw error; // Rethrow error for handling in the calling function
   }
 };
-
 
 export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
   const company = localStorage.getItem("comapnyName")
@@ -354,6 +367,7 @@ export const AttendanceDeleteById = (employeeId, attendanceId) => {
   const company = localStorage.getItem("company")
   return axiosInstance.delete(`/${company}/employee/${employeeId}/attendance/${attendanceId}`);
 }
+
 export const CompanyImagePatchApi = (companyId, formData) => {
   return axiosInstance.patch(`/company/image/${companyId}`, formData);
 }
@@ -378,3 +392,179 @@ export const CompanySalaryStructureGetApi = () => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`${company}/salary`);
 }
+
+export const PayslipTemplate = (data) => {
+  return axiosInstance.patch(`/template`, data);
+};
+
+export const TemplateSelectionPatchAPI = (data) => {
+  return axiosInstance.patch(`/template`, data);
+};
+
+export const TemplateGetAPI = (data) => {
+  const companyName = localStorage.getItem("companyName")
+  return axiosInstance.get(`/${companyName}/template`, data);
+};
+
+export const RelievingDownloadPostApi = (employeeId,data) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.post(`/${company}/employee/${employeeId}/download`, data);
+}
+export const RelievingFormPostApi = (employeeId, data) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.post(`/company/${company}/employee/${employeeId}/relieving`, data);
+}
+
+export const RelievingGetApiById = (employeeId) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/${company}/relieving/${employeeId}`);
+}
+
+export const RelievingGetAllApi=()=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/${company}/relieving`);
+}
+
+export const RelievingDeleteApiById = (employeeId,id) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.delete(`/${company}/employee/${employeeId}/relieve/${id}`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      console.error('Error fetching company by ID:', error);
+      throw error;
+    });
+}
+
+export const RelievingPatchApiById = (employeeId,relieveId, data) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.patch(`/${company}/employee/${employeeId}/relieve/${relieveId}`, data)
+};
+
+export const RelievingLetterDownload = async (employeeId,payload) => {
+  const company = localStorage.getItem("companyName")
+  try {
+    const response = await axiosInstance.post(`/${company}/employee/${employeeId}/download`,payload, {
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf',
+      }
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `RelievingLetter.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error;
+  }
+};
+
+export const ExperienceFormPostApi = async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/experienceletter/upload`, JSON.stringify(payload), // Ensure JSON format
+      {
+        responseType: 'blob', // Handle binary response for file download
+        headers: {
+          'Content-Type': 'application/json', // Correct content type
+          'Accept': 'application/pdf',        // Expected response format
+        },
+      }
+    );
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ExperienceLetter.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error;
+  }
+};
+
+export const OfferLetterDownload = async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/offerletter/upload`,payload, {
+      responseType: 'blob', 
+      headers: {
+        'Accept': 'application/pdf', 
+      }
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `offer_letter.pdf`; 
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true; 
+
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error; 
+  }
+};
+
+export const InternshipCertificateDownload= async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/internship/upload`,payload, {
+      responseType: 'blob', // Handle binary response for file download
+      headers: {
+        'Content-Type': 'application/json', // Correct content type
+        'Accept': 'application/pdf',        // Expected response format
+      },
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `internship_letter.pdf`; 
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    return true; 
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error; 
+  }
+};
+
+export const AppraisalLetterDownload = async (payload) => {
+  try {
+    const response = await axiosInstance.post(
+      `/appraisal/upload`,
+      JSON.stringify(payload), // Ensure JSON format
+      {
+        responseType: 'blob', // Handle binary response for file download
+        headers: {
+          'Content-Type': 'application/json', // Correct content type
+          'Accept': 'application/pdf',        // Expected response format
+        },
+      }
+    );
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Appraisal.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    return true;
+  } catch (error) {
+    console.error('Download error:', error.response || error.message);
+    throw error; // Re-throw for handling by calling code
+  }
+};

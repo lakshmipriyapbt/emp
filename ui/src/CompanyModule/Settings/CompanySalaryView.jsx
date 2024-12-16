@@ -3,7 +3,7 @@ import LayOut from '../../LayOut/LayOut';
 import { useForm } from 'react-hook-form';
 import { CompanySalaryStructureGetApi } from '../../Utils/Axios';
 import { Link } from 'react-router-dom';
-import { PencilSquare } from 'react-bootstrap-icons';
+import { ChevronBarDown, ChevronDown, PencilSquare } from 'react-bootstrap-icons';
 
 const CompanySalaryView = () => {
     const { register, formState: { errors } } = useForm({ mode: "onChange" });
@@ -14,7 +14,7 @@ const CompanySalaryView = () => {
         try {
             const response = await CompanySalaryStructureGetApi();
             setSalaryStructures(response.data.data);
-            console.log("Fetched salary structures:", response.data.data); // Log the fetched data
+            console.log("Fetched salary structures:", response.data.data); 
         } catch (error) {
             console.error("API fetch error:", error);
         }
@@ -81,9 +81,9 @@ const CompanySalaryView = () => {
                                             <span className='me-3' style={getStatusStyle(structure.status)}>
                                                 {structure.status}
                                             </span>
-                                            <PencilSquare
+                                            <ChevronDown
                                                 size={22}
-                                                color='#2255a4'
+                                                color='#fff'
                                                 onClick={() => {
                                                     toggleExpand(structure.id); // Use id from the response
                                                 }}

@@ -44,4 +44,6 @@ public class EmployeeEntity implements Entity {
 
     private Long otp;
     private Long expiryTime;
+    private String pfNo;
+
 }

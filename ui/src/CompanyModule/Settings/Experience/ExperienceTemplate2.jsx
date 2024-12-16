@@ -1,134 +1,107 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useAuth } from '../../../Context/AuthContext';
 
-const ExperienceTemplate2 = () => {
-    const [employeeName, setEmployeeName] = useState('XXXXX');
-    const [startDate, setStartDate] = useState('Sep 03, 2018');
-    const [endDate, setEndDate] = useState('Sep 24, 2021');
-    const [designation, setDesignation] = useState('Application Developer');
+const ExperienceTemplate2 = ({
+    companyLogo,
+    companyData,
+    date,
+    employeeName,
+    employeeId,
+    designation,
+    department,
+    joiningDate,
+    experienceDate
 
-    // Editable text area content
-    const [certificationText, setCertificationText] = useState(
-        `This is to certify that Mr. ${employeeName} was employed with our Company VBRS IT SOLUTIONS PVT LTD from ${startDate} to ${endDate} as a ${designation}.\n\n` +
-        `We found Mr. ${employeeName} to be very dedicated to the work assigned. He was result-oriented, professional, and sincere. He possesses excellent interpersonal skills and knowledge, which helped in completing many valuable business assignments. He is a true team player and a fun-loving individual who mixes well with his seniors and juniors alike.\n\n` +
-        `We wish him all the best for his future ventures. Please feel free to contact us for any other information required.`
-    );
-
-    // Footer details state
-    const [companyName, setCompanyName] = useState('XXXXXXXXXXXXXXXXXX');
-    const [companyDetails, setCompanyDetails] = useState(`1234 Company Lane, City, State, Zip\n(123) 456-7890\ninfo@vbrsit.com\nwww.vbrsit.com`);
-
-    const handleInputChange = () => {
-        setCertificationText(
-            `This is to certify that Mr. ${employeeName} was employed with our Company ${companyName} from ${startDate} to ${endDate} as ${designation}.\n\n` +
-            `We found Mr. ${employeeName} to be very dedicated to the work assigned. He was result-oriented, professional, and sincere. He possesses excellent interpersonal skills and knowledge, which helped in completing many valuable business assignments. He is a true team player and a fun-loving individual who mixes well with his seniors and juniors alike.\n\n` +
-            `We wish him all the best for his future ventures. Please feel free to contact us for any other information required.`
-        );
-    };
+}) => {
+  const {logoFileName} = useAuth();
 
     return (
-        <div className="container mt-5">
-            <h2 className="text-center">EXPERIENCE CERTIFICATE</h2>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <p className="mb-0">Date: {new Date().toLocaleDateString()}</p>
-                <img src='assets/pathbreaker_logo.png' alt="Company Logo" style={{ width: '200px', height: '80px' }} />
+            <div
+          className="watermarked"
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          <h4 className="text-center">EXPERIENCE CERTIFICATE</h4>
+          <div className="row d-flex align-items-center p-1">
+            <div className="col-6 d-flex align-items-center">
+                <p className="mb-0">{date}</p>
             </div>
-            <h5 className="text-center">TO WHOMSOEVER IT MAY CONCERN</h5>
-
-            <div className="mb-4 d-flex col-12">
-                <label className="form-label">Employee Name:</label>
-                <div className='col-3'>
-                <input
-                    type="text"
-                    value={employeeName}
-                    onChange={(e) => {
-                        setEmployeeName(e.target.value);
-                        handleInputChange();
-                    }}
-                    className="form-control"
+            <div className="col-6 d-flex justify-content-end">
+                <img
+                src={companyLogo}
+                alt="Logo"
+                style={{ height: "70px", width: "160px" }}
                 />
-                </div>
             </div>
-
-            <div className="mb-4 d-flex col-12">
-                <label className="form-label">Start Date:</label>
-                <div className='col-3'>
-                <input
-                    type="text"
-                    value={startDate}
-                    onChange={(e) => {
-                        setStartDate(e.target.value);
-                        handleInputChange();
-                    }}
-                    className="form-control"
-                />
-                </div>
             </div>
+          <h5 className="text-center">To Whom It May Concern,</h5>
+          {/* Background image div */}
+          <div
+       style={{
+        position: 'absolute',
+        top: '30%',
+        left: '20%',
+        right: '30%',
+        width: '50%',
+        height: '50%',
+        backgroundImage: `url(${logoFileName})`, // Use the logo or another image
+        transform: 'rotate(340deg)',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+      //  filter: 'blur(2px)', // Optional: adjust blur as needed
+        zIndex: 1, // Ensure it's behind the content
+      }}
+          />
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2, // Bring the content in front
+              padding: "20px",
+              backgroundColor: "rgba(255, 255, 255, 0.8)", // Optional: semi-transparent background for contrast
+              backdropFilter: "blur(2px)", // Optional: backdrop blur
+            }}
+          >
+            <p>
+              This letter certifies that <strong>{employeeName}</strong>with and ID <strong>{employeeId}</strong> was a valued member of our team at <strong>{companyData.companyName}</strong> as a <strong>{designation}</strong> in the <strong>{department} </strong> Department from {joiningDate} to {experienceDate}.
+            </p>
+            <p>
+              During <strong>{employeeName}</strong>’s employment, he/she exhibited exceptional
+              proficiency in coding and software development. He/She actively
+              participated in multiple projects, demonstrating strong
+              problem-solving abilities and meticulous attention to detail.{" "}
+              <strong>{employeeName}</strong> consistently met project deadlines and
+              collaborated seamlessly with team members to ensure the delivery
+              of high-quality software solutions.
+            </p>
+            <p>
+              <strong>{employeeName}</strong>’s dedication and hard work significantly
+              contributed to the success of our projects. His/Her innovative ideas
+              and proactive approach were instrumental in overcoming challenges
+              and achieving project objectives.
+            </p>
+            <p>
+              We commend <strong>{employeeName}</strong> for his outstanding performance and
+              professionalism throughout his/her tenure with{" "}
+              {companyData.companyName}. His/Her contributions have been invaluable
+              to our team, and we have no doubt that he/she will continue to excel
+              in his/her future endeavors.
+            </p>
 
-            <div className="mb-4 d-flex col-12" >
-                <label className="form-label">End Date:</label>
-                <div className='col-3'>
-                <input
-                    type="text"
-                    value={endDate}
-                    onChange={(e) => {
-                        setEndDate(e.target.value);
-                        handleInputChange();
-                    }}
-                    className="form-control"
-                />
-                </div>
+            <div className="mt-5 pt-3">
+              <p className='mb-5'>Sincerely,</p>
+              <div className='mt-5 pt-5'>
+              <p>Authorized Signature</p>
+              <p>{companyData.companyName}</p>
+              <p>{companyData.mobileNo},{companyData.emailId}</p>
+              <p>{companyData.companyAddress}</p>
+              </div>
             </div>
-
-            <div className="mb-4 d-flex col-12">
-                <label className="form-label">Designation:</label>
-                <div className='col-3'>
-                <input
-                    type="text"
-                    value={designation}
-                    onChange={(e) => {
-                        setDesignation(e.target.value);
-                        handleInputChange();
-                    }}
-                    className="form-control"
-                />
-                </div>
-            </div>
-
-            <div className="card p-4">
-                <textarea
-                    value={certificationText}
-                    onChange={(e) => setCertificationText(e.target.value)}
-                    className="form-control mt-3"
-                    rows={10}
-                />
-                <div className="text-end mt-4">
-                    <h6>For {companyName}</h6>
-                    <p>Authorized Signature</p>
-                </div>
-            </div>
-
-            {/* Editable Footer Section as Text Areas */}
-            <footer className="mt-5 text-center">
-                <div>
-                    <h6>Company Details</h6>
-                    <textarea
-
-                        value={companyName}
-                        onChange={(e) => {
-                            setCompanyName(e.target.value);
-                            handleInputChange();
-                        }}
-                        className="form-control mb-2 text-center"
-                        rows={1}
-                    />
-                    <textarea
-                        value={companyDetails}
-                        onChange={(e) => setCompanyDetails(e.target.value)}
-                        className="form-control mb-2 text-center"
-                        rows={5}
-                    />
-                </div>
-            </footer>
+          </div>
         </div>
     );
 }

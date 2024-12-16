@@ -3,10 +3,7 @@ package com.pb.employee.service;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.persistance.model.CompanyEntity;
-import com.pb.employee.request.CompanyImageUpdate;
-import com.pb.employee.request.CompanyRequest;
-import com.pb.employee.request.CompanyUpdateRequest;
-import com.pb.employee.request.EmployeePasswordReset;
+import com.pb.employee.request.*;
 import com.pb.employee.response.CompanyResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +18,9 @@ public interface CompanyService {
     ResponseEntity<?> getCompanyById(String companyId,  HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> updateCompanyById(String companyId, CompanyUpdateRequest companyUpdateRequest) throws IOException, EmployeeException;
     ResponseEntity<?> updateCompanyImageById(String companyId,  CompanyImageUpdate companyImageUpdate,MultipartFile multipartFile) throws EmployeeException, IOException;
+
+    ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException;
+
     ResponseEntity<?> deleteCompanyById(String companyId) throws EmployeeException;
 
     ResponseEntity<?> getCompanyImageById(String companyId, HttpServletRequest request)  throws EmployeeException;

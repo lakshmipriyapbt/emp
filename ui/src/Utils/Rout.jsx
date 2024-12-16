@@ -35,9 +35,28 @@ import ForgotPassword from '../Login/ForgotPassword'
 import EmployeeProfile from '../EmployeeModule/EmployeeProfile';
 import EmployeeSalaryUpdate from '../CompanyModule/PayRoll/EmployeeSalaryUpdate';
 import CompanySalaryView from '../CompanyModule/Settings/CompanySalaryView';
-import PayslipUpdate from '../Login/PayslipUpdate';
-import OfferLetters from '../CompanyModule/Settings/OfferLetters';
 import ExperienceLetter from '../CompanyModule/Settings/Experience/ExperienceLetter';
+import ExperienceForm from '../CompanyModule/Settings/Experience/ExperienceForm';
+import ExperienceView from '../CompanyModule/Settings/Experience/ExperienceView';
+import RelievingLetter from '../CompanyModule/Settings/Relieving/RelievingLetter';
+import Preview from '../CompanyModule/Settings/Relieving/Preview';
+import AppraisalTemplate from '../CompanyModule/Settings/Appraisal/AppraisalTemplate';
+import InternShipTemplates from '../CompanyModule/Settings/Internship/InternShipTemplates';
+import InternShipForm from '../CompanyModule/Settings/Internship/InternShipForm';
+import PayslipUpdate1 from '../CompanyModule/PayRoll/PayslipUpdate/PayslipUpdate1';
+import PayslipUpdate2 from '../CompanyModule/PayRoll/PayslipUpdate/PayslipUpdate2';
+import PayslipUpdate3 from '../CompanyModule/PayRoll/PayslipUpdate/PayslipUpdate3';
+import PayslipUpdate4 from '../CompanyModule/PayRoll/PayslipUpdate/PayslipUpdate4';
+import PayslipTemplates from '../CompanyModule/Settings/PayslipTemplates';
+import PayslipDoc1 from '../CompanyModule/PayRoll/Payslips/PayslipDoc1';
+import PayslipDoc3 from '../CompanyModule/PayRoll/Payslips/PayslipDoc3';
+import PayslipDoc2 from '../CompanyModule/PayRoll/Payslips/PayslipDoc2';
+import PayslipDoc4 from '../CompanyModule/PayRoll/Payslips/PayslipDoc4';
+import OfferLetters from '../CompanyModule/Settings/OfferLetter/OfferLetters';
+import Template from '../CompanyModule/Settings/OfferLetter/Template';
+import OfferLetterForm from '../CompanyModule/Settings/OfferLetter/OfferLetterForm';
+import OfferLetterPreview from '../CompanyModule/Settings/OfferLetter/OfferLetterPreview';
+import EmployeeSalaryView from '../EmployeeModule/EmployeeSalaryView';
 
 const Rout = () => {
   const location = useLocation();
@@ -91,21 +110,14 @@ const Rout = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    // Clear sessionStorage on logout
-    sessionStorage.clear();
-
-    // Optionally redirect the user to the login page or another route
-    window.location.href = '/login';
-  };
 
   return (
     <Routes>
-      <Route path='/' element={<Message/>}></Route>
+      <Route path='/' element={<Message />}></Route>
       <Route path='/login' element={<EmsLogin />}></Route>
       <Route path='/:company/login' element={<CompanyLogin />}></Route>
-      <Route path='/resetPassword' element={<Reset/>}></Route>
-      <Route path='/profile' element={<Profile/>}></Route>
+      <Route path='/resetPassword' element={<Reset />}></Route>
+      <Route path='/profile' element={<Profile />}></Route>
       <Route path='/main' element={<Body />}></Route>
       <Route path='/companyRegistration' element={<CompanyRegistration />}></Route>
       <Route path='/companyView' element={<CompanyView />}></Route>
@@ -113,33 +125,52 @@ const Rout = () => {
       <Route path='/designation' element={<Designation />}></Route>
       <Route path='/employeeRegistration' element={<EmployeeRegistration />}></Route>
       <Route path='/employeeView' element={<EmployeeView />}></Route>
-      <Route path='/existingProcess' element={<ExistsEmpRegistration />}></Route>
-      <Route path='/existingList' element={<ExistsEmployeeView />}></Route>
-      <Route path='/employeeProfile' element={<EmployeeProfile/>}></Route>
-      {/* <Route path='/payroll'> */}
+      <Route path='/relievingProcess' element={<ExistsEmpRegistration />}></Route>
+      <Route path='/relievingSummary' element={<ExistsEmployeeView />}></Route>
+      <Route path='/employeeProfile' element={<EmployeeProfile />}></Route>
       <Route path='/companySalaryStructure' element={<CompanySalaryStructure />}></Route>
-      <Route path='/companySalaryView' element={<CompanySalaryView/>}></Route>
-      <Route path='/offerLetters' element={<OfferLetters/>}></Route>
+      <Route path='/companySalaryView' element={<CompanySalaryView />}></Route>
+      <Route path='/offerLetters' element={<OfferLetters />}></Route>
+      <Route path='/template' element={<Template />}></Route>
+      <Route path='/payslipTemplates' element={<PayslipTemplates />}></Route>
       <Route path='/employeeSalaryStructure' element={<EmployeeSalaryStructure />}></Route>
       <Route path='/employeeSalaryUpdate' element={<EmployeeSalaryUpdate />}></Route>
       <Route path='/employeeSalaryList' element={<EmployeeSalaryList />}></Route>
       <Route path='/payslipGeneration' element={<GeneratePaySlip />}></Route>
       <Route path='/payslipsList' element={<ViewPaySlips />}></Route>
-      <Route path='/increment' element={<AddIncrement />}></Route>
+      <Route path='/appraisal' element={<AddIncrement />}></Route>
       <Route path='/incrementList' element={<ViewIncrement />}></Route>
-      <Route path='/payslip' element={<PaySlipDoc/>}></Route>
-      <Route path='/payslipUpdate' element={<PayslipUpdate/>}></Route>
+      <Route path='/payslip' element={<PaySlipDoc />}></Route>
       <Route path='/addAttendance' element={<ManageAttendance />}></Route>
       <Route path='/attendanceList' element={<AttendanceList />}></Route>
       <Route path='/attendanceReport' element={<AttendanceReport />}></Route>
       <Route path='/employeePayslip' element={<EmployeePayslips />}></Route>
-      <Route path='/employeeSalary' element={<EmployeeSalaryById/>}></Route>
+      <Route path='/employeeSalary' element={<EmployeeSalaryById />}></Route>
+      <Route path='/employeeSalaryView' element={<EmployeeSalaryView/>}></Route>
       <Route path='/offerLetter' element={<OfferLetter />}></Route>
       <Route path='/payslipLetter' element={<PaySlipLetter />}></Route>
       <Route path='/hikeLetter' element={<HikeLetter />}></Route>
-      <Route path='/experienceLetter' element={<ExperienceLetter/>}></Route>
+      <Route path='/experienceLetter' element={<ExperienceLetter />}></Route>
       <Route path='/existingEmployee' element={<ExistingLetter />}></Route>
-      <Route path='/forgotPassword' element={<ForgotPassword/>}></Route>
+      <Route path='/experienceSummary' element={<ExperienceView/>}></Route>
+      <Route path='/experienceForm' element={<ExperienceForm/>}></Route>
+      <Route path='/offerLetterForm' element={<OfferLetterForm/>}></Route>
+      <Route path='/offerLetterPreview' element={<OfferLetterPreview/>}></Route>
+      <Route path='/forgotPassword' element={<ForgotPassword />}></Route>
+      <Route path='/relievingTemplates' element={<RelievingLetter/>}></Route>
+      <Route path='/relivingReview' element={<Preview/>}></Route>
+      <Route path='/internsLetter' element={<InternShipForm/>}></Route>
+      <Route path='/internsTemplates' element={<InternShipTemplates/>}></Route>
+      <Route path='/appraisalLetter' element={<AddIncrement/>}></Route>
+      <Route path='/appraisalTemplates' element={<AppraisalTemplate/>}></Route>
+      <Route path='/payslipUpdate1' element={<PayslipUpdate1 />}></Route>
+      <Route path='/payslipUpdate2' element={<PayslipUpdate2 />}></Route>
+      <Route path='/payslipUpdate3' element={<PayslipUpdate3 />}></Route>
+      <Route path='/payslipUpdate4' element={<PayslipUpdate4 />}></Route>
+      <Route path='/payslipDoc1' element={<PayslipDoc1 />}></Route>
+      <Route path='/payslipDoc2' element={<PayslipDoc2/>}></Route>
+      <Route path='/payslipDoc3' element={<PayslipDoc3 />}></Route>
+      <Route path='/payslipDoc4' element={<PayslipDoc4/>}></Route>
     </Routes>
   );
 };

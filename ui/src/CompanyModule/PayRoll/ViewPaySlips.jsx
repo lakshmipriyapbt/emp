@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import LayOut from '../../LayOut/LayOut';
 import DataTable from 'react-data-table-component';
 import { Eye } from 'react-bootstrap-icons';
-import { AllEmployeePayslipsGet, EmployeeGetApi, EmployeeGetApiById, EmployeePayslipsGet } from '../../Utils/Axios';
+import { AllEmployeePayslipsGet, EmployeeGetApi, EmployeeGetApiById, EmployeePayslipsGet, TemplateGetAPI } from '../../Utils/Axios';
 
 const ViewPaySlips = () => {
   const { control, formState: { errors } } = useForm();
@@ -22,6 +22,9 @@ const ViewPaySlips = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showSpinner, setShowSpinner] = useState(false);
   const [noRecords, setNoRecords] = useState(false);
+  const [payslipTemplates, setPayslipTemplates] = useState([]); 
+  const [selectedTemplate, setSelectedTemplate] = useState(null); 
+  const [currentTemplate, setCurrentTemplate] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -104,14 +107,51 @@ const ViewPaySlips = () => {
     fetchData(selectedEmployeeId, monthName, selectedYear);
   };
 
+  const fetchTemplate = async () => {
+    try {
+      const response = await TemplateGetAPI();
+      const templateData = response.data.data; // Assuming this is where your template details are
+      setCurrentTemplate(templateData); // Set the template data correctly
+      console.log("Fetched Payslip Template:", templateData); // Log for debugging
+    } catch (error) {
+      console.error("API fetch error:", error);
+      toast.error("Failed to fetch payslip templates. Please try again.");
+    }
+  };
+  
+  useEffect(() => {
+    fetchTemplate();
+  }, []);
+
   const handleViewSalary = (employeeId, payslipId) => {
-    navigate(`/payslip?employeeId=${employeeId}&payslipId=${payslipId}`, {
+    const payslipTemplateNo = currentTemplate?.payslipTemplateNo || "default"; 
+    let url;
+    switch (payslipTemplateNo) {
+      case "1":
+        url = `/payslipDoc1?employeeId=${employeeId}&payslipId=${payslipId}`;
+        break;
+      case "2":
+        url = `/payslipDoc2?employeeId=${employeeId}&payslipId=${payslipId}`;
+        break;
+      case "3":
+        url = `/payslipDoc3?employeeId=${employeeId}&payslipId=${payslipId}`;
+        break;
+      case "4":
+        url = `/payslipDoc4?employeeId=${employeeId}&payslipId=${payslipId}`;
+        break;
+      default:
+        console.error("Invalid payslip template number:", payslipTemplateNo);
+        return;
+    }
+  
+    navigate(url, {
       state: {
         employeeDetails: selectedEmployeeDetails,
       },
     });
   };
-
+  
+  
   const getMonthAndYear = () => {
     if (employeeSalaryView.length > 0) {
       const firstRecord = employeeSalaryView[0];
@@ -133,7 +173,7 @@ const ViewPaySlips = () => {
         const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
         const monthNames = getMonthNames();
-        const monthName = monthNames[currentMonth - 1];
+        const monthName = monthNames[currentMonth - 2];
         setApiSource("all");
         const response = await AllEmployeePayslipsGet(monthName, currentYear);
         console.log("All Employee Payslips:", response.data);
@@ -145,6 +185,7 @@ const ViewPaySlips = () => {
       } catch (error) {
         console.error('Error fetching all employee payslips:', error);
         setNoRecords(true);
+        handleApiErrors(error)
       }
     };
     fetchAllPayslips();
@@ -164,7 +205,7 @@ const ViewPaySlips = () => {
     }
     console.error(error.response || error);
   };
-  
+
   const isGoButtonEnabled = selectedEmployeeId && selectedMonth && selectedYear;
 
   const columns = apiSource === 'all'
@@ -172,19 +213,31 @@ const ViewPaySlips = () => {
       {
         name: <h6><b>S No</b></h6>,
         selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
-        width: "180px",
+        width: "80px",
       },
       {
         name: <h6><b>Name</b></h6>,
         selector: row => `${row.attendance.firstName} ${row.attendance.lastName}`,
         sortable: true,
-        width: "280px",
+        width: "250px",
+      },
+      {
+        name: <h6><b>Month</b></h6>,
+        selector: row => `${row.month}`,
+        sortable: true,
+        width: "150px",
+      },
+      {
+        name: <h6><b>Year</b></h6>,
+        selector: row => `${row.year}`,
+        sortable: true,
+        width: "150px",
       },
       {
         name: <h6><b>Net Amount</b></h6>,
         selector: row => parseFloat(row.salary.netSalary).toFixed(2),
         sortable: true,
-        width: "300px",
+        width: "200px",
       },
       {
         name: <h6><b>Actions</b></h6>,
@@ -203,7 +256,6 @@ const ViewPaySlips = () => {
       {
         name: <h6><b>Net Amount</b></h6>,
         selector: row => parseFloat(row.salary.netSalary).toFixed(2),
-        sortable: true,
         width: "600px",
       },
       {
@@ -247,7 +299,7 @@ const ViewPaySlips = () => {
             <div className="row d-flex justify-content-around">
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label" style={{paddingTop:"10px"}}>Select Employee</label>
+                  <label className="form-label" style={{ paddingTop: "10px" }}>Select Employee</label>
                   <Controller
                     name="employeeId"
                     control={control}
@@ -274,7 +326,7 @@ const ViewPaySlips = () => {
               </div>
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label" style={{paddingTop:"10px"}}>Select Year</label>
+                  <label className="form-label" style={{ paddingTop: "10px" }}>Select Year</label>
                   <Select
                     options={years}
                     value={years.find((option) => option.value === selectedYear) || ""}
@@ -285,7 +337,7 @@ const ViewPaySlips = () => {
               </div>
               <div className="col-12 col-md-3">
                 <div className="form-group">
-                  <label className="form-label" style={{paddingTop:"10px"}}>Select Month</label>
+                  <label className="form-label" style={{ paddingTop: "10px" }}>Select Month</label>
                   <Select
                     options={months}
                     value={months.find((month) => month.value === selectedMonth) || ""}
@@ -310,7 +362,7 @@ const ViewPaySlips = () => {
             </div>
             {showFields ? (
               <div>
-                <h5 className="card-title mt-4 text-dark" >
+                <h5 className="card-title mt-4 text-secondary" >
                   PaySlip Details for {selectedEmployeeDetails.firstName ? `${selectedEmployeeDetails.firstName} ${selectedEmployeeDetails.lastName} (${selectedEmployeeDetails.employeeId})` : 'All Employees'}
                   {selectedYear && ` - ${selectedYear}`}
                   {selectedMonth && ` - ${getMonthNames()[selectedMonth - 1]}`}

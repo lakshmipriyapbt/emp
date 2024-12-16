@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import Select from "react-select";
@@ -6,11 +5,16 @@ import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { DepartmentGetApi, DesignationGetApi, EmployeeGetApiById, EmployeePatchApiById, EmployeePostApi, EmployeePutApiById, employeeUpdateByIdApi, employeeViewApi } from "../../Utils/Axios";
+import {
+  DepartmentGetApi,
+  DesignationGetApi,
+  EmployeeGetApiById,
+  EmployeePatchApiById,
+  EmployeePostApi,
+} from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 
 const EmployeeRegistration = () => {
-
   const {
     register,
     watch,
@@ -21,8 +25,8 @@ const EmployeeRegistration = () => {
     setValue,
   } = useForm({
     defaultValues: {
-      status: "", // Initialize with default value or leave empty if fetching dynamically
-      roles: null
+      status: "Active", // Initialize with default value or leave empty if fetching dynamically
+      roles: null,
     },
     mode: "onChange",
   });
@@ -34,10 +38,11 @@ const EmployeeRegistration = () => {
   const [employeeId, setEmployeeId] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
   const [companyName, setCompanyName] = useState("");
-  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+  const [showNoticePeriodOption, setShowNoticePeriodOption] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(user.company)
+  console.log(user.company);
   const [passwordShown, setPasswordShown] = useState(false);
   const togglePasswordVisiblity = () => {
     setPasswordShown(!passwordShown);
@@ -73,11 +78,6 @@ const EmployeeRegistration = () => {
     { value: "Accountant", label: "Accountant" },
   ];
 
-  const status = [
-    { value: "Active", label: "Active" },
-    { value: "InActive", label: "InActive" },
-  ];
-
   useEffect(() => {
     // Retrieve companyName from session storage
     const storedCompanyName = localStorage.getItem("name");
@@ -98,7 +98,6 @@ const EmployeeRegistration = () => {
 
     return newEmployeeId;
   };
-
 
   const fetchDepartments = async () => {
     try {
@@ -131,28 +130,42 @@ const EmployeeRegistration = () => {
     const input = e.target;
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
+
     // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
-    // Ensure only alphabets and spaces are allowed
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
-    value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
+    value = value.replace(/^\s+/g, "");
+
+    // Ensure only allowed characters (alphabets, numbers, and some special chars)
+    const allowedCharsRegex = /^[a-zA-Z\s]+$/;
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
+
     // Capitalize the first letter of each word
-    const words = value.split(' ');
-    // Capitalize the first letter of each word and lowercase the rest
-    const capitalizedWords = words.map(word => {
+    const words = value.split(" ");
+
+    // Capitalize the first letter of each word and leave the rest of the characters as they are
+    const capitalizedWords = words.map((word) => {
       if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        // Capitalize the first letter, keep the rest as is
+        return word.charAt(0).toUpperCase() + word.slice(1);
       }
-      return '';
+      return "";
     });
+
     // Join the words back into a string
-    let formattedValue = capitalizedWords.join(' ');
+    let formattedValue = capitalizedWords.join(" ");
+
     // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 2) {
-      formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
+    if (formattedValue.length > 1) {
+      formattedValue =
+        formattedValue.slice(0, 1) +
+        formattedValue.slice(1).replace(/\s+/g, " ");
     }
+
     // Update input value
     input.value = formattedValue;
+
     // Restore the cursor position
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
@@ -161,21 +174,21 @@ const EmployeeRegistration = () => {
     const input = e.target;
     let value = input.value;
     // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
+    value = value.replace(/^\s+/g, "");
 
     // Initially disallow spaces if there are no non-space characters
     if (!/\S/.test(value)) {
       // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, '');
+      value = value.replace(/\s+/g, "");
     } else {
       // Allow spaces if there are non-space characters
       value = value.toLowerCase();
-      value = value.replace(/^\s+/g, ''); // Remove leading spaces
-      const words = value.split(' ');
-      const capitalizedWords = words.map(word => {
+      value = value.replace(/^\s+/g, ""); // Remove leading spaces
+      const words = value.split(" ");
+      const capitalizedWords = words.map((word) => {
         return word.charAt(0).toLowerCase() + word.slice(1);
       });
-      value = capitalizedWords.join(' ');
+      value = capitalizedWords.join(" ");
     }
     // Update input value
     input.value = value;
@@ -184,7 +197,7 @@ const EmployeeRegistration = () => {
   const toInputSpaceCase = (e) => {
     let inputValue = e.target.value;
     let newValue = "";
-    let capitalizeNext = true;  // Flag to determine if the next character should be capitalized
+    let capitalizeNext = true; // Flag to determine if the next character should be capitalized
 
     // Remove spaces from the beginning of inputValue
     inputValue = inputValue.trimStart();
@@ -195,12 +208,12 @@ const EmployeeRegistration = () => {
       // Check if the current character is a space
       if (char === " ") {
         newValue += char;
-        capitalizeNext = true;  // Set flag to capitalize next non-space character
+        capitalizeNext = true; // Set flag to capitalize next non-space character
       } else if (capitalizeNext && char.match(/[a-zA-Z0-9]/)) {
         newValue += char.toUpperCase();
-        capitalizeNext = false;  // Reset flag after capitalizing a character
+        capitalizeNext = false; // Reset flag after capitalizing a character
       } else {
-        newValue += char;  // Add character as is if it's not the first one after a space
+        newValue += char; // Add character as is if it's not the first one after a space
       }
     }
 
@@ -208,12 +221,9 @@ const EmployeeRegistration = () => {
     e.target.value = newValue;
   };
 
-
-
-
-  let company = user.company
+  let company = user.company;
   const onSubmit = async (data) => {
-    // const roles = data.roles ? [data.roles] : []; 
+    // const roles = data.roles ? [data.roles] : [];
     // Constructing the payload
     let payload = {
       companyName: company,
@@ -229,7 +239,7 @@ const EmployeeRegistration = () => {
       accountNo: data.accountNo,
       ifscCode: data.ifscCode,
       bankName: data.bankName,
-      aadhaarId: data.aadhaarId
+      aadhaarId: data.aadhaarId,
     };
     if (location.state && location.state.id) {
       payload = {
@@ -241,10 +251,9 @@ const EmployeeRegistration = () => {
         department: data.department,
         panNo: data.panNo,
         uanNo: data.uanNo,
-        dateOfBirth: data.dateOfBirth
+        dateOfBirth: data.dateOfBirth,
       };
     } else {
-      // Include these fields for the create request
       payload = {
         ...payload,
         employeeId: data.employeeId,
@@ -255,7 +264,7 @@ const EmployeeRegistration = () => {
         panNo: data.panNo,
         aadhaarId: data.aadhaarId,
         uanNo: data.uanNo,
-        dateOfBirth: data.dateOfBirth
+        dateOfBirth: data.dateOfBirth,
       };
     }
 
@@ -275,19 +284,57 @@ const EmployeeRegistration = () => {
 
       reset();
     } catch (error) {
-      if (error.response && error.response.data) {
-        const { error: errorData } = error.response.data;
-  
-        if (errorData && errorData.messages && Array.isArray(errorData.messages)) {
-          const message = errorData.messages.join('\n'); // Join messages with new lines
-          setErrorMessage(message);
-        } else {
-          const message = error.response.data.message || "An unexpected error occurred.";
-          setErrorMessage(message);
+      let errorList = [];
+
+      // Check if error response exists
+      if (error.response) {
+        console.log("Axios response error:", error.response.data.error); // Log Axios error response
+
+        // Case 1: General error message
+        if (error.response.data.error && error.response.data.error.message) {
+          const generalErrorMessage = error.response.data.error.message;
+          errorList.push(generalErrorMessage);
+          toast.error(generalErrorMessage);
+        }
+
+        // Case 2: Specific error messages (multiple messages, such as form validation errors)
+        if (error.response.data.error && error.response.data.error.messages) {
+          const specificErrorMessages = error.response.data.error.messages;
+          toast.error("Invalid Format Fields");
+          specificErrorMessages.forEach((message) => {
+            // Display each error message individually
+            errorList.push(message);
+          });
+        }
+
+        // Case 3: Specific error data (duplicate value conflicts)
+        if (error.response.data.data) {
+          const conflictData = error.response.data.data;
+          let conflictMessage = "Error Details:\n";
+          toast.error(error.response.data.message);
+          // Check if data contains specific conflict details (e.g., duplicate values)
+          Object.keys(conflictData).forEach((key) => {
+            const value = conflictData[key];
+            conflictMessage += `${key}: ${value}\n,`;
+          });
+
+          // Display detailed conflict message in toast and add to error list
+          errorList.push(conflictMessage);
+        }
+
+        // Handle HTTP 409 Conflict Error (duplicate or other conflicts)
+        if (error.response.status === 409) {
+          const conflictMessage = "A conflict occurred.";
+          toast.error(conflictMessage); // Show conflict error in toast
         }
       } else {
-        handleApiErrors(error);
+        // General error (non-Axios)
+        console.log("Error without response:", error);
+        toast.error("An unexpected error occurred. Please try again later.");
       }
+
+      // Update the error messages in the state
+      setErrorMessage(errorList);
     }
   };
 
@@ -296,9 +343,14 @@ const EmployeeRegistration = () => {
     //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
     //   alert(alertMessage);
     // }
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.error &&
+      error.response.data.error.message
+    ) {
       const errorMessage = error.response.data.error.message;
-      setErrorMessage(errorMessage)
+      setErrorMessage(errorMessage);
       toast.error(errorMessage);
     } else {
       // toast.error("Network Error !");
@@ -315,11 +367,18 @@ const EmployeeRegistration = () => {
           reset(response.data);
           setIsUpdating(true);
           // Assuming roles is an array and setting the first role
-          setValue('status', response.data.data.status.toString());
+          const status = response.data.data.status;
+          setValue("status", status.toString());
+
+          // Conditionally show the "Notice Period" option based on the status
+          if (status === "NoticePeriod") {
+            setShowNoticePeriodOption(true);
+          }
+
           // Check if roles array has any items
           const role = response.data.data.roles[0]; // Assuming roles is an array
-          const selectedRole = Roles.find(option => option.value === role);
-          setValue('roles', selectedRole || null);
+          const selectedRole = Roles.find((option) => option.value === role);
+          setValue("roles", selectedRole || null);
         } catch (error) {
           handleApiErrors(error);
         }
@@ -329,14 +388,14 @@ const EmployeeRegistration = () => {
     }
   }, [location.state, reset, setValue]);
 
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const formattedDate = date.toISOString().split("T")[0];
-    return formattedDate;
-  };
   const today = new Date();
-  const threeMonthsFromNow = new Date(today.getFullYear(), today.getMonth() + 3, today.getDate()).toISOString().split('T')[0];
+  const threeMonthsFromNow = new Date(
+    today.getFullYear(),
+    today.getMonth() + 3,
+    today.getDate()
+  )
+    .toISOString()
+    .split("T")[0];
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -352,119 +411,328 @@ const EmployeeRegistration = () => {
 
     return `${year}-${month}-${day}`;
   };
-
   const validateDate = (value) => {
     const selectedDate = new Date(value);
     if (selectedDate > new Date(threeMonthsFromNow)) {
-        return "Date of Hiring cannot be more than 3 months from today.";
+      return "Date of Hiring cannot be more than 3 months from today.";
     }
     return true; // Return true if no errors
-};
+  };
+  // Custom validation function for date of birth based on date of hiring
+  const validateDateOfBirth = (value, dateOfHiring) => {
+    const selectedDateOfBirth = new Date(value);
+    const selectedDateOfHiring = new Date(dateOfHiring); // Ensure this is a Date object
+    // Calculate limits
+    const minDateOfBirth = new Date(selectedDateOfHiring);
+    minDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 21); // 21 years ago from date of hiring
 
-// Custom validation function for date of birth based on date of hiring
-const validateDateOfBirth = (value, dateOfHiring) => {
-  const selectedDateOfBirth = new Date(value);
-  const selectedDateOfHiring = new Date(dateOfHiring); // Ensure this is a Date object
-  // Calculate limits
-  const minDateOfBirth = new Date(selectedDateOfHiring);
-  minDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 21); // 21 years ago from date of hiring
+    const maxDateOfBirth = new Date(selectedDateOfHiring);
+    maxDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 80); // 80 years ago from date of hiring
 
-  const maxDateOfBirth = new Date(selectedDateOfHiring);
-  maxDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 80); // 80 years ago from date of hiring
+    // Validate against the limits
+    if (selectedDateOfBirth > minDateOfBirth) {
+      return "Date of Birth must be at least 21 years before the Date of Joining.";
+    }
+    if (selectedDateOfBirth < maxDateOfBirth) {
+      return "Date of Birth must not exceed 80 years before the Date of Joining.";
+    }
 
-  // Validate against the limits
-  if (selectedDateOfBirth > minDateOfBirth) {
+    return true; // Return true if no errors
+  };
 
-      return "Date of Birth must be at least 21 years before the Date of Hiring.";
-  }
-  if (selectedDateOfBirth < maxDateOfBirth) {
-      return "Date of Birth must not exceed 80 years before the Date of Hiring.";
-  }
+  const validatePassword = (value) => {
+    const errors = [];
+    if (!/(?=.*[0-9])/.test(value)) {
+      errors.push("at least one digit");
+    }
+    if (!/(?=.*[a-z])/.test(value)) {
+      errors.push("at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(value)) {
+      errors.push("at least one uppercase letter");
+    }
+    if (!/(?=.*\W)/.test(value)) {
+      errors.push("at least one special character");
+    }
+    if (value.includes(" ")) {
+      errors.push("no spaces");
+    }
 
-  return true; // Return true if no errors
-};
+    if (errors.length > 0) {
+      return `Password must contain ${errors.join(", ")}.`;
+    }
+    return true; // Return true if all conditions are satisfied
+  };
 
-const validatePassword = (value) => {
-  const errors = [];
-  if (!/(?=.*[0-9])/.test(value)) {
-    errors.push("at least one digit");
-  }
-  if (!/(?=.*[a-z])/.test(value)) {
-    errors.push("at least one lowercase letter");
-  }
-  if (!/(?=.*[A-Z])/.test(value)) {
-    errors.push("at least one uppercase letter");
-  }
-  if (!/(?=.*\W)/.test(value)) {
-    errors.push("at least one special character");
-  }
-  if (value.includes(" ")) {
-    errors.push("no spaces");
-  }
+  const validateLastName = (value) => {
+    // Trim leading and trailing spaces before further validation
+    const trimmedValue = value.trim();
 
-  if (errors.length > 0) {
-    return `Password must contain ${errors.join(", ")}.`;
-  }
-  return true; // Return true if all conditions are satisfied
-};
+    // Check if value is empty after trimming (meaning it only had spaces)
+    if (trimmedValue.length === 0) {
+      return "Field is Required.";
+    }
 
-const validateName = (value) => {
-  if (!value || value.trim().length === 0) {
-    return "Manager Name is Required.";
-  } else if (!/^[A-Za-z ]+$/.test(value)) {
-    return "Only Alphabetic Characters are Allowed.";
-  } else {
-    const words = value.split(" ");
-    
-    for (const word of words) {
-      if (word.length < 3 || word.length > 30) {
-        return "Invalid Format of Manager.";
+    // Allow alphabetic characters, numbers, spaces, and the / character
+    else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
+      return "Only Alphabetic Characters are Allowed.";
+    } else {
+      const words = trimmedValue.split(" ");
+
+      // Check for minimum and maximum word length
+      for (const word of words) {
+        if (word.length < 1) {
+          return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
+        } else if (word.length > 100) {
+          return "Max Length 100 Characters Required."; // If any word is longer than 40 characters
+        }
+      }
+
+      if (/\s$/.test(value)) {
+        return "Spaces at the end are not allowed."; // Trailing space error
+      } else if (/^\s/.test(value)) {
+        return "No Leading Space Allowed."; // Leading space error
+      }
+
+      // Check if there are multiple spaces between words
+      else if (/\s{2,}/.test(trimmedValue)) {
+        return "No Multiple Spaces Between Words Allowed.";
       }
     }
-    
-    if (/^\s|\s$/.test(value)) {
-      return "No Leading or Trailing Spaces Allowed.";
-    } else if (/\s{2,}/.test(value)) {
-      return "No Multiple Spaces Between Words Allowed.";
-    }
-  }
 
-  return true; // Return true if all conditions are satisfied
-};
+    return true; // Return true if all conditions are satisfied
+  };
 
-const validateLocation = (value) => {
-  if (!value || value.trim().length === 0) {
-    return "Location is Required.";
-  } else if (!/^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,&*.()^\-/]*$/.test(value)) {
-    return "Only Alphabetic Characters are Allowed.";
-  } else {
-    const words = value.split(" ");
-    
-    for (const word of words) {
-      if (word.length < 3 || word.length > 200) {
-        return "Invalid Format of Location.";
+  const validateFirstName = (value) => {
+    const trimmedValue = value.trim();
+
+    if (trimmedValue.length === 0) {
+      return "Field is Required.";
+    } else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
+      return "Only Alphabetic Characters are Allowed.";
+    } else {
+      const words = trimmedValue.split(" ");
+
+      // Check for minimum and maximum word length, allowing one-character words at the end
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+
+        // If the word length is less than 3 and it's not the last word, show error
+        if (word.length < 3 && i !== words.length - 1) {
+          return "Minimum Length 3 Characters Required.";
+        }
+
+        // Check maximum word length
+        if (word.length > 100) {
+          return "Max Length 100 Characters Exceeded.";
+        }
+      }
+
+      // Check for trailing and leading spaces
+      if (/\s$/.test(value)) {
+        return "Spaces at the end are not allowed."; // Trailing space error
+      } else if (/^\s/.test(value)) {
+        return "No Leading Space Allowed."; // Leading space error
+      }
+
+      // Check if there are multiple spaces between words
+      else if (/\s{2,}/.test(trimmedValue)) {
+        return "No Multiple Spaces Between Words Allowed.";
       }
     }
-    
-    if (/^\s|\s$/.test(value)) {
-      return "No Leading or Trailing Spaces Allowed.";
-    } else if (/\s{2,}/.test(value)) {
-      return "No Multiple Spaces Between Words Allowed.";
+
+    return true; // Return true if all conditions are satisfied
+  };
+
+  const validateNumber = (value) => {
+    // Check if the input is empty
+    if (!value || value.trim().length === 0) {
+      return "Number is Required.";
     }
+
+    // Check if the value contains only digits
+    if (!/^\d+$/.test(value)) {
+      return "Only Numeric Characters Are Allowed.";
+    }
+
+    // Check if there are any leading or trailing spaces
+    if (/^\s|\s$/.test(value)) {
+      return "No Leading or Trailing Spaces Are Allowed.";
+    }
+
+    // Check for multiple spaces in between numbers
+    if (/\s{2,}/.test(value)) {
+      return "No Multiple Spaces Between Numbers Allowed.";
+    }
+
+    // Optionally: Check if the number is composed of repeating digits
+    const isRepeating = /^(\d)\1{11}$/.test(value); // Check if all digits are the same (e.g., "111111111111")
+    if (isRepeating) {
+      return "The Number Cannot Consist Of The Same Digit Repeated.";
+    }
+
+    return true; // Return true if all validations pass
+  };
+  const validatePAN = (value) => {
+    const spaceError = "Spaces are not allowed in the PAN Number.";
+    const patternError = "Invalid PAN Number format";
+
+    if (/\s/.test(value)) {
+      return spaceError; // Return space error if spaces are found
+    }
+
+    // Check the pattern for the CIN Number
+    if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value)) {
+      return patternError; // Return pattern error if it doesn't match
+    }
+
+    return true; // Return true if all checks pass
+  };
+
+  const validateLocation = (value) => {
+    if (!value || value.trim().length === 0) {
+      return "Location is Required.";
+    } else if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(value)) {
+      return "Invalid Format of Location.";
+    } else {
+      const words = value.split(" ");
+
+      // Check for minimum and maximum word length, allowing one-character words at the end
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+
+        // If the word length is less than 3 and it's not the last word, show error
+        if (word.length < 3 && i !== words.length - 1) {
+          return "Minimum Length 3 Characters Required.";
+        }
+
+        // Check maximum word length
+        if (word.length > 100) {
+          return "Max Length 100 Characters Exceeded.";
+        }
+      }
+
+      if (/^\s|\s$/.test(value)) {
+        return "No Leading or Trailing Spaces Allowed.";
+      } else if (/\s{2,}/.test(value)) {
+        return "No Multiple Spaces Between Words Allowed.";
+      }
+      if (/\s$/.test(value)) {
+        return "No Trailing Space Allowed."; // Space after the last character is not allowed
+      }
+    }
+
+    return true; // Return true if all conditions are satisfied
+  };
+
+  const toInputAddressCase = (e) => {
+    const input = e.target;
+    let value = input.value;
+    const cursorPosition = input.selectionStart; // Save the cursor position
+    // Remove leading spaces
+    value = value.replace(/^\s+/g, "");
+    // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
+    const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
+
+    // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
+    const words = value.split(" ");
+    const capitalizedWords = words.map((word) => {
+      if (word.length > 0) {
+        // Capitalize the first letter, but leave the middle of the word intact
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return "";
+    });
+
+    // Join the words back into a string
+    let formattedValue = capitalizedWords.join(" ");
+
+    // Remove spaces not allowed (before the first two characters)
+    if (formattedValue.length > 2) {
+      formattedValue =
+        formattedValue.slice(0, 2) +
+        formattedValue.slice(2).replace(/\s+/g, " ");
+    }
+
+    // Update input value
+    input.value = formattedValue;
+
+    // Restore the cursor position
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  };
+
+  // Function to handle input formatting
+  function handlePhoneNumberChange(event) {
+    let value = event.target.value;
+
+    // Ensure the value starts with +91 and one space
+    if (value.startsWith("+91") && value.charAt(3) !== " ") {
+      value = "+91 " + value.slice(3); // Ensure one space after +91
+    }
+
+    // Allow only numeric characters after +91 and the space
+    const numericValue = value.slice(4).replace(/[^0-9]/g, ""); // Remove any non-numeric characters after +91
+    if (numericValue.length <= 10) {
+      value = "+91 " + numericValue; // Keep the +91 with a space
+    }
+
+    // Limit the total length to 14 characters (including +91 space)
+    if (value.length > 14) {
+      value = value.slice(0, 14); // Truncate if the length exceeds 14 characters
+    }
+
+    // Update the input field's value
+    event.target.value = value;
   }
 
-  return true; // Return true if all conditions are satisfied
-};
+  // Function to handle keydown for specific actions (e.g., prevent multiple spaces)
+  function handlePhoneNumberKeyDown(event) {
+    let value = event.target.value;
 
-// In your component
-const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
+    // Prevent multiple spaces after +91
+    if (event.key === " " && value.charAt(3) === " ") {
+      event.preventDefault();
+    }
+  }
+  const toInputEmailCase = (e) => {
+    const input = e.target;
+    let value = input.value;
+
+    // Remove all spaces from the input
+    value = value.replace(/\s+/g, "");
+
+    // If the first character is not lowercase, make it lowercase
+    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
+      value = value.charAt(0).toLowerCase() + value.slice(1);
+    }
+
+    // Update the input value
+    input.value = value;
+  };
+
+  // In your component
+  const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
+
+  const clearForm = () => {
+    reset();
+  };
+  const backForm = () => {
+    reset();
+    navigate("/employeeView");
+  };
 
   return (
     <LayOut>
       <div className="container-fluid p-0">
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
-            <h1 className="h3 mb-3"><strong>Registration</strong> </h1>
+            <h1 className="h3 mb-3">
+              <strong>Registration</strong>{" "}
+            </h1>
           </div>
           <div className="col-auto">
             <nav aria-label="breadcrumb">
@@ -473,11 +741,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                   <a href="/main">Home</a>
                 </li>
                 <li className="breadcrumb-item">
-                  <a href="/employeeView">Employee</a>
+                  <a href="/employeeView">Employees</a>
                 </li>
-                <li className="breadcrumb-item active">
-                  Registration
-                </li>
+                <li className="breadcrumb-item active">Registration</li>
               </ol>
             </nav>
           </div>
@@ -486,7 +752,7 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
           <div className="col-12">
             <div className="card">
               <div className="card-header">
-                <h5 className="card-title ">
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
                   {isUpdating ? "Employee Data" : "Employee Registration"}
                 </h5>
                 <div
@@ -512,7 +778,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                             required: "Employee Type Required",
                             pattern: {
                               value: /^[A-Za-z ]+$/,
-                              message: "This field accepts only alphabetic characters",
+                              message:
+                                "This field accepts only alphabetic characters",
                             },
                           })}
                         />
@@ -530,12 +797,14 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         <Controller
                           name="employeeType"
                           control={control}
-                          rules={{ required: 'Employee Type is Required' }}
+                          rules={{ required: "Employee Type is Required" }}
                           render={({ field }) => (
                             <Select
                               {...field}
                               options={Employement}
-                              value={Employement.find(option => option.value === field.value)}
+                              value={Employement.find(
+                                (option) => option.value === field.value
+                              )}
                               onChange={(val) => field.onChange(val.value)}
                               placeholder="Select Employee Type"
                             />
@@ -550,29 +819,33 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     )}
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Employee Id <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Employee Id <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type={isUpdating ? "text" : "text"}
                         readOnly={isUpdating}
                         className="form-control"
                         placeholder="Enter Employee Id"
                         name="employeeId"
-                        minLength={1} maxLength={10}
+                        minLength={1}
+                        maxLength={20}
                         onKeyDown={handleEmailChange}
-                        autoComplete='off'
+                        autoComplete="off"
                         {...register("employeeId", {
                           required: "Employee Id is Required",
                           pattern: {
                             value: /^(?=.*\d)[A-Z0-9]+$/,
-                            message: "These fields accepts only Integers and Alphanumerical Characters",
+                            message:
+                              "These fields accepts only Integers and UpperCase Alphabets Characters",
                           },
                           minLength: {
-                            value: 1,
-                            message: "minimum 1 character Required",
+                            value: 2,
+                            message: "Minimum 2 Character Required",
                           },
                           maxLength: {
-                            value: 10,
-                            message: "not exceed 10 characters",
+                            value: 20,
+                            message: "not exceed 20 characters",
                           },
                         })}
                       />
@@ -581,7 +854,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">First Name <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        First Name <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         readOnly={isUpdating}
@@ -594,18 +869,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         onKeyDown={handleEmailChange}
                         {...register("firstName", {
                           required: "First Name is Required",
-                          pattern: {
-                            value: /^[A-Za-z ]+$/,
-                            message:
-                              "These fields accepts only Alphabetic Characters",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 characters Required",
-                          },
-                          maxLength: {
-                            value: 100,
-                            message: "Maximum 100 characters Required",
+                          validate: {
+                            validateFirstName,
                           },
                         })}
                       />
@@ -615,7 +880,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Last Name <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Last Name <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
@@ -628,17 +895,10 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         onKeyDown={handleEmailChange}
                         {...register("lastName", {
                           required: "Last Name is Required",
-                          pattern: {
-                            value: /^[A-Za-z ]+$/,
-                            message: "These fields accept only alphabetic characters",
-                          },
+                          validate: { validateLastName },
                           minLength: {
                             value: 1,
-                            message: "Minimum 1 character Required",
-                          },
-                          maxLength: {
-                            value: 100,
-                            message: "Maximum 100 characters Required",
+                            message: "Minimum 1 Character Required",
                           },
                         })}
                       />
@@ -647,7 +907,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Email Id <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Email Id <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type={isUpdating ? "email" : "email"}
                         readOnly={isUpdating}
@@ -655,12 +917,13 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         placeholder="Enter Email Id"
                         name="emailId"
                         autoComplete="off"
-                        onInput={toInputLowerCase}
+                        // onInput={toInputEmailCase}
                         onKeyDown={handleEmailChange}
                         {...register("emailId", {
                           required: "Email Id is Required",
                           pattern: {
-                            value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                            value:
+                              /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
                             message: "Invalid Email Format",
                           },
                         })}
@@ -671,7 +934,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Date of Joining <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Date of Joining <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type={isUpdating ? "date" : "date"}
                         readOnly={isUpdating}
@@ -682,43 +947,17 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         max={threeMonthsFromNow}
                         {...register("dateOfHiring", {
                           required: true,
-                          validate:validateDate
+                          validate: validateDate,
                         })}
                       />
                       {errors.dateOfHiring && (
-                        <p className="errorMsg">{errors.dateOfHiring.message||"Date of Joining is Required"}</p>
+                        <p className="errorMsg">
+                          {errors.dateOfHiring.message ||
+                            "Date of Joining is Required"}
+                        </p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
-
-                    {/* {isUpdating ? (
-                      <div className="col-12 col-md-6 col-lg-5 mb-3">
-                        <label className="form-label">
-                          Department <span style={{ color: "red" }}>*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter Employee Type"
-                          name="departmentName"
-                          readOnly
-                          {...register("departmentName", {
-                            required: "Department is Required",
-                            pattern: {
-                              value: /^[A-Za-z ]+$/,
-                              message: "This field accepts only alphabetic characters",
-                            },
-                          })}
-                        />
-                        {errors.departmentName && (
-                          <p className="errorMsg">
-                            {errors.departmentName.message}
-                          </p>
-                        )}
-                      </div>
-
-                    ) : (  */}
-
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Department <span style={{ color: "red" }}>*</span>
@@ -730,8 +969,10 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         rules={{ required: "Department is Required" }}
                         render={({ field }) => (
                           <select {...field} className="form-select">
-                            <option value="" disabled>Select Department</option>
-                            {departments.map(department => (
+                            <option value="" disabled>
+                              Select Department
+                            </option>
+                            {departments.map((department) => (
                               <option key={department.id} value={department.id}>
                                 {department.name}
                               </option>
@@ -740,26 +981,29 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         )}
                       />
                       {errors.department && (
-                        <p className="errorMsg">
-                          {errors.department.message}
-                        </p>
+                        <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
-                    {/* )} */}
-
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label">Designation <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Designation <span style={{ color: "red" }}>*</span>
+                      </label>
                       <Controller
                         name="designation"
                         control={control}
                         defaultValue=""
                         rules={{ required: true }}
                         render={({ field }) => (
-                          <select {...field} className="form-select" >
-                            <option value="" disabled>Select Designation</option>
-                            {designations.map(designation => (
-                              <option key={designation.id} value={designation.id}>
+                          <select {...field} className="form-select">
+                            <option value="" disabled>
+                              Select Designation
+                            </option>
+                            {designations.map((designation) => (
+                              <option
+                                key={designation.id}
+                                value={designation.id}
+                              >
                                 {designation.name}
                               </option>
                             ))}
@@ -773,20 +1017,23 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
 
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Manager <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Manager <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         placeholder="Enter Manager"
                         onInput={toInputTitleCase}
-                        autoComplete="off" minLength={1}
+                        autoComplete="off"
+                        minLength={1}
                         onKeyDown={handleEmailChange}
                         {...register("manager", {
                           required: "Manager is Required",
 
-                        validate:{
-                          validateName,
-                        }
+                          validate: {
+                            validateFirstName,
+                          },
                         })}
                       />
                       {errors.manager && (
@@ -795,79 +1042,90 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Location <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Location <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         placeholder="Enter Location"
-                        onInput={toInputTitleCase}
-                        autoComplete="off" minLength={2}
+                        //onInput={toInputTitleCase}
+                        autoComplete="off"
+                        minLength={2}
                         onKeyDown={handleEmailChange}
+                        onInput={toInputAddressCase}
                         {...register("location", {
                           required: "Location is Required",
-                         validate:{
-                          validateLocation
-                         }
+                          validate: validateLocation,
+                          minLength: {
+                            value: 3,
+                            message: "Minimum 3 Characters allowed",
+                          },
+                          maxLength: {
+                            value: 200,
+                            message: "Maximum 200 Characters allowed",
+                          },
                         })}
                       />
                       {errors.location && (
                         <p className="errorMsg">{errors.location.message}</p>
                       )}
                     </div>
-                    {isUpdating && (
-                      <div className="col-lg-1"></div>
-                    )}
+                    {isUpdating && <div className="col-lg-1"></div>}
                     {isUpdating ? (
                       <></>
                     ) : (
                       <>
                         <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">Password <span style={{ color: "red" }}>*</span></label>
-                          <div className="col-sm-12 input-group">
+                          <label className="form-label">
+                            Password <span style={{ color: "red" }}>*</span>
+                          </label>
+                          <div className="col-sm-12  password-input-container">
                             <input
                               className="form-control"
                               placeholder="Enter Password"
                               onChange={handlePasswordChange}
                               autoComplete="off"
-                              onKeyDown={handleEmailChange} maxLength={16}
+                              onKeyDown={handleEmailChange}
+                              maxLength={16}
                               type={passwordShown ? "text" : "password"}
                               {...register("password", {
                                 required: "Password is Required",
-                               validate:validatePassword,
+                                validate: validatePassword,
                                 minLength: {
                                   value: 6,
-                                  message: "minimum 6 characters are Required",
+                                  message: "Minimum 6 Characters are Required",
                                 },
                                 maxLength: {
                                   value: 16,
-                                  message: "maximum 16 characters!",
+                                  message: "Maximum 16 Characters!",
                                 },
                               })}
                             />
-                            <i
+                            <span
+                              className={`bi bi-eye field-icon pb-1 toggle-password ${
+                                passwordShown ? "text-primary" : ""
+                              }`}
                               onClick={togglePasswordVisiblity}
-                              style={{ margin: "5px" }}
-                            >
-                              {" "}
-                              {passwordShown ? (
-                                <Eye size={17} />
-                              ) : (
-                                <EyeSlash size={17} />
-                              )}
-                            </i>
+                              style={{
+                                background: "transparent",
+                                borderLeft: "none",
+                              }}
+                            ></span>
                           </div>
                           {errors.password && (
-                            <p className="errorMsg">{errors.password.message}</p>
+                            <p className="errorMsg">
+                              {errors.password.message}
+                            </p>
                           )}
                         </div>
-
                       </>
                     )}
-                   {!isUpdating && (
-                      <div className="col-lg-1"></div>
-                    )}                  
+                    {!isUpdating && <div className="col-lg-1"></div>}
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Date of Birth <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Date of Birth <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type={isUpdating ? "date" : "date"}
                         readOnly={isUpdating}
@@ -877,8 +1135,8 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         autoComplete="off"
                         {...register("dateOfBirth", {
                           required: true,
-                          validate: (value) => validateDateOfBirth(value, dateOfHiring) // Custom validation
-
+                          validate: (value) =>
+                            validateDateOfBirth(value, dateOfHiring), // Custom validation
                         })}
                         max={getCurrentDate()}
                         {...register("dateOfBirth", {
@@ -886,128 +1144,112 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         })}
                       />
                       {errors.dateOfBirth && (
-                        <p className="errorMsg">{errors.dateOfBirth.message|| "Date of Birth is Required"}</p>
+                        <p className="errorMsg">
+                          {errors.dateOfBirth.message ||
+                            "Date of Birth is Required"}
+                        </p>
                       )}
                     </div>
-                    {isUpdating && (
-                      <div className="col-lg-1"></div>
-                    )}
+                    {isUpdating && <div className="col-lg-1"></div>}
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label">Status <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Status <span style={{ color: "red" }}>*</span>
+                      </label>
                       <Controller
                         name="status"
                         control={control}
-                        defaultValue=""
+                        defaultValue="Active"
                         rules={{ required: true }}
                         render={({ field }) => (
                           <Select
                             {...field}
-                            options={[
-                              { value: "Active", label: "Active" },
-                              { value: "InActive", label: "InActive" },
-                            ]}
+                            options={
+                              showNoticePeriodOption
+                                ? [
+                                    { value: "Active", label: "Active" },
+                                    { value: "InActive", label: "InActive" },
+                                    {
+                                      value: "NoticePeriod",
+                                      label: "Notice Period",
+                                    }, // Show Notice Period
+                                  ]
+                                : [
+                                    { value: "Active", label: "Active" },
+                                    { value: "InActive", label: "InActive" }, // Show only Active and InActive
+                                  ]
+                            }
                             value={
                               field.value
-                                ? { value: field.value, label: ["Active", "InActive"].find(option => option === field.value) }
-                                : null
+                                ? { value: field.value, label: field.value }
+                                : { value: "Active", label: "Active" }
                             }
                             onChange={(val) => field.onChange(val.value)}
                             placeholder="Select Status"
                           />
                         )}
                       />
-                      {errors.status && <p className="errorMsg"> Status is Required</p>}
+                      {errors.status && (
+                        <p className="errorMsg">Status is Required</p>
+                      )}
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Mobile Number <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            className="form-control"
-                            placeholder="Enter Contact Number"
-                            autoComplete="off"
-                            maxLength={10}
-                            onInput={toInputSpaceCase}
-                            onKeyDown={handleEmailChange}
-                            {...register("mobileNo", {
-                              required: "Mobile Number is Required",
-                              pattern: {
-                                value: /^(?!0000000000)[0-9]{10}$/,
-                                message:
-                                "Mobile Number should be exactly 10 digits long, should contain only numbers, and cannot be all zeros.",
-                              },
-                              validate: {
-                                notRepeatingDigits: value => {
-                                  const isRepeating = /^(\d)\1{9}$/.test(value); // Check for repeated digits
-                                  return !isRepeating || "Mobile Number cannot consist of the same digit repeated.";
-                                }
+                      <label className="form-label">
+                        Mobile Number <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="Enter Personal Mobile Number"
+                        autoComplete="off"
+                        maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
+                        defaultValue="+91 " // Set the initial value to +91 with a space
+                        onInput={handlePhoneNumberChange} // Handle input changes
+                        {...register("mobileNo", {
+                          required: "Mobile Number is Required",
+                          validate: {
+                            startsWithPlus91: (value) => {
+                              if (!value.startsWith("+91 ")) {
+                                return "Mobile Number must start with +91.";
                               }
-                            })}
-                          />
-                          {errors.mobileNo && (
-                            <p className="errorMsg">{errors.mobileNo.message}</p>
-                          )}
-                        </div>
-                    {/* {isUpdating ? (
-                      <div className="col-12 col-md-6 col-lg-5 mb-3">
-                        <label className="form-label">Role <span style={{ color: "red" }}>*</span></label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter Last Name"
-                          name="roles"
-                          readOnly
-                          {...register("roles", {
-                            required: "Role is Required",
-                            pattern: {
-                              value: /^[A-Za-z ]+$/,
-                              message:
-                                "These fields accepts only Alphabetic Characters",
+                              return true;
                             },
-                          })}
-                        />
-                        {errors.roles && (
-                          <p className="errorMsg">
-                            {errors.type.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : ( */}
-                    {/* <div className="col-12 col-md-6 col-lg-5 mb-2">
-                        <label className="form-label mb-3">Select Role<span style={{ color: "red" }}>*</span></label>
-                        <Controller
-                          name="roles"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field }) => (
-                            <Select
-                            {...field}
-                            options={Roles}
-                            value={Roles.find(option => option.value === field.value) || null}
-                            onChange={(selectedOption) => {
-                                // Handle the change and set the selected value
-                                field.onChange(selectedOption ? selectedOption.value : '');
-                            }}                            placeholder="Select Role"
-                            isClearable // Optionally allow clearing the selection
-                        />
-                          )}
-                        />
-                        {errors.roles && <p className="errorMsg">Employee Role is Required</p>}
-                      </div> */}
-                    {/* )} */}
+                            correctLength: (value) => {
+                              if (value.length !== 14) {
+                                return "Mobile Number is Required.";
+                              }
+                              return true;
+                            },
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
+                              return (
+                                !isRepeating ||
+                                "Mobile Number cannot consist of the same digit repeated."
+                              );
+                            },
+                          },
+                          pattern: {
+                            value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                            message: "Mobile Number is Required.",
+                          },
+                        })}
+                      />
+                      {errors.mobileNo && (
+                        <p className="errorMsg">{errors.mobileNo.message}</p>
+                      )}
+                    </div>
                     <div className="card-header" style={{ paddingLeft: "0px" }}>
-                      <h5 className="card-title ">
-                        Account Details
-                      </h5>
+                      <h5 className="card-title ">Account Details</h5>
                       <div
                         className="dropdown-divider"
                         style={{ borderTopColor: "#d7d9dd" }}
                       />
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Bank Account Number <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Bank Account Number{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
@@ -1015,21 +1257,32 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         name="accountNo"
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
+                        maxLength={18}
                         autoComplete="off"
                         {...register("accountNo", {
                           required: "Bank Account Number is Required",
                           pattern: {
                             value: /^\d{9,18}$/,
-                            message:
-                              "These fields accepts only Integers",
+                            message: "These fields accepts only Integers",
                           },
                           minLength: {
                             value: 9,
-                            message: "Account Number minimum 9 numbers Required",
+                            message:
+                              "Account Number Minimum 9 Numbers Required",
                           },
                           maxLength: {
                             value: 18,
-                            message: "Account Number must not exceed 18 characters",
+                            message:
+                              "Account Number must not exceed 18 Characters",
+                          },
+                          validate: {
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{9}$/.test(value); // Check for repeated digits
+                              return (
+                                !isRepeating ||
+                                "Account Number cannot consist of the same digit repeated."
+                              );
+                            },
                           },
                         })}
                       />
@@ -1039,21 +1292,23 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Bank IFSC Code <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Bank IFSC Code <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         placeholder="Enter Bank IFSC Code"
                         name="ifscCode"
                         onInput={toInputSpaceCase}
+                        maxLength={11}
                         onKeyDown={handleEmailChange}
                         autoComplete="off"
                         {...register("ifscCode", {
                           required: "Bank IFSC Code is Required",
                           pattern: {
                             value: /^[A-Z]{4}0[A-Z0-9]{6}$/,
-                            message:
-                              "Please enter a valid IFSC code ",
+                            message: "Please enter a valid IFSC code ",
                           },
                           maxLength: {
                             value: 11,
@@ -1066,32 +1321,30 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Bank Name <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Bank Name <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         placeholder="Enter Bank Name"
                         name="bankName"
-                        onInput={toInputSpaceCase}
+                        onInput={toInputTitleCase}
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("bankName", {
                           required: "Bank Name is Required",
-                          pattern: {
-                            value: /^[A-Za-z&'(),./\- ]{1,100}$/,
-                            message:
-                              "Invalid Bank Name format",
-                          },
+                          validate: validateFirstName,
                           minLength: {
                             value: 3,
-                            message: "Minimum 3 characters Required",
+                            message: "Minimum 3 Characters Required",
                           },
                           maxLength: {
                             value: 50,
-                            message: "Maximum 50 characters Required",
+                            message: "Maximum 50 Characters Required",
                           },
                         })}
-                      // disabled={editMode}
+                        // disabled={editMode}
                       />
                       {errors.bankName && (
                         <p className="errorMsg">{errors.bankName.message}</p>
@@ -1106,22 +1359,23 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         placeholder="Enter UAN Number"
                         name="uanNo"
                         readOnly={isUpdating}
-                        onInput={toInputSpaceCase}
+                        // onInput={toInputSpaceCase}
+                        maxLength={12}
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("uanNo", {
+                          validate: validateNumber,
                           pattern: {
                             value: /^\d{12}$/,
-                            message:
-                              "Allows only Integers",
+                            message: "Only 12 digits are allowed.",
                           },
                           minLength: {
                             value: 12,
-                            message: "MInimum 12 characters required",
+                            message: "Minimum 12 Digits Required",
                           },
                           maxLength: {
                             value: 12,
-                            message: "UAN Number must not exceed 12 characters",
+                            message: "UAN Number Must Not Exceed 12 Digits",
                           },
                         })}
                       />
@@ -1131,7 +1385,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">PAN Number <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        PAN Number <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type={isUpdating ? "text" : "text"}
                         readOnly={isUpdating}
@@ -1139,18 +1395,27 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         placeholder="Enter PAN Number"
                         name="panNo"
                         onInput={toInputSpaceCase}
+                        maxLength={10}
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("panNo", {
                           required: "PAN Number is Required",
                           maxLength: {
                             value: 10,
-                            message: "Pan Number must not exceed 10 characters",
+                            message: "Pan Number must not exceed 10 Characters",
                           },
                           pattern: {
                             value: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
-                            message:
-                              "Pan Number should be in the format: ABCDE1234F",
+                            message: "Pan Number is Invalid Format",
+                          },
+                          validate: {
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{9}$/.test(value); // Check for repeated digits
+                              return (
+                                !isRepeating ||
+                                " PAN cannot consist of the same digit repeated."
+                              );
+                            },
                           },
                         })}
                       />
@@ -1160,7 +1425,9 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Aadhaar Number <span style={{ color: "red" }}>*</span></label>
+                      <label className="form-label">
+                        Aadhaar Number <span style={{ color: "red" }}>*</span>
+                      </label>
                       <input
                         type="text"
                         readOnly={isUpdating}
@@ -1169,17 +1436,27 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                         name="aadhaarId"
                         onInput={toInputSpaceCase}
                         autoComplete="off"
+                        maxLength={12}
                         onKeyDown={handleEmailChange}
                         {...register("aadhaarId", {
                           required: "Aadhaar Number is Required",
                           pattern: {
                             value: /^\d{12}$/,
-                            message:
-                              "Allows only Integers",
+                            message: "Allows only Integers",
                           },
                           maxLength: {
                             value: 12,
-                            message: "Aadhar Number must not exceed 12 characters",
+                            message:
+                              "Aadhar Number must not exceed 12 Characters",
+                          },
+                          validate: {
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeated digits
+                              return (
+                                !isRepeating ||
+                                "Aadhar Number cannot consist of the same digit repeated."
+                              );
+                            },
                           },
                         })}
                       />
@@ -1196,13 +1473,31 @@ const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
                       className="col-12 mt-4  d-flex justify-content-end"
                       style={{ background: "none" }}
                     >
+                      {!isUpdating ? (
+                        <button
+                          className="btn btn-secondary me-2"
+                          type="button"
+                          onClick={clearForm}
+                        >
+                          Clear
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-secondary me-2"
+                          type="button"
+                          onClick={backForm}
+                        >
+                          Back
+                        </button>
+                      )}
+
                       <button
                         className={
                           isUpdating
                             ? "btn btn-danger bt-lg"
                             : "btn btn-primary btn-lg"
                         }
-                        style={{ marginRight: "65px" }}
+                        style={{ marginRight: "85px" }}
                         type="submit"
                       >
                         {isUpdating ? "Update Employee" : "Add Employee"}{" "}

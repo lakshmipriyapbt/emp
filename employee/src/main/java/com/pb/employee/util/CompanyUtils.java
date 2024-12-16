@@ -7,7 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -131,6 +134,11 @@ public class CompanyUtils {
             String image = baseUrl + "var/www/ems/assets/img/" + companyEntity.getImageFile();
             companyEntity.setImageFile(image);
         }
+        if (companyEntity.getStampImage() != null){
+            String baseUrl = getBaseUrl(request);
+            String image = baseUrl + "var/www/ems/assets/img/" + companyEntity.getStampImage();
+            companyEntity.setStampImage(image);
+        }
         companyEntity.setPassword("**********");
         companyEntity.setType(Constants.COMPANY);
         return companyEntity;
@@ -201,6 +209,13 @@ public class CompanyUtils {
     public static CompanyEntity maskCompanyImageUpdateProperties(CompanyEntity existingEntity, CompanyImageUpdate companyRequest, String id) {
         if(companyRequest.getImage() != null){
             existingEntity.setImageFile(companyRequest.getImage());
+        }
+
+        return existingEntity;
+    }
+    public static CompanyEntity maskCompanyStampImageUpdateProperties(CompanyEntity existingEntity, CompanyStampUpdate companyRequest) {
+        if(companyRequest.getImage() != null){
+            existingEntity.setStampImage(companyRequest.getImage());
         }
 
         return existingEntity;
@@ -413,7 +428,9 @@ public class CompanyUtils {
 
     public static Map<String, Object> duplicateValues(CompanyRequest companyRequest, List<CompanyEntity> companyEntities) {
         Map<String, Object> responseBody = new HashMap<>();
-           String cinNo = null, regNo = null, mobileNo = null, landNo =  null, gstNo = null, panNo= null, personalMail = null, personalMobile = null, emailId=null;
+           String cinNo = null, regNo = null, mobileNo = null, landNo =  null,
+                   gstNo = null, panNo= null, personalMail = null, personalMobile = null,
+                   emailId=null,mailId=null;
         for (CompanyEntity companyEntity :companyEntities) {
 
             if (companyRequest.getEmailId() != null && companyEntity.getEmailId() != null) {
@@ -422,7 +439,7 @@ public class CompanyUtils {
                 }
 
             }
-            if (companyRequest.getCompanyRegNo() != null && companyEntity.getCompanyRegNo() != null) {
+            if (companyEntity.getCompanyRegNo() != null && companyRequest.getCompanyRegNo() != null && !companyEntity.getCompanyRegNo().isEmpty()) {
                 regNo = new String(Base64.getDecoder().decode(companyEntity.getCompanyRegNo().getBytes()));
                 if (regNo.equals(companyRequest.getCompanyRegNo())){
                     responseBody.put(Constants.DUPLICATE_REGISTER_NO, companyRequest.getCompanyRegNo());
@@ -439,7 +456,6 @@ public class CompanyUtils {
             if (companyRequest.getAlternateNo() != null && companyEntity.getAlternateNo() != null) {
                 landNo = new String(Base64.getDecoder().decode(companyEntity.getAlternateNo().getBytes()));
                 if (!companyEntity.getAlternateNo().isEmpty() && landNo.equals(companyRequest.getAlternateNo())){
-
                     responseBody.put(Constants.DUPLICATE_ALTERNATE_NO, companyRequest.getAlternateNo());
                 }
             }
@@ -473,6 +489,14 @@ public class CompanyUtils {
                 }
 
             }
+            if (companyRequest.getPersonalMailId() != null && companyEntity.getEmailId() != null) {
+                personalMail = new String(Base64.getDecoder().decode(companyEntity.getPersonalMailId()));
+                mailId = companyEntity.getEmailId();
+                if (personalMail.equals(mailId)){
+                    responseBody.put(Constants.DUPLICATE_AS_EMAIL_NO, companyRequest.getPersonalMailId());
+                }
+            }
+
             if (companyRequest.getPersonalMobileNo() != null && companyEntity.getPersonalMobileNo() != null) {
                 personalMobile = new String(Base64.getDecoder().decode(companyEntity.getPersonalMobileNo()));
                 if (personalMobile.equals(companyRequest.getPersonalMobileNo())){
@@ -481,7 +505,7 @@ public class CompanyUtils {
 
             }
 
-            if (companyRequest.getCinNo() != null && companyEntity.getCinNo() != null) {
+            if (companyEntity.getCinNo() != null && companyRequest.getCinNo() != null && !companyEntity.getCinNo().isEmpty()) {
                 cinNo = new String(Base64.getDecoder().decode(companyEntity.getCinNo().getBytes()));
                 if (cinNo.equals(companyRequest.getCinNo())){
                     responseBody.put(Constants.DUPLICATE_CIN_NO, companyRequest.getCinNo());
@@ -831,4 +855,97 @@ public class CompanyUtils {
 
         return responseBody;
     }
+
+
+    public static BufferedImage applyOpacity(BufferedImage originalImage, float opacity, double scaleFactor, double rotationDegrees) {
+        int newWidth = (int) (originalImage.getWidth() * scaleFactor);
+        int newHeight = (int) (originalImage.getHeight() * scaleFactor);
+        double radians = Math.toRadians(-rotationDegrees);
+
+        int rotatedWidth = (int) Math.abs(newWidth * Math.cos(radians)) + (int) Math.abs(newHeight * Math.sin(radians));
+        int rotatedHeight = (int) Math.abs(newWidth * Math.sin(radians)) + (int) Math.abs(newHeight * Math.cos(radians));
+
+        BufferedImage watermarkedImage = new BufferedImage(rotatedWidth, rotatedHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = watermarkedImage.createGraphics();
+
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+        int centerX = rotatedWidth / 2;
+        int centerY = rotatedHeight / 2;
+
+        g2d.translate(centerX, centerY);
+        g2d.rotate(radians);
+        g2d.translate(-newWidth / 2, -newHeight / 2);
+
+        Image scaledImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+
+        // Apply opacity directly to the image being drawn without background color.
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+        g2d.drawImage(scaledImage, 0, 0, null);
+
+        g2d.dispose();
+
+        return watermarkedImage;
+    }
+
+    public static RelievingEntity relievingProperties(RelievingRequest request, String id, String employeeId) {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        RelievingEntity relievingEntity = objectMapper.convertValue(request, RelievingEntity.class);
+        relievingEntity.setId(id);
+        relievingEntity.setEmployeeId(employeeId);
+        relievingEntity.setType(Constants.RELIEVING);
+
+        return relievingEntity;
+    }
+
+    public static RelievingEntity maskUpdateRelievingProperties(RelievingRequest relievingRequest, RelievingEntity relievingEntity) {
+        if (relievingRequest.getRelievingDate() != null) {
+            relievingEntity.setRelievingDate(relievingRequest.getRelievingDate());
+        }
+        if (relievingRequest.getNoticePeriod() != null) {
+            relievingEntity.setNoticePeriod(relievingRequest.getNoticePeriod());
+        }
+        if (relievingRequest.getResignationDate() != null) {
+            relievingEntity.setResignationDate(relievingRequest.getResignationDate());
+        }
+
+        return relievingEntity;
+    }
+
+
+
+    public static TemplateEntity addTemplateProperties(TemplateEntity existingEntity, TemplateRequest templateRequest, String resourceId, String companyId) {
+        // If no existing entity is found, initialize a new TemplateEntity
+        TemplateEntity entity = (existingEntity != null) ? existingEntity : new TemplateEntity();
+
+        // Set the resource ID and company ID
+        entity.setId(resourceId);
+        entity.setCompanyId(companyId);
+        entity.setType(Constants.TEMPLATE);
+
+        // Update template numbers if they are present in templateRequest, otherwise keep the existing value
+        if (templateRequest.getAppraisalTemplateNo() != null) {
+            entity.setAppraisalTemplateNo(templateRequest.getAppraisalTemplateNo());
+        }
+        if (templateRequest.getExperienceTemplateNo() != null) {
+            entity.setExperienceTemplateNo(templateRequest.getExperienceTemplateNo());
+        }
+        if (templateRequest.getPayslipTemplateNo() != null) {
+            entity.setPayslipTemplateNo(templateRequest.getPayslipTemplateNo());
+        }
+        if (templateRequest.getRelievingTemplateNo() != null) {
+            entity.setRelievingTemplateNo(templateRequest.getRelievingTemplateNo());
+        }
+        if (templateRequest.getOfferLetterTemplateNo() != null) {
+            entity.setOfferLetterTemplateNo(templateRequest.getOfferLetterTemplateNo());
+        }
+        if (templateRequest.getInternshipTemplateNo() != null) {
+            entity.setInternshipTemplateNo(templateRequest.getInternshipTemplateNo());
+        }
+
+        return entity;
+    }
+
 }

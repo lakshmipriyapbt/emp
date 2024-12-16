@@ -30,7 +30,7 @@ public class AllowanceRequest {
     @Schema(example = "pfContributionEmployee")
     @Pattern(regexp = "^\\d+(\\.\\d{1,2})?$", message = "{pfContributionEmployee.format}")
     @Size(min = 3, max = 20, message = "{pfContributionEmployee.size}")
-    private String pfContributionEmployee;
+    private String providentFundEmployer;
 
 
 }

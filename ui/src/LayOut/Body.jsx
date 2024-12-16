@@ -85,12 +85,15 @@ const Body = () => {
         </h1>
         <div className="row h-100">
           {user && user.userRole && user.userRole.includes("ems_admin") ? (
-            <iframe
-            src="https://ems.pathbreakertech.in/kibana/"              height="100%"
-              width="100%"
-              title="EMS Dashboard"
-              style={{ border: 'none' }}
-            ></iframe>
+           
+                <div className='card'>
+                  <iframe
+                    src="https://ems.pathbreakertech.in/kibana/s/ems/app/dashboards#/view/b2cd369d-3e89-48bf-b730-ef6c754cb270?[…]!t,value:60000),time:(from:now-15m,to:now))"height="1000" width="800"
+                    title="EMS Dashboard"
+                      style={{ border: 'none'}}
+                  ></iframe>
+          </div>
+           
           ) : (
             <>
               {loading ? (

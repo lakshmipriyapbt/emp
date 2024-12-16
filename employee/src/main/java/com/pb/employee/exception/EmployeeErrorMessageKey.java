@@ -83,7 +83,18 @@ public enum EmployeeErrorMessageKey {
     UNABLE_UPDATE_ATTENDANCE("unable.update.attendance"),
     UNABLE_GET_EMPLOYEES_SALARY_STRUCTURE("unable.get.employee.salary.structure"),
     EMPLOYEE_COMPANY_SALARY_INACTIVE("employee.company.salary.inactive"),
-    COMPANY_DATA_EXIST("company.data.exist");
+    COMPANY_DATA_EXIST("company.data.exist"),
+    RELIEVING_ALREADY_EXIST("relieving.already.exist"),
+    IMAGE_NOT_LOADED("image.not.loaded"),
+    UNABLE_GET_RELIEVING("unable.get.relieving"),
+    RELIEVING_NOT_EXIST("relieving.not.exist"),
+    UNABLE_SAVE_TEMPLATE("unable.save.template"),
+    TEMPLATE_EXIST("template.already.exists"),
+    UNABLE_TO_GET_TEMPLATE("unable.template"),
+    INVALID_RELIVING("invalid.relieving"),
+    INVALID_HIRING_DATE("invalid.hiring"),
+    EXPERIENCE_DATE_NOT_VALID("experience.not.valid"),
+    INVALID_IMAGE("invalid.image");
 
     private final String key;
 

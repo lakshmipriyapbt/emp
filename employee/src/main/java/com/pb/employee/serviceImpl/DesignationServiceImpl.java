@@ -186,6 +186,5 @@ public class DesignationServiceImpl implements DesignationService {
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETED), HttpStatus.OK);
-
     }
 }

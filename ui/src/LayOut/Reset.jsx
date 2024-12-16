@@ -4,8 +4,8 @@ import { UnlockFill, LockFill } from "react-bootstrap-icons";
 import { Modal } from "react-bootstrap";
 import { EmployeeGetApiById, resetPassword } from "../Utils/Axios";
 import { toast } from "react-toastify";
-import { userId } from "../Utils/Auth";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 const Reset = ({ companyName, onClose, show }) => {
   const { register, handleSubmit, formState: { errors }, getValues,reset } = useForm({ mode: "onChange" });
@@ -16,20 +16,23 @@ const Reset = ({ companyName, onClose, show }) => {
   const [id, setEmployeeId] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
+  const { user } = useAuth();
   const toggleOldPasswordVisibility = () => {
     setOldPasswordShown(!oldPasswordShown);
   };
 
   const toggleNewPasswordVisibility = () => {
     setNewPasswordShown(!newPasswordShown);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
     setConfirmPasswordShown(!confirmPasswordShown);
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await EmployeeGetApiById(userId);
+        const response = await EmployeeGetApiById(user.userId);
         const id = response.data.id;
         setEmployeeId(id);
       } catch (error) {
@@ -89,6 +92,19 @@ const Reset = ({ companyName, onClose, show }) => {
     setConfirmPasswordShown(false);
     setError(null);
   };
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+
+    // Prevent space key (keyCode 32) from being entered
+    if (e.keyCode === 32) {
+      e.preventDefault();
+    }
+
+    // If there is any space already entered, prevent re-render with spaces
+    if (value.includes(" ")) {
+      e.preventDefault();
+    }
+  };
 
   return (
 
@@ -116,8 +132,10 @@ const Reset = ({ companyName, onClose, show }) => {
                   className="form-control"
                   name="password"
                   id="password"
+                  maxLength={16}
                   placeholder="Enter your old password"
                   type={oldPasswordShown ? "text" : "password"}
+                  onKeyDown={handleEmailChange}
                   {...register("password", {
                     required: "Old Password is Required",
                     minLength: {
@@ -148,13 +166,19 @@ const Reset = ({ companyName, onClose, show }) => {
                   className="form-control"
                   name="newPassword"
                   id="newPassword"
+                  maxLength={16}
                   placeholder="Enter your new password"
                   type={newPasswordShown ? "text" : "password"}
+                  onKeyDown={handleEmailChange}
                   {...register("newPassword", {
                     required: "New Password is Required",
                     minLength: {
                       value: 6,
-                      message: "New Password must be at least 6 characters long",
+                      message: "Minimum 6 Characters allowed",
+                    },
+                    maxLength:{
+                      value: 16,
+                      message: "Minimum 6 & Maximum 16 Characters allowed",
                     },
                     pattern: {
                       value: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$/,
@@ -172,15 +196,17 @@ const Reset = ({ companyName, onClose, show }) => {
             <div className="form-group mt-3">
               <label className="form-label">Confirm Password</label>
               <div className="input-group">
-                <span className="input-group-text" onClick={toggleNewPasswordVisibility}>
+                <span className="input-group-text" onClick={toggleConfirmPasswordVisibility}>
                   {confirmPasswordShown ? <UnlockFill size={20} color="#4C489D" /> : <LockFill size={20} color="#4C489D" />}
                 </span>
                 <input
                   className="form-control"
                   name="confirmPassword"
                   id="confirmPassword"
+                  maxLength={16}
                   placeholder="Confirm your new password"
                   type={confirmPasswordShown ? "text" : "password"}
+                  onKeyDown={handleEmailChange}
                   {...register("confirmPassword", {
                     required: "Please confirm your password",
                     validate: (value) => value === getValues("newPassword") || "The passwords do not match",
@@ -194,7 +220,7 @@ const Reset = ({ companyName, onClose, show }) => {
               )}
             </div>
 
-            <div className="text-center mt-4 ">
+            <div className="mt-4" style={{marginLeft:"63%"}}>
             <button className="btn btn-secondary me-2" type="button" onClick={handleReset}>
                 Reset
               </button>

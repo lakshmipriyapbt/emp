@@ -77,7 +77,6 @@ public class DepartmentServiceImpl implements DepartmentService {
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
-
     }
 
     @Override

@@ -11,8 +11,10 @@ import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.DesignationEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
+import com.pb.employee.request.EmployeeStatus;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.ResourceIdUtils;
+import org.opensearch.client.RequestOptions;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.Result;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class OpenSearchOperations {
@@ -420,6 +423,36 @@ public class OpenSearchOperations {
 
         return employeeEntities;
     }
+
+    public TemplateEntity getCompanyTemplates(String companyName) throws EmployeeException {
+        logger.debug("Getting Templates for company {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.TEMPLATE)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<TemplateEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        try {
+            // Adjust the type or field according to your index structure
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), TemplateEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<TemplateEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
+
+        if(!hits.isEmpty()) {
+            return hits.get(0).source();
+        }
+        else {
+            return null;
+        }
+
+    }
     public List<SalaryEntity> getSalaries(String companyName, String employeeId) throws EmployeeException{
         logger.debug("Getting employees for salary details {}", companyName);
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
@@ -697,5 +730,112 @@ public class OpenSearchOperations {
             return searchResponse.source();
         }
         return null;
+    }
+
+    public TemplateEntity getTemplateById(String resourceId, String type, String index) throws IOException {
+        if(type != null) {
+            resourceId = type+"_"+resourceId;
+        }
+        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
+                .index(index).build();
+        GetResponse<TemplateEntity> searchResponse = esClient.get(getRequest, TemplateEntity.class);
+        if(searchResponse != null && searchResponse.source() != null){
+            return searchResponse.source();
+        }
+        return null;
+    }
+    public RelievingEntity getRelievingByEmployeeId(String employeeId, String type, String companyName) throws IOException, EmployeeException {
+
+        logger.debug("Getting employee for salary details {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.RELIEVING)))
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.EMPLOYEE_ID).query(employeeId)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<RelievingEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        try {
+            // Set size to 1 to get a single entity
+            searchResponse = esClient.search(t -> t.index(index).size(1)
+                    .query(finalBoolQueryBuilder.build().toQuery()), RelievingEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<RelievingEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of employee hits for company is {}: {}", companyName, hits.size());
+
+        // Return the first hit if available, otherwise return null or throw an exception
+        if (!hits.isEmpty()) {
+            return hits.get(0).source();
+        } else {
+            logger.warn("No relieving entity found for employeeId {}", employeeId);
+            return null; // or throw a custom exception
+        }
+    }
+
+    public List<RelievingEntity> getEmployeeRelieving(String companyName, Object o) throws EmployeeException {
+        logger.debug("Getting the Resource by id {} ", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder =
+                boolQueryBuilder.filter(q -> q.term(t -> t.field(Constants.TYPE).value(FieldValue.of(Constants.RELIEVING))));
+
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<RelievingEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+        try {
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), RelievingEntity.class);
+        } catch (IOException e) {
+            e.getStackTrace();
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        List<Hit<RelievingEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of hits {}", hits.size());
+        List<RelievingEntity> relievingEntities = new ArrayList<>();
+        if(hits.size() > 0) {
+            for(Hit<RelievingEntity> hit : hits){
+                relievingEntities.add(hit.source());
+            }
+        }
+        return relievingEntities;
+
+    }
+
+    public RelievingEntity getRelievingById(String resourceId, String type, String index) throws IOException {
+        if(type != null) {
+            resourceId = type+"_"+resourceId;
+        }
+        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
+                .index(index).build();
+        GetResponse<RelievingEntity> searchResponse = esClient.get(getRequest, RelievingEntity.class);
+        if(searchResponse != null && searchResponse.source() != null){
+            return searchResponse.source();
+        }
+        return null;
+    }
+
+    public void partialUpdate(String employeeId, Map<String, Object> partialData, String index) throws IOException {
+        try {
+            // Create an UpdateRequest using the builder pattern
+            UpdateRequest updateRequest = new UpdateRequest.Builder()
+                    .index(index)                   // The index where the document is stored
+                    .id(employeeId)                  // Document ID
+                    .doc(partialData)                // The fields to update
+                    .docAsUpsert(false)              // Only update if the document exists
+                    .retryOnConflict(3)              // Retry in case of conflicts
+                    .build();                        // Build the request
+            // Execute the update request
+            UpdateResponse response = esClient.update(updateRequest, EmployeeEntity.class);
+            // Optionally, log the response result or handle it
+            logger.info("Update successful, status: " + response.result());
+        } catch (IOException e) {
+            // Handle errors and throw as a specific exception
+            logger.error("Error occurred while updatingstatus: " + e.getMessage());
+            throw new IOException("Error updating employee status in OpenSearch", e);
+        }
     }
 }

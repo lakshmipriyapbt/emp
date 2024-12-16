@@ -13,7 +13,7 @@ import lombok.*;
 public class DeductionEntity implements Entity {
 
 
-    private String pfEmployee;
-    private String pfEmployer;
+    private String providentFundEmployee;
+    private String providentFundEmployer;
 
 }

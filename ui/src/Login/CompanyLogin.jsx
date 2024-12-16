@@ -23,14 +23,6 @@ const CompanyLogin = () => {
     },
     mode: "onChange",
   });
-  const token = sessionStorage.getItem("token");
-
-  const validateEmail = (value) => {
-    if (/[^a-zA-Z0-9@._-]{3,}/.test(value)) {
-      return "Please enter a valid Email Id.";
-    }
-    return true;
-  };
 
   const { setAuthUser } = useAuth();
     const { company } = useParams();
@@ -55,10 +47,14 @@ const CompanyLogin = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else {
+      // OTP expired logic
       setOtpExpired(true);
       setOtpSent(false);
+      setOtpTimeLimit(56); // Reset OTP timer
+      reset({ otp: "" });
     }
   }, [otpTimeLimit]);
+  
 
   const sendOtp = (data) => {
     const payload = {
@@ -85,6 +81,8 @@ const CompanyLogin = () => {
           console.error('Token not found in response');
           setErrorMessage("Unexpected response format. Token not found.");
           setShowErrorModal(true);
+          setOtpSent(false);
+          reset('')
         }
         setLoading(false);
       })
@@ -119,8 +117,8 @@ const CompanyLogin = () => {
           autoClose: 2000,
         });
         setTimeout(() => {
-          navigate("/main");
-        }, 2000);
+          window.location.href = "/main";        
+        }, 1000);
 
       })
       .catch((error) => {
@@ -139,6 +137,7 @@ const CompanyLogin = () => {
           setOtpSent(true)
           setErrorMessage("OTP Expired. Please Login Again");
           setShowErrorModal(true);
+          reset();
         }
       });
   };
@@ -194,180 +193,22 @@ const CompanyLogin = () => {
   const toInputLowerCase = (e) => {
     const input = e.target;
     let value = input.value;
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
-
-    // Initially disallow spaces if there are no non-space characters
-    if (!/\S/.test(value)) {
-      // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, '');
-    } else {
-      // Allow spaces if there are non-space characters
-      value = value.toLowerCase();
-      value = value.replace(/^\s+/g, ''); // Remove leading spaces
-      const words = value.split(' ');
-      const capitalizedWords = words.map(word => {
-        return word.charAt(0).toLowerCase() + word.slice(1);
-      });
-      value = capitalizedWords.join(' ');
+  
+    // Remove all spaces from the input
+    value = value.replace(/\s+/g, '');
+  
+    // If the first character is not lowercase, make it lowercase
+    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
+      value = value.charAt(0).toLowerCase() + value.slice(1);
     }
-    // Update input value
+  
+    // Update the input value
     input.value = value;
   };
+  
 
   return (
     <div>
-      {/* <main className="d-flex w-100 ">
-        <div className="container d-flex flex-column">
-          <div className="row vh-100">
-            <div className="col-sm-10 col-md-7 col-lg-6 mx-auto d-table h-100">
-              <div className="d-table-cell align-middle">
-                <div className="card">
-                  <div className="card-header">
-                    <div className="text-center mt-2">
-                      <p className="lead">Login   </p>
-                    </div>
-                  </div>
-                  <div className="card-body" style={{ padding: "6px" }}>
-                    <div className="m-sm-2" style={{padding:"0 50px 0 50px"}}>
-                      <form onSubmit={handleSubmit(onSubmit)} className="align-items-center">
-                        <label className="form-label">Email Id</label>
-                        <>
-                          <div className="input-group">
-                            <span className="input-group-text">
-                              <EnvelopeFill size={20} color="#4C489D" />
-                            </span>
-                            <input
-                              className="form-control"
-                              type="email"
-                              name="username"
-                              id="username"
-                              placeholder="Enter Your Email Id"
-                              autoComplete="off"
-                              onKeyDown={handleEmailChange}
-                              readOnly={otpSent}
-                              {...register("username", {
-                                required: "Email is Required.",
-                                pattern: {
-                                  value: /^\S[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                  message: "Please enter a valid email address.",
-                                },
-                                validate: validateEmail,
-                              })}
-                            />
-                          </div>
-                          {errors.username && (
-                            <p className="errorMsg p-0" style={{ marginLeft: "55px" }}>
-                              {errors.username.message}
-                            </p>
-                          )}
-                        </>
-                        <div className="mt-3">
-                          {!otpSent && (
-                            <>
-                              <label className="form-label">Password</label>
-                              <div className="input-group">
-                                <span className="input-group-text" onClick={togglePasswordVisibility}>
-                                  {passwordShown ? (
-                                    <UnlockFill size={20} color="#4C489D" />
-                                  ) : (
-                                    <LockFill size={20} color="#4C489D" />
-                                  )}
-                                </span>
-                                <input
-                                  className="form-control"
-                                  name="password"
-                                  id="password"
-                                  placeholder="Enter Your Password"
-                                //  onChange={handlePasswordChange}
-                                  type={passwordShown ? "text" : "password"}
-                                  {...register("password", {
-                                    required: "Password is Required",
-                                    minLength: {
-                                      value: 6,
-                                      message: "Password must be at least 6 characters long",
-                                    },
-                                  validate:validatePassword,
-                                  })}
-                                />
-                              </div>
-                              {errors.password && (
-                                <p className="errorMsg" style={{ marginLeft: "55px", marginBottom: "0" }}>
-                                  {errors.password.message}
-                                </p>
-                              )}
-                              <div className="mt-3">
-                              <medium>
-                                <a href="/forgotPassword">Forgot password?</a>
-                              </medium>
-                              </div>
-                            </>
-                          )}
-                          {otpSent && !otpExpired && (
-                            <div>
-                              <label className="form-label">OTP</label>
-                              <div className="mb-3 input-group">
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="otp"
-                                  id="otp"
-                                  placeholder="Enter Your OTP"
-                                  autoComplete="off"
-                                  {...register("otp", {
-                                    required: "OTP is Required.",
-                                      validate: (value) => {
-                                        if (/\s/.test(value)) {
-                                          return "OTP cannot contain spaces.";
-                                        }
-                                        if (!/^\d{6}$/.test(value)) {
-                                          return "OTP must be exactly 6 digits.";
-                                        }
-                                        return true; // Return true if no errors
-                                      }, 
-                                  })}
-                                />
-                              </div>
-                              {errors.otp && (
-                                <p className="errorMsg">{errors.otp.message}</p>
-                              )}
-                            </div>
-                          )}
-                          {showOtpField && otpExpired && (
-                            <div className="text-center">
-                              <p className="errorMsg">OTP Expired. Please login again.</p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-center mt-4" style={{ paddingTop: "10px" }}>
-                          <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={loading}
-                          >
-                            {loading
-                              ? "Loading..."
-                              : otpSent
-                              ? "Login"
-                              : "Send OTP"}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="text-center text-small mt-1">
-                    <span>
-                      Copyrights &copy;2024 PATHBREAKER TECHNOLOGIES PVT.LTD. All Rights Reserved
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main> */}
           <main className="newLoginMainWrapper">
           {loading &&(
              <Loader/>
@@ -375,7 +216,7 @@ const CompanyLogin = () => {
         <div className="newLoginWrapper">
             <div className="newLoginContainer">
                 <div className="newLoginLeftSectionOuter">
-                    <div className="newLoginLeftTitle">Welcome to <br/> Employee Management System</div>
+                    <div className="newLoginLeftTitle">Welcome To <br/> Employee Management System</div>
                     <div className="newLoginLeftImgHolder"><img src="..\assets\img\left-img.png" alt='#' /></div>
                 </div>
                 <div className='newLoginRightSectionOuter'>
@@ -383,25 +224,25 @@ const CompanyLogin = () => {
                         <div className="newLoginRightSecTitle">Login</div>
                         <div className="newLoginRightSecSelectLogin">
 
-                            <div className="loginBtn"><span>Continue with Company login</span></div>
+                            <div className="loginBtn"><span>Continue With Company Login</span></div>
 
                         </div>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <div class="formgroup">
-                                <label class="form-label">Email</label>
+                                <label class="form-label">Email Id</label>
                                 <input class="form-control form-control-lg"
                                   type="email"
                                   name="email"
-                                  placeholder="Email"
+                                  placeholder="Email Id"
                                   autoComplete="off"
-                                  onInput={toInputLowerCase}
+                                 // onInput={toInputLowerCase}
                                   onKeyDown={handleEmailChange}
                                   readOnly={otpSent}
                                   {...register("username", {
-                                    required: "Email is Required.",
+                                    required: "Email Id is Required.",
                                     pattern: {
-                                      value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                                      message: "Invalid Email Format",
+                                      value:
+                                      /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,                                      message: "Invalid Email Id Format",
                                     },
                                     })}
                                   />
@@ -413,32 +254,40 @@ const CompanyLogin = () => {
                             </div>
                             {!otpSent && ( 
                               <> 
-                              <div class="formgroup">
-                                <label class="form-label">Password</label>
-                                <input class="form-control form-control-lg" 
-                                  name="password"
-                                  placeholder="Password"
-                                  onChange={handleEmailChange}
-                                  type={passwordShown ? "text" : "password"}
-                                  {...register("password", {
-                                      required: "Password is Required",
-                                      minLength: {
-                                      value: 6,
-                                      message: "Password must be at least 6 characters long",
-                                  },
-                                  validate:validatePassword,  
-                                  })}
-                                />
-                                {errors.password && (
-                                  <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                                    {errors.password.message}
-                                  </p>
-                                )}
-                                <span toggle="#password-field" class="bi bi-eye-fill field-icon toggle-password"></span>
-                                <small>
-                                    <a href="/forgotPassword">Forgot password?</a>
-                                </small>
-                            </div>
+                                <div className="formgroup">
+                                  <label className="form-label">Password</label>
+                                  <div className="password-input-container">
+                                    <input 
+                                      className="form-control form-control-lg" 
+                                      name="password"
+                                      placeholder="Password"
+                                      onChange={handleEmailChange}
+                                      type={passwordShown ? "text" : "password"}
+                                      maxLength={16}
+                                      {...register("password", {
+                                        required: "Password is Required",
+                                        minLength: {
+                                          value: 6,
+                                          message: "Password must be at least 6 characters long",
+                                        },
+                                        validate: validatePassword,  
+                                      })}
+                                    />
+                                    <span
+                                      className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
+                                      onClick={togglePasswordVisibility}
+                                    ></span>
+                                  </div>
+                                  {errors.password && (
+                                    <p className="errorMsg" style={{ marginLeft: "20px" }}>
+                                      {errors.password.message}
+                                    </p>
+                                  )}
+                                  <small>
+                                    <a href="/forgotPassword">Forgot Password?</a>
+                                  </small>
+                                </div>
+
                           
                             {/* <div>
                                 <div class="form-check align-items-center">

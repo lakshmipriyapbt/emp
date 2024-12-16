@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Base64;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         String resourceId = ResourceIdUtils.generateEmployeeResourceId(employeeRequest.getEmailId());
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(employeeRequest.getCompanyName());
-
         try{
             entity = openSearchOperations.getById(resourceId, null, index);
             if(entity != null) {
@@ -65,7 +64,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE), employeeRequest.getEmailId()),
                     HttpStatus.BAD_REQUEST);
         }
-
         List<EmployeeEntity> employeeByData = openSearchOperations.getCompanyEmployeeByData(employeeRequest.getCompanyName(), employeeRequest.getEmployeeId(),
                 employeeRequest.getEmailId());
         if(employeeByData !=null && employeeByData.size() > 0) {
@@ -102,24 +100,50 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     }
 
-
-
     @Override
     public ResponseEntity<?> getEmployees(String companyName) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
         List<EmployeeEntity> employeeEntities = null;
 
         try {
+            LocalDate currentDate = LocalDate.now();
             employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
-            for (EmployeeEntity employee :employeeEntities){
-                DepartmentEntity entity =null;
+
+            for (EmployeeEntity employee : employeeEntities) {
+                DepartmentEntity entity = null;
                 DesignationEntity designationEntity = null;
-                if (employee.getDepartment() !=null && employee.getDesignation() !=null) {
+
+                if (employee.getDepartment() != null && employee.getDesignation() != null) {
                     entity = openSearchOperations.getDepartmentById(employee.getDepartment(), null, index);
                     designationEntity = openSearchOperations.getDesignationById(employee.getDesignation(), null, index);
                 }
-                EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity );
+                // Unmask employee properties
+                EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
+                // Fetch relieving details for each employee
+                RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
+                // Set status only if relieving details are found
+                if (relievingDetails != null) {
+                    LocalDate startDate = LocalDate.parse(relievingDetails.getResignationDate());
+                    LocalDate endDate = LocalDate.parse(relievingDetails.getRelievingDate());
+
+                    if (startDate != null && endDate != null) {
+                        String status = null;
+                        if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) && currentDate.isBefore(endDate)) {
+                            status = Constants.NOTICE_PERIOD;
+                        } else if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
+                            status = Constants.INACTIVE;
+                        }
+
+                        if (status != null && !status.equals(employee.getStatus())) {
+                            employee.setStatus(status);
+
+                            // Perform partial update for status only
+                            Map<String, Object> partialUpdate = new HashMap<>();
+                            partialUpdate.put(Constants.STATUS, status);
+                            openSearchOperations.partialUpdate(employee.getId(), partialUpdate, index);
+                        }
+                    }
+                }
             }
         } catch (Exception ex) {
             log.error("Exception while fetching employees for company {}: {}", companyName, ex.getMessage());
@@ -131,15 +155,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                 ResponseBuilder.builder().build().createSuccessResponse(employeeEntities), HttpStatus.OK);
     }
 
-
-
-
     @Override
     public ResponseEntity<?> getEmployeeById(String companyName, String employeeId) throws EmployeeException {
         log.info("getting details of {}", employeeId);
         EmployeeEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
             DepartmentEntity departmentEntity =null;
@@ -155,7 +175,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(entity), HttpStatus.OK);
     }
@@ -212,14 +231,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
-
-
     @Override
     public ResponseEntity<?> deleteEmployeeById(String companyName, String employeeId) throws EmployeeException {
         log.info("Attempting to delete employee with ID: {}", employeeId);
         EmployeeEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
         } catch (Exception ex) {
@@ -229,7 +245,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
-
         if (entity == null) {
             log.error("Employee not found in company: {}", companyName);
             throw new EmployeeException(
@@ -237,7 +252,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                     HttpStatus.NOT_FOUND
             );
         }
-
         try {
             openSearchOperations.deleteEntity(employeeId, index);
         } catch (Exception ex) {
@@ -252,8 +266,4 @@ public class EmployeeServiceImpl implements EmployeeService {
                 HttpStatus.OK
         );
     }
-
-
-
-
 }

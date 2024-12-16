@@ -109,8 +109,6 @@ const AttendanceList = () => {
     });
   }, []);
 
-
-
   useEffect(() => {
     if (id && salaryId) {
       EmployeeSalaryGetApiById(id, salaryId)

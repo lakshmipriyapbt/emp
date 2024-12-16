@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
     companyName: null,
     employeeId: null,
   });
+  const [companyData,setCompanyData]=useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,6 +28,7 @@ export const AuthProvider = ({ children }) => {
           userRole: decodedToken.roles,
           company: decodedToken.company,
           employeeId: decodedToken.employeeId,
+          companyId:decodedToken.companyId
 
         });
 
@@ -65,11 +67,10 @@ export const AuthProvider = ({ children }) => {
     const fetchCompanyLogo = async (companyId) => {
       try {
         const logoResponse = await companyViewByIdApi(companyId);
-      
-        // Access company data from the response
         const companyData = logoResponse?.data;
-  
+
         if (companyData) {
+          setCompanyData(companyData); // Set company data to state
           const logoPath = companyData?.imageFile;
           if (logoPath) {
             setLogoFileName(logoPath);
@@ -86,14 +87,14 @@ export const AuthProvider = ({ children }) => {
 
     fetchData();
   }, [user.userId]); // Re-run when user.userId changes
+  console.log("companyData",companyData)
 
   useEffect(() => {
     console.log("Current user:", user);
-  }, [user]);
+  }, [user]); 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logoFileName,setLogoFileName, loading, error,setAuthUser }}>
-
+    <AuthContext.Provider value={{ user, setUser, logoFileName,setLogoFileName,companyData, loading, error,setAuthUser }}>
       {children}
     </AuthContext.Provider>
   );

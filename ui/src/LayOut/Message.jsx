@@ -94,8 +94,15 @@ function Message() {
                 <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)', position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
                     <div className="modal-dialog modal-dialog-centered">
                         <div className="modal-content">
-                            <div className="modal-header">
+                            <div className="modal-header d-flex justify-content-between w-100">
                                 <ModalTitle className="modal-title">Company Service Name</ModalTitle>
+                                <button
+                                    type="button"
+                                    className="btn-close" // Bootstrap's close button class
+                                    aria-label="Close"
+                                    onClick={closeModal} // Function to close the modal
+                                >
+                                </button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -115,29 +122,30 @@ function Message() {
                                             },
                                             minLength: {
                                                 value: 2,
-                                                message: "minimum 2 characters Required",
+                                                message: "Minimum 2 Characters Required",
                                             },
                                             maxLength: {
-                                                value: 16,
-                                                message: " Maximum 16 characters allowed",
+                                                value: 30,
+                                                message: "Maximum 30 Characters allowed",
                                             },
                                         })}
                                     />
                                     {errors.companyName && (
                                         <p className='errorMsg'>{errors.companyName.message}</p>
                                     )}
-                                    <div className="modal-footer">
-                                        <button type="submit" className="btn btn-primary">Submit</button>
+                                    <div className="modal-footer" style={{ paddingRight: "0px" }}>
                                         <button type="button" className="btn btn-secondary" onClick={closeModal}>Close</button>
+                                        <button type="submit" className="btn btn-primary">Submit</button>
                                     </div>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div >
-            )}
+            )
+            }
         </main >
     );
 }
 
-export default Message;
+export default Message;

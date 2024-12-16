@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
+import { Image } from "react-bootstrap-icons";
 
 const SideNav = () => {
   const [isPayrollOpen, setIsPayrollOpen] = useState(false); // State for managing PayRoll dropdown
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false); // State for managing Attendance dropdown
   const [isCompanyOpen, setIsCompanyOpen] = useState(false); // State for managing Company dropdown
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLettresOpen, setIsLettersOpen] = useState(false);
   const location = useLocation();
   const { user = {}, logoFileName, loading } = useAuth();
 
@@ -38,6 +40,20 @@ const SideNav = () => {
 
   useEffect(() => {
     if (
+      location.pathname === "/offerLetters" ||
+      location.pathname === "/experienceForm" ||
+      location.pathname === "/appraisalLetter" ||
+      location.pathname === "/relievingSummary" ||
+      location.pathname === "/internsLetter"
+    ) {
+      setIsLettersOpen(true);
+    } else {
+      setIsLettersOpen(false);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    if (
       location.pathname === "/addAttendance" ||
       location.pathname === "/attendanceList" ||
       location.pathname === "/attendanceReport"
@@ -51,7 +67,10 @@ const SideNav = () => {
   useEffect(() => {
     if (
       location.pathname === "/companySalaryView" ||
-      location.pathname === "/companySalaryStructure"
+      location.pathname === "/companySalaryStructure" ||
+      location.pathname === "/relievingTemplates" ||
+      location.pathname === "/appraisalLetter" ||
+      location.pathname === "/internsTemplates"
     ) {
       setIsSettingsOpen(true);
     } else {
@@ -173,11 +192,25 @@ const SideNav = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    if (
+      location.pathname === "/companySalaryView" ||
+      location.pathname === "/offerLetters" ||
+      location.pathname === "/experienceLetter" ||
+      location.pathname === "/payslipTemplates"
+    ) {
+      setIsSettingsOpen(true);
+    } else {
+      setIsSettingsOpen(false);
+    }
+  }, [location]);
+
   const togglePayroll = (e) => {
     e.preventDefault(); // Prevent default anchor behavior
     setIsPayrollOpen(!isPayrollOpen);
     setIsCompanyOpen(false);
     setIsAttendanceOpen(false);
+    setIsLettersOpen(false);
   };
 
   const toggleCompany = (e) => {
@@ -185,6 +218,7 @@ const SideNav = () => {
     setIsCompanyOpen(!isCompanyOpen);
     setIsAttendanceOpen(false);
     setIsPayrollOpen(false);
+    setIsLettersOpen(false);
   };
 
   const toggleAttendance = (e) => {
@@ -192,6 +226,7 @@ const SideNav = () => {
     setIsAttendanceOpen(!isAttendanceOpen);
     setIsCompanyOpen(false);
     setIsPayrollOpen(false);
+    setIsLettersOpen(false);
   };
 
   const toggleSettings = (e) => {
@@ -200,7 +235,17 @@ const SideNav = () => {
     setIsCompanyOpen(false);
     setIsAttendanceOpen(false);
     setIsPayrollOpen(false);
-  }; 
+    setIsLettersOpen(false);
+  };
+
+  const toggleLetters = (e) => {
+    e.preventDefault(); // Prevent default anchor behavior
+    setIsSettingsOpen(false);
+    setIsCompanyOpen(false);
+    setIsAttendanceOpen(false);
+    setIsPayrollOpen(false);
+    setIsLettersOpen(!isLettresOpen);
+  };
 
 
   // if (!isInitialized) {
@@ -212,32 +257,38 @@ const SideNav = () => {
   return (
     <nav id="sidebar" className="sidebar js-sidebar">
       <div className="sidebar-content js-simplebar">
-        <a className="sidebar-brand" href="/main">
+      <a className="sidebar-brand" href="/main">
           {loading ? (
-            <img
-              className="align-middle"
-              src=""
-              alt="Loading Logo"
-              style={{ height: "80px", width: "200px", color: "black" }}
-            />
+            <span>Loading...</span>
           ) : (
             <span>
-              {user && user.userRole && user.userRole.includes("ems_admin") ? (
+              {logoFileName ? (
+                // If logoFileName exists, display the company logo
                 <img
-                  className="align-middle"
-                  src='assets/img/pathbreaker_logo.png'
-                  alt="EMS Admin Logo"
+                  className="align-middle text-center"
+                  src={`${logoFileName}`}
+                  alt="Company Logo"
                   style={{ height: "55px", width: "160px" }}
                 />
               ) : (
-                logoFileName && (
-                  <img
-                    className="align-middle text-center"
-                    src={`${logoFileName}`}
-                    alt="Company Logo"
-                    style={{ height: "55px", width: "160px" }}
-                  />
-                )
+                // If logoFileName doesn't exist, display "Add Logo"
+                user && user.userRole && user.userRole.includes("company_admin") ? (
+                  // Only show "Add Logo" if the user is a company admin
+                  <a href="/profile">
+                    <span className="text-warning fs-6" style={{ marginLeft: "40px" }}>
+                      <Image /> Add Logo
+                    </span>
+                  </a>
+                ) : null
+              )}
+              {user && user.userRole && user.userRole.includes("ems_admin") && !logoFileName && (
+                // Display the EMS Admin Logo if the user is an EMS admin and logoFileName is not present
+                <img
+                  className="align-middle"
+                  src="assets/img/pathbreaker_logo.png"
+                  alt="EMS Admin Logo"
+                  style={{ height: "55px", width: "160px" }}
+                />
               )}
             </span>
           )}
@@ -246,405 +297,311 @@ const SideNav = () => {
           {user && user.userRole && user.userRole.includes("ems_admin") && (
             <>
               <li
-                className={`sidebar-item ${location.pathname === "/main" ? "active" : ""
-                  }`}
+                className={`sidebar-item ${location.pathname === "/main" ? "active" : ""}`}
               >
-                <a className="sidebar-link" href={"/main"}>
-                  <i
-                    className="bi bi-grid-1x2-fill"
-                    
-                  ></i>
-                  <span className="align-middle">
-                    Dashboard
-                  </span>
-                </a>
+                <Link className="sidebar-link" to="/main">
+                  <i className="bi bi-grid-1x2-fill"></i>
+                  <span className="align-middle">Dashboard</span>
+                </Link>
               </li>
+
               <li className="sidebar-item">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
-                  href
+                  href="#"
                   onClick={toggleCompany}
                   data-bs-target="#company"
                   data-bs-toggle="collapse"
                 >
                   <span className="align-middle">
-                    <i className="bi bi-building" ></i>
-                  </span>{" "}
-                  <span className="align-middle">
-                    Employer
+                    <i className="bi bi-building"></i>
                   </span>
+                  <span className="align-middle">Employer</span>
                   <i
-                    className={`bi ${isCompanyOpen ? "bi-chevron-up" : "bi-chevron-down"
-                      } ms-auto`}
+                    className={`bi ${isCompanyOpen ? "bi-chevron-up" : "bi-chevron-down"} ms-auto`}
                   ></i>
                 </a>
                 <ul
                   id="company"
-                  className={`sidebar-dropDown list-unstyled collapse ${isCompanyOpen ? "show" : ""
-                    }`}
+                  className={`sidebar-dropDown list-unstyled collapse ${isCompanyOpen ? "show" : ""}`}
                   data-bs-parent="#sidebar"
                 >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/companyRegistration"
-                      ? "active"
-                      : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/companyRegistration" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/companyRegistration"}>
+                    <Link className="sidebar-link" to="/companyRegistration">
                       Registration
-                    </a>
+                    </Link>
                   </li>
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname.startsWith("/companyView")
-                      ? "active"
-                      : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname.startsWith("/companyView") ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/companyView"}>
+                    <Link className="sidebar-link" to="/companyView">
                       Summary
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </li>
             </>
           )}
+
           {user && user.userRole && user.userRole.includes("company_admin") && (
             <>
               <li
-                className={`sidebar-item ${location.pathname === "/main" ? "active" : ""
-                  }`}
+                className={`sidebar-item ${location.pathname === "/main" ? "active" : ""}`}
               >
-                <a className="sidebar-link" href={"/main"}>
-                  <i
-                    className="bi bi-grid-1x2-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Dashboard
-                  </span>
-                </a>
-              </li>
-              <li
-                className={`sidebar-item ${location.pathname === "/department" ? "active" : ""
-                  }`}
-              >
-                <a className="sidebar-link" href={"/department"}>
-                  <i
-                    className="bi bi-diagram-3-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Department
-                  </span>
-                </a>
-              </li>
-              <li
-                className={`sidebar-item ${location.pathname === "/designation" ? "active" : ""
-                  }`}
-              >
-                <a className="sidebar-link" href={"/designation"}>
-                  <i
-                    className="bi bi-file-earmark-medical-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Designation
-                  </span>
-                </a>
-              </li>
-              <li
-                className={`sidebar-item ${location.pathname.startsWith("/employee") ? "active" : ""
-                  }`}
-              >
-                <a className="sidebar-link" href={"/employeeview"}>
-                  <i
-                    className="bi bi-person-plus-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Employees
-                  </span>
-                </a>
-              </li>
-              {/* <li
-                            className={`sidebar-item ${
-                              location.pathname.startsWith("/payslip") ? "active" : ""
-                            }`}
-                          >
-                            <Link className="sidebar-link" to={"/payslipview"}>
-                              <Receipt color="orange" size={25} />{" "}
-                              <i className="bi bi-file-earmark-medical-fill" ></i>
-          
-                              <span
-                                className="align-middle"
-                                
-                              >
-                                PaySlips
-                              </span>
-                            </Link>
-                          </li> */}
-              {/* <li
-                className={`sidebar-item ${
-                  location.pathname.startsWith("/existing") ? "active" : ""
-                }`}
-              >
-                <Link className="sidebar-link" to={"/existingList"}>
-                  <i
-                    className="bi bi-person-x-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Exit Process
-                  </span>
+                <Link className="sidebar-link" to="/main">
+                  <i className="bi bi-grid-1x2-fill"></i>
+                  <span className="align-middle">Dashboard</span>
                 </Link>
-              </li> */}
-              {/* <li
-                            className={`sidebar-item ${
-                              location.pathname.startsWith("/users") ? "active" : ""
-                            }`}
-                          >
-                            <Link className="sidebar-link" to={"/usersView"}>
-                              <i className="bi bi-person-circle" ></i>
-                              <span
-                                className="align-middle"
-                                
-                              >
-                                Users Summary
-                              </span>
-                            </Link>
-                          </li> */}
+              </li>
+
+              <li
+                className={`sidebar-item ${location.pathname === "/department" ? "active" : ""}`}
+              >
+                <Link className="sidebar-link" to="/department">
+                  <i className="bi bi-diagram-3-fill"></i>
+                  <span className="align-middle">Department</span>
+                </Link>
+              </li>
+
+              <li
+                className={`sidebar-item ${location.pathname === "/designation" ? "active" : ""}`}
+              >
+                <Link className="sidebar-link" to="/designation">
+                  <i className="bi bi-file-earmark-medical-fill"></i>
+                  <span className="align-middle">Designation</span>
+                </Link>
+              </li>
+
+              <li
+                className={`sidebar-item ${location.pathname.startsWith("/employee") ? "active" : ""}`}
+              >
+                <Link className="sidebar-link" to="/employeeview">
+                  <i className="bi bi-person-plus-fill"></i>
+                  <span className="align-middle">Employees</span>
+                </Link>
+              </li>
+
               <li className="sidebar-item has-dropdown">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
-                  data-bs-target="#attendenceManagement"
+                  href="#"
+                  onClick={toggleLetters}
+                  data-bs-target="#letterManagement"
                   data-bs-toggle="collapse"
-                  href
-                  onClick={toggleAttendance}
                 >
                   <span className="align-middle">
-                    <i
-                      className="bi bi-calendar-check-fill"
-                      style={{ fontSize: "medium" }}
-                    ></i>
-                  </span>{" "}
-                  <span className="align-middle" >
-                    Attendance
+                    <i className="bi bi-files" style={{ fontSize: "medium" }}></i>
                   </span>
-                  <i
-                    className={`bi ${isAttendanceOpen ? "bi-chevron-up" : "bi-chevron-down"
-                      } ms-auto`}
-                  ></i>
+                  <span className="align-middle">Letters</span>
+                  <i className={`bi ${isLettresOpen ? "bi-chevron-up" : "bi-chevron-down"} ms-auto`}></i>
+                </a>
+                <ul
+                  id="letterManagement"
+                  className={`sidebar-dropDown list-unstyled collapse ${isLettresOpen ? "show" : ""}`}
+                >
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/offerLetterForm" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/offerLetterForm">
+                      Offer Letter
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/experienceForm" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/experienceForm">
+                      Experience
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/relievingSummary" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/relievingSummary">
+                      Relieving
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/appraisalLetter" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/appraisalLetter">
+                      Appraisal
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/internsLetter" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/internsLetter">
+                      Interns
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+
+              <li className="sidebar-item has-dropdown">
+                <a
+                  className="sidebar-link collapsed d-flex justify-content-between align-items-center"
+                  href="#"
+                  onClick={toggleAttendance}
+                  data-bs-target="#attendenceManagement"
+                  data-bs-toggle="collapse"
+                >
+                  <span className="align-middle">
+                    <i className="bi bi-calendar-check-fill" style={{ fontSize: "medium" }}></i>
+                  </span>
+                  <span className="align-middle">Attendance</span>
+                  <i className={`bi ${isAttendanceOpen ? "bi-chevron-up" : "bi-chevron-down"} ms-auto`}></i>
                 </a>
                 <ul
                   id="attendenceManagement"
-                  className={`sidebar-dropDown list-unstyled collapse ${isAttendanceOpen ? "show" : ""
-                    }`}
+                  className={`sidebar-dropDown list-unstyled collapse ${isAttendanceOpen ? "show" : ""}`}
                 >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/addAttendance" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/addAttendance" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/addAttendance"}>
+                    <Link className="sidebar-link" to="/addAttendance">
                       Manage Attendance
-                    </a>
+                    </Link>
                   </li>
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/attendanceReport" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/attendanceReport" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/attendanceReport"}>
+                    <Link className="sidebar-link" to="/attendanceReport">
                       Attendance Report
-                    </a>
-                  </li>
-                  {/* <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/attendanceList" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to={"/attendanceList"}>
-                      Attendance List
                     </Link>
-                  </li> */}
+                  </li>
                 </ul>
               </li>
-              <li className="sidebar-item">
+
+              <li className="sidebar-item has-dropdown">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
-                  href
+                  href="#"
                   onClick={togglePayroll}
                   data-bs-target="#payroll"
                   data-bs-toggle="collapse"
                 >
                   <span className="align-middle">
-                    <i
-                      className="bi bi-receipt-cutoff"
-                      
-                    ></i>
-                  </span>{" "}
-                  <span className="align-middle" >
-                    Payroll
+                    <i className="bi bi-receipt-cutoff"></i>
                   </span>
-                  <i
-                    className={`bi ${isPayrollOpen ? "bi-chevron-up" : "bi-chevron-down"
-                      } ms-auto`}
-                  ></i>
-                  {/* Add dropdown here */}
+                  <span className="align-middle">Payroll</span>
+                  <i className={`bi ${isPayrollOpen ? "bi-chevron-up" : "bi-chevron-down"} ms-auto`}></i>
                 </a>
                 <ul
                   id="payroll"
-                  className={`sidebar-dropDown list-unstyled collapse ${isPayrollOpen ? "show" : ""
-                    }`}
+                  className={`sidebar-dropDown list-unstyled collapse ${isPayrollOpen ? "show" : ""}`}
                   data-bs-parent="#sidebar"
                 >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/employeeSalaryStructure"
-                      ? "active"
-                      : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/employeeSalaryStructure" ? "active" : ""}`}
                   >
-                    <a
-                      className="sidebar-link"
-                      href={"/employeeSalaryStructure"}
-                    >
+                    <Link className="sidebar-link" to="/employeeSalaryStructure">
                       Manage Salary
-                    </a>
+                    </Link>
                   </li>
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/payslipGeneration" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/payslipGeneration" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/payslipGeneration"}>
+                    <Link className="sidebar-link" to="/payslipGeneration">
                       Generate Payslips
-                    </a>
+                    </Link>
                   </li>
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname.startsWith("/payslipsList")
-                      ? "active"
-                      : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname.startsWith("/payslipsList") ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/payslipsList"}>
+                    <Link className="sidebar-link" to="/payslipsList">
                       Payslips
-                    </a>
-                  </li>
-            
-                  {/* <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/companySalaryStructure"
-                        ? "active"
-                        : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to={"/companySalaryStructure"}>
-                      Salary Structure
                     </Link>
                   </li>
-                  <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/employeeSalaryList" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to={"/employeeSalaryList"}>
-                      Salary List
-                    </Link>
-                  </li> */}
-                  {/* <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/increment" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to={"/increment"}>
-                      Increments
-                    </Link>
-                  </li>
-                  <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/incrementList" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to={"/incrementList"}>
-                      Increment List
-                    </Link>
-                  </li> */}
                 </ul>
               </li>
+
               <li className="sidebar-item has-dropdown">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
+                  href="#"
+                  onClick={toggleSettings}
                   data-bs-target="#settingsManagement"
                   data-bs-toggle="collapse"
-                  href
-                  onClick={toggleSettings}
                 >
                   <span className="align-middle">
-                    <i
-                      className="bi bi-gear-fill"
-                      style={{ fontSize: "medium" }}
-                    ></i>
-                  </span>{" "}
-                  <span className="align-middle" >
-                    Settings
+                    <i className="bi bi-gear-fill" style={{ fontSize: "medium" }}></i>
                   </span>
-                  <i
-                    className={`bi ${isSettingsOpen ? "bi-chevron-up" : "bi-chevron-down"
-                      } ms-auto`}
-                  ></i>
+                  <span className="align-middle">Settings</span>
+                  <i className={`bi ${isSettingsOpen ? "bi-chevron-up" : "bi-chevron-down"} ms-auto`}></i>
                 </a>
                 <ul
                   id="settingsManagement"
-                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""
-                    }`}
+                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""}`}
                 >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/companySalaryView" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/companySalaryView" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/companySalaryView"}>
+                    <Link className="sidebar-link" to="/companySalaryView">
                       Company Salary Structure
-                    </a>
+                    </Link>
                   </li>
-                </ul>
-                <ul
-                  id="settingsManagement"
-                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""
-                    }`}
-                >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/offerLetters" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/offerLetters" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/offerLetters"}>
-                      Offer Letters
-                    </a>
+                    <Link className="sidebar-link" to="/offerLetters">
+                      Offer Letter Templates
+                    </Link>
                   </li>
-                </ul>
-                <ul
-                  id="settingsManagement"
-                  className={`sidebar-dropDown list-unstyled collapse ${isSettingsOpen ? "show" : ""
-                    }`}
-                >
                   <li
                     style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${location.pathname === "/experienceLetter" ? "active" : ""
-                      }`}
+                    className={`sidebar-item ${location.pathname === "/appraisalTemplates" ? "active" : ""}`}
                   >
-                    <a className="sidebar-link" href={"/experienceLetter"}>
-                      Experience Letter
-                    </a>
+                    <Link className="sidebar-link" to="/appraisalTemplates">
+                      Appraisal Templates
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/experienceLetter" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/experienceLetter">
+                      Experience Letter Template
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/relievingTemplates" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/relievingTemplates">
+                      Relieving Template
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/internsTemplates" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/internsTemplates">
+                      Interns Template
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${location.pathname === "/payslipTemplates" ? "active" : ""}`}
+                  >
+                    <Link className="sidebar-link" to="/payslipTemplates">
+                      Payslip Template
+                    </Link>
                   </li>
                 </ul>
               </li>
@@ -734,41 +691,26 @@ const SideNav = () => {
               <li
                 className={`sidebar-item ${location.pathname === "/main" ? "active" : ""}`}
               >
-                <a className="sidebar-link" href={"/main"}>
-                  <i
-                    className="bi bi-grid-1x2-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Dashboard
-                  </span>
-                </a>
+                <Link className="sidebar-link" to="/main">
+                  <i className="bi bi-grid-1x2-fill"></i>
+                  <span className="align-middle">Dashboard</span>
+                </Link>
               </li>
               <li
                 className={`sidebar-item ${location.pathname === "/employeeSalary" ? "active" : ""}`}
               >
-                <a className="sidebar-link" href={"/employeeSalary"}>
-                  <i
-                    className="bi bi-card-list"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Salary List
-                  </span>
-                </a>
+                <Link className="sidebar-link" to="/employeeSalary">
+                  <i className="bi bi-card-list"></i>
+                  <span className="align-middle">Salary List</span>
+                </Link>
               </li>
               <li
                 className={`sidebar-item ${location.pathname === "/employeePayslip" ? "active" : ""}`}
               >
-                <a className="sidebar-link" href={"/employeePayslip"}>
-                  <i
-                    className="bi bi-file-earmark-medical-fill"
-                    
-                  ></i>
-                  <span className="align-middle" >
-                    Payslips
-                  </span>
-                </a>
+                <Link className="sidebar-link" to="/employeePayslip">
+                  <i className="bi bi-file-earmark-medical-fill"></i>
+                  <span className="align-middle">Payslips</span>
+                </Link>
               </li>
             </>
           )}

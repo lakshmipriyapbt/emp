@@ -37,7 +37,7 @@ public class EmployeeUpdateRequest {
     private String department;
 
     @Schema(example = "location")
-    @Pattern(regexp = "^(?!.*\\s{2,})(?!^([a-zA-Z]{1}\\s?){2,}$)(?!^[A-Z](?:\\s[A-Z])*$)(?!^[\\s]*$)[A-Za-z0-9]+(?:[\\s.,'#&*()^/][A-Za-z0-9]+)*(?:[\\s.,'#&*()/-]*[A-Za-z0-9]+)*(?:[\\s]*[.,#&*()/-]*\\s*)*$", message = "{location.format}")
+    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{location.format}")
     @Size(min = 2, max = 200, message = "{location.notnull.message}")
     private String location;
 
@@ -48,7 +48,7 @@ public class EmployeeUpdateRequest {
 
     @Schema(example = "mobileNo")
     @NotNull(message = "{mobileNo.notnull.message}")
-    @Pattern(regexp = "^\\d{10}$", message = "{invalid.mobileNo}")
+    @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "{invalid.mobileNo}")
     private String mobileNo;
 
 
@@ -71,4 +71,7 @@ public class EmployeeUpdateRequest {
     @Pattern(regexp = "^(?!\\b([A-Z])\\s([A-Z])\\b)(?!\\b([A-Z])\\s([A-Z])\\s([A-Z])\\b)(?:(?:[A-Z][a-zA-Z]*(?:[-\\s][A-Za-z]+)*)(?:[,.]? [A-Za-z]+)*(?:\\.)?)?$", message = "{bankName.format}")
     @Size(min = 3, max = 100, message = "{bankName.size.message}")
     private String bankName;
+
+    private String pfNo;
+
 }

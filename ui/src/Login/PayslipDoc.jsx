@@ -48,7 +48,7 @@ const PayslipDoc = () => {
     } catch (err) {
       console.error("Error fetching payslip data:", err);
       toast.error("Failed to fetch payslip data");
-    }
+    }   
   };
 
   const handleDownload = async () => {
@@ -69,7 +69,7 @@ const PayslipDoc = () => {
       toast.error("Employee ID or Payslip ID is missing");
     }
   };
-  
+
   useEffect(() => {
     setLoading(true);
     if (employeeId) {
@@ -169,17 +169,17 @@ const PayslipDoc = () => {
                     <tr>
                       <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Designation</th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>{employeeDetails.designationName}</td>
-                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Location</th>
+                      <th style={{ padding: "4px", width: "150px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}></th>
                       <td style={{ padding: "4px", textAlign: "left", border: "1px solid black" }}>
-                      {/* {employeeDetails.location && typeof employeeDetails.location === 'string' ?
+                        {/* {employeeDetails.location && typeof employeeDetails.location === 'string' ?
                           (() => {
                             const parts = employeeDetails.location.trim().split(',');
                             const state = parts.slice(-2, -1)[0]?.trim() || ''; // Optional chaining and fallback
                             const address = parts.slice(-3, -2)[0]?.trim() || ''; // Optional chaining and fallback
                             return `${address}, ${state}`;
                           })() : ''
-                        } */}
-                        {employeeDetails.location}
+                        }
+                        {employeeDetails.location} */}
                       </td>
                     </tr>
                     <tr>
@@ -206,86 +206,79 @@ const PayslipDoc = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="salary-details" style={{ padding: "20px", paddingTop: "10px", paddingBottom: "10px" }}>
-                <table style={{ borderCollapse: "collapse", border: "1px solid black", width: "100%" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Earnings (A)</th>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Amount (A)</th>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Deductions (B)</th>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Amount (B)</th>
-                    </tr>
-                  </thead>
-                  <tbody style={{ borderCollapse: "collapse" }}>
-                    {Object.entries(payslipData.salary?.salaryConfigurationEntity?.allowances || {}).map(([key, value], index) => {
-                      const deductionKey = Object.keys(payslipData.salary?.salaryConfigurationEntity?.deductions || {})[index];
-                      const deductionValue = payslipData.salary?.salaryConfigurationEntity?.deductions[deductionKey];
-                      return (
-                        <tr key={key} style={{ border: "none" }}>
-                          <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>{formatFieldName(key)}</td>
-                          <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}>{value}</td>
-                          <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>{deductionKey ? formatFieldName(deductionKey) : ''}</td>
-                          <td className="deductions" style={{ textAlign: "left", border: "none" }}>{deductionValue}</td>
-                        </tr>
-                      );
-                    })}
-
-                    {Object.entries(payslipData.salary?.salaryConfigurationEntity?.deductions || {})
-                      .slice(Object.keys(payslipData.salary?.salaryConfigurationEntity?.allowances || {}).length)
-                      .map(([key, value]) => (
-                        <tr key={key} style={{ border: "none" }}>
-                          <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                          <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                          <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>{formatFieldName(key)}</td>
-                          <td className="deductions" style={{ textAlign: "left", border: "none" }}>{value}</td>
-                        </tr>
+              <div className="salary-details" style={{ padding: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ flex: 1, border: "1px solid black", borderRight: "none", borderBottom: "none" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", background: "#ffcc80", borderBottom: "1px solid black" }}>
+                      <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "15px", color: "black", margin: 0 }}>Earnings</p>
+                      <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "15px", color: "black", margin: 0 }}>Amount</p>
+                    </div>
+                    <ul style={{ listStyleType: "none", padding: 0, marginBottom: "2px" }}>
+                      {Object.entries(payslipData.salary?.salaryConfigurationEntity?.allowances || {}).map(([key, value]) => (
+                        <li key={key} style={{ display: "flex", padding: "4px 8px", alignItems: "center" }}>
+                          <span style={{ flex: 1, color: "black" }}>{formatFieldName(key)}</span>
+                          <span style={{ flex: 1, color: "black", textAlign: "right", marginRight: "15px" }}>{value}</span>
+                        </li>
                       ))}
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>LOP</td>
-                      <td className="deductions" style={{ textAlign: "left", border: "none" }}>{payslipData.salary?.lop || 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>Total Deductions (B)</td>
-                      <td className="deductions" style={{ textAlign: "left", border: "none" }}>{payslipData.salary?.totalDeductions || 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "none", border: "1px solid black" }}>Taxes (C)</th>
-                      <th style={{ padding: "4px", width: "300px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black" }}>Amount (C)</th>
-                    </tr>
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>PF Tax</td>
-                      <td className="deductions" style={{ textAlign: "left", border: "none" }}>{payslipData.salary?.pfTax || 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}></td>
-                      <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>Income Tax</td>
-                      <td className="deductions" style={{ textAlign: "left", border: "none" }}>{payslipData.salary?.incomeTax || 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>Total Earnings (A)</td>
-                      <td className="earnings" style={{ textAlign: "left", border: "none", borderRight: "1px solid black" }}>{payslipData.salary?.totalEarnings || 0}</td>
-                      <td className="deductions" style={{ padding: "4px", textAlign: "left", border: "none", borderRight: "1px solid black" }}>Total Tax(C)</td>
-                      <td className="deductions" style={{ textAlign: "left", border: "none" }}>{payslipData.salary?.totalTax || 0}</td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left", background: "#ffcc80", color: 'black', border: "none", border: "1px solid black" }}><b>Net Pay (A-B-C)</b></td>
-                      <td className="earnings" colSpan={3} style={{ textAlign: "left", border: "1px solid black" }}><b>{payslipData.salary?.netSalary || 0}</b></td>
-                    </tr>
-                    <tr>
-                      <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left", background: "#ffcc80", color: 'black', border: "none", border: "1px solid black" }}><b>Net Salary (in words)</b></td>
-                      <td className="earnings" colSpan={3} style={{ textAlign: "left", border: "1px solid black" }}><b>{payslipData.inWords || ""}</b></td>
-                    </tr>
-                  </tbody>
-                </table>
+                    </ul>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px" }}>
+                      <span style={{ color: "black" }}>Total Earnings (A)</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.totalEarnings || 0}</span>
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, border: "1px solid black", borderBottom: "none", overflow: "hidden" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", background: "#ffcc80", borderBottom: "1px solid black" }}>
+                      <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "15px", color: "black", margin: 0 }}>Deductions</p>
+                      <p style={{ textAlign: "center", fontWeight: "bold", fontSize: "15px", color: "black", margin: 0 }}>Amount</p>
+                    </div>
+                    <ul style={{ listStyleType: "none", padding: 0, marginBottom: "2px" }}>
+                      {Object.entries(payslipData.salary?.salaryConfigurationEntity?.deductions || {}).map(([key, value]) => (
+                        <li key={key} style={{ display: "flex", padding: "4px 8px", alignItems: "center" }}>
+                          <span style={{ flex: 1, color: "black" }}>{formatFieldName(key)}</span>
+                          <span style={{ flex: 1, color: "black", textAlign: "right", marginRight: "15px" }}>{value}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 8px 4px 8px" }}>
+                      <span style={{ color: "black" }}>LOP</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.lop || 0}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px" }}>
+                      <span style={{ color: "black" }}>Total Deductions (B)</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.totalDeductions || 0}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderTop: "1px solid black", borderBottom: "1px solid black", background: "#ffcc80" }}>
+                      <p style={{ fontSize: "15px", fontWeight: "bold", color: "black", marginBottom: "0px" }}>Taxes</p>
+                      <p style={{ fontSize: "15px", fontWeight: "bold", color: "black", marginBottom: "0px" }}>Amount</p>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px" }}>
+                      <span style={{ color: "black" }}>Income Tax</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.incomeTax || 0}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px" }}>
+                      <span style={{ color: "black" }}>Pf Tax</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.pfTax || 0}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px" }}>
+                      <span style={{ color: "black" }}>Total Tax (C)</span>
+                      <span style={{ marginRight: "15px", color: "black" }}>{payslipData.salary?.totalTax || 0}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <tbody>
+                      <tr>
+                        <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black", width: "25%" }}><b>Net Pay (A-B-C)</b></td>
+                        <td className="earnings" colSpan={3} style={{ textAlign: "left", border: "1px solid black" }}><b>{payslipData.salary?.netSalary || 0}</b></td>
+                      </tr>
+                      <tr>
+                        <td className="earnings" colSpan={1} style={{ padding: "4px", textAlign: "left", background: "#ffcc80", color: 'black', border: "1px solid black", width: "25%" }}><b>Net Salary (in words)</b></td>
+                        <td className="earnings" colSpan={3} style={{ textAlign: "left", border: "1px solid black" }}><b>{payslipData.inWords || ""}</b></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <span className="ms-4"><em>This is a computer-generated payslip and does not require authentication</em></span>
               <div className="bottom" style={{ marginLeft: "50px", marginRight: "50px", marginTop: "1px", paddingBottom: "30px" }}>

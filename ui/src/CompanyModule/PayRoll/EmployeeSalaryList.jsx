@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { EmployeeSalaryGetApi, EmployeeSalaryGetApiById, EmployeeSalaryPatchApiById } from '../../Utils/Axios';
+import { EmployeeSalaryGetApi,EmployeeSalaryPatchApiById } from '../../Utils/Axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LayOut from '../../LayOut/LayOut';
-import { ArrowLeftCircle, PencilSquare } from 'react-bootstrap-icons';
+import { PencilSquare } from 'react-bootstrap-icons';
 import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../../Context/AuthContext';
 
 const EmployeeSalaryList = () => {
-  const { handleSubmit, reset, register, setValue } = useForm({ mode: "onChange" });
-  const { user } = useAuth("");
+  const { handleSubmit, reset, register} = useForm({ mode: "onChange" });
   const [employeeSalaryView, setEmployeeSalaryView] = useState([]);
   const [expandedSalaryId, setExpandedSalaryId] = useState(null);
   const [editingData, setEditingData] = useState(null);
@@ -186,7 +184,7 @@ const EmployeeSalaryList = () => {
                       </div>
                       <div className="col mb-3">
                         <div className="form-group">
-                          <label>Variable Amount:</label>
+                          <label style={{color:"white"}}>Variable Amount:</label>
                           <input type="text" className="form-control" defaultValue={editingData?.variableAmount || ''} {...register('variableAmount')} />
                         </div>
                       </div>
@@ -197,7 +195,6 @@ const EmployeeSalaryList = () => {
                         </div>
                       </div>
                     </div>
-                    <hr />
                     <div className="row mb-3">
                       <div className="col mb-1">
                         <h3>Allowances</h3>

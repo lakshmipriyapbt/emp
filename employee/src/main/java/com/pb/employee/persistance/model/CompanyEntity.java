@@ -49,6 +49,8 @@ public class CompanyEntity implements Entity{
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String cinNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String stampImage;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String pfPercentage;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String travelAllowance;

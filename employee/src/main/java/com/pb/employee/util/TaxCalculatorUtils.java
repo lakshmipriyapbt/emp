@@ -23,33 +23,38 @@ public class TaxCalculatorUtils {
     }
 
     public static double getNewTax(double salary) {
-        // Lies under tax rebate limit
-        if (salary <= 775000) {
+        double tax = 0;
+
+        if (salary <= 300000) {
+            // No tax for salary <= 300,000
             return 0;
         }
-        if ((salary - 75000) <= 1000000) {
-            return ((400000 * 0.05)
-                    + (salary - 775000) * 0.1) * 0.04 + ((400000 * 0.05)
-                    + (salary - 775000) * 0.1);
+        else if (salary <= 700000) {
+            // Tax for salary between 300,001 and 700,000 at 5%
+             tax = salary * 0.05;
         }
-        if ((salary - 75000) <= 1200000) {
-            return ((400000 * 0.05) + (300000 * 0.1)
-                    + (salary - 1075000) * 0.15) * 0.04 + ((400000 * 0.05) + (300000 * 0.1)
-                    + (salary - 1075000) * 0.15);
+        else if (salary <= 1000000) {
+            // Tax for salary between 700,001 and 1,000,000 at 10%
+             tax = salary * 0.10;
         }
-        if ((salary - 75000) <= 1500000) {
-            double v =(400000 * 0.05) + (300000 * 0.1)
-                    + (200000 * 0.15)
-                    + (salary - 1275000) * 0.2;
-            return v * 0.04 + v;
+        else if (salary <= 1200000) {
+            // Tax for salary between 1,000,001 and 1,200,000 at 15%
+             tax = salary * 0.15;
         }
-        double v = (400000 * 0.05) + (300000 * 0.1)
-                + (200000 * 0.15) + (300000 * 0.2)
-                + (salary - 1575000) * 0.30;
-        return v * 0.04+v;
+        else if (salary <= 1500000) {
+            // Tax for salary between 1,200,001 and 1,500,000 at 20%
+             tax= salary * 0.20;
+        }
+        else {
+            // Tax for salary above 1,500,000 at 30%
+             tax = salary * 0.30;
+        }
+
+        return tax;
     }
 
-        public static double getPfTax(double salary) {
+
+    public static double getPfTax(double salary) {
         if (salary <= 180000) {
             // Return 0 if salary is less than or equal to 15000
             return 0;

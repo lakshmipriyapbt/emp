@@ -185,14 +185,15 @@
                     <tr>
                         <th>Designation</th>
                         <td>${employee.designationName}</td>
-                        <th>Location</th>
-                        <td>${employee.location}</td>
+                        <th></th>
+                       <td>
+                       </td>
                     </tr>
                     <tr>
-                        <td colspan="4" class="employee-details">Bank ACC No:
-                            ${employee.accountNo}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IFSC:
-                            ${employee.ifscCode}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                            Bank: ${employee.bankName}</td>
+                        <td colspan="4" class="employee-details"> Bank: ${employee.bankName}
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            IFSC: ${employee.ifscCode}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            ACC No:  ${employee.accountNo}</td>
                     </tr>
                 </table>
             </div>
@@ -221,10 +222,10 @@
             <div class="salary-details">
                 <table class="salary-table">
                     <tr>
-                        <th style="width:30%;">Earnings (A)</th>
-                        <th>Amount (A)</th>
-                        <th>Deductions (B)</th>
-                        <th>Amount (B)</th>
+                        <th style="width:30%;">Earnings</th>
+                        <th>Amount</th>
+                        <th>Deductions</th>
+                        <th>Amount</th>
                     </tr>
                     <tr>
                         <!-- Column for Allowances and Amounts -->
@@ -254,12 +255,12 @@
                                 <#list allowanceList as allowance>
                                     <#list allowance?keys as key>
                                         <tr>
-                                            <td>${allowance[key]}</td> <!-- Display allowance amount -->
+                                            <td>${allowance[key]?number?int?string("0")}</td> <!-- Display allowance amount -->
                                         </tr>
                                     </#list>
                                 </#list>
                                 <tr>
-                                    <td>${payslipEntity.salary.totalEarnings}</td> <!-- Total Earnings Amount -->
+                                    <td>${payslipEntity.salary.totalEarnings?number?int?string("0")}</td> <!-- Total Earnings Amount -->
                                 </tr>
                             </table>
                         </td>
@@ -282,7 +283,7 @@
                                     <td>Total Deductions (B)</td> <!-- Add LOP -->
                                 </tr>
                                 <tr>
-                                    <th style="border-left: 900px ; border-right: 900px;">Taxes (C)</th> <!-- Add LOP -->
+                                    <th style="border-left: 900px ; border-right: 900px;">Taxes</th> <!-- Add LOP -->
                                 </tr>
                                 <tr>
                                     <td>Income Tax</td> <!-- Add Income Tax -->
@@ -303,28 +304,28 @@
                                 <#list deductionList as deduction>
                                     <#list deduction?keys as key>
                                         <tr>
-                                            <td>${deduction[key]}</td> <!-- Display deduction amount -->
+                                            <td>${deduction[key]?number?int?string("0")}</td> <!-- Display deduction amount -->
                                         </tr>
                                     </#list>
                                 </#list>
 
                                 <tr>
-                                    <td>${payslipEntity.salary.lop!0}</td>
+                                    <td>${payslipEntity.salary.lop!0?number?int?string("0")}</td>
                                 </tr> <!-- Display LOP amount, default to 0 if null or empty -->
                                 <tr>
-                                    <td>${payslipEntity.salary.totalDeductions}</td>
+                                    <td>${payslipEntity.salary.totalDeductions?number?int?string("0")}</td>
                                 </tr> <!-- Display LOP amount -->
                                 <tr>
-                                    <th style="border-left: 900px ; border-right: 900px;">Amount (C)</th>
+                                    <th style="border-left: 900px ; border-right: 900px;">Amount</th>
                                 </tr> <!-- Display Income Tax amount -->
                                 <tr>
-                                    <td>${payslipEntity.salary.incomeTax}</td>
+                                    <td>${payslipEntity.salary.incomeTax?number?int?string("0")}</td>
                                 </tr> <!-- Display Income Tax amount -->
                                 <tr>
-                                    <td>${payslipEntity.salary.pfTax}</td>
+                                    <td>${payslipEntity.salary.pfTax?number?int?string("0")}</td>
                                 </tr> <!-- Display Income Tax amount -->
                                 <tr>
-                                    <td>${payslipEntity.salary.totalTax}</td>
+                                    <td>${payslipEntity.salary.totalTax?number?int?string("0")}</td>
                                 </tr> <!-- Display Total Deductions -->
 
 
@@ -335,7 +336,7 @@
                     <!-- Net Pay Row -->
                     <tr>
                         <th>Net Pay (A-B-C)</th>
-                        <td colspan="3"><strong>${payslipEntity.salary.netSalary}</strong></td>
+                        <td colspan="3"><strong>${payslipEntity.salary.netSalary?number?int?string("0")}</strong></td>
                     </tr>
                     <tr>
                         <th>Net Salary (In Words)</th>

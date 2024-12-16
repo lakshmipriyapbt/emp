@@ -179,13 +179,13 @@
             <td>${employee.dateOfBirth}</td>
         </tr>
     </table>
-
+            <div class="salary-details">
     <table class="salary-table">
         <tr>
-            <th style="width:30%;">Earnings (A)</th>
-            <th>Amount (A)</th>
-            <th>Deductions (B)</th>
-            <th>Amount (B)</th>
+            <th style="width:25%;">Earnings (A)</th>
+            <th style="width:20%;">Amount (A)</th>
+            <th style="width:30%;">Deductions (B)</th>
+            <th style="width:25%;">Amount (B)</th>
         </tr>
        <tr>
                                <!-- Column for Allowances and Amounts -->
@@ -215,18 +215,18 @@
                                        <#list allowanceList as allowance>
                                            <#list allowance?keys as key>
                                                <tr>
-                                                   <td>${allowance[key]}</td> <!-- Display allowance amount -->
+                                                   <td>${allowance[key]?number?int?string("0")}</td> <!-- Display allowance amount -->
                                                </tr>
                                            </#list>
                                        </#list>
                                        <tr>
-                                           <td>${payslipEntity.salary.totalEarnings}</td> <!-- Total Earnings Amount -->
+                                           <td>${payslipEntity.salary.totalEarnings?number?int?string("0")}</td> <!-- Total Earnings Amount -->
                                        </tr>
                                    </table>
                                </td>
 
                                <!-- Column for Deductions and Amounts -->
-                               <td>
+                               <td style="padding-left: 0px; padding-right: 0px;">
                                    <table class="deduction-fields">
                                        <!-- Loop through Deductions -->
                                        <#list deductionList as deduction>
@@ -258,34 +258,34 @@
                                    </table>
                                </td>
 
-                               <td>
+                              <td style="padding-left: 0px; padding-right: 0px;">
                                    <table class="deduction-values">
                                        <!-- Loop through Deductions to Get Amounts -->
                                        <#list deductionList as deduction>
                                            <#list deduction?keys as key>
                                                <tr>
-                                                   <td>${deduction[key]}</td> <!-- Display deduction amount -->
+                                                   <td>${deduction[key]?number?int?string("0")}</td> <!-- Display deduction amount -->
                                                </tr>
                                            </#list>
                                        </#list>
 
                                        <tr>
-                                           <td>${payslipEntity.salary.lop!0}</td>
+                                           <td>${payslipEntity.salary.lop!0?number?int?string("0")}</td>
                                        </tr> <!-- Display LOP amount, default to 0 if null or empty -->
                                        <tr>
-                                           <td>${payslipEntity.salary.totalDeductions}</td>
+                                           <td>${payslipEntity.salary.totalDeductions?number?int?string("0")}</td>
                                        </tr> <!-- Display LOP amount -->
                                        <tr>
                                            <th colspan="2" style="width: 50%; font-size: medium; border: 1px solid black; border-left: 1px; border-right: 1px;">Amount (C)</th>
                                        </tr> <!-- Display Income Tax amount -->
                                        <tr>
-                                           <td>${payslipEntity.salary.incomeTax}</td>
+                                           <td>${payslipEntity.salary.incomeTax?number?int?string("0")}</td>
                                        </tr> <!-- Display Income Tax amount -->
                                        <tr>
-                                           <td>${payslipEntity.salary.pfTax}</td>
+                                           <td>${payslipEntity.salary.pfTax?number?int?string("0")}</td>
                                        </tr> <!-- Display Income Tax amount -->
                                        <tr>
-                                           <td>${payslipEntity.salary.totalTax}</td>
+                                           <td>${payslipEntity.salary.totalTax?number?int?string("0")}</td>
                                        </tr> <!-- Display Total Deductions -->
 
 
@@ -295,16 +295,17 @@
                            </tr>
         <tr>
             <th style= "background-color: #9EEAF9; ">Net Pay (A-B-C)</th>
-            <td colspan="3"><strong>${payslipEntity.salary.netSalary}</strong></td>
+            <td colspan="3"><strong>${payslipEntity.salary.netSalary?number?int?string("0")}</strong></td>
         </tr>
         <tr>
             <th style= "background-color: #9EEAF9; ">Net Salary (In Words)</th>
             <td colspan="3"><strong>${payslipEntity.inWords}</strong></td>
         </tr>
     </table>
-</body>
+</div>
      <div class="text">
         <p><em>This is a computer-generated payslip and does not require authentication</em></p>
     </div>
+    </body>
 
 </html>
