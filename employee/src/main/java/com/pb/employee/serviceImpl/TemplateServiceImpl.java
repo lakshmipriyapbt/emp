@@ -12,19 +12,15 @@ import com.pb.employee.request.TemplateRequest;
 import com.pb.employee.service.TemplateService;
 import com.pb.employee.util.CompanyUtils;
 import com.pb.employee.util.Constants;
-import com.pb.employee.util.EmployeeUtils;
 import com.pb.employee.util.ResourceIdUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -47,6 +43,11 @@ public class TemplateServiceImpl implements TemplateService {
         if (companyEntity == null) {
             log.error("CompanyId not exists : {} ", templateRequest.getCompanyId());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST),
+                    HttpStatus.NOT_FOUND);
+        }
+        if (companyEntity.getImageFile()==null){
+            log.error("Image doesn't exists for the {} ", companyEntity.getId());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_LOGO),
                     HttpStatus.NOT_FOUND);
         }
         CompanyUtils.unmaskCompanyProperties(companyEntity,request);

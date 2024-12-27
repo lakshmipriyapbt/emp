@@ -187,6 +187,8 @@ public class PayslipUtils {
         payslipEntity.setSalaryId(salaryRequest.getSalaryId());
         payslipEntity.setSalary(salary);
         payslipEntity.setAttendance(attendance);
+        String inWords =  numberToWords(Double.valueOf(net));
+        payslipEntity.setInWords(inWords + " Rupees Only.");
         payslipEntity.setType(Constants.PAYSLIP);
 
 
@@ -230,7 +232,6 @@ public class PayslipUtils {
     public static PayslipEntity maskEmployeePayslip(PayslipEntity payslipRequest, EmployeeSalaryEntity salaryRequest, AttendanceEntity attendance) {
         String var = null, fix = null, bas = null, gross = null;
         String hra = null, trav = null, pfc = null, other = null, spa = null;
-        String department=null,designation=null;
         String te = null, pfE = null, pfEmployer = null, lop = null, tax = null, itax = null, ttax = null, tded = null, net = null;
         Map<String, String> allowances = new HashMap<>();
         Map<String, String> deductions = new HashMap<>();
@@ -276,15 +277,6 @@ public class PayslipUtils {
             for (Map.Entry<String, String> entry : payslipRequest.getSalary().getSalaryConfigurationEntity().getDeductions().entrySet()) {
                 deductions.put(entry.getKey(), maskValue(entry.getValue()));
             }
-        }
-        if (payslipRequest.getDepartment() != null) {
-            department  = Base64.getEncoder().encodeToString((payslipRequest.getDepartment()).getBytes());
-            payslipRequest.setDepartment(department);
-
-        }
-        if (payslipRequest.getDesignation() != null) {
-            designation  = Base64.getEncoder().encodeToString((payslipRequest.getDesignation()).getBytes());
-            payslipRequest.setDesignation(designation);
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -396,14 +388,6 @@ public class PayslipUtils {
         if (payslipRequest.getSalary().getLop() != null) {
             lop = new String(Base64.getDecoder().decode(payslipRequest.getSalary().getLop()));
         }
-        if (payslipRequest.getDesignation() != null) {
-            designation = new String(Base64.getDecoder().decode(payslipRequest.getDesignation()));
-            payslipRequest.setDesignation(designation);
-        }
-        if (payslipRequest.getDesignation() != null) {
-            department = new String(Base64.getDecoder().decode(payslipRequest.getDepartment()));
-            payslipRequest.setDepartment(department);
-        }
 
         payslipRequest.getSalary().setFixedAmount(fix);
         payslipRequest.getSalary().setGrossAmount(gross);
@@ -422,6 +406,8 @@ public class PayslipUtils {
         payslipRequest.getAttendance().setTotalWorkingDays(totalWorkingDays);
         payslipRequest.getAttendance().setFirstName(firstName);
         payslipRequest.getAttendance().setLastName(lastName);
+        payslipRequest.getAttendance().setEmailId(email);
+        payslipRequest.getAttendance().setEmailId(email);
         payslipRequest.getAttendance().setEmailId(email);
         payslipRequest.setType(Constants.PAYSLIP);
 
@@ -538,7 +524,7 @@ public class PayslipUtils {
         String var = null, fix = null, bas = null, gross = null;
         String hra = null, trav = null, pfc = null, other = null, spa = null;
         String te = null, pfE = null, pfEmployer = null, lop = null, tax = null,
-                itax = null, ttax = null, tded = null, net = null,department=null,designation=null;
+                itax = null, ttax = null, tded = null, net = null;
         Map<String, String> allowances = new HashMap<>();
         Map<String, String> deductions = new HashMap<>();
 
@@ -583,15 +569,6 @@ public class PayslipUtils {
             for (Map.Entry<String, String> entry : payslipRequest.getSalary().getSalaryConfigurationEntity().getDeductions().entrySet()) {
                 deductions.put(entry.getKey(), maskValue(entry.getValue()));
             }
-        }
-        if (payslipRequest.getDepartment() != null) {
-            department  = Base64.getEncoder().encodeToString((payslipRequest.getDepartment()).getBytes());
-            payslipRequest.setDepartment(department);
-
-        }
-        if (payslipRequest.getDesignation() != null) {
-            designation  = Base64.getEncoder().encodeToString((payslipRequest.getDesignation()).getBytes());
-            payslipRequest.setDesignation(designation);
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -894,83 +871,6 @@ public class PayslipUtils {
             otherAllowanceData.put(Constants.ANNUAL, formatValue(String.valueOf(otherAllowanceAnnual)));
             components.put(Constants.OTHER_ALLOWANCES, otherAllowanceData);
         }
-
-        // **Gross CTC** (directly using the provided grossAnnualSalary)
-        Map<String, String> grossSalaryData = new HashMap<>();
-        grossSalaryData.put(Constants.ANNUAL, "<b>" + formatValue(String.valueOf(grossAmount)) + "</b>");
-        components.put("<b>" + Constants.GROSS_CTC + "</b>", grossSalaryData);
-
-        // **Provident Fund (Employee and Employer) Calculations** from Basic Salary
-        Map<String, String> dynamicDeductions = salaryConfiguration.getDeductions();  // Assuming dynamic fields are stored in a map
-
-        // **Deductions Calculation**
-        double totalDedAnnualSalary = 0.0;
-        // Check if Provident Fund (Employee) is part of the dynamic fields and calculate it
-        if (dynamicDeductions.containsKey(Constants.PF_EMPLOYEE)) {
-            String pfEmployeePercentageString = dynamicDeductions.get(Constants.PF_EMPLOYEE);
-
-            // Remove the percentage sign and trim any spaces
-            pfEmployeePercentageString = pfEmployeePercentageString.replace(Constants.PERCENTAGE, "").trim();
-
-            // Convert the percentage to a double and calculate the annual and monthly Provident Fund Employee
-            double pfEmployeePercentage = Double.parseDouble(pfEmployeePercentageString);
-            double pfEmployeeAnnual = basicSalaryAnnual * (pfEmployeePercentage / 100);  // Calculate annual PF Employee from Basic Salary
-
-            // Add the Provident Fund Employee contribution to components
-            Map<String, String> pfEmployeeData = new HashMap<>();
-            pfEmployeeData.put(Constants.ANNUAL, formatValue(String.valueOf(pfEmployeeAnnual)));
-            components.put(Constants.PF_EMPLOYEE, pfEmployeeData);
-
-            totalDedAnnualSalary += pfEmployeeAnnual;
-        }
-
-        // Check if Provident Fund (Employer) is part of the dynamic fields and calculate it
-        if (dynamicDeductions.containsKey(Constants.PF_EMPLOYER)) {
-            String pfEmployerPercentageString = dynamicDeductions.get(Constants.PF_EMPLOYER);
-
-            // Remove the percentage sign and trim any spaces
-            pfEmployerPercentageString = pfEmployerPercentageString.replace(Constants.PERCENTAGE, "").trim();
-
-            // Convert the percentage to a double and calculate the annual and monthly Provident Fund Employer
-            double pfEmployerPercentage = Double.parseDouble(pfEmployerPercentageString);
-            double pfEmployerAnnual = basicSalaryAnnual * (pfEmployerPercentage / 100);  // Calculate annual PF Employer from Basic Salary
-
-            // Add the Provident Fund Employer contribution to components
-            Map<String, String> pfEmployerData = new HashMap<>();
-            pfEmployerData.put(Constants.ANNUAL, formatValue(String.valueOf(pfEmployerAnnual)));
-            components.put(Constants.PF_EMPLOYER, pfEmployerData);
-
-            totalDedAnnualSalary += pfEmployerAnnual;
-        }
-
-        // Calculate deductions without affecting Gross Salary
-        Map<String, String> deductions = salaryConfiguration.getDeductions();
-        if (deductions != null) {
-            for (Map.Entry<String, String> entry : deductions.entrySet()) {
-                // Skip PF Employee and PF Employer, they have already been processed
-                if (!Constants.PF_EMPLOYEE.equals(entry.getKey()) && !Constants.PF_EMPLOYER.equals(entry.getKey())) {
-                    double deductionAnnualValue = Double.parseDouble(persentageOrValueForYearly(entry.getValue(), grossAmount));
-
-                    // Add formatted deduction to components only
-                    Map<String, String> deductionData = new HashMap<>();
-                    String formatYearlyValue = formatValue(String.valueOf(deductionAnnualValue));
-                    deductionData.put(Constants.ANNUAL, formatYearlyValue);
-                    components.put(formatComponentName(entry.getKey()), deductionData);
-
-                    totalDedAnnualSalary += Double.parseDouble(formatYearlyValue);
-                }
-            }
-        }
-
-        // **Total Deductions** (from monthly and annual totals)
-        Map<String, String> grossSalaryCtcData = new HashMap<>();
-        grossSalaryCtcData.put(Constants.ANNUAL, "<b>" + formatValue(String.valueOf(totalDedAnnualSalary)) + "</b>");
-        components.put("<b>" + Constants.TOTAL_DEDUCTIONS + "</b>", grossSalaryCtcData);
-
-        // **Net Salary** after deductions
-        Map<String, String> netSalary = new HashMap<>();
-        netSalary.put(Constants.ANNUAL, "<b>" + formatValue(String.valueOf(grossAmount - totalDedAnnualSalary)) + "</b>");
-        components.put("<b>" + Constants.NET_SALARY + "</b>", netSalary);
 
         return components;
     }

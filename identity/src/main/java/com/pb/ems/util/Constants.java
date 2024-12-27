@@ -31,6 +31,9 @@ public class Constants {
     public static final String TYPE = "type";
     public static final String COMPANY_NAME = "companyName";
     public static final String SHORT_NAME = "shortName";
+    public static final String ACCOUNTANT = "Accountant";
+    public static final String HR = "HR";
+    public static final String DEPARTMENT = "department";
 }
 
 

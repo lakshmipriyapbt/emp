@@ -2,6 +2,7 @@ package com.pb.employee.serviceImpl;
 
 
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.controller.DepartmentController;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -11,6 +12,7 @@ import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
+import com.pb.employee.service.DepartmentService;
 import com.pb.employee.util.CompanyUtils;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.EmployeeUtils;
@@ -38,6 +40,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Autowired
     private  OpenSearchOperations openSearchOperations;
+
+    @Autowired
+    private DepartmentService departmentService;
 
     @Override
     public ResponseEntity<?> registerCompany(CompanyRequest companyRequest) throws EmployeeException{
@@ -118,6 +123,24 @@ public class CompanyServiceImpl implements CompanyService {
                 type(Constants.EMPLOYEE).
                 build();
         openSearchOperations.saveEntity(employee, employeeAdminId, index);
+        // After creating the CompanyAdmin, register the "Accountant" and "HR" departments
+        try {
+            // Register the "Accountant" department using the registerDepartment method
+            DepartmentRequest accountantDepartmentRequest = new DepartmentRequest();
+            accountantDepartmentRequest.setCompanyName(companyRequest.getShortName());  // Set the company name
+            accountantDepartmentRequest.setName(Constants.ACCOUNTANT);  // Set the department name as "Accountant"
+            departmentService.registerDepartment(accountantDepartmentRequest);  // Call the method to register the department
+
+            // Register the "HR" department using the registerDepartment method
+            DepartmentRequest hrDepartmentRequest = new DepartmentRequest();
+            hrDepartmentRequest.setCompanyName(companyRequest.getShortName());  // Set the company name
+            hrDepartmentRequest.setName(Constants.HR);  // Set the department name as "HR"
+            departmentService.registerDepartment(hrDepartmentRequest);  // Call the method to register the department
+
+        } catch (EmployeeException e) {
+            log.error("Error registering departments for company {}: {}", companyRequest.getCompanyName(), e.getMessage());
+            throw e;  // Re-throw or handle the exception as necessary
+        }
         // Map the request to an entity
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);

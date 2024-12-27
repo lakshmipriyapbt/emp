@@ -367,6 +367,13 @@ const CompanyRegistration = () => {
     return true; // Return true if all checks pass
   };
 
+  const handlePaste = (e) => {
+    const pastedText = e.clipboardData.getData('Text');
+    const sanitizedText = pastedText.replace(/[^A-Za-z0-9]/g, ''); // Keep only alphanumeric characters
+    e.preventDefault(); // Prevent the default paste action
+    e.target.value = sanitizedText; // Insert the sanitized text back into the input
+  };
+
   const validateCIN = (value) => {
     const spaceError = "Spaces are not allowed in the CIN Number.";
     const patternError = "Invalid CIN Number format";
@@ -468,7 +475,7 @@ const CompanyRegistration = () => {
     }
   
     // Validate special characters and alphanumeric characters
-    const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!]*$/;
+    const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!:;]*$/;
     if (!validCharsRegex.test(value)) {
       return "Invalid characters used. Only alphabets, numbers, and special characters (, . ' - / & @ # $ ( ) *) are allowed.";
     }
@@ -640,7 +647,7 @@ const CompanyRegistration = () => {
                           },
                           maxLength: {
                             value: 200,
-                            message: "Maximum 2 Characters Required",
+                            message: "Maximum 200 Characters Required",
                           },
                         })}
                         disabled={editMode}
@@ -694,6 +701,7 @@ const CompanyRegistration = () => {
                         autoComplete="off"
                         //onInput={toInputEmailCase}
                         onKeyDown={handleEmailChange}
+                        onPaste={handlePaste}
                         {...register("emailId", {
                           required: "Company Email Id is Required",
                           pattern: {
@@ -719,7 +727,7 @@ const CompanyRegistration = () => {
                           <input
                             type="tel"
                             className="form-control"
-                            placeholder="Enter Personal Mobile Number"
+                            placeholder="Enter Mobile Number"
                             autoComplete="off"
                             maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
                             defaultValue="+91 " // Set the initial value to +91 with a space
@@ -775,6 +783,7 @@ const CompanyRegistration = () => {
                               placeholder="Enter Password"
                               onChange={handlePasswordChange}
                               autoComplete="off"
+                              onPaste={handlePaste}
                               onKeyDown={handleEmailChange}
                               type={passwordShown ? "text" : "password"}
                               {...register("password", {
@@ -929,7 +938,7 @@ const CompanyRegistration = () => {
                           required: "Company Address is Required",
                           pattern: {
                             value:
-                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/]*$/,
+                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
                             message: "Please enter valid Address",
                           },
                           minLength: {
@@ -983,6 +992,7 @@ const CompanyRegistration = () => {
                             onInput={toInputSpaceCase}
                             autoComplete="off"
                             maxLength={21}
+                            onPaste={handlePaste}
                             {...register("cinNo", {
                               required: "Company CIN Number is Required",
                               maxLength: {
@@ -1015,6 +1025,7 @@ const CompanyRegistration = () => {
                             placeholder="Enter Company Registration Number"
                             autoComplete="off"
                             maxLength={21}
+                            onPaste={handlePaste}
                             {...register("companyRegNo", {
                               required:
                                 "Company Registration Number is Required",
@@ -1049,6 +1060,7 @@ const CompanyRegistration = () => {
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
                         maxLength={15}
+                        onPaste={handlePaste} 
                         {...register("gstNo", {
                           required: "Company GST Number is Required",
                           maxLength: {
@@ -1076,6 +1088,7 @@ const CompanyRegistration = () => {
                         placeholder="Enter Company PAN Number"
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
+                        onPaste={handlePaste}
                         maxLength={10}
                         {...register("panNo", {
                           required: "Company PAN Number is Required",
@@ -1125,7 +1138,7 @@ const CompanyRegistration = () => {
                           required: "Name is Required",
                           minLength: {
                             value: 3,
-                            message: "Minimun 3 characters Required",
+                            message: "Minimum 3 characters Required",
                           },
                           maxLength: {
                             value: 100,
@@ -1153,6 +1166,7 @@ const CompanyRegistration = () => {
                         placeholder="Enter Personal Email Id"
                         autoComplete="off"
                         // onInput={toInputEmailCase}
+                        onPaste={handlePaste}
                         onKeyDown={handleEmailChange}
                         {...register("personalMailId", {
                           required: "Personal Email Id is Required",
@@ -1235,7 +1249,7 @@ const CompanyRegistration = () => {
                           required: "Address is Required",
                           pattern: {
                             value:
-                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/]*$/,
+                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
                             message: "Please enter valid Address",
                           },
                           minLength: {

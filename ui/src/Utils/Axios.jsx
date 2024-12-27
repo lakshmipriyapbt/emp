@@ -266,13 +266,17 @@ export const EmployeeSalaryDeleteApiById = (employeeId, salaryId) => {
   return axiosInstance.delete(`/${company}/employee/${employeeId}/salary/${salaryId}`);
 }
 
-export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
-  return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);
-}
+  export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
+    return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);
+  }
 
-export const EmployeePayslipResponse = (data) => {
-  return axiosInstance.post("/payslip", data);
-}
+export const EmployeePayslipResponse = (salaryId, data) => {
+  // Build the query string manually if salaryId is present
+  const url = salaryId ? `/payslip?salaryId=${salaryId}` : '/payslip';
+
+  // Make the axios request
+  return axiosInstance.post(url, data);
+};
 
 export const EmployeePayslipGeneration = (data) => {
   return axiosInstance.post("/salary", data);

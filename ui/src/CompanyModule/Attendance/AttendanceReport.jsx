@@ -218,7 +218,6 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => `${row.firstName} ${row.lastName}`,
-      sortable: true,
     },
     {
       name: (
@@ -227,7 +226,6 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.emailId,
-      sortable: true,
     },
     {
       name: (
@@ -236,7 +234,6 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.month,
-      sortable: true,
     },
     {
       name: (
@@ -245,7 +242,6 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.year,
-      sortable: true,
     },
     {
       name: (

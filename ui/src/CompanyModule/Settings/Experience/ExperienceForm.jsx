@@ -41,8 +41,12 @@ const ExperienceForm = () => {
 
   const validateExperienceDate = (value) => {
     const dateOfHiring = new Date(watch("dateOfHiring"));
-    const relievingDate = new Date(value);
-    if (relievingDate < dateOfHiring) {
+    const experienceDate = new Date(value);
+    const today = new Date();
+    if (experienceDate > today) {
+      return "Experience Date cannot be in the Future";
+    }  
+    if (experienceDate < dateOfHiring) {
       return "Experience Date must be after Date of Hired.";
     }
     return true;
@@ -244,6 +248,14 @@ const ExperienceForm = () => {
   nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
   const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
 
+  const getCurrentDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = (today.getMonth() + 1).toString().padStart(2, '0');
+    const dd = today.getDate().toString().padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   // Render loading message or template not available message
   if (!templateAvailable) {
     return (
@@ -390,17 +402,10 @@ const ExperienceForm = () => {
                       <Controller
                         name="experienceDate"
                         control={control}
-                        max={sixMonthsFromNow}
+                        // max={sixMonthsFromNow}
                         rules={{
                           required: "Experience Date is required",
-                          validate: (value) => {
-                            const today = new Date();
-                            const selectedDate = new Date(value);
-                            if (selectedDate < today) {
-                              return "Experience Date cannot be in the past"; // Custom validation message
-                            }
-                            return true; // No error, validation passed
-                          },
+                          validate: validateExperienceDate,
                         }}
                         render={({ field }) => (
                           <input
@@ -408,6 +413,8 @@ const ExperienceForm = () => {
                             type="date"
                             className="form-control"
                             placeholder="Last Working Date"
+                            max={getCurrentDate()}
+
                           />
                         )}
                       />

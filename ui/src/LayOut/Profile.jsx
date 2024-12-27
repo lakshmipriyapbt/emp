@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Modal, Button, ModalHeader, ModalTitle, ModalBody, ModalFooter } from "react-bootstrap";
+import {
+  Modal,
+  Button,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+  ModalFooter,
+} from "react-bootstrap";
 import LayOut from "./LayOut";
 import { CameraFill } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CompanyImagePatchApi, companyUpdateByIdApi, companyViewByIdApi } from "../Utils/Axios";
+import {
+  CompanyImagePatchApi,
+  companyUpdateByIdApi,
+  companyViewByIdApi,
+} from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
 
 function Profile() {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({ mode: "onChange" });
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({ mode: "onChange" });
   const [companyData, setCompanyData] = useState({});
   const [postImage, setPostImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -23,7 +39,6 @@ function Profile() {
   const [hasCinNo, setHasCinNo] = useState(false);
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
 
-
   useEffect(() => {
     const fetchCompanyData = async () => {
       if (!user.companyId) return;
@@ -34,7 +49,7 @@ function Profile() {
         setCompanyData(data);
 
         // Set form values
-        Object.keys(data).forEach(key => setValue(key, data[key]));
+        Object.keys(data).forEach((key) => setValue(key, data[key]));
 
         // Determine CIN and Registration number presence
         setHasCinNo(!!data.cinNo);
@@ -47,7 +62,6 @@ function Profile() {
     fetchCompanyData();
   }, [user.companyId, setValue, setError]);
 
-
   const handleDetailsSubmit = async (data) => {
     if (!user.companyId) return;
     const updateData = {
@@ -57,7 +71,7 @@ function Profile() {
       name: data.name,
       personalMailId: data.personalMailId,
       personalMobileNo: data.personalMobileNo,
-      address: data.address
+      address: data.address,
     };
     try {
       // Attempt to update company details
@@ -99,15 +113,15 @@ function Profile() {
       setPostImage(null);
       setSuccessMessage("Logo updated successfully.");
       toast.success("Company Logo Updated Successfully");
-      setErrorMessage('');
-      setImgError(''); // Clear image error if everything goes fine
+      setErrorMessage("");
+      setImgError(""); // Clear image error if everything goes fine
       closeModal();
       setTimeout(() => {
         window.location.href = "/main";
       }, 2000);
     } catch (err) {
       console.error("Logo update error:", err);
-      setSuccessMessage('');
+      setSuccessMessage("");
       toast.error("Failed To Update Logo");
       setError(err);
     }
@@ -125,32 +139,31 @@ function Profile() {
 
   const onChangePicture = (e) => {
     const file = e.target.files[0]; // Get the selected file
-  
+
     // Check if no file is selected
     if (!file) {
       setImgError("No file selected.");
       return; // Stop processing if no file is selected
     }
-  
+
     // Check file size (limit to 200KB)
     if (file.size > 200 * 1024) {
       setImgError("File size must be less than 200KB.");
       return; // Stop further processing if size exceeds limit
     }
-  
+
     // Check file type (valid image types and PDF)
     const validTypes = ["image/png", "image/jpeg", "image/svg+xml"];
     if (!validTypes.includes(file.type)) {
       setImgError("Only .png, .jpg, .jpeg, .svg files are allowed.");
       return; // Stop further processing if the type is invalid
     }
-  
+
     // If the file is valid, clear previous errors and update the state
-    setImgError(''); // Clear error messages
+    setImgError(""); // Clear error messages
     setPostImage(file); // Store the selected file
     console.log("File is valid and ready for upload:", file);
   };
-  
 
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
@@ -188,30 +201,34 @@ function Profile() {
     e.target.value = newValue;
   };
 
-
   const toInputTitleCase = (e) => {
     const input = e.target;
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
     // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
+    value = value.replace(/^\s+/g, "");
     // Ensure only alphabets and spaces are allowed
     const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
-    value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
     // Capitalize the first letter of each word
-    const words = value.split(' ');
+    const words = value.split(" ");
     // Capitalize the first letter of each word and lowercase the rest
-    const capitalizedWords = words.map(word => {
+    const capitalizedWords = words.map((word) => {
       if (word.length > 0) {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       }
-      return '';
+      return "";
     });
     // Join the words back into a string
-    let formattedValue = capitalizedWords.join(' ');
+    let formattedValue = capitalizedWords.join(" ");
     // Remove spaces not allowed (before the first two characters)
     if (formattedValue.length > 2) {
-      formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
+      formattedValue =
+        formattedValue.slice(0, 2) +
+        formattedValue.slice(2).replace(/\s+/g, " ");
     }
     // Update input value
     input.value = formattedValue;
@@ -233,7 +250,11 @@ function Profile() {
   function handlePhoneNumberKeyDown(event) {
     let value = event.target.value;
     // Prevent backspace if the cursor is before the "+91 "
-    if (event.key === "Backspace" && value.startsWith("+91 ") && event.target.selectionStart <= 4) {
+    if (
+      event.key === "Backspace" &&
+      value.startsWith("+91 ") &&
+      event.target.selectionStart <= 4
+    ) {
       event.preventDefault(); // Prevent the backspace if it's before the "+91 "
     }
     // Prevent multiple spaces after +91
@@ -247,7 +268,7 @@ function Profile() {
     let value = input.value;
 
     // Remove all spaces from the input
-    value = value.replace(/\s+/g, '');
+    value = value.replace(/\s+/g, "");
 
     // If the first character is not lowercase, make it lowercase
     if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
@@ -263,26 +284,26 @@ function Profile() {
     let value = input.value;
 
     // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
+    value = value.replace(/^\s+/g, "");
 
     // Initially disallow spaces if there are no non-space characters
     if (!/\S/.test(value)) {
       // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, '');
+      value = value.replace(/\s+/g, "");
     } else {
       // Convert the entire string to lowercase
       value = value.toLowerCase();
 
       // Remove leading spaces
-      value = value.replace(/^\s+/g, '');
+      value = value.replace(/^\s+/g, "");
 
       // Capitalize the first letter of each word
-      const words = value.split(' ');
-      const capitalizedWords = words.map(word => {
+      const words = value.split(" ");
+      const capitalizedWords = words.map((word) => {
         return word.charAt(0).toLowerCase() + word.slice(1);
       });
 
-      value = capitalizedWords.join(' ');
+      value = capitalizedWords.join(" ");
     }
 
     // Update input value
@@ -294,27 +315,32 @@ function Profile() {
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
     // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
+    value = value.replace(/^\s+/g, "");
     // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/
-    value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
+    const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
 
     // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
-    const words = value.split(' ');
-    const capitalizedWords = words.map(word => {
+    const words = value.split(" ");
+    const capitalizedWords = words.map((word) => {
       if (word.length > 0) {
         // Capitalize the first letter, but leave the middle of the word intact
         return word.charAt(0).toUpperCase() + word.slice(1);
       }
-      return '';
+      return "";
     });
 
     // Join the words back into a string
-    let formattedValue = capitalizedWords.join(' ');
+    let formattedValue = capitalizedWords.join(" ");
 
     // Remove spaces not allowed (before the first two characters)
     if (formattedValue.length > 2) {
-      formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
+      formattedValue =
+        formattedValue.slice(0, 2) +
+        formattedValue.slice(2).replace(/\s+/g, " ");
     }
 
     // Update input value
@@ -330,18 +356,18 @@ function Profile() {
     } else if (/\s$/.test(value)) {
       return "Spaces at the end are not allowed."; // Trailing space error
     }
-  
+
     // Check for multiple spaces between words
     if (/\s{2,}/.test(value)) {
       return "No multiple spaces between words allowed."; // Multiple spaces error
     }
-  
+
     // Validate special characters and alphanumeric characters
     const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!]*$/;
     if (!validCharsRegex.test(value)) {
       return "Invalid characters used. Only alphabets, numbers, and special characters (, . ' - / & @ # $ ( ) *) are allowed.";
     }
-  
+
     return true; // Return true if all conditions are satisfied
   };
 
@@ -355,7 +381,9 @@ function Profile() {
           <div className="col-12">
             <div className="card">
               <div className="card-header">
-                <h5 className="card-title" style={{ marginBottom: "0px" }}>Add Company Logo</h5>
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                  Add Company Logo
+                </h5>
               </div>
               <div className="card-body">
                 <div className="row">
@@ -376,11 +404,11 @@ function Profile() {
                         }}
                       >
                         <CameraFill />
-
                       </div>
-
                     </div>
-                    <span className="text-info align-start">Max-Size=200 KB </span>
+                    <span className="text-info align-start">
+                      Max-Size=200 KB{" "}
+                    </span>
                   </div>
                   <div className="col-12 col-md-6 mb-3">
                     {logoFileName && (
@@ -404,13 +432,20 @@ function Profile() {
             <div className="col-12">
               <div className="card">
                 <div className="card-header ">
-                  <h5 className="card-title" style={{ marginBottom: "0px" }}>Company Details</h5>
-                  <div className="dropdown-divider" style={{ borderTopColor: "#d7d9dd" }} />
+                  <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                    Company Details
+                  </h5>
+                  <div
+                    className="dropdown-divider"
+                    style={{ borderTopColor: "#d7d9dd" }}
+                  />
                 </div>
                 <div className="card-body">
                   <div className="row">
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label htmlFor="companyName" className="form-label">Company Name</label>
+                      <label htmlFor="companyName" className="form-label">
+                        Company Name
+                      </label>
                       <input
                         type="text"
                         id="companyName"
@@ -421,9 +456,7 @@ function Profile() {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Service Name
-                      </label>
+                      <label className="form-label">Service Name</label>
                       <input
                         type="text"
                         id="shortName"
@@ -461,7 +494,10 @@ function Profile() {
                             },
                             notRepeatingDigits: (value) => {
                               const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return !isRepeating || "Alternate Number cannot consist of the same digit repeated.";
+                              return (
+                                !isRepeating ||
+                                "Alternate Number cannot consist of the same digit repeated."
+                              );
                             },
                           },
                           pattern: {
@@ -505,7 +541,10 @@ function Profile() {
                             },
                             notRepeatingDigits: (value) => {
                               const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return !isRepeating || "Contact Number cannot consist of the same digit repeated.";
+                              return (
+                                !isRepeating ||
+                                "Contact Number cannot consist of the same digit repeated."
+                              );
                             },
                           },
                           pattern: {
@@ -519,7 +558,10 @@ function Profile() {
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label htmlFor="emailId" className="form-label"> Company Email Id</label>
+                      <label htmlFor="emailId" className="form-label">
+                        {" "}
+                        Company Email Id
+                      </label>
                       <input
                         type="email"
                         className="form-control"
@@ -529,7 +571,8 @@ function Profile() {
                         {...register("emailId", {
                           required: "Company Email Id is Required",
                           pattern: {
-                            value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                            value:
+                              /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
                             message: "Invalid email format",
                           },
                         })}
@@ -554,9 +597,9 @@ function Profile() {
                         {...register("companyAddress", {
                           required: "Company Address is Required",
                           pattern: {
-                            value: /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.()^\-/]*$/,
-                            message:
-                              "Please enter valid Address",
+                            value:
+                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.()^\-/]*$/,
+                            message: "Please enter valid Address",
                           },
                           minLength: {
                             value: 3,
@@ -566,7 +609,7 @@ function Profile() {
                             value: 200,
                             message: "Maximum 200 Characters allowed",
                           },
-                          validate:validateAddress
+                          validate: validateAddress,
                         })}
                       />
                       {errors.companyAddress && (
@@ -583,15 +626,22 @@ function Profile() {
               <div className="col-12">
                 <div className="card">
                   <div className="card-header">
-                    <h5 className="card-title" style={{ marginBottom: "0px" }}>Company Registration Details</h5>
-                    <div className="dropdown-divider" style={{ borderTopColor: "#d7d9dd" }} />
+                    <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                      Company Registration Details
+                    </h5>
+                    <div
+                      className="dropdown-divider"
+                      style={{ borderTopColor: "#d7d9dd" }}
+                    />
                   </div>
                   <div className="card-body">
                     <div className="row">
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
                         {hasCinNo ? (
                           <>
-                            <label className="form-label">Company CIN Number</label>
+                            <label className="form-label">
+                              Company CIN Number
+                            </label>
                             <input
                               type="text"
                               id="cinNo"
@@ -603,7 +653,9 @@ function Profile() {
                           </>
                         ) : hasCompanyRegNo ? (
                           <>
-                            <label className="form-label">Company Registration Number</label>
+                            <label className="form-label">
+                              Company Registration Number
+                            </label>
                             <input
                               type="text"
                               id="companyRegNo"
@@ -646,8 +698,13 @@ function Profile() {
               <div className="col-12">
                 <div className="card">
                   <div className="card-header">
-                    <h5 className="card-title" style={{ marginBottom: "0px" }}>Authorized Details</h5>
-                    <div className="dropdown-divider" style={{ borderTopColor: "#d7d9dd" }} />
+                    <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                      Authorized Details
+                    </h5>
+                    <div
+                      className="dropdown-divider"
+                      style={{ borderTopColor: "#d7d9dd" }}
+                    />
                   </div>
                   <div className="card-body">
                     <div className="row">
@@ -659,15 +716,15 @@ function Profile() {
                           type="text"
                           className="form-control"
                           placeholder="Enter Name"
-                          onKeyDown={handleEmailChange}
-                          onInput={toInputTitleCase}
+                          onKeyDown={handleEmailChange} // Prevent space key
+                          onInput={toInputTitleCase} // Handle case conversion and trim spaces
                           maxLength={100}
                           autoComplete="off"
                           {...register("name", {
                             required: "Name is Required",
                             minLength: {
                               value: 3,
-                              message: "Minimun 3 characters Required",
+                              message: "Minimum 3 characters Required",
                             },
                             maxLength: {
                               value: 100,
@@ -676,6 +733,15 @@ function Profile() {
                             pattern: {
                               value: /^[a-zA-Z\s]*$/,
                               message: "Name should contain only alphabets",
+                            },
+                            validate: {
+                              noTrailingSpaces: (value) => {
+                                // Custom validation to check if there's a trailing space
+                                if (value.trim() !== value) {
+                                  return "Spaces at the end are not allowed.";
+                                }
+                                return true;
+                              },
                             },
                           })}
                         />
@@ -686,7 +752,8 @@ function Profile() {
                       <div className="col-lg-1"></div>
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
                         <label className="form-label">
-                          Personal Email Id <span style={{ color: "red" }}>*</span>
+                          Personal Email Id{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <input
                           type="email"
@@ -698,7 +765,8 @@ function Profile() {
                           {...register("personalMailId", {
                             required: "Personal Email Id is Required",
                             pattern: {
-                              value: /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                              value:
+                                /^(?![0-9]+@)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
                               message: "Invalid Email Format ",
                             },
                           })}
@@ -711,7 +779,8 @@ function Profile() {
                       </div>
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
                         <label className="form-label">
-                          Personal Mobile Number <span style={{ color: "red" }}>*</span>
+                          Personal Mobile Number{" "}
+                          <span style={{ color: "red" }}>*</span>
                         </label>
                         <input
                           type="tel"
@@ -739,7 +808,10 @@ function Profile() {
                               },
                               notRepeatingDigits: (value) => {
                                 const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                                return !isRepeating || "Personal Mobile Number cannot consist of the same digit repeated.";
+                                return (
+                                  !isRepeating ||
+                                  "Personal Mobile Number cannot consist of the same digit repeated."
+                                );
                               },
                             },
                             pattern: {
@@ -760,34 +832,34 @@ function Profile() {
                           Address <span style={{ color: "red" }}>*</span>
                         </label>
                         <textarea
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Address"
-                        autoComplete="off"
-                        onInput={toInputAddressCase}
-                        onKeyDown={handleEmailChange}
-                        maxLength={200}
-                        {...register("address", {
-                          required: "Address is Required",
-                          pattern: {
-                            value: /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.()^\-/]*$/,
-                            message:
-                              "Please enter valid Address",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 Characters allowed",
-                          },
-                          maxLength: {
-                            value: 200,
-                            message: "Maximum 200 Characters allowed",
-                          },
-                          validate:validateAddress
-                        })}
-                      />
-                      {errors.address && (
-                        <p className="errorMsg">{errors.address.message}</p>
-                      )}
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter Address"
+                          autoComplete="off"
+                          onInput={toInputAddressCase}
+                          onKeyDown={handleEmailChange}
+                          maxLength={200}
+                          {...register("address", {
+                            required: "Address is Required",
+                            pattern: {
+                              value:
+                                /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.()^\-/]*$/,
+                              message: "Please enter valid Address",
+                            },
+                            minLength: {
+                              value: 3,
+                              message: "Minimum 3 Characters allowed",
+                            },
+                            maxLength: {
+                              value: 200,
+                              message: "Maximum 200 Characters allowed",
+                            },
+                            validate: validateAddress,
+                          })}
+                        />
+                        {errors.address && (
+                          <p className="errorMsg">{errors.address.message}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -803,8 +875,12 @@ function Profile() {
           </div>
         </form>
         {/* Modal for Logo Upload */}
-        < Modal show={showModal} onHide={handleCloseUploadImageModal} style={{ zIndex: "1050" }
-        } centered >
+        <Modal
+          show={showModal}
+          onHide={handleCloseUploadImageModal}
+          style={{ zIndex: "1050" }}
+          centered
+        >
           <ModalHeader closeButton>
             <ModalTitle>Upload Logo</ModalTitle>
           </ModalHeader>
@@ -815,18 +891,21 @@ function Profile() {
               accept=".png, .jpg, .svg, .jpeg,"
               onChange={onChangePicture}
             />
-            {errorMessage && <p className="text-danger pb-0" style={{marginLeft:"2%"}}>{errorMessage}</p>}
+            {errorMessage && (
+              <p className="text-danger pb-0" style={{ marginLeft: "2%" }}>
+                {errorMessage}
+              </p>
+            )}
           </ModalBody>
           <ModalFooter>
             <Button variant="secondary" onClick={handleCloseUploadImageModal}>
               Cancel
-
             </Button>
             <Button variant="primary" onClick={handleLogoSubmit}>
               Upload Logo
             </Button>
           </ModalFooter>
-        </Modal >
+        </Modal>
       </div>
     </LayOut>
   );

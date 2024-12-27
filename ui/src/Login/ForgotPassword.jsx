@@ -194,6 +194,13 @@ const ForgotPassword = () => {
     }
   };
 
+  const handlePaste = (e) => {
+    const pastedText = e.clipboardData.getData('Text');
+    const sanitizedText = pastedText.replace(/[^A-Za-z0-9]/g, ''); // Keep only alphanumeric characters
+    e.preventDefault(); // Prevent the default paste action
+    e.target.value = sanitizedText; // Insert the sanitized text back into the input
+  };
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -211,6 +218,7 @@ const ForgotPassword = () => {
                   placeholder='Enter Your Email Id'
                   className="form-control"
                   onKeyDown={handleEmailChange}
+                  onPaste={handlePaste}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
@@ -260,6 +268,7 @@ const ForgotPassword = () => {
                   placeholder='Enter OTP'
                   className="form-control"
                   onKeyDown={handleEmailChange}
+                  onPaste={handlePaste}
                   {...register('otp', {
                     required: 'OTP is required',
                     pattern: {
@@ -309,6 +318,7 @@ const ForgotPassword = () => {
                   type={passwordShown ? "text" : "password"}
                   className="form-control"
                   name='password'
+                  onPaste={handlePaste}
                   onKeyDown={handleEmailChange}
                   {...register("password", {
                     required: "Password is Required",
@@ -345,6 +355,7 @@ const ForgotPassword = () => {
                   type={confirmPasswordShown ? "text" : "password"}
                   className="form-control"
                   onKeyDown={handleEmailChange}
+                  onPaste={handlePaste}
                   name='confirmPassword'
                   {...register('confirmPassword', {
                     required: 'Confirm Password is required',

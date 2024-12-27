@@ -1245,7 +1245,7 @@ const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
                 onChange={() => setSelectedPF("calculated")}
               />
               <label className="mb-0">
-                Use Calculated PF: ₹
+                 Calculated PF: ₹
                 {calculatedPF.pfEmployee + calculatedPF.pfEmployer} per year
               </label>
             </div>
@@ -1260,7 +1260,7 @@ const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
                 onChange={() => setSelectedPF("fixed")}
               />
               <label className="mb-0 ml-2">
-                Use Calculated PF: ₹43,200 per year
+                 Calculated PF: ₹43,200 per year
                 <span
                   className="d-inline-block"
                   data-bs-toggle="tooltip"
@@ -1273,8 +1273,8 @@ const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
               </label>
             </div>
           </ModalBody>
-          <div className="text-center">
-            <Button variant="primary" className="ml-2" onClick={handleModalClose}>
+          <div style={{marginLeft:"58%"}}>
+            <Button variant="primary" className="ml-4" style={{marginRight:"10px"}} onClick={handleModalClose}>
               Confirm
             </Button>
             <Button variant="secondary" onClick={() => setShowPfModal(false)}>

@@ -808,6 +808,14 @@ const AddIncrement = () => {
     setShowFields(false);
   };
 
+  const getCurrentDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = (today.getMonth() + 1).toString().padStart(2, '0');
+    const dd = today.getDate().toString().padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   if (!templateAvailable) {
     return (
       <LayOut>
@@ -1483,6 +1491,7 @@ const AddIncrement = () => {
                                 <input
                                   type="date"
                                   className="form-control"
+                                  max={getCurrentDate()}
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation

@@ -84,6 +84,7 @@ public class LoginServiceImpl implements LoginService {
     public ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException {
         EmployeeEntity employee;
         Object entity = null;
+        DepartmentEntity department;
         try {
             employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
             if (employee != null && employee.getPassword() != null) {
@@ -121,6 +122,20 @@ public class LoginServiceImpl implements LoginService {
         if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
             roles.add(Constants.COMPANY_ADMIN);
         }
+        else {
+            department = openSearchOperations.getDepartmentById(employee.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
+
+            if (department != null) {
+                if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
+                    roles.add(Constants.ACCOUNTANT);
+                } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
+                    roles.add(Constants.HR);
+                }
+                else {
+                    roles.add(Constants.EMPLOYEE);
+                }
+            }
+        }
         token = JwtTokenUtil.generateEmployeeToken(employee.getId(), roles, request.getCompany(), request.getUsername());
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
@@ -150,10 +165,6 @@ public class LoginServiceImpl implements LoginService {
         log.info("OTP sent successfully....");//otp is send succesfully...
     }
 
-    /**
-     * @param loginRequest
-     * @return
-     */
     @Override
     public ResponseEntity<?> logout(OTPRequest loginRequest) {
         return null;
@@ -239,7 +250,6 @@ public class LoginServiceImpl implements LoginService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
-
     @Override
     public ResponseEntity<?> forgotPassword(EmployeePasswordRequest loginRequest) throws IdentityException {
         EmployeeEntity user ;
@@ -251,8 +261,6 @@ public class LoginServiceImpl implements LoginService {
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                         HttpStatus.NOT_FOUND);
             }
-
-
             Long otp = generateOtp();
             sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
             openSearchOperations.saveOtpToUser(user, otp, loginRequest.getCompany());
@@ -261,7 +269,6 @@ public class LoginServiceImpl implements LoginService {
             log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), ex);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_USERNAME),
                     HttpStatus.INTERNAL_SERVER_ERROR);
-
 
         }
         return new ResponseEntity<>(
@@ -299,12 +306,10 @@ public class LoginServiceImpl implements LoginService {
             user.setPassword(newPassword);
             openSearchOperations.updateEmployee(user,otpRequest.getCompany());
 
-
         } catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", otpRequest.getUsername(), ex);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_USERNAME),
                     HttpStatus.INTERNAL_SERVER_ERROR);
-
 
         }
         return new ResponseEntity<>(

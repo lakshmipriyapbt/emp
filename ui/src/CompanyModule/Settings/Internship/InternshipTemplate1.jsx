@@ -36,8 +36,8 @@ const InternshipTemplate1 = ({
       src={companyLogo}
       alt="Logo"
       style={{
-        height: "70px",
-        width: "160px",
+        height: "100px",
+        width: "300px",
         objectFit: "contain",   
       }}
     />

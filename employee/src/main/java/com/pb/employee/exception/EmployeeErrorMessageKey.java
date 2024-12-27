@@ -23,7 +23,7 @@ public enum EmployeeErrorMessageKey {
     EMPLOYEE_EMAILID_ALREADY_EXISTS("employee.emailid.already.exists"),
     UNABLE_SAVE_EMPLOYEE("unable.save.employee"),
     UNABLE_DELETE_EMPLOYEE("unable.delete.employee"),
-
+    UNABLE_SAVE_BANK_DETAILS("unable.save.bank.details"),
     UNABLE_GET_EMPLOYEES("unable.get.employee"),
     DEPARTMENT_ID_ALREADY_EXISTS("department.id.already.exists"),
     INVALID_DEPARTMENT("invalid.department"),
@@ -94,7 +94,12 @@ public enum EmployeeErrorMessageKey {
     INVALID_RELIVING("invalid.relieving"),
     INVALID_HIRING_DATE("invalid.hiring"),
     EXPERIENCE_DATE_NOT_VALID("experience.not.valid"),
-    INVALID_IMAGE("invalid.image");
+    INVALID_IMAGE("invalid.image"),
+    EMPTY_LOGO("company.logo"),
+    BANK_ALREADY_EXISTS("bank.already.exists"),
+    UNABLE_GET_BANK_DETAILS("unable.bank.details"),
+    INVALID_BANK_DETAILS("invalid.bank.details"),
+    UNABLE_DELETE_BANK_DETAILS("unable.delete.bank");
 
     private final String key;
 

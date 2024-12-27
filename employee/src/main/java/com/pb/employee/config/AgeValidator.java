@@ -20,7 +20,7 @@ public class AgeValidator implements ConstraintValidator<ValidAge, EmployeeReque
 
         int ageAtHiring = Period.between(dateOfBirth, dateOfHiring).getYears();
 
-        return ageAtHiring >= 20 && ageAtHiring <= 65;
+        return ageAtHiring >= 15 && ageAtHiring <= 80;
     }
 
 }

@@ -173,7 +173,7 @@ const ExperienceLetter = () => {
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
             <h1 className="h3 mb-3">
-              <strong>Expereince Templates</strong>
+              <strong>Experience Templates</strong>
             </h1>
           </div>
           <div className="col-auto" style={{ paddingBottom: "20px" }}>

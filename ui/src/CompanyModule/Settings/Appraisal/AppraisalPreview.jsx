@@ -79,8 +79,9 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
           basicSalary= {previewData.basicSalary}
          />
       ),
-    },
+    },    
   ], [companyData, logoFileName]);
+  
 
   const selectedTemplateContent = useMemo(() => {
     const template = templates.find(t => t.name === selectedTemplate);

@@ -124,11 +124,10 @@ public class PayslipController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
     public ResponseEntity<?> generateEmployeeAllPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                     @Parameter(required = true, description = "${api.salaryPayload.description}")
+                                                     @RequestParam(required = false, name = Constants.SALARY_ID) String salaryId,
                                                      @RequestBody @Valid PayslipRequest payslipRequest) throws EmployeeException, IOException {
-        return payslipService.generatePaySlipForEmployees(payslipRequest);
+        return payslipService.generatePaySlipForEmployees(salaryId,payslipRequest);
     }
-
 
     @RequestMapping(value = "/employee/{employeeId}/payslip/{payslipId}", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},

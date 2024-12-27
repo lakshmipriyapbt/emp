@@ -424,14 +424,14 @@ const EmployeeRegistration = () => {
     const selectedDateOfHiring = new Date(dateOfHiring); // Ensure this is a Date object
     // Calculate limits
     const minDateOfBirth = new Date(selectedDateOfHiring);
-    minDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 21); // 21 years ago from date of hiring
+    minDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 15); // 21 years ago from date of hiring
 
     const maxDateOfBirth = new Date(selectedDateOfHiring);
     maxDateOfBirth.setFullYear(selectedDateOfHiring.getFullYear() - 80); // 80 years ago from date of hiring
 
     // Validate against the limits
     if (selectedDateOfBirth > minDateOfBirth) {
-      return "Date of Birth must be at least 21 years before the Date of Joining.";
+      return "Date of Birth must be at least 15 years before the Date of Joining.";
     }
     if (selectedDateOfBirth < maxDateOfBirth) {
       return "Date of Birth must not exceed 80 years before the Date of Joining.";
@@ -547,7 +547,7 @@ const EmployeeRegistration = () => {
   const validateNumber = (value) => {
     // Check if the input is empty
     if (!value || value.trim().length === 0) {
-      return "Number is Required.";
+      return "UAN Number is Required.";
     }
 
     // Check if the value contains only digits
@@ -607,13 +607,13 @@ const EmployeeRegistration = () => {
         }
 
         // Check maximum word length
-        if (word.length > 100) {
-          return "Max Length 100 Characters Exceeded.";
+        if (word.length > 250) {
+          return "Max Length 250 Characters Exceeded.";
         }
       }
 
       if (/^\s|\s$/.test(value)) {
-        return "No Leading or Trailing Spaces Allowed.";
+        return "Spaces at the end are not allowed.";
       } else if (/\s{2,}/.test(value)) {
         return "No Multiple Spaces Between Words Allowed.";
       }
@@ -869,6 +869,14 @@ const EmployeeRegistration = () => {
                         onKeyDown={handleEmailChange}
                         {...register("firstName", {
                           required: "First Name is Required",
+                          minLength: {
+                            value: 3,
+                            message: "Mimimum 3 Characters Required."
+                          },
+                          maxLength: {
+                            value: 150,
+                            message: "Max lenght 150 Characters Exceeded.", // Maximum 150 characters
+                          },  
                           validate: {
                             validateFirstName,
                           },
@@ -1030,7 +1038,14 @@ const EmployeeRegistration = () => {
                         onKeyDown={handleEmailChange}
                         {...register("manager", {
                           required: "Manager is Required",
-
+                          minLength: {
+                            value: 3,
+                            message: "Mimimum 3 Characters Required."
+                          },
+                          maxLength: {
+                            value: 150,
+                            message: "Max lenght 150 Characters Exceeded.", // Maximum 150 characters
+                          },
                           validate: {
                             validateFirstName,
                           },
@@ -1062,8 +1077,8 @@ const EmployeeRegistration = () => {
                             message: "Minimum 3 Characters allowed",
                           },
                           maxLength: {
-                            value: 200,
-                            message: "Maximum 200 Characters allowed",
+                            value: 250,
+                            message: "Maximum 250 Characters allowed",
                           },
                         })}
                       />
@@ -1261,27 +1276,38 @@ const EmployeeRegistration = () => {
                         autoComplete="off"
                         {...register("accountNo", {
                           required: "Bank Account Number is Required",
-                          pattern: {
-                            value: /^\d{9,18}$/,
-                            message: "These fields accepts only Integers",
-                          },
                           minLength: {
                             value: 9,
-                            message:
-                              "Account Number Minimum 9 Numbers Required",
+                            message: "Account Number Minimum 9 Digits Required",
                           },
                           maxLength: {
                             value: 18,
-                            message:
-                              "Account Number must not exceed 18 Characters",
+                            message: "Account Number must not exceed 18 Digits",
                           },
                           validate: {
+                            // Check for trailing spaces first
+                            noTrailingSpaces: (value) => {
+                              const trimmedValue = value.trim(); // Removes leading/trailing spaces
+                              if (value !== trimmedValue) {
+                                return "Spaces at the end are not allowed"; // Custom message for trailing spaces
+                              }
+                              return true; // Return true if valid
+                            },
+                            // Check for repeating digits (check after the space validation)
                             notRepeatingDigits: (value) => {
                               const isRepeating = /^(\d)\1{9}$/.test(value); // Check for repeated digits
                               return (
                                 !isRepeating ||
                                 "Account Number cannot consist of the same digit repeated."
                               );
+                            },
+                            // Check if the value contains only digits and matches the pattern
+                            pattern: (value) => {
+                              const regex = /^\d{9,18}$/;
+                              if (!regex.test(value)) {
+                                return "Bank Account Number must only contain digits";
+                              }
+                              return true;
                             },
                           },
                         })}
@@ -1307,7 +1333,7 @@ const EmployeeRegistration = () => {
                         {...register("ifscCode", {
                           required: "Bank IFSC Code is Required",
                           pattern: {
-                            value: /^[A-Z]{4}0[A-Z0-9]{6}$/,
+                            value: /^[A-Z]{4}0[0-9]{6}$/,
                             message: "Please enter a valid IFSC code ",
                           },
                           maxLength: {

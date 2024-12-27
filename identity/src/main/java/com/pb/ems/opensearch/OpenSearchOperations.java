@@ -4,6 +4,7 @@ import com.pb.ems.exception.ErrorMessageHandler;
 import com.pb.ems.exception.IdentityErrorMessageKey;
 import com.pb.ems.exception.IdentityException;
 import com.pb.ems.model.CompanyEntity;
+import com.pb.ems.model.DepartmentEntity;
 import com.pb.ems.model.EmployeeEntity;
 import com.pb.ems.persistance.Entity;
 import com.pb.ems.util.Constants;
@@ -210,5 +211,19 @@ public class OpenSearchOperations {
             }
         }
         return subscriberEntities;
+    }
+    public DepartmentEntity getDepartmentById(String resourceId, String type, String index) throws IOException {
+        GetRequest getRequest = new GetRequest.Builder()
+                .id(resourceId)
+                .index(index)
+                .build();
+
+        GetResponse<DepartmentEntity> searchResponse = esClient.get(getRequest, DepartmentEntity.class);
+        if(searchResponse != null && searchResponse.source() != null){
+            if (searchResponse.source().getType().equals(Constants.DEPARTMENT)) {
+                return searchResponse.source();
+            }
+        }
+        return null;
     }
 }

@@ -231,7 +231,7 @@ const CompanySalaryStructure = () => {
       const filteredAllowances = allowancesData.filter(
         (allowance) => allowance !== "Provident Fund Employer"
       );
-  
+
       setAllowances(filteredAllowances);
       setAllowanceFields(
         filteredAllowances.map((allowance) => ({
@@ -331,26 +331,26 @@ const CompanySalaryStructure = () => {
 
     // Validation: Check if the total percentage for allowances exceeds 100%
     const totalAllowancePercentage = selectedAllowances
-    .map((field) => {
-      // Ensure the field exists before trying to access its properties
-      const foundField = allowanceFields.find((f) => f.label === field.label);
-      return foundField ? foundField : null; // If field is found, return it, otherwise return null
-    })
-    .filter((field) => field && field.value) // Ensure the field has a value
-    .reduce((total, field) => {
-      // Check if the field is Basic Salary or HRA and treat them as percentages
-      if (field.label === "Basic Salary" || field.label === "HRA") {
-        return total + (parseFloat(field.value) || 0); // Add the percentage directly if the value is numeric
-      } else if (field.type === "percentage") {
-        return total + parseFloat(field.value); // Add percentage values for other fields
-      }
-      return total;
-    }, 0);
-  
-  if (totalAllowancePercentage > 100) {
-    errors.totalAllowancePercentage =
-      "The total percentage for allowances cannot exceed 100%. Please Adjust";
-  }  
+      .map((field) => {
+        // Ensure the field exists before trying to access its properties
+        const foundField = allowanceFields.find((f) => f.label === field.label);
+        return foundField ? foundField : null; // If field is found, return it, otherwise return null
+      })
+      .filter((field) => field && field.value) // Ensure the field has a value
+      .reduce((total, field) => {
+        // Check if the field is Basic Salary or HRA and treat them as percentages
+        if (field.label === "Basic Salary" || field.label === "HRA") {
+          return total + (parseFloat(field.value) || 0); // Add the percentage directly if the value is numeric
+        } else if (field.type === "percentage") {
+          return total + parseFloat(field.value); // Add percentage values for other fields
+        }
+        return total;
+      }, 0);
+
+    if (totalAllowancePercentage > 100) {
+      errors.totalAllowancePercentage =
+        "The total percentage for allowances cannot exceed 100%. Please Adjust";
+    }
 
     // Validation: Check if the total percentage for deductions exceeds 100%
     const totalDeductionPercentage = selectedDeductions
@@ -405,8 +405,9 @@ const CompanySalaryStructure = () => {
 
       // Reset the form, navigate, or reload as needed
       reset();
-      navigate("/companySalaryView");
-      window.location.reload();
+      setTimeout(() => {
+        window.location.href = "/companySalaryView";
+      }, 2000);
     } catch (error) {
       if (error.response) {
         console.error("Error response from backend:", error.response.data);
@@ -761,7 +762,6 @@ const CompanySalaryStructure = () => {
                               !fieldCheckboxes.allowances[field.label] ||
                               !isEditing
                             }
-                            // Set maxLength conditionally for Basic Salary and HRA
                             maxLength={
                               field.label === "Basic Salary" ||
                               field.label === "HRA"
@@ -810,7 +810,10 @@ const CompanySalaryStructure = () => {
                           readOnly
                           value="Provident Fund Employee"
                           onChange={(e) =>
-                            handleLabelChange("Provident Fund Employee", e.target.value)
+                            handleLabelChange(
+                              "Provident Fund Employee",
+                              e.target.value
+                            )
                           }
                           placeholder="Label Name"
                           disabled={!isEditing}
@@ -831,12 +834,16 @@ const CompanySalaryStructure = () => {
                           className="form-control"
                           value={6}
                           onChange={(e) =>
-                            handleValueChange("Provident Fund Employee", e.target.value)
+                            handleValueChange(
+                              "Provident Fund Employee",
+                              e.target.value
+                            )
                           }
                           placeholder="Enter Value"
                           disabled={
-                            !fieldCheckboxes.deductions["Provident Fund Employee"] ||
-                            !isEditing
+                            !fieldCheckboxes.deductions[
+                              "Provident Fund Employee"
+                            ] || !isEditing
                           }
                         />
                       </div>
@@ -853,7 +860,10 @@ const CompanySalaryStructure = () => {
                           readOnly
                           value="Provident Fund Employer"
                           onChange={(e) =>
-                            handleLabelChange("Provident Fund Employer", e.target.value)
+                            handleLabelChange(
+                              "Provident Fund Employer",
+                              e.target.value
+                            )
                           }
                           placeholder="Label Name"
                           disabled={!isEditing}
@@ -874,12 +884,16 @@ const CompanySalaryStructure = () => {
                           className="form-control"
                           value={6}
                           onChange={(e) =>
-                            handleValueChange("Provident Fund Employer", e.target.value)
+                            handleValueChange(
+                              "Provident Fund Employer",
+                              e.target.value
+                            )
                           }
                           placeholder="Enter Value"
                           disabled={
-                            !fieldCheckboxes.deductions["Provident Fund Employer"] ||
-                            !isEditing
+                            !fieldCheckboxes.deductions[
+                              "Provident Fund Employer"
+                            ] || !isEditing
                           }
                         />
                       </div>
@@ -1030,9 +1044,7 @@ const CompanySalaryStructure = () => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <ModalHeader>
-                  <ModalTitle className="modal-title">
-                    Add New Field
-                  </ModalTitle>
+                  <ModalTitle className="modal-title">Add New Field</ModalTitle>
                   <button
                     type="button"
                     className="btn-close" // Bootstrap's close button class
@@ -1055,7 +1067,7 @@ const CompanySalaryStructure = () => {
                             {...register("fieldName", {
                               required: "Field name is required",
                               pattern: {
-                                value: /^[A-Za-z\s]+$/,
+                                value: /^[A-Za-z\s]+$/, // Only alphabetic characters and spaces allowed
                                 message:
                                   "This field accepts only alphabetic characters",
                               },
@@ -1064,8 +1076,18 @@ const CompanySalaryStructure = () => {
                                 message: "Minimum 2 characters required",
                               },
                               maxLength: {
-                                value: 20,
-                                message: "Maximum 20 characters required",
+                                value: 40,
+                                message: "Maximum 40 characters required",
+                              },
+                              validate: {
+                                // Custom validation for trailing spaces
+                                noTrailingSpaces: (value) => {
+                                  if (/\s$/.test(value)) {
+                                    // Check for spaces at the end
+                                    return "Spaces at the end are not allowed"; // Error message
+                                  }
+                                  return true; // Validation passes
+                                },
                               },
                             })}
                           />

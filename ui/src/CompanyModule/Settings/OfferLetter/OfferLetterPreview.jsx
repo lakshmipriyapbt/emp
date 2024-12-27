@@ -129,7 +129,7 @@ const OfferLetterPreview = () => {
 
   const calculateValues = () => {
     if (salaryStructures.length === 0) {
-      // toast.error("No salary structure available for calculation.");
+      toast.error("No salary structure available for calculation.");
       return;
     }
 
@@ -218,10 +218,7 @@ const OfferLetterPreview = () => {
         return acc + deductionAmount;
       },
       0
-    );
-    
-    console.log("Total Deductions: ", totalDeductions); // Log the total calculated deductions
-    
+    );    
     const netSalary = grossAmount - totalDeductions;
     console.log("Net Salary: ", netSalary); // Log the calculated net salary
 
