@@ -2,6 +2,7 @@ package com.invoice.controller;
 
 import com.invoice.exception.InvoiceException;
 import com.invoice.request.CustomerRequest;
+import com.invoice.request.CustomerUpdateRequest;
 import com.invoice.service.CustomerService;
 import com.invoice.util.Constants;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,13 +18,13 @@ import java.io.IOException;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/customer")
+@RequestMapping("/")
 public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
 
-    @PostMapping("")
+    @PostMapping("company/{companyId}/customer")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.createCustomer.tag}", description = "${api.createCustomer.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Customer created successfully")
@@ -31,44 +32,49 @@ public class CustomerController {
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
                                             @Parameter(required = true, description = "${api.createCustomerPayload.description}")
-                                            @RequestBody @Valid CustomerRequest customerRequest) throws InvoiceException {
-        return customerService.createCustomer(customerRequest);
+                                            @PathVariable String companyId,
+                                            @RequestBody @Valid CustomerRequest customerRequest) throws InvoiceException,IOException {
+        return customerService.createCustomer(companyId,customerRequest);
     }
 
-    @GetMapping("/{customerId}")
+    @GetMapping("company/{companyId}/customer/all")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getCustomer.tag}", description = "${api.getCustomer.description}")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer retrieved successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.createCustomerPayload.description}")
     public ResponseEntity<?> getCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                         @PathVariable String customerId) throws InvoiceException {
-        return customerService.getCustomer(customerId);
+                                         @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                         @PathVariable String companyId) throws InvoiceException,IOException {
+        return customerService.getCustomers(companyId);
     }
 
-    @GetMapping("/all")
+    @GetMapping("company/{companyId}/customer/{customerId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getAllCustomers.tag}", description = "${api.getAllCustomers.description}")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customers retrieved successfully")
-    public ResponseEntity<?> getAllCustomers(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                 @RequestHeader(Constants.AUTH_KEY) String authToken) throws InvoiceException {
-        return customerService.getAllCustomers();
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.createCustomerPayload.description}")
+    public ResponseEntity<?> getCustomerById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                             @PathVariable String companyId,
+                                             @PathVariable String customerId) throws InvoiceException,IOException {
+        return customerService.getCustomerById(companyId,customerId);
     }
 
-    @PatchMapping("/{customerId}")
+    @PatchMapping("company/{companyId}/customer/{customerId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.updateCustomer.tag}", description = "${api.updateCustomer.description}")
     @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer updated successfully")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.createCustomerPayload.description}")
     public ResponseEntity<?> updateCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                 @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                            @PathVariable String companyId,
                                             @PathVariable String customerId,
-                                            @RequestBody @Valid CustomerRequest customerRequest) throws InvoiceException, IOException {
-        return customerService.updateCustomer(customerId, customerRequest);
+                                            @RequestBody @Valid CustomerUpdateRequest customerRequest) throws InvoiceException, IOException {
+        return customerService.updateCustomer(companyId,customerId, customerRequest);
     }
 
-    @DeleteMapping("/{customerId}")
+    @DeleteMapping("company/{companyId}/customer/{customerId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.deleteCustomer.tag}", description = "${api.deleteCustomer.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer deleted successfully")
     public ResponseEntity<?> deleteCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                            @PathVariable String customerId) throws InvoiceException {
-        return customerService.deleteCustomer(customerId);
+                                            @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                            @PathVariable String companyId,
+                                            @PathVariable String customerId) throws InvoiceException,IOException {
+        return customerService.deleteCustomer(companyId,customerId);
     }
 }

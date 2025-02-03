@@ -1,6 +1,7 @@
 package com.invoice.request;
 
 import io.micrometer.common.lang.Nullable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -37,15 +38,17 @@ public class CustomerRequest {
     @Pattern(regexp = "^[A-Za-z0-9 \\-]{3,10}$", message = "{pinCode.format}")
     private String pinCode;
 
+    @Pattern(regexp = "^(Active|InActive)$", message = "{status.format}")
+    @NotBlank(message = "{status.notnull.message}")
+    private String status;
 
     @Nullable
+    @Pattern(regexp = "^$|[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}[Z]{1}[A-Z0-9]{1}$",
+            message = "{gstNo.invalid}")
     private String gstNo;
 
     @Nullable
     private String stateCode;
 
-    @NotBlank(message = "{customerCompany.notnull.message}")
-    @Size(min = 2, max = 100, message = "{customerCompany.size.message}")
-    private String customerCompany;
 }
 

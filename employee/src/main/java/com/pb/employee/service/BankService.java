@@ -15,9 +15,9 @@ public interface BankService {
 
     ResponseEntity<?> getAllBanksByCompanyId(String companyId) throws EmployeeException,IOException;
 
-    ResponseEntity<?> getBankDetailsById(String companyName, String id)throws EmployeeException;
+    ResponseEntity<?> getBankDetailsById(String companyId, String bankId)throws EmployeeException,IOException;
 
     ResponseEntity<?> updateBankById(String companyId,String bankId, BankUpdateRequest bankUpdateRequest)throws EmployeeException,IOException;
 
-    ResponseEntity<?> deleteBankById(String companyName, String bankId)throws EmployeeException;
+    ResponseEntity<?> deleteBankById(String companyId, String bankId)throws EmployeeException,IOException;
 }

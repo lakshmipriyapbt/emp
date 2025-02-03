@@ -13,7 +13,7 @@ import lombok.*;
 @JsonIgnoreProperties(ignoreUnknown = true)  // This will ignore unknown properties like "state"
 public class BankEntity implements Entity {
 
-    private String id;
+    private String bankId;
     private String companyId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String accountNumber;

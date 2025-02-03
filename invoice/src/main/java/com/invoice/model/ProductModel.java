@@ -19,16 +19,16 @@ import java.util.List;
 public class ProductModel {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productId;
+    private String productId;
 
     private String productName;
     private String productCost;
     private String service;
     private String hsnNo;
     private String gst;
-    private BigDecimal unitCost;
-
+    private String unitCost;
+    private String companyId;
+  
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderModel> orderModels;
 }

@@ -33,8 +33,9 @@ public class CompanyController {
     public ResponseEntity<?> registerCompany(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
                                              @Parameter(required = true, description = "${api.registerCompanyPayload.description}")
-                                             @RequestBody @Valid CompanyRequest companyRequest) throws EmployeeException {
-        return companyService.registerCompany(companyRequest);
+                                             @RequestBody @Valid CompanyRequest companyRequest,
+                                             HttpServletRequest request) throws EmployeeException {
+        return companyService.registerCompany(companyRequest,request);
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET)

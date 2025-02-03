@@ -24,34 +24,39 @@ public class TaxCalculatorUtils {
 
     public static double getNewTax(double salary) {
         double tax = 0;
+        double newSalary = salary - 75000;
 
-        if (salary <= 300000) {
-            // No tax for salary <= 300,000
-            return 0;
+        if (newSalary <= 300000) {
+            return 0; // No tax
+        } else if (newSalary <= 700000) {
+            tax += (newSalary - 300000) * 0.05;
+        } else if (newSalary <= 1000000) {
+            tax += (400000 * 0.05); // 3-7 lakh slab
+            tax += (newSalary - 700000) * 0.10;
+        } else if (newSalary <= 1200000) {
+            tax += (400000 * 0.05); // 3-7 lakh slab
+            tax += (300000 * 0.10); // 7-10 lakh slab
+            tax += (newSalary - 1000000) * 0.15;
+        } else if (newSalary <= 1500000) {
+            tax += (400000 * 0.05); // 3-7 lakh slab
+            tax += (300000 * 0.10); // 7-10 lakh slab
+            tax += (200000 * 0.15); // 10-12 lakh slab
+            tax += (newSalary - 1200000) * 0.20;
+        } else {
+            tax += (400000 * 0.05); // 3-7 lakh slab
+            tax += (300000 * 0.10); // 7-10 lakh slab
+            tax += (200000 * 0.15); // 10-12 lakh slab
+            tax += (300000 * 0.20); // 12-15 lakh slab
+            tax += (newSalary - 1500000) * 0.30;
         }
-        else if (salary <= 700000) {
-            // Tax for salary between 300,001 and 700,000 at 5%
-             tax = salary * 0.05;
-        }
-        else if (salary <= 1000000) {
-            // Tax for salary between 700,001 and 1,000,000 at 10%
-             tax = salary * 0.10;
-        }
-        else if (salary <= 1200000) {
-            // Tax for salary between 1,000,001 and 1,200,000 at 15%
-             tax = salary * 0.15;
-        }
-        else if (salary <= 1500000) {
-            // Tax for salary between 1,200,001 and 1,500,000 at 20%
-             tax= salary * 0.20;
-        }
-        else {
-            // Tax for salary above 1,500,000 at 30%
-             tax = salary * 0.30;
-        }
+
+        // Add additional 4% charge
+        tax += tax * 0.04;
 
         return tax;
     }
+
+
 
 
     public static double getPfTax(double salary) {

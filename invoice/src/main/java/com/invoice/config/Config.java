@@ -13,4 +13,5 @@ public class Config {
 
     private BigDecimal rate;
     private BigDecimal value;
+    private BigDecimal percent;
 }

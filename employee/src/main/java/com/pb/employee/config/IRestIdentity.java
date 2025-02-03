@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(url = "${identity.service.baseUrl}", name = "identity")
+@FeignClient(url = "${identity.service.baseUrl}", name = "identity", configuration = FeignSslClientConfig.class)
 public interface IRestIdentity {
 
     @PostMapping(value = "/token/validate", produces = MediaType.APPLICATION_JSON_VALUE)

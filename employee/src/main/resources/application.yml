@@ -13,6 +13,17 @@ spring:
     proxy-target-class: true
   main:
     allow-circular-references: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: pbtjava@gmail.com
+    password: jcnsrxqjifkrvqxl
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
     # Multipart configuration
     servlet:
       multipart:

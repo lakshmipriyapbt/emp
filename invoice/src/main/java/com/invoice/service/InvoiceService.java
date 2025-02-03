@@ -5,17 +5,15 @@ import com.invoice.request.InvoiceRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+
 public interface InvoiceService {
 
-    ResponseEntity<?> saveInvoice(InvoiceRequest request) throws InvoiceException;
+    ResponseEntity<?> generateInvoice(String companyId,String customerId,InvoiceRequest request) throws InvoiceException, IOException;
 
-    ResponseEntity<?> getInvoice(String invoiceId) throws InvoiceException;
+    ResponseEntity<?> getInvoiceById(String companyId,String customerId,String invoiceId)throws InvoiceException, IOException;
 
-    ResponseEntity<?> getAllInvoices() throws InvoiceException;
+    ResponseEntity<?> getCustomerAllInvoices(String companyId,String customerId) throws InvoiceException, IOException;
 
-    ResponseEntity<?> updateInvoice(String invoiceId, InvoiceRequest request) throws InvoiceException;
-
-    ResponseEntity<?> deleteInvoice(String invoiceId) throws InvoiceException;
-
-    ResponseEntity<?> generateInvoice(String invoiceId, HttpServletRequest request) throws InvoiceException;
+    ResponseEntity<?> getCompanyAllInvoices(String companyId) throws InvoiceException, IOException;
 }

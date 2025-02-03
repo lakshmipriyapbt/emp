@@ -7,13 +7,13 @@ import java.io.IOException;
 
 public interface ProductService {
 
-    ResponseEntity<?> createProduct(ProductRequest productRequest) throws InvoiceException;
+    ResponseEntity<?> createProduct(String companyId,ProductRequest productRequest) throws InvoiceException, IOException;
 
-    ResponseEntity<?> getProduct(String productId) throws InvoiceException;
+    ResponseEntity<?> getProductById(String companyId,String productId) throws InvoiceException, IOException;
 
-    ResponseEntity<?> getAllProducts() throws InvoiceException;
+    ResponseEntity<?> getAllProductsByCompanyId(String companyId) throws InvoiceException, IOException;
 
-    ResponseEntity<?> deleteProduct(String productId) throws InvoiceException;
+    ResponseEntity<?> deleteProduct(String companyId,String productId) throws InvoiceException;
 
-    ResponseEntity<?> updateProduct(String productId, ProductRequest productRequest) throws IOException, InvoiceException;
+    ResponseEntity<?> updateProduct(String companyId,String productId, ProductRequest productRequest) throws IOException, InvoiceException;
 }

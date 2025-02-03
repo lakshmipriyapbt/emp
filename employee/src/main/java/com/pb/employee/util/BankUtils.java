@@ -46,7 +46,7 @@ public class BankUtils {
         ObjectMapper objectMapper = new ObjectMapper();
 
         BankEntity bankEntity = objectMapper.convertValue(bankRequest, BankEntity.class);
-        bankEntity.setId(resourceId); // Set the resource ID
+        bankEntity.setBankId(resourceId); // Set the resource ID
         bankEntity.setCompanyId(companyId); // Associate with the company
         bankEntity.setAccountNumber(accountNumber); // Set the masked account number
         bankEntity.setIfscCode(ifscCode); // Set the masked IFSC code
@@ -96,52 +96,40 @@ public class BankUtils {
         return bankEntity;
     }
 
-    public static void unmaskBankProperties(BankEntity bankEntityDb) {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public static BankEntity unmaskBankProperties(BankEntity bankEntity) {
+        // Declare unmasked variables
+            String accountNumber = null, accountType = null, bankName = null,
+                    branch = null, ifscCode = null, address = null;
 
-        BankEntity bankEntity = objectMapper.convertValue(bankEntityDb,BankEntity.class);
-
-        // Unmask the sensitive fields by decoding them from Base64
+            // Unmasking the properties by decoding the Base64 encoded values
             if (bankEntity.getAccountNumber() != null) {
-                String decodedAccountNumber = decodeBase64(bankEntity.getAccountNumber());
-                bankEntity.setAccountNumber(decodedAccountNumber);
+                accountNumber = new String(Base64.getDecoder().decode(bankEntity.getAccountNumber()));
             }
-
-            if (bankEntity.getIfscCode() != null) {
-                String decodedIfscCode = decodeBase64(bankEntity.getIfscCode());
-                bankEntity.setIfscCode(decodedIfscCode);
-            }
-
-            if (bankEntity.getAddress() != null) {
-                String decodedAddress = decodeBase64(bankEntity.getAddress());
-                bankEntity.setAddress(decodedAddress);
-            }
-
             if (bankEntity.getAccountType() != null) {
-                String decodedAccountType = decodeBase64(bankEntity.getAccountType());
-                bankEntity.setAccountType(decodedAccountType);
+                accountType = new String(Base64.getDecoder().decode(bankEntity.getAccountType()));
             }
-
-            if (bankEntity.getBranch() != null) {
-                String decodedBranch = decodeBase64(bankEntity.getBranch());
-                bankEntity.setBranch(decodedBranch);
-            }
-
             if (bankEntity.getBankName() != null) {
-                String decodedBankName = decodeBase64(bankEntity.getBankName());
-                bankEntity.setBankName(decodedBankName);
+                bankName = new String(Base64.getDecoder().decode(bankEntity.getBankName()));
             }
-    }
+            if (bankEntity.getBranch() != null) {
+                branch = new String(Base64.getDecoder().decode(bankEntity.getBranch()));
+            }
+            if (bankEntity.getIfscCode() != null) {
+                ifscCode = new String(Base64.getDecoder().decode(bankEntity.getIfscCode()));
+            }
+            if (bankEntity.getAddress() != null) {
+                address = new String(Base64.getDecoder().decode(bankEntity.getAddress()));
+            }
 
-    private static String decodeBase64(String encodedString) {
-        try {
-            // Decode the Base64 encoded string
-            byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
-            return new String(decodedBytes); // Return decoded string
-        } catch (IllegalArgumentException e) {
-            // Handle invalid Base64 string if needed (e.g., logging, returning empty string, etc.)
-            return null;
-        }
+            // Now, set the unmasked properties back to the BankEntity object
+        bankEntity.setAccountNumber(accountNumber);
+        bankEntity.setAccountType(accountType);
+        bankEntity.setBankName(bankName);
+        bankEntity.setBranch(branch);
+        bankEntity.setIfscCode(ifscCode);
+        bankEntity.setAddress(address);
+
+            return bankEntity;
     }
 
 }

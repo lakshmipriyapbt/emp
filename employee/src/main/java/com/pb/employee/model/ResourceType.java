@@ -5,7 +5,6 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
@@ -24,7 +23,9 @@ public enum ResourceType {
     SALARY_STRUCTURE("salary_structure"),
     RELIEVING("relieving"),
     TEMPLATE("template"),
-    BANK("bank_details");
+    BANK("bank_details"),
+    BACKGROUND("background_details");
+
 
 
     private final String value;

@@ -81,7 +81,7 @@
         }
 
         .address {
-            margin-top: 220px;
+            margin-top: 100px;
             text-align: center;
         }
 
@@ -185,9 +185,19 @@
                     <tr>
                         <th>Designation</th>
                         <td>${employee.designationName}</td>
-                        <th></th>
-                       <td>
-                       </td>
+                        <th>Location</th>
+                        <td>
+                          <#if employee.location??>
+                          <#assign parts = employee.location?trim?split(",")>
+                          <#if (parts?size >= 2)>
+                          <#assign state = parts[parts?size - 1]?trim>
+                          <#assign city = parts[parts?size - 2]?trim>
+                          ${city}, ${state}
+                          <#else>
+                          ${employee.location} <!-- If there are fewer than 2 parts, show the entire location -->
+                          </#if>
+                          </#if>
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="4" class="employee-details"> Bank: ${employee.bankName}

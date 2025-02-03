@@ -11,10 +11,8 @@ import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.DesignationEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
-import com.pb.employee.request.EmployeeStatus;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.ResourceIdUtils;
-import org.opensearch.client.RequestOptions;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldValue;
 import org.opensearch.client.opensearch._types.Result;
@@ -849,6 +847,19 @@ public class OpenSearchOperations {
         return null;
     }
 
+    public BackgroundEntity getBackgroundById(String index, String type, String resourceId) throws IOException {
+        if (type != null) {
+            resourceId = type + "_" + resourceId;
+        }
+        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
+                .index(index).build();
+        GetResponse<BackgroundEntity> searchResponse = esClient.get(getRequest, BackgroundEntity.class);
+        if (searchResponse != null && searchResponse.source() != null) {
+            return searchResponse.source();
+        }
+        return null;
+    }
+
 
     public List<BankEntity> getBankDetailsOfCompany(String index) throws EmployeeException{
         logger.debug("Getting the Resource by id : {}", index);
@@ -875,6 +886,64 @@ public class OpenSearchOperations {
             }
         }
         return departmentEntities;
+
+    }
+    public List<BackgroundEntity> getBackGroundDetailsOfCompany(String index) throws EmployeeException{
+        logger.debug("Getting the Resource by id : {}", index);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder =
+                boolQueryBuilder.filter(q -> q.term(t -> t.field(Constants.TYPE).value(FieldValue.of(Constants.BACKGROUND))));
+
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<BackgroundEntity> searchResponse = null;
+        try {
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), BackgroundEntity.class);
+        } catch (IOException e) {
+            e.getStackTrace();
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        List<Hit<BackgroundEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of hits {}", hits.size());
+        List<BackgroundEntity> backgroundEntities = new ArrayList<>();
+        if (hits.size() > 0) {
+            for (Hit<BackgroundEntity> hit : hits) {
+                backgroundEntities.add(hit.source());
+            }
+        }
+        return backgroundEntities;
+
+    }
+
+    public List<BackgroundEntity> getBackGroundDetailsOfEmployeeId(String companyName,String employeeId) throws EmployeeException{
+        logger.debug("Getting employees for salary details {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.BACKGROUND)))
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.EMPLOYEE_ID).query(employeeId)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<BackgroundEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        try {
+            // Adjust the type or field according to your index structure
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build().toQuery()), BackgroundEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<BackgroundEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of employee hits for company is {}: {}", companyName, hits.size());
+
+        List<BackgroundEntity> salaryEntities = new ArrayList<>();
+        for (Hit<BackgroundEntity> hit : hits) {
+            salaryEntities.add(hit.source());
+        }
+
+        return salaryEntities;
 
     }
 }

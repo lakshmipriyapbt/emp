@@ -2,18 +2,19 @@ package com.invoice.service;
 
 import com.invoice.exception.InvoiceException;
 import com.invoice.request.CustomerRequest;
+import com.invoice.request.CustomerUpdateRequest;
 import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 
 public interface CustomerService {
 
-    ResponseEntity<?> createCustomer(CustomerRequest customerRequest) throws InvoiceException;
+    ResponseEntity<?> createCustomer(String companyId,CustomerRequest customerRequest) throws InvoiceException,IOException;
 
-    ResponseEntity<?> getCustomer(String customerId) throws InvoiceException;
+    ResponseEntity<?> getCustomers(String companyId) throws InvoiceException,IOException;
 
-    ResponseEntity<?> getAllCustomers() throws InvoiceException;
+    ResponseEntity<?> getCustomerById(String companyId,String customerId) throws InvoiceException,IOException;
 
-    ResponseEntity<?> deleteCustomer(String customerId) throws InvoiceException;
+    ResponseEntity<?> deleteCustomer(String companyId,String customerId) throws InvoiceException,IOException;
 
-    ResponseEntity<?> updateCustomer(String customerId, CustomerRequest customerRequest) throws IOException, InvoiceException;
+    ResponseEntity<?> updateCustomer(String companyId,String customerId, CustomerUpdateRequest customerRequest) throws IOException, InvoiceException;
 }

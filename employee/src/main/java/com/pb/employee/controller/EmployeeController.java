@@ -8,6 +8,7 @@ import com.pb.employee.request.EmployeeUpdateRequest;
 import com.pb.employee.service.EmployeeService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,8 +33,9 @@ public class EmployeeController {
     public ResponseEntity<?> registerEmployee(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                               @RequestHeader(Constants.AUTH_KEY) String authToken,
                                               @Parameter(required = true, description = "${api.registerEmployeePayload.description}")
-                                              @RequestBody @Valid EmployeeRequest employeeRequest) throws EmployeeException {
-        return employeeService.registerEmployee(employeeRequest);
+                                              @RequestBody @Valid EmployeeRequest employeeRequest,
+                                              HttpServletRequest request) throws EmployeeException {
+        return employeeService.registerEmployee(employeeRequest,request);
     }
 
     @RequestMapping(value = "{companyName}/employee", method = RequestMethod.GET)

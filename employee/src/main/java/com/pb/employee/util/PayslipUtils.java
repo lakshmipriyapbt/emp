@@ -420,7 +420,6 @@ public class PayslipUtils {
     static String[] doubleDigit = {"Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
     static String[] belowHundred = {"Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
 
-
     private static String numberToWords(Double n) {
         double num = n; // Convert Double to double
         if (num < 0) {
@@ -435,7 +434,7 @@ public class PayslipUtils {
         word.append(translate((int) num));
 
         // Get the result by translating the given number
-        return word.toString().trim() ;
+        return word.toString().trim();
     }
 
     // Translate method to convert the number into words
@@ -451,15 +450,24 @@ public class PayslipUtils {
             word.append(belowHundred[(n - n % 10) / 10 - 2]).append(' ').append(rem);
         } else if (n < 1000) {
             word.append(singleDigit[n / 100]).append(" Hundred ").append(translate(n % 100));
-        } else if (n < 1000000) {
+        } else if (n < 100000) {
+            // Handling for numbers between 1 Lakh and 10 Lakh
             word.append(translate(n / 1000)).append(" Thousand ").append(translate(n % 1000));
+        } else if (n < 10000000) {
+            // Lakh handling: For numbers between 1 Lakh and 10 Lakh
+            int lakh = n / 100000;
+            word.append(translate(lakh)).append(" Lakh ");  // "Lakh" for singular
+            word.append(translate(n % 100000));
+        } else if (n < 100000000) {
+            // Crore handling
+            word.append(translate(n / 10000000)).append(" Crore ").append(translate(n % 10000000));
         } else if (n < 1000000000) {
-            word.append(translate(n / 1000000)).append(" Million ").append(translate(n % 1000000));
+            word.append(translate(n / 100000000)).append(" Hundred ").append(translate(n % 100000000));
         } else {
             word.append(translate(n / 1000000000)).append(" Billion ").append(translate(n % 1000000000));
         }
 
-        return word.toString();
+        return word.toString().trim();
     }
 
 

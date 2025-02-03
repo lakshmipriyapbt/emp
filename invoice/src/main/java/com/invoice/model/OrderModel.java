@@ -2,11 +2,11 @@ package com.invoice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Table(name = "invoice_order")
 public class OrderModel {
 
@@ -22,12 +23,11 @@ public class OrderModel {
     private Long orderId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate purchaseDate;
+    private String purchaseDate;
     private String quantity;
     private String cost;
-    private BigDecimal totalCost;
+    private String totalCost;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "invoiceId")
     private InvoiceModel invoiceModel;

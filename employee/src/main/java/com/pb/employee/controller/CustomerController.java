@@ -1,6 +1,8 @@
 package com.pb.employee.controller;
 
+import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.*;
+import com.pb.employee.service.CustomerService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,113 +20,72 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/")
 public class CustomerController {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
-    private final WebClient webClient;
-
     @Autowired
-    public CustomerController(WebClient.Builder webClientBuilder, @Value("${invoice.service.baseUrl}") String baseUrl) {
-        log.info("${invoice.service.baseUrl}");
-        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
-    }
+    private  CustomerService customerService;
 
-    @PostMapping("customer")
-    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getCustomer.tag}", description = "${api.getCustomer.description}")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer retrieved successfully")
-    public ResponseEntity<?> login(
+    @PostMapping("company/{companyId}/customer")
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.createCustomer.tag}", description = "${api.getCustomer.description}")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.createCustomer.description}")
+    public ResponseEntity<?> createCustomer(
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                    @Parameter(required = true, description = "${api.createCustomerPayload.description}")
+                                    @Parameter(required = true, description = "${api.createCompanyPayload.description}")
+                                    @PathVariable String companyId,
                                     @RequestBody @Valid CustomerRequest request) {
-        try {
-            return webClient.post()
-                    .uri(Constants.CUSTOMER_ADD)// Path for the customer endpoint
-                    .header(Constants.AUTH_KEY, authToken)  // Include token in request
-                    .bodyValue(request)  // Request body (CustomerRequest)
-                    .retrieve()
-                    .toEntity(String.class)  // Response entity type
-                    .block();
-        } catch (WebClientResponseException e) {
-            return ResponseEntity.status(e.getRawStatusCode()).body(e.getResponseBodyAsString());
-        }
+       return customerService.createCustomer(companyId,request,authToken);
     }
 
-    @GetMapping("customer/{customerId}")
-    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) }, summary = "${api.getCustomer.tag}", description = "${api.getCustomer.description}")
-    @ApiResponse(responseCode = "200", description = "Customer retrieved successfully")
-    public ResponseEntity<?> getCustomer( @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+    @GetMapping("company/{companyId}/customer/all")
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) }, summary = "${api.getAllCustomers.tag}", description = "${api.getCustomer.description}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> getCompanyByIdCustomer( @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                          @Parameter(required = true, description = "${api.createCustomerPayload.description}")
-                                          @PathVariable String customerId) {
-        try {
-            return webClient.get()  // Use GET if you're just retrieving data
-                    .uri(Constants.CUSTOMER + customerId)  // Append the customerId to the URI
-                    .header(Constants.AUTH_KEY, authToken)  // Pass the authToken
-                    .retrieve()
-                    .toEntity(String.class)  // Expect a response of type String (adjust if it's different)
-                    .block();
-        } catch (WebClientResponseException e) {
-            return ResponseEntity.status(e.getRawStatusCode()).body(e.getResponseBodyAsString());
-        }
-    }
-    // Call to get all customers
-    @GetMapping("customer/all")
-    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) }, summary = "${api.getCustomer.tag}",
-            description = "${api.getCustomer.description}")
-    @ApiResponse(responseCode = "200", description = "Customers retrieved successfully")
-    public ResponseEntity<?> getAllCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                            @RequestHeader(Constants.AUTH_KEY) String authToken) {
-        try {
-            // Use WebClient to call the external service
-            return webClient.get()
-                    .uri(Constants.CUSTOMER+Constants.ALL)  // URI to get all customers (Constants.ALL should be the correct path)
-                    .header(Constants.AUTH_KEY, authToken)  // Pass the authorization token in the header
-                    .retrieve()
-                    .toEntity(String.class)  // Assuming the response is a String, adjust as needed
-                    .block();  // Blocks until the response is received
-        } catch (WebClientResponseException e) {
-            // Handle error if the WebClient request fails
-            return ResponseEntity.status(e.getRawStatusCode()).body(e.getResponseBodyAsString());
-        }
+                                          @Parameter(required = true, description = "${api.getAllCompanyPayload.description}")
+                                          @PathVariable String companyId){
+        return customerService.getCompanyByIdCustomer(companyId,authToken);
     }
 
+    @GetMapping("company/{companyId}/customer/{customerId}")
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getCustomer.tag}", description = "${api.getAllCustomers.description}")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.getACustomersPayload.description}")
+    public ResponseEntity<?> getCustomerById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                             @Parameter(required = true, description = "${api.getCompanyPayload.description}")
+                                             @PathVariable String companyId,
+                                             @Parameter(required = true, description = "${api.getCustomerPayload.description}")
+                                             @PathVariable String customerId) {
+        return customerService.getCustomerById(companyId,customerId,authToken);
+    }
 
-    @PatchMapping("customer/{customerId}")
+    @PatchMapping("company/{companyId}/customer/{customerId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.updateCustomer.tag}", description = "${api.updateCustomer.description}")
     @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer updated successfully")
-    // Call to update a customer
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.updateCustomerPayload.description}")
     public ResponseEntity<?> updateCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                            @Parameter(required = true, description = "${api.createCustomerPayload.description}")
+                                            @Parameter(required = true, description = "${api.updateCompanyPayload.description}")
+                                            @PathVariable String companyId,
+                                            @Parameter(required = true, description = "${api.updateCustomerPayload.description}")
                                             @PathVariable String customerId,
-                                            @RequestBody @Valid CustomerRequest customerRequest) {
-        return webClient.patch()
-                .uri(Constants.CUSTOMER + customerId)  // The customerId is part of the URI path
-                .header(Constants.AUTH_KEY, authToken)  // Pass the authorization token
-                .contentType(MediaType.APPLICATION_JSON)  // Ensure the content type is set to application/json
-                .bodyValue(customerRequest)  // The body will contain the customerRequest JSON data
-                .retrieve()
-                .toEntity(String.class)  // Assuming the response is of type String
-                .block();  // This will block the thread until the response is received
+                                            @RequestBody @Valid CustomerUpdateRequest customerRequest) {
+        return customerService.updateCustomer(authToken,companyId,customerId, customerRequest);
     }
 
-    @DeleteMapping("customer/{customerId}")
+    @DeleteMapping("company/{companyId}/customer/{customerId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.deleteCustomer.tag}", description = "${api.deleteCustomer.description}")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Customer deleted successfully")
-    // Call to delete a customer
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> deleteCustomer(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                            @Parameter(required = true, description = "${api.createCustomerPayload.description}")
-                                            @PathVariable String customerId) {
-        return webClient.delete()
-                .uri(Constants.CUSTOMER + customerId)  // The customerId is part of the URI path
-                .header(Constants.AUTH_KEY, authToken)  // Pass the authorization token
-                .retrieve()
-                .toEntity(String.class)  // Assuming the response is of type String
-                .block();  // This will block the thread until the response is received
+                                            @Parameter(required = true, description = "${api.deleteCompanyPayload.description}")
+                                            @PathVariable String companyId,
+                                            @Parameter(required = true, description = "${api.deleteCustomerPayload.description}")
+                                            @PathVariable String customerId){
+        return customerService.deleteCustomer(authToken,companyId,customerId);
     }
 }

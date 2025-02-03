@@ -18,7 +18,7 @@ public class CompanyEntity implements Entity{
     private String companyName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String emailId;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+//    password is not mandatory
     private String password;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String companyAddress;
@@ -28,7 +28,8 @@ public class CompanyEntity implements Entity{
     private String mobileNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String alternateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+
+    //gst is not mandatory field
     private String gstNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String panNo;

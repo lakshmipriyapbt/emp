@@ -12,13 +12,7 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<CustomerModel, String> {
 
-    @Query("SELECT c FROM CustomerModel c WHERE c.customerName = :customerName")
-    Optional<CustomerModel> findByCustomerName(@Param("customerName") String customerName);
+    List<CustomerModel> findByCompanyId(String companyId);
 
-    boolean existsByEmail(String email);
-
-    boolean existsByMobileNumber(String mobileNumber);
-
-    boolean existsByGstNo(String gstNo);
-
+    Optional<CustomerModel> findByCustomerNameAndCompanyId(String encodedCustomerName, String companyId);
 }

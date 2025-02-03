@@ -1,5 +1,6 @@
 package com.pb.ems.auth;
 
+import com.pb.ems.config.JwtConfig;
 import com.pb.ems.exception.ErrorMessageHandler;
 import com.pb.ems.exception.IdentityErrorMessageKey;
 import com.pb.ems.exception.IdentityException;
@@ -24,7 +25,7 @@ public class JwtTokenUtil {
     //Plain text key:	LAC RITE SELL TOLD LAMB GREG ED SKIN JAG LORD HATE PUB JACK RAVE RODE GOAL BET GREW IKE TRIM TONE GILL LIEN TONE
    // Reverse:	22ba0f64f69a9f1f10bbbc7d5949486aa0199f44c6d071201d7df7b5c5bae5da
     private static final String SECRET_KEY = "22ba0f64f69a9f1f10bbbc7d5949486aa0199f44c6d071201d7df7b5c5bae5da"; // Or load from a secure place
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final Key key = JwtConfig.key;
 
     @Value("${jwt.secret}")
     private static String secret;

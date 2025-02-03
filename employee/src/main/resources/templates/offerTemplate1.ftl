@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Offer Letter</title>
     <style>
+     @page {
+         size: A4;
+         margin: 8mm;
+        }
         .employee-details {
             text-align: left;
             font-size: 20px;
@@ -21,7 +25,7 @@
         .logo {
             text-align: right;
             flex-basis: 50%;
-            margin-top: -70px;
+            margin-top: -100px;
             /* Use negative margin to move the logo up */
 
         }
@@ -30,7 +34,7 @@
             max-width: 60px;
             height: 100px;
             margin-right: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .annexure-text {
@@ -46,15 +50,11 @@
 
         .confidential-text {
             text-align: center;
-            /* Center the text */
             font-weight: bold;
             /* Make the text bold */
             text-decoration: underline;
-            /* Underline the text */
+            margin-top: -10px;
             font-size: 28px;
-            margin-bottom: 20px;
-            margin-top: -5px;
-            /* Adjust the font size if needed */
         }
 
         .subject-offer {
@@ -215,11 +215,11 @@
     </style>
 </head>
 
-<body style="margin: 0; padding: 0;">
+<body>
 
     <img src="${blurredImage}" alt="Company Logo" class="watermark" />
     <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
+            <img src="${company.imageFile}" alt="Company Logo" />
     </div>
     <div class="salary-table" style="page-break-after: always;">
 
@@ -228,7 +228,6 @@
             <h6 class="date">Date: ${offerLetter.offerDate}</h6>
             <h6 class="ref-no">Ref No: ${offerLetter.referenceNo}</h6>
         </div>
-
 
         <div class="employee-details">
             <h6>To</h6>
@@ -381,7 +380,7 @@
                 been duly served.
             </p>
         </div>
-        <h5 style="text-align: center; margin-top: 0px;">
+        <h5 style="text-align: center; margin-top: 80px;">
             <#if company.cinNo?has_content>
                 CIN: ${company.cinNo}
                 <#elseif company.companyRegNo?has_content>
@@ -436,7 +435,7 @@
                     by a written mail and signed copy within the next 24 hours.</b>
             </p>
             <p>Please do not hesitate to contact us in case you have any queries.</p>
-            <h5 style="text-align: center; margin-top: 340px;">
+            <h5 style="text-align: center; margin-top: 420px;">
                 <#if company.cinNo?has_content>
                     CIN: ${company.cinNo}
                     <#elseif company.companyRegNo?has_content>
@@ -483,8 +482,7 @@
         <p>*Income Tax deduction is subjected to timely submission of the investment details.</p>
         <p>*Pan Card submission is mandatory for the disbursement of the salary.</p>
 
-        <div style="margin-top: 20px;">
-            <h5 style="text-align: center;">
+            <h5 style="text-align: center; margin-top: 100px;">
                 <#if company.cinNo?has_content>
                     CIN: ${company.cinNo}
                     <#elseif company.companyRegNo?has_content>
@@ -502,7 +500,6 @@
                     PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
                 </p>
             </div>
-        </div>
     </div>
 
     <div class="logo">
@@ -595,7 +592,7 @@
                 </tr>
             </table>
         </div>
-        <h5 style="text-align: center; margin-top: 35px;">
+        <h5 style="text-align: center; margin-top: 80px;">
             <#if company.cinNo?has_content>
                 CIN: ${company.cinNo}
                 <#elseif company.companyRegNo?has_content>
@@ -634,7 +631,7 @@
                numbers.
            </p>
      </div>
-       <h5 style="text-align: center; margin-top: 460px;">
+       <h5 style="text-align: center; margin-top: 540px;">
            <#if company.cinNo?has_content>
                CIN: ${company.cinNo}
                <#elseif company.companyRegNo?has_content>

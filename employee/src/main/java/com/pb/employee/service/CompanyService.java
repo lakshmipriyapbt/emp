@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface CompanyService {
-    ResponseEntity<?> registerCompany(CompanyRequest companyRequest) throws EmployeeException;
+    ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> getCompanies( HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> getCompanyById(String companyId,  HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> updateCompanyById(String companyId, CompanyUpdateRequest companyUpdateRequest) throws IOException, EmployeeException;

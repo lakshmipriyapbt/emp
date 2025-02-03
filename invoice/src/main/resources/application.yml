@@ -10,6 +10,10 @@ server:
     key-store-type: JKS
 # MySQL Database Configuration
 spring:
+  aop:
+    proxy-target-class: true
+  main:
+    allow-circular-references: true
   datasource:
     url: jdbc:mysql://localhost:3306/invoice
     username: root
@@ -24,6 +28,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+es:
+  esHost: localhost
+  esPort: 9200
 # Swagger API Documentation
 springdoc:
   api-docs:

@@ -504,15 +504,17 @@ const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
   // Handle modal close and update PF values based on selection
   const handleModalClose = () => {
     const { pfEmployee, pfEmployer } = calculatedPF;
-
+  
+    // Check the selected PF option
     if (selectedPF === "calculated") {
       updateDeductions(pfEmployee, pfEmployer); // Use calculated PF
     } else {
-      const fixedPF = 43200 / 2; // Use ₹43,200 per year
-      updateDeductions(fixedPF, fixedPF); // Set fixed PF
+      const fixedPF = 43200 / 2; // ₹43,200 per year split into ₹21,600 each for employee and employer
+      updateDeductions(fixedPF, fixedPF); // Use ₹21,600 per year for both employee and employer
     }
     setShowPfModal(false); // Close the modal
   };
+  
 
   const handleEmployeeChange = (selectedOption) => {
     setEmployeeId(selectedOption.value);
@@ -544,132 +546,135 @@ const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
   }, [grossAmount]);
 
   const companyName = user.company;
-  const onSubmit = (data) => {
-    console.log("data", data);
 
-    // Check if there's an error related to salary structures
-    if (error) {
-      toast.error(error); // Display the error message using toast
-      return; // Exit if there's an error
+const onSubmit = (data) => {
+  console.log("data", data);
+
+  // Check for any error related to salary structures
+  if (error) {
+    toast.error(error); // Display the error message using toast
+    return; // Exit if there's an error
+  }
+
+  // Extract and validate necessary values
+  const fixedAmount = parseFloat(data.fixedAmount) || 0;
+  const variableAmount = parseFloat(data.variableAmount) || 0;
+  const grossAmountValue = parseFloat(grossAmount) || 0;
+  const netSalaryValue = parseFloat(netSalary) || 0;
+  const totalDeductionsValue = parseFloat(totalDeductions) || 0;
+  const pfTaxValue = parseFloat(pfTax) || 0;
+  const incomeTax = data.incomeTax;
+  const statusValue = data.status;
+
+  // Ensure that variableAmount, fixedAmount, and grossAmount are not all zero
+  if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
+    return; // Exit if all amounts are zero
+  }
+
+  // Construct allowances and deductions objects with calculated values
+  const allowancesData = {};
+  const deductionsData = {};
+
+  // Add calculated allowances (same as before)
+  Object.entries(allowances).forEach(([key, value]) => {
+    let displayValue = value;
+
+    // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
+    if (typeof value === "string" && value.includes("%")) {
+      const percentage = parseFloat(value.replace("%", ""));
+      if (!isNaN(percentage)) {
+        if (key === "HRA") {
+          displayValue = (percentage / 100) * basicAmount; // For HRA, use basicAmount
+        } else {
+          displayValue = (percentage / 100) * grossAmountValue; // For other allowances, use grossAmount
+        }
+      }
+    } else if (typeof value === "number") {
+      displayValue = value; // If it's a number (fixed value), just use that value
     }
 
-    // Extract and validate necessary values
-    const fixedAmount = parseFloat(data.fixedAmount) || 0;
-    const variableAmount = parseFloat(data.variableAmount) || 0;
-    const grossAmountValue = parseFloat(grossAmount) || 0;
-    const netSalaryValue = parseFloat(netSalary) || 0;
-    const totalDeductionsValue = parseFloat(totalDeductions) || 0;
-    const pfTaxValue = parseFloat(pfTax) || 0;
-    const incomeTax = data.incomeTax;
-    const statusValue = data.status;
+    displayValue = isNaN(displayValue) ? 0 : displayValue; // Ensure displayValue is a valid number
 
-    // Check if variableAmount, fixedAmount, and grossAmount are all 0
-    if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
-      return; // Exit if all amounts are zero
+    allowancesData[key] = displayValue; // Pass the value as a fixed number
+  });
+
+  // Add calculated deductions (important fix for PF)
+  Object.entries(deductions).forEach(([key, value]) => {
+    let displayValue = value;
+
+    // Check the deduction type and calculate the PF values
+    if (typeof value === "string" && value.includes("%")) {
+      const percentage = parseFloat(value.replace("%", ""));
+      if (!isNaN(percentage)) {
+        if (key === "Provident Fund Employee" || key === "Provident Fund Employer") {
+          displayValue = (percentage / 100) * basicAmount; // Use basicAmount for PF calculation
+        } else {
+          displayValue = (percentage / 100) * grossAmountValue; // For other deductions, use grossAmount
+        }
+      }
+    } else if (typeof value === "number") {
+      displayValue = value; // If it's a fixed value, use it directly
     }
 
-    // Construct the allowances and deductions objects with calculated values
-    const allowancesData = {};
-    const deductionsData = {};
+    // Ensure displayValue is a valid number
+    displayValue = isNaN(displayValue) ? 0 : displayValue;
 
-    // Add calculated allowances
-    Object.entries(allowances).forEach(([key, value]) => {
-      let displayValue = value;
-
-      // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
-      if (typeof value === "string" && value.includes("%")) {
-        const percentage = parseFloat(value.replace("%", ""));
-        if (!isNaN(percentage)) {
-          // Calculate based on grossAmount or basicAmount
-          if (key === "HRA") {
-            displayValue = (percentage / 100) * basicAmount; // For HRA, use basicAmount
-          } else {
-            displayValue = (percentage / 100) * grossAmountValue; // For other allowances, use grossAmount
-          }
-        }
-      } else if (typeof value === "number") {
-        // If it's a number (fixed value), just display that value
-        displayValue = value;
+    // Ensure that when the fixed PF option is selected, we pass the fixed PF values
+    if (selectedPF === "fixed") {
+      if (key === "Provident Fund Employee" || key === "Provident Fund Employer") {
+        // Set the fixed PF value (₹43,200 split into ₹21,600 each)
+        displayValue = 43200 / 2; // ₹21,600 each for employee and employer
       }
+    }
 
-      // Ensure that displayValue is a number and set it to 0 if not
-      displayValue = isNaN(displayValue) ? 0 : displayValue;
+    deductionsData[key] = displayValue; // Ensure we pass the value as a fixed number
+  });
 
-      // Add the allowance value to the allowancesData object, formatted with 2 decimal places
-      allowancesData[key] = displayValue; // Ensure we pass the value as a fixed number
-    });
-
-    // Add calculated deductions
-    Object.entries(deductions).forEach(([key, value]) => {
-      let displayValue = value;
-
-      // If the deduction is a percentage, calculate the actual value using grossAmount
-      if (typeof value === "string" && value.includes("%")) {
-        const percentage = parseFloat(value.replace("%", ""));
-        if (!isNaN(percentage)) {
-          // Calculate based on grossAmount or basicAmount
-          if (key === "Provident Fund Employee" || key === "Provident Fund Employer") {
-            displayValue = (percentage / 100) * basicAmount;  // For HRA, use basicAmount
-          } else {
-            displayValue = (percentage / 100) * grossAmountValue;  // For other allowances, use grossAmount
-          }
-        }
-      } else if (typeof value === "number") {
-        // If it's a number (fixed value), just display that value
-        displayValue = value;
-      }
-  
-      // Ensure that displayValue is a number and set it to 0 if not
-      displayValue = isNaN(displayValue) ? 0 : displayValue;
-
-      // Add the deduction value to the deductionsData object, formatted with 2 decimal places
-      deductionsData[key] = displayValue; // Ensure we pass the value as a fixed number
-    });
-
-    // Prepare the final data object for submission
-    const dataToSubmit = {
-      companyName: companyName,
-      fixedAmount: fixedAmount.toFixed(2),
-      variableAmount: variableAmount.toFixed(2),
-      grossAmount: grossAmountValue.toFixed(2),
-      salaryConfigurationEntity: {
-        allowances: {
-          ...allowancesData, // Pass the calculated allowances data
-        },
-        deductions: {
-          ...deductionsData, // Pass the calculated deductions data
-        },
+  // Prepare the final data object for submission
+  const dataToSubmit = {
+    companyName: companyName,
+    fixedAmount: fixedAmount.toFixed(2),
+    variableAmount: variableAmount.toFixed(2),
+    grossAmount: grossAmountValue.toFixed(2),
+    salaryConfigurationEntity: {
+      allowances: {
+        ...allowancesData, // Pass the calculated allowances data
       },
-      netSalary: netSalaryValue.toFixed(2),
-      totalEarnings: grossAmountValue.toFixed(2),
-      totalDeductions: totalDeductionsValue.toFixed(2),
-      pfTax: pfTaxValue.toFixed(2),
-      incomeTax: incomeTax,
-      status: statusValue,
-    };
-
-    console.log("dataToSubmit", dataToSubmit);
-
-    // API call based on whether salaryId is available (update or create)
-    const apiCall = salaryId
-      ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit)
-      : () => EmployeeSalaryPostApi(employeeId, dataToSubmit);
-
-    apiCall()
-      .then((response) => {
-        toast.success(
-          salaryId
-            ? "Employee Salary Updated Successfully"
-            : "Employee Salary Added Successfully"
-        );
-        setError(""); // Clear error message on success
-        setShowFields(false);
-        navigate("/employeeview");
-      })
-      .catch((error) => {
-        handleApiErrors(error);
-      });
+      deductions: {
+        ...deductionsData, // Pass the calculated deductions data
+      },
+    },
+    netSalary: netSalaryValue.toFixed(2),
+    totalEarnings: grossAmountValue.toFixed(2),
+    totalDeductions: totalDeductionsValue.toFixed(2),
+    pfTax: pfTaxValue.toFixed(2),
+    incomeTax: incomeTax,
+    status: statusValue,
   };
+
+  console.log("dataToSubmit", dataToSubmit);
+
+  // API call based on whether salaryId is available (update or create)
+  const apiCall = salaryId
+    ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit)
+    : () => EmployeeSalaryPostApi(employeeId, dataToSubmit);
+
+  apiCall()
+    .then((response) => {
+      toast.success(
+        salaryId
+          ? "Employee Salary Updated Successfully"
+          : "Employee Salary Added Successfully"
+      );
+      setError(""); // Clear error message on success
+      setShowFields(false);
+      navigate("/employeeview");
+    })
+    .catch((error) => {
+      handleApiErrors(error);
+    });
+};
+
 
   const clearForm = () => {
     reset();

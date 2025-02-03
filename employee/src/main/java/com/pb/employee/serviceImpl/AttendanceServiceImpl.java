@@ -83,6 +83,12 @@ public class AttendanceServiceImpl implements AttendanceService {
                                             .getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND)))),
                             HttpStatus.NOT_FOUND);
                 }
+                // Skip adding attendance for "ASSOCIATE" employees
+                if (employee.getEmployeeType().equals(Constants.ASSOCIATE)) {
+                    log.info("Skipping attendance for Associate Type employee with ID: {}", employeeId);
+                    continue;  // Skip this iteration and move to the next attendance request
+                }
+
                 LocalDate hiringDate = LocalDate.parse(employee.getDateOfHiring());
                 YearMonth hiringMonthYear = YearMonth.from(hiringDate);  // Extract year and month from hiring date
                 YearMonth attendanceMonthYear = YearMonth.of(
@@ -144,6 +150,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 int attendanceYear = Integer.parseInt(attendanceRequest.getYear());
                 int attendanceMonth = MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue();
 
+
                 // Check if attendance is for the current month and year
                 if (attendanceYear == currentYear && attendanceMonth == currentMonth) {
                     // If the current month, check if it's before or on the 25th
@@ -177,6 +184,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
+
 
     @Override
     public ResponseEntity<?> getAllEmployeeAttendance(String companyName, String employeeId, String month, String year) throws IOException, EmployeeException {

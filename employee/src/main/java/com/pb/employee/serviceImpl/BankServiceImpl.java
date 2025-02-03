@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -111,12 +110,20 @@ public class BankServiceImpl implements BankService {
 
 
     @Override
-    public ResponseEntity<?> getBankDetailsById(String companyName, String id) throws EmployeeException {
-        log.info("getting details of {}", id);
+    public ResponseEntity<?> getBankDetailsById(String companyId, String bankId) throws EmployeeException,IOException {
+        log.info("getting details of {}", bankId);
         BankEntity entity = null;
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity companyEntity;
+        companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS); // Adjust this call as needed
+
+        if (companyEntity == null) {
+            log.error("Company with ID {} not found", companyId);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY), companyId),
+                    HttpStatus.NOT_FOUND);
+        }
+        String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
         try {
-            entity = openSearchOperations.getBankById(index, null,id);
+            entity = openSearchOperations.getBankById(index, null,bankId);
             BankUtils.unmaskBankProperties(entity);
 
         } catch (Exception ex) {
@@ -125,8 +132,8 @@ public class BankServiceImpl implements BankService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (entity == null){
-            log.error("Bank Details with id {} is not found", id);
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS), id),
+            log.error("Bank Details with id {} is not found", bankId);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS), bankId),
                     HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(
@@ -151,7 +158,7 @@ public class BankServiceImpl implements BankService {
 
         try {
             // Fetch the bank details by bankId
-            bankEntity = openSearchOperations.getBankById(bankId, null, index);
+            bankEntity = openSearchOperations.getBankById(index, null, bankId);
             if (bankEntity == null) {
                 log.error("Unable to find the Bank details with ID {}", bankId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS),
@@ -172,15 +179,21 @@ public class BankServiceImpl implements BankService {
     }
 
     @Override
-    public ResponseEntity<?> deleteBankById(String companyName, String id) throws EmployeeException {
-        log.info("getting details of {} :", id);
+    public ResponseEntity<?> deleteBankById(String companyId, String bankId) throws EmployeeException,IOException {
+        log.info("getting details of {} :", bankId);
         Object entity = null;
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
+        CompanyEntity companyEntity;
+        companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS); // Adjust this call as needed
+        if (companyEntity == null) {
+            log.error("Company with ID {} not found", companyId);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY), companyId),
+                    HttpStatus.NOT_FOUND);
+        }
+        String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
         try {
-            entity = openSearchOperations.getById(id, null, index);
+            entity = openSearchOperations.getById(bankId, null, index);
             if (entity!=null) {
-                openSearchOperations.deleteEntity(id,index);
+                openSearchOperations.deleteEntity(bankId,index);
             } else {
                 log.error("unable to find bank Details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS),

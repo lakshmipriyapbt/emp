@@ -70,6 +70,15 @@ public class PayslipServiceImpl implements PayslipService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        // Skip adding attendance for "ASSOCIATE" employees
+        if (employee.getEmployeeType().equals(Constants.ASSOCIATE)) {
+            log.error("attendance cannot be added  for Associate Type employee with ID: {}", employeeId);
+            return new ResponseEntity<>(
+                    ResponseBuilder.builder().build().
+                            createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
+                                    .getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE_TYPE)))),
+                    HttpStatus.CONFLICT);
+        }
         entity = openSearchOperations.getSalaryById(salaryId, null, index);
         if (entity==null){
             log.error("Exception while fetching employee for salary {}", employeeId);
@@ -417,7 +426,9 @@ public class PayslipServiceImpl implements PayslipService {
             // Handle allowances dynamically
             List<Map<String, Object>> allowanceList = new ArrayList<>();
             handleAllowances(entity, allowanceList);
-            model.put(Constants.ALLOWANCE_LIST, allowanceList); // Add allowance list to the model
+            model.put(Constants.ALLOWANCE_LIST, allowanceList);
+
+            // Add allowance list to the model
 
             // Handle deductions dynamically
             List<Map<String, Object>> deductionList = new ArrayList<>();
@@ -497,7 +508,7 @@ public class PayslipServiceImpl implements PayslipService {
 
         // Add Basic Salary if it exists
         for (Map<String, Object> allowance : unorderedAllowances) {
-            if (allowance.containsKey(Constants.BASIC_SALARY)) {
+            if (allowance.containsKey(Constants.BASIC_SALARY_SPACE)) {
                 orderedAllowances.add(allowance);
                 unorderedAllowances.remove(allowance); // Remove from unordered list
                 break; // Exit loop after adding Basic Salary
@@ -530,6 +541,7 @@ public class PayslipServiceImpl implements PayslipService {
                 }
             }
         }
+
         // Add the found Allowance fields after HRA
         orderedAllowances.addAll(allowancesWithAllowance);
 
@@ -549,14 +561,17 @@ public class PayslipServiceImpl implements PayslipService {
                 break; // Exit loop after adding Pf Contribution Employee
             }
         }
+
         // Finally, add "Other Allowance" last if it exists
         if (otherAllowance != null) {
             orderedAllowances.add(otherAllowance);
         }
+
         // Clear the original allowance list and add ordered allowances
         allowanceList.clear();
         allowanceList.addAll(orderedAllowances);
     }
+
     private void handleDeductions(PayslipEntity entity, List<Map<String, Object>> deductionList) {
         // Get the deductions from the entity
         Map<String, String> deductionsObj = entity.getSalary().getSalaryConfigurationEntity().getDeductions();

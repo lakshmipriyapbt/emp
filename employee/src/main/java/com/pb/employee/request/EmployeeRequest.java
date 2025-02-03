@@ -46,9 +46,10 @@ public class EmployeeRequest {
     @NotBlank(message = "{emailId.notnull.message}")
     private String emailId;// "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$"
 
-    @Schema(example = "password")
+    /*@Schema(example = "password")
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{invalid.password}")
-    @NotBlank(message = "{password.notnull.message}")
+    @NotBlank(message = "{password.notnull.message}")*/
+    //password not mandatory
     private String password;
 
     @Schema(example = "designationId")

@@ -99,7 +99,12 @@ public enum EmployeeErrorMessageKey {
     BANK_ALREADY_EXISTS("bank.already.exists"),
     UNABLE_GET_BANK_DETAILS("unable.bank.details"),
     INVALID_BANK_DETAILS("invalid.bank.details"),
-    UNABLE_DELETE_BANK_DETAILS("unable.delete.bank");
+    UNABLE_DELETE_BANK_DETAILS("unable.delete.bank"),
+    UNABLE_SAVE_BACKGROUND_DETAILS("unable.save.background.details"),
+    BACKGROUND_ALREADY_EXISTS("background.already.exists"),
+    UNABLE_GET_BACKGROUND_DETAILS("unable.background.details"),
+    INVALID_BACKGROUND_DETAILS("invalid.background.details"),
+    INVALID_EMPLOYEE_TYPE("invalid.employee.type");
 
     private final String key;
 

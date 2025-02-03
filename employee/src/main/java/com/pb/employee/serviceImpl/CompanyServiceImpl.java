@@ -2,7 +2,6 @@ package com.pb.employee.serviceImpl;
 
 
 import com.pb.employee.common.ResponseBuilder;
-import com.pb.employee.controller.DepartmentController;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -13,10 +12,7 @@ import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
 import com.pb.employee.service.DepartmentService;
-import com.pb.employee.util.CompanyUtils;
-import com.pb.employee.util.Constants;
-import com.pb.employee.util.EmployeeUtils;
-import com.pb.employee.util.ResourceIdUtils;
+import com.pb.employee.util.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -44,8 +41,11 @@ public class CompanyServiceImpl implements CompanyService {
     @Autowired
     private DepartmentService departmentService;
 
+    @Autowired
+    private EmailUtils emailUtils;
+
     @Override
-    public ResponseEntity<?> registerCompany(CompanyRequest companyRequest) throws EmployeeException{
+    public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException{
         // Check if a company with the same short or company name already exists
         log.debug("validating shortname {} company name {} exsited ", companyRequest.getShortName(), companyRequest.getCompanyName());
         String resourceId = ResourceIdUtils.generateCompanyResourceId(companyRequest.getCompanyName());
@@ -125,23 +125,31 @@ public class CompanyServiceImpl implements CompanyService {
         openSearchOperations.saveEntity(employee, employeeAdminId, index);
         // After creating the CompanyAdmin, register the "Accountant" and "HR" departments
         try {
-            // Register the "Accountant" department using the registerDepartment method
-            DepartmentRequest accountantDepartmentRequest = new DepartmentRequest();
-            accountantDepartmentRequest.setCompanyName(companyRequest.getShortName());  // Set the company name
-            accountantDepartmentRequest.setName(Constants.ACCOUNTANT);  // Set the department name as "Accountant"
-            departmentService.registerDepartment(accountantDepartmentRequest);  // Call the method to register the department
+            // List of department names
+            List<String> departments = Arrays.asList(Constants.ACCOUNTANT, Constants.HR);
 
-            // Register the "HR" department using the registerDepartment method
-            DepartmentRequest hrDepartmentRequest = new DepartmentRequest();
-            hrDepartmentRequest.setCompanyName(companyRequest.getShortName());  // Set the company name
-            hrDepartmentRequest.setName(Constants.HR);  // Set the department name as "HR"
-            departmentService.registerDepartment(hrDepartmentRequest);  // Call the method to register the department
+            // Iterate over each department name
+            for (String departmentName : departments) {
+                DepartmentRequest departmentRequest = new DepartmentRequest();
+                departmentRequest.setCompanyName(companyRequest.getShortName());  // Set the company name
+                departmentRequest.setName(departmentName);  // Set the department name dynamically
+                departmentService.registerDepartment(departmentRequest);  // Call the method to register the department
+            }  // Call the method to register the department
 
         } catch (EmployeeException e) {
             log.error("Error registering departments for company {}: {}", companyRequest.getCompanyName(), e.getMessage());
             throw e;  // Re-throw or handle the exception as necessary
         }
-        // Map the request to an entity
+        CompletableFuture.runAsync(() -> {
+            try {
+                String companyUrl =EmailUtils.getBaseUrl(request)+ Constants.UPDATE_NEW_PASSWORD ;
+                log.info("The company url : "+companyUrl);// Example URL
+                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE);
+            } catch (Exception e) {
+                log.error("Error sending email to company: {}", companyRequest.getEmailId());
+                throw new RuntimeException(e);
+            }
+        });
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }

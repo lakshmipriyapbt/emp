@@ -17,62 +17,62 @@ import java.io.IOException;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/product")
+@RequestMapping("/")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @PostMapping("")
+    @PostMapping("company/{companyId}/product")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.createProduct.tag}", description = "${api.createProduct.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "OK")
     public ResponseEntity<?> createProduct(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
                                            @Parameter(required = true, description = "${api.createProductPayload.description}")
-                                           @RequestBody @Valid ProductRequest productRequest) throws InvoiceException {
-
-        return productService.createProduct(productRequest);
+                                           @PathVariable String companyId,
+                                           @RequestBody @Valid ProductRequest productRequest) throws InvoiceException, IOException {
+        return productService.createProduct(companyId,productRequest);
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("company/{companyId}/product/{productId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getProduct.tag}", description = "${api.getProduct.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> getProduct(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+    public ResponseEntity<?> getProductById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                         @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                        @PathVariable String productId) throws InvoiceException {
-
-        return productService.getProduct(productId);
+                                        @PathVariable String companyId,
+                                        @PathVariable String productId) throws InvoiceException, IOException {
+        return productService.getProductById(companyId,productId);
     }
 
-    @GetMapping("/all")
+    @GetMapping("company/{companyId}/product/all")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getAllProducts.tag}", description = "${api.getAllProducts.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> getAllProducts(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                           @RequestHeader(Constants.AUTH_KEY) String authToken) throws InvoiceException {
-
-        return productService.getAllProducts();
+    public ResponseEntity<?> getAllProductsByCompanyId(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                       @PathVariable String companyId) throws InvoiceException, IOException {
+        return productService.getAllProductsByCompanyId(companyId);
     }
 
-    @PatchMapping("/{productId}")
+    @PatchMapping("company/{companyId}/product/{productId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.updateProduct.tag}", description = "${api.updateProduct.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> updateProduct(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                            @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                           @PathVariable String companyId,
                                            @PathVariable String productId,
                                            @RequestBody @Valid ProductRequest productRequest) throws InvoiceException, IOException {
-
-        return productService.updateProduct(productId, productRequest);
+        return productService.updateProduct(companyId,productId, productRequest);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("company/{companyId}/product/{productId}")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.deleteProduct.tag}", description = "${api.deleteProduct.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> deleteProduct(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                            @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                           @PathVariable String companyId,
                                            @PathVariable String productId) throws InvoiceException {
-
-        return productService.deleteProduct(productId);
+        return productService.deleteProduct(companyId,productId);
     }
 }

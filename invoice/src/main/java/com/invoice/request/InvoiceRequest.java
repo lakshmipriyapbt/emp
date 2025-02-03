@@ -23,7 +23,7 @@ public class InvoiceRequest {
     private String vendorCode;
 
     @NotNull(message = "{invoiceDate.notnull.message}")
-    private LocalDate invoiceDate;
+    private String invoiceDate;
 
     @NotNull(message = "{dueDate.notnull.message}")
     private String dueDate;

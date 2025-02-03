@@ -48,6 +48,13 @@ dependencies {
 	implementation 'com.itextpdf:html2pdf:4.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.0'
+	implementation group: 'org.opensearch.client', name: 'opensearch-rest-client', version: '2.14.0'
+}
+
+dependencies {
+	implementation('org.opensearch.client:opensearch-java:2.14.0') {
+		exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+	}
 }
 
 dependencies {

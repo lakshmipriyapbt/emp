@@ -1,5 +1,6 @@
 package com.invoice.request;
 
+import io.micrometer.common.lang.Nullable;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -22,9 +23,8 @@ public class ProductRequest {
     @Pattern(regexp = "^\\d{6}$", message = "{hsnNo.format}")
     private String hsnNo;
 
-    @NotNull(message = "{gst.notnull.message}")
-    @DecimalMin(value = "0", message = "{gst.type}")
-    @DecimalMax(value = "100", message = "{gst.size}")
+    @Nullable
+    @Pattern(regexp = "^$|^(100(\\.0{1,2})?|[0-9]{1,2}(\\.\\d{1,2})?)$", message = "{gst.format}")
     private String gst;
 
     @NotBlank(message = "{service.notnull.message}")

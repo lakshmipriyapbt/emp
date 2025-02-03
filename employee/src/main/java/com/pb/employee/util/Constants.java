@@ -101,6 +101,7 @@ public class Constants {
     public static final String FIRM = "Firm";
 
     public static final String BASIC_SALARY = "Basic Salary";
+    public static final String BASIC_SALARY_SPACE = "Basic  Salary";
     public static final String ALLOWANCE = "Allowance";
     public static final String OTHER_ALLOWANCES = "Other Allowances";
     public static final String EXPERIENCE_LETTER = "expLetter.ftl";
@@ -145,12 +146,20 @@ public class Constants {
     public static final String IMAGE_PNG = "image/png";
     public static final String IMAGE_SVG = "image/svg+xml";
     public static final String PERCENTAGE = "%";
-    public static final String CUSTOMER_ADD = "/customer";
-    public static final String CUSTOMER = "/customer/";
+    public static final String CUSTOMER = "/customer";
+    public static final String CUSTOMER_GET = "/customer/";
     public static final String SALARY_ID = "salaryId";
     public static final String BANK = "bank_details";
-    public static final String DUPLICATE_ACCOUNT_NUMBER = "Account Number";
+    public static final String BACKGROUND = "background_details";
+    public static final String DUPLICATE_ACCOUNT_NUMBER ="Account Number";
     public static final String ALL = "/all";
     public static final String ACCOUNTANT = "Accountant";
     public static final String HR = "HR";
+    public static final String COMPANY_ADD = "/company/";
+    public static final String PRODUCT_ADD = "/product";
+    public static final String PRODUCT = "/product/";
+    public static final String UPDATE_NEW_PASSWORD = "updatePassword";
+    public static final String ASSOCIATE = "Associate";
+    public static final String INVOICE = "/invoice";
+    public static final String INVOICE_GET = "/invoice/";
 }

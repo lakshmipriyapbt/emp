@@ -48,7 +48,8 @@ public class CompanyUpdateRequest {
     @Size(min = 1, max = 300, message = "{address.notnull.message}")
     private String address;
 
-
+    private String gstNo;
+    
     //    @Pattern(regexp = "^[A-Za-z]+$", message = "{company.type}")
     private String companyType;
 
