@@ -70,7 +70,7 @@ public class RestFilter implements Filter {
         String uri = req.getRequestURI();
 
         // Check if the URI starts with "/ems/ui/public/assets/img/"
-        if (uri.startsWith("/ems/var/www/ems-prod/assets/img/") || uri.startsWith("/ems/var/www/ems-testing/assets/img/")) {
+        if (uri.startsWith("/var/www/ems-prod/assets/img/") || uri.startsWith("/ems/var/www/ems-testing/assets/img/")) {
             logger.debug("Ignoring authentication check for image file: {}", uri);
             chain.doFilter(request, response); // Proceed without authentication check
             return;
