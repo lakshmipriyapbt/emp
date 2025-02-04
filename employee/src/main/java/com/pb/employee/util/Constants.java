@@ -162,4 +162,6 @@ public class Constants {
     public static final String ASSOCIATE = "Associate";
     public static final String INVOICE = "/invoice";
     public static final String INVOICE_GET = "/invoice/";
+    public static final String CREATE_PASSWORD = "createPassword";
+    public static final String SLASH = "/";
 }
