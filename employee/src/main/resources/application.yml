@@ -4,7 +4,7 @@ server:
     contextPath: /ems
   ssl:
     enabled: true
-    key-store: /opt/ems/certificates/keystore.jks
+    key-store: /opt/ems-prod/certificates/keystore.jks
     key-store-password: pathbreaker
     key-alias: ems.pathbreakertech.in
     key-store-type: JKS
