@@ -129,7 +129,7 @@ const OfferLetterPreview = () => {
 
   const calculateValues = () => {
     if (salaryStructures.length === 0) {
-      toast.error("No salary structure available for calculation.");
+      //toast.error("No salary structure available for calculation.");
       return;
     }
 
