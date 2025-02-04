@@ -18,7 +18,6 @@ import {
   companyViewByIdApi,
 } from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
-import { userId } from "../Utils/Auth";
 
 function Profile() {
   const {
@@ -42,13 +41,12 @@ function Profile() {
 
   useEffect(() => {
     const fetchCompanyData = async () => {
-      if (id) return;
-
+         console.log("id",id)
       try {
         const response = await companyViewByIdApi(id);
         const data = response.data;
         setCompanyData(data);
-
+         console.log("compnayViewData",data);
         // Set form values
         Object.keys(data).forEach((key) => setValue(key, data[key]));
 
