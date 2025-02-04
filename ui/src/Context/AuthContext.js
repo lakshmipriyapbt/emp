@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     employeeId: null,
   });
   const [companyData,setCompanyData]=useState(null);
+  const [id,setId]=useState(null)
   const [logoFileName, setLogoFileName] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,8 +55,9 @@ export const AuthProvider = ({ children }) => {
       try {
         console.log("Fetching employee data for userId:", user.userId);
         const response = await EmployeeGetApiById(user.userId);
+        console.log("employeeData",response.data)
         const companyId = response.data.companyId;
-        setUser(prevUser => ({ ...prevUser, companyId }));
+        setId(companyId)
         await fetchCompanyLogo(companyId);
       } catch (error) {
         setError("Failed to fetch data");
@@ -63,11 +65,14 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
+    console.log("companyId",id)
 
-    const fetchCompanyLogo = async (companyId) => {
+    const fetchCompanyLogo = async (id) => {
+      console.log("companyId",id)
       try {
-        const logoResponse = await companyViewByIdApi(companyId);
+        const logoResponse = await companyViewByIdApi(id);
         const companyData = logoResponse?.data;
+        console.log("logoResponse",logoResponse.data)
 
         if (companyData) {
           setCompanyData(companyData); // Set company data to state
@@ -94,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   }, [user]); 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logoFileName,setLogoFileName,companyData, loading, error,setAuthUser }}>
+    <AuthContext.Provider value={{ user,id,setUser, logoFileName,setLogoFileName,companyData, loading, error,setAuthUser }}>
       {children}
     </AuthContext.Provider>
   );

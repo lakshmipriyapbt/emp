@@ -8,14 +8,14 @@ import ExperienceTemplate2 from "./ExperienceTemplate2";
 
 const ExperienceLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
+    const [companyData, setCompanyData] = useState({});
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user,logoFileName} = useAuth();
+  const {user,id,logoFileName} = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -145,27 +145,16 @@ const ExperienceLetter = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-  
-      // Check if the error response has details
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data
-        const errorMessage = error.response.data.detail || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+        handleApiErrors(error)
     }
   };
   
-  const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      // toast.error("Network Error !");
-    }
-    console.error(error.response);
-  };
+   const handleApiErrors = (error) => {
+     if (error.response && error.response.data && error.response.data.error) {
+       const errorMessage = error.response.data.error?.message || "An error occurred";
+       toast.error(`Error: ${errorMessage}`);
+     }
+   };
 
   return (
     <LayOut>

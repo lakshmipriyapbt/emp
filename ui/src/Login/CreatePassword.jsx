@@ -3,17 +3,18 @@ import { useForm } from 'react-hook-form';
 import { forgotPasswordStep1, forgotPasswordStep2, ValidateOtp } from '../Utils/Axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { BriefcaseFill, EnvelopeFill, LockFill, UnlockFill } from 'react-bootstrap-icons';
+import { EnvelopeFill, LockFill, UnlockFill } from 'react-bootstrap-icons';
 import Loader from '../Utils/Loader';
 import { Modal, ModalBody, ModalHeader, ModalTitle } from 'react-bootstrap';
 
-const ForgotPassword = () => {
+const CreatePassword = () => {
   const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm({ mode: "onChange", defaultValues: {
     email: '',
     otp: '',
     password: '',
     confirmPassword: '',
   }, });
+  const { companyName } = useParams();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [passwordShown, setPasswordShown] = useState(false);
@@ -26,7 +27,10 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const watchPassword = watch('password', '');
   const navigate = useNavigate();
-  const { companyName } = useParams();
+
+  useEffect(() => {
+    localStorage.setItem("companyName", companyName);
+  }, [companyName]);
 
   useEffect(() => {
     if (otpTimeLimit > 0) {
@@ -402,7 +406,7 @@ const ForgotPassword = () => {
               <div className="card">
                 <div className="card-header d-flex justify-content-between align-items-center pb-0">
                   <div className="text-center">
-                    <p className="lead">Forgot Password</p>
+                    <p className="lead">Create Password</p>
                   </div>
                   <button className='btn text-white' style={{ marginBottom: "6px" }} onClick={closeButton}>X</button>
                 </div>
@@ -435,4 +439,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword;
+export default CreatePassword;

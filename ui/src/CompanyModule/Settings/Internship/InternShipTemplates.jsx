@@ -15,7 +15,7 @@ const InternShipTemplates = () => {
   const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user,logoFileName } = useAuth();
+  const { user,logoFileName,id } = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -141,26 +141,16 @@ const InternShipTemplates = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-  
-      // Check if the error response has details
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data
-        const errorMessage = error.response.data.detail || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+        handleApiErrors(error)
     }
   };
   
-  const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      console.error(error.response);
-    }
-  };
+   const handleApiErrors = (error) => {
+        if (error.response && error.response.data && error.response.data.error) {
+          const errorMessage = error.response.data.error?.message || "An error occurred";
+          toast.error(`Error: ${errorMessage}`);
+        }
+      };
 
   return (
     <LayOut>

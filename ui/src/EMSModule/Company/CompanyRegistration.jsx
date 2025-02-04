@@ -1050,7 +1050,6 @@ const CompanyRegistration = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Company GST Number{" "}
-                        <span style={{ color: "red" }}>*</span>
                       </label>
                       <input
                         type="text"
@@ -1062,12 +1061,11 @@ const CompanyRegistration = () => {
                         maxLength={15}
                         onPaste={handlePaste} 
                         {...register("gstNo", {
-                          required: "Company GST Number is Required",
                           maxLength: {
                             value: 15,
                             message: "GST Number must not exceed 15 characters",
                           },
-                          validate: validateGST,
+                          validate: (value) => value === "" || validateGST(value), // ✅ Makes GST optional
                         })}
                         disabled={editMode}
                       />

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import LayOut from "../../../LayOut/LayOut";
-import { companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, TemplateSelectionPatchAPI } from "../../../Utils/Axios";
+import {companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, TemplateSelectionPatchAPI } from "../../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import RelievingTemplate1 from "./RelievingTemplate1";
@@ -16,9 +16,9 @@ const RelievingLetter = () => {
   const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user,logoFileName } = useAuth();
+  const { user,id,logoFileName } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
-
+  console.log("companyData",companyData);
   const fetchCompanyData = async (companyId) => {
     try {
       const response = await companyViewByIdApi(companyId);
@@ -70,9 +70,9 @@ const RelievingLetter = () => {
 
   useEffect(() => {
     if (companyData) {
-      fetchTemplate(companyData.id);
+      fetchTemplate(id);
     }
-  }, [companyData]);
+  }, [id]);
 
   const templates = useMemo(() => [
     {
@@ -163,26 +163,15 @@ const RelievingLetter = () => {
       }
     } catch (error) {
       // Log the error for debugging
-      console.error("API call error:", error);
-  
-      // Check if the error response has details
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data
-        const errorMessage = error.response.data.detail || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+      handleApiErrors(error);
     }
   };
+
   const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      // toast.error("Network Error !");
+    if (error.response && error.response.data && error.response.data.error) {
+      const errorMessage = error.response.data.error?.message || "An error occurred";
+      toast.error(`Error: ${errorMessage}`);
     }
-    console.error(error.response);
   };
 
   return (

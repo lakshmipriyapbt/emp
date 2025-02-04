@@ -18,6 +18,7 @@ import {
   companyViewByIdApi,
 } from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
+import { userId } from "../Utils/Auth";
 
 function Profile() {
   const {
@@ -33,7 +34,7 @@ function Profile() {
   const [errorMessage, setErrorMessage] = useState("");
   const [error, setError] = useState(null);
   const [imgError, setImgError] = useState(null);
-  const { user = {}, logoFileName } = useAuth();
+  const { user = {},id,logoFileName } = useAuth();
   const navigate = useNavigate();
   const [response, setResponse] = useState({ data: {} });
   const [hasCinNo, setHasCinNo] = useState(false);
@@ -41,10 +42,10 @@ function Profile() {
 
   useEffect(() => {
     const fetchCompanyData = async () => {
-      if (!user.companyId) return;
+      if (id) return;
 
       try {
-        const response = await companyViewByIdApi(user.companyId);
+        const response = await companyViewByIdApi(id);
         const data = response.data;
         setCompanyData(data);
 
@@ -60,10 +61,10 @@ function Profile() {
     };
 
     fetchCompanyData();
-  }, [user.companyId, setValue, setError]);
+  }, [id, setValue, setError]);
 
   const handleDetailsSubmit = async (data) => {
-    if (!user.companyId) return;
+    if (id) return;
     const updateData = {
       companyAddress: data.companyAddress,
       mobileNo: data.mobileNo,
@@ -75,7 +76,7 @@ function Profile() {
     };
     try {
       // Attempt to update company details
-      await companyUpdateByIdApi(user.companyId, updateData);
+      await companyUpdateByIdApi(id, updateData);
       // Clear any previous error message
       setErrorMessage("");
       setError(null);
@@ -99,34 +100,43 @@ function Profile() {
   };
 
   const handleLogoSubmit = async (e) => {
-    e.preventDefault(); // Prevent form default action
-    if (!user.companyId) return;
-    if (!postImage) {
-      setErrorMessage("Logo is Required");
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append("image", "string");
-      formData.append("file", postImage);
-      await CompanyImagePatchApi(user.companyId, formData);
-      setPostImage(null);
-      setSuccessMessage("Logo updated successfully.");
-      toast.success("Company Logo Updated Successfully");
-      setErrorMessage("");
-      setImgError(""); // Clear image error if everything goes fine
-      closeModal();
-      setTimeout(() => {
-        window.location.href = "/main";
-      }, 2000);
-    } catch (err) {
-      console.error("Logo update error:", err);
-      setSuccessMessage("");
-      toast.error("Failed To Update Logo");
-      setError(err);
-    }
-  };
+    e.preventDefault(); // Prevent default form submission
 
+    if (!id) {
+        setErrorMessage("Company ID is missing.");
+        return;
+    }
+
+    if (!postImage) {
+        setErrorMessage("Logo is Required");
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append("file", postImage); // Use correct key name
+        console.log([...formData]); // Debugging
+
+        await CompanyImagePatchApi(id, formData);
+        
+        setPostImage(null);
+        setSuccessMessage("Logo updated successfully.");
+        toast.success("Company Logo Updated Successfully");
+        setErrorMessage("");
+        setImgError(""); // Clear errors
+        closeModal();
+        
+        setTimeout(() => {
+            navigate("/main");
+        }, 2000);
+    } catch (err) {
+        console.error("Logo update error:", err);
+        setSuccessMessage("");
+        toast.error("Failed To Update Logo");
+        setError(err);
+    }
+};
+  
   const handleEmailChange = (e) => {
     const value = e.target.value;
     if (value.trim() !== "") {
