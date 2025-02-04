@@ -21,7 +21,7 @@ const RelievingTemplate2 = ({
         <img 
           src={companyLogo} 
           alt={`${companyData.companyName} Logo`} 
-          style={{ maxWidth: '160px', position: 'absolute',top:"2px", right: '20px', height:"70px",width:"160px" }} 
+          style={{ maxWidth: '160px', position: 'absolute',top:"2px", right: '20px', height:"100px",width:"160px" }} 
         />
         <p><strong>{date}</strong></p>
         <h4 className='text-center mt-2'>Relieving Letter</h4>

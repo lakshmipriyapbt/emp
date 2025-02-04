@@ -23,7 +23,7 @@ const RelievingTemplate1 = ({
     >
       {/* Company Logo */}
       <div className="d-flex justify-content-start p-1">
-        <img src={companyLogo} alt="Company Logo" style={{ height: '70px', width: '160px' }} />
+        <img src={companyLogo} alt="Company Logo" style={{ height: '100px', width: '160px' }} />
       </div>
       
       {/* Title */}

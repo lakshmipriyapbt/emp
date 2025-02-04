@@ -35,7 +35,7 @@ const AppraisalTemplate1 = ({
             className="align-middle"
             src={companyLogo}
             alt="Logo"
-            style={{ height: "80px", width: "180px" }}
+            style={{ height: "100px", width: "150px" }}
           />
         ) : (
           <p>Logo</p>

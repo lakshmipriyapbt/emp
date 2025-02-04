@@ -8,7 +8,7 @@ import AppraisalTemplate2 from "./AppraisalTemplate2";
 
 const AppraisalTemplate = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  //const [companyData, setCompanyData] = useState({});
+  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
@@ -19,7 +19,7 @@ const AppraisalTemplate = () => {
   const [allowances, setAllowances] = useState({});
   const [error, setError] = useState("");
 
-  const { user,id,companyData, logoFileName } = useAuth();
+  const { user,id,logoFileName } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   // Fetching Salary Structures
@@ -52,41 +52,41 @@ const AppraisalTemplate = () => {
     fetchSalaryStructures();
   }, []);
 
-  // const fetchCompanyData = async (companyId) => {
-  //   try {
-  //     const response = await companyViewByIdApi(companyId);
-  //     setCompanyData(response.data);
-  //   } catch (err) {
-  //     console.error("Error fetching company data:", err);
-  //     toast.error("Failed to fetch company data");
-  //   }
-  // };
-
-  // const fetchEmployeeDetails = async (employeeId) => {
-  //   try {
-  //     const response = await EmployeeGetApiById(employeeId);
-  //     setEmployeeDetails(response.data);
-  //     if (response.data.companyId) {
-  //       fetchCompanyData(response.data.companyId);
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching employee details:", err);
-  //     toast.error("Failed to fetch employee details");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   const userId = user.userId;
-  //   setLoading(true);
-  //   if (userId) {
-  //     fetchEmployeeDetails(userId);
-  //   }
-  //   setLoading(false);
-  // }, [user.userId]);
-
-  const fetchTemplate = async (id) => {
+  const fetchCompanyData = async (companyId) => {
     try {
-      const res = await TemplateGetAPI(id);
+      const response = await companyViewByIdApi(companyId);
+      setCompanyData(response.data);
+    } catch (err) {
+      console.error("Error fetching company data:", err);
+      toast.error("Failed to fetch company data");
+    }
+  };
+
+  const fetchEmployeeDetails = async (employeeId) => {
+    try {
+      const response = await EmployeeGetApiById(employeeId);
+      setEmployeeDetails(response.data);
+      if (response.data.companyId) {
+        fetchCompanyData(response.data.companyId);
+      }
+    } catch (err) {
+      console.error("Error fetching employee details:", err);
+      toast.error("Failed to fetch employee details");
+    }
+  };
+
+  useEffect(() => {
+    const userId = user.userId;
+    setLoading(true);
+    if (userId) {
+      fetchEmployeeDetails(userId);
+    }
+    setLoading(false);
+  }, [user.userId]);
+
+  const fetchTemplate = async (companyId) => {
+    try {
+      const res = await TemplateGetAPI(companyId);
       const templateNo = res.data.data.appraisalTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -103,7 +103,7 @@ const AppraisalTemplate = () => {
 
   useEffect(() => {
     if (companyData) {
-      fetchTemplate(id);
+      fetchTemplate(companyData.id);
     }
   }, [companyData,id]);
 

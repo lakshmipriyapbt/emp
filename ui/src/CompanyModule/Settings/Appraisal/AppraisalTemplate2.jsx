@@ -1,4 +1,5 @@
 import React from "react";
+import { useAuth } from "../../../Context/AuthContext";
 
 const AppraisalTemplate2 = ({
   companyLogo,
@@ -13,6 +14,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
 }) => {
+    const { logoFileName } = useAuth();
   return (
     <div
       className="watermarked"
@@ -23,24 +25,17 @@ const AppraisalTemplate2 = ({
         overflow: "hidden",
       }}
     >
-      <div
-        className="row justify-content-start"
-        style={{
-          position: "relative",
-          top: "10px",
-          left: "20px",
-          zIndex: 10,
-        }}
-      >
-        <img
-          src={companyLogo}
-          alt="Logo"
-          style={{
-            height: "100px",
-            width: "300px",
-            objectFit: "contain",
-          }}
-        />
+      <div style={{ textAlign: "left" }}>
+        {logoFileName ? (
+          <img
+            className="align-middle"
+            src={companyLogo}
+            alt="Logo"
+            style={{ height: "100px", width: "150px" }}
+          />
+        ) : (
+          <p>Logo</p>
+        )}
       </div>
 
       <div

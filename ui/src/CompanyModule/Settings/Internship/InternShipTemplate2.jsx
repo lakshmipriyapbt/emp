@@ -19,29 +19,35 @@ const InternShipTemplate2 = ({
         overflow: "hidden",
       }}
     >
-        <div className="d-flex justify-content-between align-items-center">
+      <div className="d-flex justify-content-between align-items-center">
         {/* Left side: Company Information */}
         <div className="text-start">
-            <div style={{ textAlign: "left" }}>
+          <div style={{ textAlign: "left" }}>
             <h4>{companyData.companyName}</h4>
             <p>{companyData.companyAddress}</p>
-            <p> {companyData.mobileNo} | {companyData.emailId}</p>
-            </div>
+            <p>
+              {" "}
+              {companyData.mobileNo} | {companyData.emailId}
+            </p>
+          </div>
         </div>
 
         {/* Right side: Company Logo */}
         <div>
-            <img
+          <img
             src={companyLogo}
-            alt="Logo"
+            alt={`${companyData.companyName} Logo`}
             style={{
-                height: "100px",
-                width: "300px",
-                objectFit: "contain",
+              maxWidth: "160px",
+              position: "absolute",
+              top: "2px",
+              right: "20px",
+              height: "100px",
+              width: "160px",
             }}
-            />
+          />
         </div>
-        </div>
+      </div>
       <div
         style={{
           position: "absolute",
@@ -59,8 +65,9 @@ const InternShipTemplate2 = ({
         }}
       />
       <h4 className="text-center p-3">INTERNSHIP CERTIFICATION</h4>
-          <p className="text-start p-2"><strong>{new Date().toLocaleDateString()}</strong></p>
-
+      <p className="text-start p-2">
+        <strong>{new Date().toLocaleDateString()}</strong>
+      </p>
 
       {/* Content div */}
       <div
@@ -75,10 +82,11 @@ const InternShipTemplate2 = ({
 
         <p>
           We are pleased to inform that <strong>{employeeName}</strong>&nbsp;
-           has successfully completed an internship program with{" "}
-          <strong>{companyData.companyName}</strong> as a <strong>{designation}</strong> in
-          the <strong>{department}</strong> department from{" "}
-          <strong>{startDate}</strong> to <strong>{endDate}</strong>.
+          has successfully completed an internship program with{" "}
+          <strong>{companyData.companyName}</strong> as a{" "}
+          <strong>{designation}</strong> in the <strong>{department}</strong>{" "}
+          department from <strong>{startDate}</strong> to{" "}
+          <strong>{endDate}</strong>.
         </p>
 
         <p>

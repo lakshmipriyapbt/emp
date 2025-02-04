@@ -34,7 +34,7 @@ const ExperienceTemplate2 = ({
                 <img
                 src={companyLogo}
                 alt="Logo"
-                style={{ height: "70px", width: "160px" }}
+                style={{ height: "100px", width: "160px" }}
                 />
             </div>
             </div>
