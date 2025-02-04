@@ -10,6 +10,7 @@ const RelievingTemplate1 = ({
   resignationDate,
   lastWorkingDate,
 }) => {
+  console.log("companyData1",companyData)
   return (
     <div
       className="watermarked"

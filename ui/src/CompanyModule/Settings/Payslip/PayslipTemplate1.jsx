@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../../../Context/AuthContext";
+import { toast } from "react-toastify";
 
 const PayslipTemplate1 = () => {
     const { logoFileName } = useAuth();
-
+    
     return (
         <div>
             <div className="container mt-4" style={{ pointerEvents: "none" }}>

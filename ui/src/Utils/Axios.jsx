@@ -373,7 +373,13 @@ export const AttendanceDeleteById = (employeeId, attendanceId) => {
 }
 
 export const CompanyImagePatchApi = (companyId, formData) => {
-  return axiosInstance.patch(`/company/image/${companyId}`, formData);
+  console.log("API Call: ", `/company/image/${companyId}`);
+    console.log("Form Data: ", [...formData]); // Check if data is correct
+  return axiosInstance.patch(`/company/image/${companyId}`, formData,{
+    headers:{
+      "Content-Type":"multipart/form-data"
+    }
+  });
 }
 
 export const CompanyImageGetApi = (companyId) => {

@@ -12,7 +12,13 @@ const PayslipTemplates = () => {
     const [currentTemplate, setCurrentTemplate] = useState(<PayslipTemplate1 />);
     const [payslipTemplateNo, setPayslipTemplateNo] = useState("");
     const [loading, setLoading] = useState(false);
-    const { user } = useAuth();
+    const { user,logoFileName } = useAuth();
+
+    useEffect(() => {
+        if (!logoFileName) {
+          toast.error("Company logo is required. Please upload a logo.");
+        }
+      }, [logoFileName]); 
 
     const templates = [
         { id: 1, title: 'Template 1', bgColor: '#e6e6fa', headingColor: '#4682b4', component: <PayslipTemplate1 /> },
@@ -26,7 +32,6 @@ const PayslipTemplates = () => {
             toast.error("Please select a Payslip Template first.");
             return;
         }
-
         setLoading(true);
         const data = {
             companyId: user.companyId,
@@ -44,15 +49,12 @@ const PayslipTemplates = () => {
         }
     };
 
-    const handleApiErrors = (error) => {
-        if (error.response && error.response.data) {
-            const errorMessage = error.response.data.error?.message || "An unknown error occurred.";
-            toast.error(errorMessage);
-        } else {
-            toast.error("Network Error! Please try again.");
-        }
-        console.error(error.response || error.message);
-    };
+     const handleApiErrors = (error) => {
+          if (error.response && error.response.data && error.response.data.error) {
+            const errorMessage = error.response.data.error?.message || "An error occurred";
+            toast.error(`Error: ${errorMessage}`);
+          }
+        };
 
     const fetchTemplate = async () => {
         try {

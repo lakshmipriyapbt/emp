@@ -10,7 +10,6 @@ import {
   EmployeeGetApi,
   EmployeeGetApiById,
   InternshipCertificateDownload,
-  InternShipFormPostApi,
   TemplateGetAPI,
 } from "../../../Utils/Axios";
 import { useAuth } from "../../../Context/AuthContext";
@@ -388,13 +387,9 @@ const InternShipForm = () => {
                             value: 3,
                             message: "Minimum 3 Characters Required",
                           },
-                          maxLength: {
-                            value: 100,
-                            message: "Maximum 100 Characters Required",
                           validate: {
                             validateName,
                           },
-                        }
                         })}
                       />
                       {errors.employeeName && (

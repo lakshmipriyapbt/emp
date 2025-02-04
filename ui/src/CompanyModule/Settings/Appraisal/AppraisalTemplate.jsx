@@ -8,7 +8,7 @@ import AppraisalTemplate2 from "./AppraisalTemplate2";
 
 const AppraisalTemplate = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
+  //const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
@@ -19,7 +19,7 @@ const AppraisalTemplate = () => {
   const [allowances, setAllowances] = useState({});
   const [error, setError] = useState("");
 
-  const { user, logoFileName } = useAuth();
+  const { user,id,companyData, logoFileName } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   // Fetching Salary Structures
@@ -52,41 +52,41 @@ const AppraisalTemplate = () => {
     fetchSalaryStructures();
   }, []);
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
+  // const fetchCompanyData = async (companyId) => {
+  //   try {
+  //     const response = await companyViewByIdApi(companyId);
+  //     setCompanyData(response.data);
+  //   } catch (err) {
+  //     console.error("Error fetching company data:", err);
+  //     toast.error("Failed to fetch company data");
+  //   }
+  // };
 
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
+  // const fetchEmployeeDetails = async (employeeId) => {
+  //   try {
+  //     const response = await EmployeeGetApiById(employeeId);
+  //     setEmployeeDetails(response.data);
+  //     if (response.data.companyId) {
+  //       fetchCompanyData(response.data.companyId);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching employee details:", err);
+  //     toast.error("Failed to fetch employee details");
+  //   }
+  // };
 
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
+  // useEffect(() => {
+  //   const userId = user.userId;
+  //   setLoading(true);
+  //   if (userId) {
+  //     fetchEmployeeDetails(userId);
+  //   }
+  //   setLoading(false);
+  // }, [user.userId]);
 
-  const fetchTemplate = async (companyId) => {
+  const fetchTemplate = async (id) => {
     try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(id);
       const templateNo = res.data.data.appraisalTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -103,9 +103,9 @@ const AppraisalTemplate = () => {
 
   useEffect(() => {
     if (companyData) {
-      fetchTemplate(companyData.id);
+      fetchTemplate(id);
     }
-  }, [companyData]);
+  }, [companyData,id]);
 
   const templates = useMemo(() => [
     {
@@ -176,27 +176,16 @@ const AppraisalTemplate = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-  
-      // Check if the error response has details
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data
-        const errorMessage = error.response.data.detail || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+        handleApiErrors(error)
     }
   };
 
-  const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      // toast.error("Network Error !");
-    }
-    console.error(error.response);
-  };
+ const handleApiErrors = (error) => {
+      if (error.response && error.response.data && error.response.data.error) {
+        const errorMessage = error.response.data.error?.message || "An error occurred";
+        toast.error(`Error: ${errorMessage}`);
+      }
+    };
 
   return (
     <LayOut>

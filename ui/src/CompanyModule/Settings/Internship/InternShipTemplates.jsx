@@ -8,50 +8,50 @@ import InternShipTemplate2 from "./InternShipTemplate2";
 
 const InternShipTemplates = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
+ // const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user,logoFileName } = useAuth();
+  const { user,logoFileName,id,companyData } = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
+  // const fetchCompanyData = async (companyId) => {
+  //   try {
+  //     const response = await companyViewByIdApi(companyId);
+  //     setCompanyData(response.data);
+  //   } catch (err) {
+  //     console.error("Error fetching company data:", err);
+  //     toast.error("Failed to fetch company data");
+  //   }
+  // };
+
+  // const fetchEmployeeDetails = async (employeeId) => {
+  //   try {
+  //     const response = await EmployeeGetApiById(employeeId);
+  //     setEmployeeDetails(response.data);
+  //     if (response.data.companyId) {
+  //       fetchCompanyData(response.data.companyId);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching employee details:", err);
+  //     toast.error("Failed to fetch employee details");
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const userId = user.userId;
+  //   setLoading(true);
+  //   if (userId) {
+  //     fetchEmployeeDetails(userId);
+  //   }
+  //   setLoading(false);
+  // }, [user.userId]);
+
+  const fetchTemplate = async (id) => {
     try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
-
-  const fetchTemplate = async (companyId) => {
-    try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(id);
       const templateNo = res.data.data.internshipTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -68,7 +68,7 @@ const InternShipTemplates = () => {
 
   useEffect(() => {
     if (companyData) {
-      fetchTemplate(companyData.id);
+      fetchTemplate(id);
     }
   }, [companyData]);
 
@@ -141,26 +141,16 @@ const InternShipTemplates = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-  
-      // Check if the error response has details
-      if (error.response) {
-        console.error("Response data:", error.response.data); // Log response data
-        const errorMessage = error.response.data.detail || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+        handleApiErrors(error)
     }
   };
   
-  const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      console.error(error.response);
-    }
-  };
+   const handleApiErrors = (error) => {
+        if (error.response && error.response.data && error.response.data.error) {
+          const errorMessage = error.response.data.error?.message || "An error occurred";
+          toast.error(`Error: ${errorMessage}`);
+        }
+      };
 
   return (
     <LayOut>
