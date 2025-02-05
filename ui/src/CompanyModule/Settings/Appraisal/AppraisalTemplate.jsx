@@ -19,7 +19,7 @@ const AppraisalTemplate = () => {
   const [allowances, setAllowances] = useState({});
   const [error, setError] = useState("");
 
-  const { user,id,logoFileName } = useAuth();
+  const { user, logoFileName } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   // Fetching Salary Structures
@@ -105,7 +105,7 @@ const AppraisalTemplate = () => {
     if (companyData) {
       fetchTemplate(companyData.id);
     }
-  }, [companyData,id]);
+  }, [companyData]);
 
   const templates = useMemo(() => [
     {
@@ -176,7 +176,7 @@ const AppraisalTemplate = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-        handleApiErrors(error)
+      handleApiErrors(error)
     }
   };
 
@@ -186,7 +186,6 @@ const AppraisalTemplate = () => {
         toast.error(`Error: ${errorMessage}`);
       }
     };
-
   return (
     <LayOut>
       <div className="container-fluid p-0">

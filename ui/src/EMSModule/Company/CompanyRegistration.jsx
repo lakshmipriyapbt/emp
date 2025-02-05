@@ -1065,7 +1065,7 @@ const CompanyRegistration = () => {
                             value: 15,
                             message: "GST Number must not exceed 15 characters",
                           },
-                          validate: validateGST,
+                          validate: (value) => value === "" || validateGST(value), // ✅ Makes GST optional
                         })}
                         disabled={editMode}
                       />

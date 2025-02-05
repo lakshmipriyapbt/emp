@@ -9,8 +9,8 @@ const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
 
-const BASE_URL = `${protocol}//${hostname}:8092/ems`;
-const Login_URL = `${protocol}//${hostname}:9090/ems`;
+const BASE_URL = `${protocol}//${hostname}:8014/ems`;
+const Login_URL = `${protocol}//${hostname}:9004/ems`;
 
 const token = localStorage.getItem("token");
 
@@ -377,14 +377,13 @@ export const AttendanceDeleteById = (employeeId, attendanceId) => {
 }
 
 export const CompanyImagePatchApi = (companyId, formData) => {
-  console.log("API Call: ", `/company/image/${companyId}`);
-    console.log("Form Data: ", [...formData]); // Check if data is correct
-  return axiosInstance.patch(`/company/image/${companyId}`, formData,{
-    headers:{
-      "Content-Type":"multipart/form-data"
-    }
+  return axiosInstance.patch(`/company/image/${companyId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
-}
+};
+
 
 export const CompanyImageGetApi = (companyId) => {
   return axiosInstance.get(`/company/${companyId}/image`);

@@ -131,12 +131,12 @@ public class CompanyUtils {
         }
         if (companyEntity.getImageFile() != null){
             String baseUrl = getBaseUrl(request);
-            String image = baseUrl + "var/www/ems/assets/img/" + companyEntity.getImageFile();
+            String image = baseUrl + "var/www/ems-prod/assets/img/" + companyEntity.getImageFile();
             companyEntity.setImageFile(image);
         }
         if (companyEntity.getStampImage() != null){
             String baseUrl = getBaseUrl(request);
-            String image = baseUrl + "var/www/ems/assets/img/" + companyEntity.getStampImage();
+            String image = baseUrl + "var/www/ems-prod/assets/img/" + companyEntity.getStampImage();
             companyEntity.setStampImage(image);
         }
         companyEntity.setPassword("**********");
