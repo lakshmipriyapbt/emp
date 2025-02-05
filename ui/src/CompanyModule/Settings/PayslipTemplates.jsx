@@ -12,13 +12,7 @@ const PayslipTemplates = () => {
     const [currentTemplate, setCurrentTemplate] = useState(<PayslipTemplate1 />);
     const [payslipTemplateNo, setPayslipTemplateNo] = useState("");
     const [loading, setLoading] = useState(false);
-    const { user,logoFileName } = useAuth();
-
-    useEffect(() => {
-        if (!logoFileName) {
-          toast.error("Company logo is required. Please upload a logo.");
-        }
-      }, [logoFileName]); 
+    const { user} = useAuth();
 
     const templates = [
         { id: 1, title: 'Template 1', bgColor: '#e6e6fa', headingColor: '#4682b4', component: <PayslipTemplate1 /> },
