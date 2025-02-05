@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -35,6 +36,7 @@ public class RestFilter implements Filter {
 
     // Use the same key generated in JwtTokenUtil for signing/validation (HS256)
     private static final Key key = JwtConfig.key;
+    private static final List<String> REQUIRED_ROLES = Arrays.asList(Constants.COMPANY_ADMIN, Constants.EMPLOYEE, Constants.EMS_ADMIN, Constants.ACCOUNTANT,Constants.HR,Constants.ASSOCIATE);
 
     private static Set<String> SWAGGER_URLS_TO_BYPASS_AUTH = Set.of(
             "/ems/api-docs",
@@ -178,7 +180,7 @@ public class RestFilter implements Filter {
             Object roles = parsedToken.getBody().get("roles");
             if (roles instanceof List) {
                 List<?> rolesList = (List<?>) roles;
-                return rolesList.contains("company_admin") || rolesList.contains("employee") || rolesList.contains("ems_admin");
+                return rolesList.stream().anyMatch(REQUIRED_ROLES::contains);
             }
         }
         return false;
