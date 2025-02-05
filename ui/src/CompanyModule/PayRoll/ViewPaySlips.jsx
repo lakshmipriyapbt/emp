@@ -98,6 +98,9 @@ const ViewPaySlips = () => {
     }
   };
 
+  const company = localStorage.getItem("companyName");
+  console.log("company:", company);
+
   const handleGoClick = () => {
     if (!selectedYear) {
       alert("Please select a year.");

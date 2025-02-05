@@ -14,12 +14,6 @@ const PayslipTemplates = () => {
     const [loading, setLoading] = useState(false);
     const { user,logoFileName } = useAuth();
 
-    useEffect(() => {
-        if (!logoFileName) {
-          toast.error("Company logo is required. Please upload a logo.");
-        }
-      }, [logoFileName]); 
-
     console.log("companyId:",user.companyId);
     
 

@@ -1,8 +1,10 @@
 import axios from "axios";
-import { useAuth } from "../Context/AuthContext";
 import { employeeId } from "./Auth";
 import { json } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
+ const { user } = useAuth;
+  console.log("user in Auth",user)
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
@@ -298,7 +300,7 @@ export const EmployeePayslipGetById = (employeeId, payslipId, month, year) => {
 
 
 export const EmployeePayslipsGet = (employeeId, month, year) => {
-  const company = localStorage.getItem("company")
+  const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}/payslips`, {
     params: {
       month, year
@@ -307,7 +309,7 @@ export const EmployeePayslipsGet = (employeeId, month, year) => {
 }
 
 export const AllEmployeePayslipsGet = (month, year) => {
-  const company = localStorage.getItem("company")
+  const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/all/payslip`, {
     params: {
       month, year
@@ -316,10 +318,12 @@ export const AllEmployeePayslipsGet = (month, year) => {
 }
 
 export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
-  const company = localStorage.getItem("companyName");
+  const companyName = localStorage.getItem("companyName");
+  console.log("companyName:", companyName);
+  
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`, {
+    const response = await axiosInstance.get(`/${companyName}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
         'Accept': 'application/pdf', // Accept PDF format
@@ -368,7 +372,7 @@ export const AttendancePatchById = (employeeId, attendanceId, data) => {
 }
 
 export const AttendanceDeleteById = (employeeId, attendanceId) => {
-  const company = localStorage.getItem("company")
+  const company = localStorage.getItem("companyName")
   return axiosInstance.delete(`/${company}/employee/${employeeId}/attendance/${attendanceId}`);
 }
 

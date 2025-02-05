@@ -55,6 +55,70 @@ const PayslipUpdate2 = () => {
   const year = queryParams.get("year");
   const { user, logoFileName } = useAuth();
 
+  const numberToWords = (num) => {
+    const units = [
+      '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+      'Seventeen', 'Eighteen', 'Nineteen'
+    ];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const unitsPlaces = ['', 'Lakh', 'Thousand', 'Hundred'];
+
+    if (num === 0) return 'Zero';
+
+    const convertToWords = (n) => {
+      if (n === 0) return '';
+
+      let word = '';
+      if (n >= 100) {
+        word += units[Math.floor(n / 100)] + ' Hundred ';
+        n %= 100;
+      }
+      if (n >= 20) {
+        word += tens[Math.floor(n / 10)] + ' ';
+        n %= 10;
+      }
+      if (n > 0) {
+        word += units[n] + ' ';
+      }
+      return word.trim();
+    };
+
+    let result = '';
+    let integerPart = Math.floor(num);
+
+    // Handle Lakhs and Thousands in the Indian numbering system
+    if (integerPart >= 100000) {
+      const lakhs = Math.floor(integerPart / 100000);
+      result += convertToWords(lakhs) + ' Lakh ';
+      integerPart %= 100000;
+    }
+
+    if (integerPart >= 1000) {
+      const thousands = Math.floor(integerPart / 1000);
+      result += convertToWords(thousands) + ' Thousand ';
+      integerPart %= 1000;
+    }
+
+    if (integerPart >= 100) {
+      const hundreds = Math.floor(integerPart / 100);
+      result += convertToWords(hundreds) + ' Hundred ';
+      integerPart %= 100;
+    }
+
+    if (integerPart > 0) {
+      result += convertToWords(integerPart);
+    }
+
+    // Handle decimal (cents)
+    let decimalPart = Math.round((num % 1) * 100);
+    if (decimalPart > 0) {
+      result += ' and ' + convertToWords(decimalPart) + ' Paise';
+    }
+
+    return result.trim();
+  };
+
   const fetchCompanyData = async (companyId) => {
     try {
       const response = await companyViewByIdApi(companyId);
@@ -178,27 +242,27 @@ const PayslipUpdate2 = () => {
   
         // Create the payload to send to the server
         const payload = {
-          companyName: user.company,
+          companyName: user.company || "", // Default to empty string if undefined
           salary: {
             ...payslipData.salary,
-            salaryId: payslipData.salary.salaryId,
+            salaryId: payslipData.salary.salaryId ?? 0, // Default to 0 if missing
             salaryConfigurationEntity: {
               ...payslipData.salary.salaryConfigurationEntity,
-              allowances: allowances, // Updated allowances including recalculated "Other Allowances" and Bonus
-              newAllowances: newAllowances, // Only new allowances like "Bonus"
-              deductions: mergedDeductions, // Merged deductions with the updates
+              allowances: allowances ?? {}, // Default to empty object if missing
+              newAllowances: newAllowances ?? {}, // Default to empty object
+              deductions: mergedDeductions ?? {}, // Default to empty object
             },
-            totalEarnings: totals.totalEarnings,
-            totalDeductions: totals.totalDeductions,
-            totalTax: totals.totalTax,
-            netSalary: totals.netPay,
+            totalEarnings: Number(totals.totalEarnings) || 0, // Convert to number or default to 0
+            totalDeductions: Number(totals.totalDeductions) || 0,
+            totalTax: Number(totals.totalTax) || 0,
+            netSalary: Number(totals.netPay) || 0,
+            incomeTax: Number(payslipData.salary.incomeTax) || 0, // Convert empty string to 0
           },
           attendance: payslipData.attendance,
           month,
           year,
-          updatedOtherAllowance, // Include updatedOtherAllowance in the payload
-        };
-  
+          updatedOtherAllowance,// Convert to number or default to 0
+        };        
         console.log("Payload being sent:", payload);
   
         // Call the API to update the payslip
@@ -1438,7 +1502,7 @@ const PayslipUpdate2 = () => {
                         colSpan={3}
                         style={{ textAlign: "left", border: "1px solid black" }}
                       >
-                        <b>{payslipData.inWords || ""}</b>
+                         <b>{numberToWords(totals.netPay)}</b>
                       </td>
                     </tr>
                     {netPayError && (
@@ -1450,12 +1514,12 @@ const PayslipUpdate2 = () => {
                 </table>
               </div>
             </div>
-            <span className="mt-4">
+            {/* <span className="mt-4">
               <em>
                 This is a computer-generated payslip and does not require
                 authentication
               </em>
-            </span>
+            </span> */}
             <div
               className="bottom"
               style={{
