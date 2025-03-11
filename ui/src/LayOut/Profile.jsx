@@ -107,6 +107,7 @@ function Profile() {
     if (!user.companyId) return;
     if (!postImage) {
       setErrorMessage("Logo is Required");
+      setImgError("Logo is Required")
       return;
     }
     try {

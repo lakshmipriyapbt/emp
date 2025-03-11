@@ -283,13 +283,10 @@ const InvoiceRegistration = () => {
       // ✅ Send API request
       const response = await InvoicePostApi(companyId, customerId, invoiceDataToSend);
       console.log("✅ API Response:", response);
-  
-      toast.success("Invoice created successfully", {
-        position: "top-right",
-        autoClose: 1000,
-      });
-      navigate("/invoiceView");
-  
+      setTimeout(() => {
+        toast.success("Client added successfully");
+        navigate("/invoiceView");
+      }, 1000); 
       setInvoiceData(data);
       setShowPreview(true);
     } catch (error) {
