@@ -21,7 +21,7 @@ public interface CompanyService {
 
     ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException;
 
-    ResponseEntity<?> deleteCompanyById(String companyId) throws EmployeeException;
+    ResponseEntity<?> deleteCompanyById(String companyId, String authToken) throws EmployeeException;
 
     ResponseEntity<?> getCompanyImageById(String companyId, HttpServletRequest request)  throws EmployeeException;
 

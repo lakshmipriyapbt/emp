@@ -321,24 +321,7 @@ const InvoicePdf = () => {
                                 </td>
                               </tr>
                               {!invoiceData.igst || parseFloat(invoiceData.igst) === 0 ? (
-                                <tr>
-                                  <td
-                                    colSpan={totalColumns - 1}
-                                    style={{
-                                      textAlign: "right",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    IGST (18%)
-                                  </td>
-                                  <td>
-                                    {(
-                                      parseFloat(invoiceData.igst) || 0
-                                    ).toFixed(2)}
-                                  </td>
-                                </tr>
-                              ) : (
-                                <>
+                                  <>
                                   <tr>
                                     <td
                                       colSpan={totalColumns - 1}
@@ -372,6 +355,24 @@ const InvoicePdf = () => {
                                     </td>
                                   </tr>
                                 </>
+                              ) : (
+                                <tr>
+                                <td
+                                  colSpan={totalColumns - 1}
+                                  style={{
+                                    textAlign: "right",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  IGST (18%)
+                                </td>
+                                <td>
+                                  {(
+                                    parseFloat(invoiceData.igst) || 0
+                                  ).toFixed(2)}
+                                </td>
+                              </tr>
+                            
                               )}
                               <tr>
                                 <td
@@ -423,71 +424,67 @@ const InvoicePdf = () => {
                   </div>
                 </div>
                 {/* Bank Details */}
-                <div className="col-md-12">
-                  <div className="table-responsive">
-                    <h3 style={{ margin: "40px 0 10px 0px" }}>Bank Details</h3>
-                    <div className="col-md-12">
-                      <div
-                        className="bank-details"
-                        style={{ marginBottom: "20px" }}
-                      >
-                        <div style={{ display: "flex", marginBottom: "10px" }}>
-                          <span style={{ fontWeight: "bold", width: "150px" }}>
-                            Bank Name :
-                          </span>
-                          <span>
-                            {invoiceData.bank
-                              ? invoiceData.bank.bankName
-                              : "N/A"}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", marginBottom: "10px" }}>
-                          <span style={{ fontWeight: "bold", width: "150px" }}>
-                            Account Number :
-                          </span>
-                          <span>
-                            {invoiceData.bank
-                              ? invoiceData.bank.accountNumber
-                              : "N/A"}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", marginBottom: "10px" }}>
-                          <span style={{ fontWeight: "bold", width: "150px" }}>
-                            Account Type :
-                          </span>
-                          <span>
-                            {invoiceData.bank
-                              ? invoiceData.bank.accountType
-                              : "N/A"}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", marginBottom: "10px" }}>
-                          <span style={{ fontWeight: "bold", width: "150px" }}>
-                            IFSC Code :
-                          </span>
-                          <span>
-                            {invoiceData.bank
-                              ? invoiceData.bank.ifscCode
-                              : "N/A"}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", marginBottom: "10px" }}>
-                          <span style={{ fontWeight: "bold", width: "150px" }}>
-                            Branch :
-                          </span>
-                          <span>
-                            {invoiceData.bank ? invoiceData.bank.branch : "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p style={{ marginTop: "50px" }}>
-                        <b>{companyDetails.companyName}</b>
-                      </p>
-                      <h5>Authorized Signature</h5>
-                    </div>
+                <div className="col-md-12 mt-3">              
+                <div className="row">
+  {/* Left Section - Bank Details */}
+  <div className="col-md-6">
+    {/* Title and Bank Address aligned in the same row */}
+    <div className="d-flex align-items-start mb-2">
+      <h5 className="fw-bold me-3">Bank Details</h5>
+    </div>
+
+    {/* Bank Details List */}
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "150px" }}>Bank Name :</div>
+      <div>{invoiceData.bank?.bankName || "N/A"}</div>
+    </div>
+
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "150px" }}>Account Number :</div>
+      <div>{invoiceData.bank?.accountNumber || "N/A"}</div>
+    </div>
+
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "150px" }}>Account Type :</div>
+      <div>{invoiceData.bank?.accountType || "N/A"}</div>
+    </div>
+
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "150px" }}>IFSC Code :</div>
+      <div>{invoiceData.bank?.ifscCode || "N/A"}</div>
+    </div>
+
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "150px" }}>Branch :</div>
+      <div>{invoiceData.bank?.branch || "N/A"}</div>
+    </div>
+
+    <div className="d-flex">
+      <div className="fw-bold" style={{ width: "250px" }}>Bank Address :</div>
+      <div><span className="text-break" style={{ maxWidth: "300px" }}>{invoiceData.bank?.address || "N/A"}</span></div>
+    </div>
+  </div>
+
+  {/* Right Section - Stamp & Authorized Signature (Both at Bottom) */}
+  <div className="col-md-6 d-flex flex-column align-items-end justify-content-end">
+    {companyDetails.stampImage && (
+      <img
+        src={companyDetails.stampImage}
+        className="mb-0"
+        style={{ height: "60px", width: "155px" }}
+        alt="Company Stamp"
+      />
+    )}
+    
+    <div className="text-end">
+      <p className="mb-1"><b>{companyDetails.companyName}</b></p>
+      <h5 className="mb-0">Authorized Signature</h5>
+    </div>
+  </div>
+</div>
+
                     <hr />
+                    <div className="table-responsive">
                     <div style={{ margin: "40px 0px" }}>
                       <p style={{ textAlign: "center", marginBottom: "0px" }}>
                         {companyDetails.companyName},

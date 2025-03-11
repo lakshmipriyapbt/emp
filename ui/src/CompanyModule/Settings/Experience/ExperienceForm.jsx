@@ -107,7 +107,7 @@ const ExperienceForm = () => {
     };
     // Format the date fields to dd-mm-yyyy format
     const formattedLastWorkingDate = formatDate(data.relievingDate);
-    const formattedResignationDate = formatDate(data.resignationDate);
+    const formattedExperinceDate = formatDate(data.experienceDate);
     const formattedHiringDate = formatDate(data.dateOfHiring);
     const preview = {
       employeeName: selectedEmployee
@@ -119,13 +119,13 @@ const ExperienceForm = () => {
       designationName: data.designationName || "",
       departmentName: data.departmentName || "",
       joiningDate: formattedHiringDate || "",
-      experienceDate: formattedResignationDate || "", // Resignation date formatted
+      experienceDate: formattedExperinceDate || "", // Resignation date formatted
       date: formattedLastWorkingDate || "",
       noticePeriod,
       companyName: user.company,
       companyData: companyData,
     };
-
+   console.log("previewData",preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);

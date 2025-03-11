@@ -17,6 +17,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   }
 });
+
 export const loginApi = (data) => {
   return axios
     .post(`${Login_URL}/emsadmin/login`, data)
@@ -377,6 +378,14 @@ export const AttendanceDeleteById = (employeeId, attendanceId) => {
 
 export const CompanyImagePatchApi = (companyId, formData) => {
   return axiosInstance.patch(`/company/image/${companyId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const CompanyStampPatchApi = (companyId, formData) => {
+  return axiosInstance.patch(`/company/stampImage/${companyId}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

@@ -10,8 +10,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
   const { user,logoFileName } = useAuth();
-  const navigate=useNavigate();
-
+  console.log("preview",previewData)
   const fetchCompanyData = async (companyId) => {
     try {
       const response = await companyViewByIdApi(companyId);
@@ -55,8 +54,8 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
           department={previewData.departmentName}
-          joiningDate={previewData.dateOfHiring}
-          experienceDate={previewData.resignationDate}
+          joiningDate={previewData.joiningDate}
+          experienceDate={previewData.experienceDate}
           date={previewData.date}
         />
       ),
@@ -72,8 +71,8 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
           department={previewData.departmentName}
-          joiningDate={previewData.dateOfHiring}
-          experienceDate={previewData.resignationDate}
+          joiningDate={previewData.joiningDate}
+          experienceDate={previewData.experienceDate}
           date={previewData.date}
         />
       ),

@@ -9,11 +9,12 @@ import {
   ModalFooter,
 } from "react-bootstrap";
 import LayOut from "./LayOut";
-import { CameraFill } from "react-bootstrap-icons";
+import { CameraFill, Upload } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   CompanyImagePatchApi,
+  CompanyStampPatchApi,
   companyUpdateByIdApi,
   companyViewByIdApi,
 } from "../Utils/Axios";
@@ -28,14 +29,15 @@ function Profile() {
   } = useForm({ mode: "onChange" });
   const [companyData, setCompanyData] = useState({});
   const [postImage, setPostImage] = useState(null);
+  const [stampImage, setStampImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [error, setError] = useState(null);
   const [imgError, setImgError] = useState(null);
-  const { user = {}, logoFileName } = useAuth();
-  console.log("user:", user.companyId);
-
+  const [stampError, setStampError] = useState("");
+  const [showStampModal, setShowStampModal] = useState(false);
+  const { user = {}, logoFileName,stamp } = useAuth();
   const navigate = useNavigate();
   const [response, setResponse] = useState({ data: {} });
   const [hasCinNo, setHasCinNo] = useState(false);
@@ -104,21 +106,13 @@ function Profile() {
     e.preventDefault(); // Prevent form default action
     if (!user.companyId) return;
     if (!postImage) {
-      setErrorMessage("Logo is required");
+      setErrorMessage("Logo is Required");
       return;
     }
-
-    // Restrict file names with spaces
-    if (/\s/.test(postImage.name)) {
-      setErrorMessage("File name should not contain spaces.");
-      return;
-    }
-
     try {
       const formData = new FormData();
       formData.append("image", "string");
       formData.append("file", postImage);
-
       await CompanyImagePatchApi(user.companyId, formData);
       setPostImage(null);
       setSuccessMessage("Logo updated successfully.");
@@ -137,6 +131,36 @@ function Profile() {
     }
   };
 
+  const handleStampSubmit = async (e) => {
+    e.preventDefault();
+    if (!user.companyId) return;
+    if (!stampImage) {
+      setStampError("Stamp is Required");
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("image", "string");
+      formData.append("file", stampImage);
+      await CompanyStampPatchApi(user.companyId, formData); // API call
+
+      setStampImage(null);
+      setSuccessMessage("Stamp updated successfully.");
+      toast.success("Company Stamp Updated Successfully");
+      setStampError("");
+      closeStampModal();
+      setTimeout(() => {
+        window.location.href = "/main";
+      }, 2000);
+    } catch (err) {
+      console.error("Stamp update error:", err);
+      setSuccessMessage("");
+      toast.error("Failed To Update Stamp");
+      setStampError("Error uploading stamp");
+    }
+  };
+
+
   const handleEmailChange = (e) => {
     const value = e.target.value;
     if (value.trim() !== "") {
@@ -146,70 +170,51 @@ function Profile() {
       e.preventDefault();
     }
   };
+ // Validate Logo Upload
+ const onChangePicture = (e) => {
+  validateFile(e, setPostImage, setImgError);
+};
 
-  const onChangePicture = (e) => {
-    const file = e.target.files[0]; // Get the selected file
+// Validate Stamp Upload
+const onChangeStampPicture = (e) => {
+  validateFile(e, setStampImage, setStampError);
+};
 
-    // Check if no file is selected
-    if (!file) {
-      setImgError("No file selected.");
-      return; // Stop processing if no file is selected
-    }
+const validateFile = (e, setFile, setError) => {
+  const file = e.target.files[0];
+  if (!file) {
+    setError("No file selected.");
+    return;
+  }
+  if (file.size > 200 * 1024) {
+    setError("File size must be less than 200KB.");
+    return;
+  }
+  const validTypes = ["image/png", "image/jpeg", "image/svg+xml"];
+  if (!validTypes.includes(file.type)) {
+    setError("Only .png, .jpg, .jpeg, .svg files are allowed.");
+    return;
+  }
+  setError("");
+  setFile(file);
+};
 
-    // Check file size (limit to 200KB)
-    if (file.size > 200 * 1024) {
-      setImgError("File size must be less than 200KB.");
-      return; // Stop further processing if size exceeds limit
-    }
-
-    // Check file type (valid image types and PDF)
-    const validTypes = ["image/png", "image/jpeg", "image/svg+xml"];
-    if (!validTypes.includes(file.type)) {
-      setImgError("Only .png, .jpg, .jpeg, .svg files are allowed.");
-      return; // Stop further processing if the type is invalid
-    }
-
-    // If the file is valid, clear previous errors and update the state
-    setImgError(""); // Clear error messages
-    setPostImage(file); // Store the selected file
-    console.log("File is valid and ready for upload:", file);
-  };
-
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
+const openModal = () => setShowModal(true);
+const closeModal = () => setShowModal(false);
+const openStampModal = () => setShowStampModal(true);
+const closeStampModal = () => setShowStampModal(false);
 
   const handleCloseUploadImageModal = () => {
     setPostImage(null);
     setShowModal(false);
     setErrorMessage("");
   };
-
-  const toInputSpaceCase = (e) => {
-    let inputValue = e.target.value;
-    let newValue = "";
-
-    // Remove spaces from the beginning of inputValue
-    inputValue = inputValue.trimStart(); // Keep spaces only after the initial non-space character
-
-    // Track if we've encountered any non-space character yet
-    let encounteredNonSpace = false;
-
-    for (let i = 0; i < inputValue.length; i++) {
-      const char = inputValue.charAt(i);
-
-      // Allow any alphabetic characters (both lowercase and uppercase) and numbers
-      // Allow spaces only after encountering non-space characters
-      if (char.match(/[a-zA-Z0-9]/) || (encounteredNonSpace && char === " ")) {
-        if (char !== " ") {
-          encounteredNonSpace = true;
-        }
-        newValue += char;
-      }
-    }
-
-    // Update the input value
-    e.target.value = newValue;
-  };
+  const handleStampCloseModal=()=>{
+    setStampImage(null);
+    setShowStampModal(false);
+    setErrorMessage("");
+    setStampError("");
+  }
 
   const toInputTitleCase = (e) => {
     const input = e.target;
@@ -289,36 +294,6 @@ function Profile() {
     input.value = value;
   };
 
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Initially disallow spaces if there are no non-space characters
-    if (!/\S/.test(value)) {
-      // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, "");
-    } else {
-      // Convert the entire string to lowercase
-      value = value.toLowerCase();
-
-      // Remove leading spaces
-      value = value.replace(/^\s+/g, "");
-
-      // Capitalize the first letter of each word
-      const words = value.split(" ");
-      const capitalizedWords = words.map((word) => {
-        return word.charAt(0).toLowerCase() + word.slice(1);
-      });
-
-      value = capitalizedWords.join(" ");
-    }
-
-    // Update input value
-    input.value = value;
-  };
 
   const toInputAddressCase = (e) => {
     const input = e.target;
@@ -399,7 +374,7 @@ function Profile() {
               <div className="card-body">
                 <div className="row">
                   <div className="col-12 col-md-6 mb-3">
-                    <div
+                  <div
                       style={{
                         position: "relative",
                         fontSize: "50px",
@@ -435,9 +410,53 @@ function Profile() {
                 </div>
               </div>
             </div>
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                  Add Company Stamp
+                </h5>
+              </div>
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-12 col-md-6 mb-3">
+                  <div
+                      style={{
+                        position: "relative",
+                        fontSize: "50px",
+                        cursor: "pointer",
+                        marginRight: "80%",
+                      }}
+                      onClick={openStampModal}
+                    >
+                      <div
+                        style={{
+                          position: "relative",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <CameraFill />
+                      </div>
+                    </div>
+                    <span className="text-info align-start">
+                      Max-Size=200 KB{" "}
+                    </span>
+                  </div>
+                  <div className="col-12 col-md-6 mb-3">
+                    {stamp && (
+                      <img
+                        className="align-middle"
+                        src={`${stamp}`}
+                        accept=".png, .jpg. ,svg ,.jpeg,"
+                        alt="Company Logo"
+                        style={{ height: "80px", width: "200px" }}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
         <form onSubmit={handleSubmit(handleDetailsSubmit)}>
           <div className="row">
             <div className="col-12">
@@ -885,6 +904,7 @@ function Profile() {
           </div>
         </form>
         {/* Modal for Logo Upload */}
+        {showModal && (
         <Modal
           show={showModal}
           onHide={handleCloseUploadImageModal}
@@ -901,14 +921,10 @@ function Profile() {
               accept=".png, .jpg, .svg, .jpeg,"
               onChange={onChangePicture}
             />
-            {errorMessage && (
-              <p className="text-danger pb-0" style={{ marginLeft: "2%" }}>
-                {errorMessage}
-              </p>
-            )}
+           {imgError && <p className="text-danger">{imgError}</p>}
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" onClick={handleCloseUploadImageModal}>
+            <Button variant="secondary" onClick={closeModal}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleLogoSubmit}>
@@ -916,6 +932,37 @@ function Profile() {
             </Button>
           </ModalFooter>
         </Modal>
+        )}
+
+         {showStampModal && (
+           <Modal
+           show={showStampModal}
+           onHide={handleStampCloseModal}
+           style={{ zIndex: "1050" }}
+           centered
+         >
+           <ModalHeader closeButton>
+             <ModalTitle>Upload Stamp</ModalTitle>
+           </ModalHeader>
+           <ModalBody>
+             <input
+               type="file"
+               className="form-control"
+               accept=".png, .jpg, .svg, .jpeg,"
+               onChange={onChangeStampPicture}
+             />
+              {stampError && <p className="text-danger">{stampError}</p>}
+           </ModalBody>
+           <ModalFooter>
+             <Button variant="secondary" onClick={closeStampModal}>
+               Cancel
+             </Button>
+             <Button variant="primary" onClick={handleStampSubmit}>
+               Upload Stamp
+             </Button>
+           </ModalFooter>
+         </Modal>
+         )}
       </div>
     </LayOut>
   );

@@ -33,9 +33,9 @@ const CompanySalaryStructure = () => {
   const [allowances, setAllowances] = useState([]);
   const [deductions, setDeductions] = useState([]);
   const [newFieldName, setNewFieldName] = useState("");
-  const [modalType, setModalType] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState("");
+  const [selected, setSelected]=useState(false);
   const { user } = useAuth();
   const [fieldCheckboxes, setFieldCheckboxes] = useState({
     allowances: {},
@@ -430,12 +430,6 @@ const CompanySalaryStructure = () => {
     reset();
     navigate("/companySalaryView");
   };
-  const formatFieldName = (fieldName) => {
-    return fieldName
-      .replace(/([A-Z])/g, " $1")
-      .replace(/^./, (str) => str.toUpperCase())
-      .trim();
-  };
 
   const handleCloseNewFieldModal = () => {
     setNewFieldName("");
@@ -467,31 +461,6 @@ const CompanySalaryStructure = () => {
     : formattedValue;
     input.value = finalValue;
     input.setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-
-
-
-
-
-
-
-
-
-
-  const handleEmailChange = (e) => {
-    // Get the current value of the input field
-    const value = e.target.value;
-
-    // Check if the value is empty
-    if (value.trim() !== "") {
-      return; // Allow space button
-    }
-
-    // Prevent space character entry if the value is empty
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
   };
 
   const handleKeyDown = async (e) => {
@@ -551,26 +520,13 @@ const CompanySalaryStructure = () => {
       if (
         Object.values(fieldCheckboxes.allowances).every((checkbox) => !checkbox)
       ) {
-        setAllowanceError("Please select at least one allowance.");
+        setSelected(true);
+        setAllowanceError("Please select Allowances.");
         return; // Prevent changing the tab if no allowances are selected
       }
-
-      // Check if the total percentage for allowances exceeds 100%
-      // const selectedAllowances = Object.entries(fieldCheckboxes.allowances).filter(([key, value]) => value);
-      // const totalAllowancePercentage = selectedAllowances
-      //   .map(([key]) => allowanceFields.find(f => f.label === key))
-      //   .filter(field => field.type === 'percentage' && field.value)
-      //   .reduce((total, field) => total + parseFloat(field.value), 0);
-
-      // if (totalAllowancePercentage > 100) {
-      //   setValidationErrors({
-      //     totalAllowancePercentage: 'The total percentage for allowances cannot exceed 100%. Please Adjust',
-      //   });
-      //   return; // Prevent changing the tab if allowance percentage exceeds 100%
-      // }
-
       // Clear the allowance error if everything is valid
       setAllowanceError("");
+      setSelected(false)
     }
 
     // Check for the deductions errors if navigating to the deductions tab
@@ -680,6 +636,10 @@ const CompanySalaryStructure = () => {
                     >
                       Deductions
                     </button>
+                    {selected &&
+                    (
+                      <span className="m-2 text-danger">{allowanceError}</span>
+                    )}
                   </div>
                 </nav>
                 <div

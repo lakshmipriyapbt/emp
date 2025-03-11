@@ -171,8 +171,8 @@ const EmsLogin = () => {
                       <p className="errorMsg">{errors.username.message}</p>
                     )}
                   </div>
-                  <div class="formgroup position-relative">
-                    <label class="form-label">Password</label>
+                  <div className="formgroup position-relative">
+                    <label className="form-label">Password</label>
                     <div className="password-input-container">
                       <input
                         className="form-control form-control-lg"

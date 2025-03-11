@@ -16,13 +16,13 @@ import java.util.Map;
 public class InvoiceRequest {
 
     private List<Map<
-
             @NotNull(message = "{invoice.key.notnull}") String,
             @NotNull(message = "{invoice.value.notnull}") String>> productData;
 
-    private @NotNull(message = "{invoice.productColumns.null}")
+    @Valid
+    @NotNull(message = "{invoice.productColumns.null}")
     @NotEmpty(message = "{invoice.productColumns.empty}")
-    List<@Valid ProductColumnsRequest> productColumns;
+    private List<ProductColumnsRequest> productColumns;
 
     private String vendorCode;
     private String purchaseOrder;

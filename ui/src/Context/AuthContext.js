@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   });
   const [companyData,setCompanyData]=useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
+  const [stamp,setStamp]=useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -72,8 +73,10 @@ export const AuthProvider = ({ children }) => {
         if (companyData) {
           setCompanyData(companyData); // Set company data to state
           const logoPath = companyData?.imageFile;
-          if (logoPath) {
+          const stampImage=companyData?.stampImage;
+          if (logoPath && stampImage) {
             setLogoFileName(logoPath);
+            setStamp(stampImage);
           } else {
             setError("Logo not found in company data");
           }
@@ -94,11 +97,11 @@ export const AuthProvider = ({ children }) => {
   }, [user]); 
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logoFileName,setLogoFileName,companyData, loading, error,setAuthUser }}>
+    <AuthContext.Provider value={{ user, setUser, logoFileName,stamp,setLogoFileName,companyData, loading, error,setAuthUser }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 // Custom hook to use the AuthContext
-export const useAuth = () => useContext(AuthContext);
+export const  useAuth = () => useContext(AuthContext);

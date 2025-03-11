@@ -48,13 +48,12 @@ const AccountRegistartion = () => {
         .then((res) => {
           const successMessage =
             res.data.message || "Bank Account updated successfully";
-          toast.success(successMessage, {
-            position: "top-right",
-            autoClose: 1000,
-          });
           setUpdate(res.data.data);
-          navigate("/accountsView");
-        })
+          setTimeout(() => {
+            toast.success(successMessage);
+            navigate("/accountsView");
+          }, 1000); // 2-second delay
+          })
         .catch((error) => {
           console.error("Error updating bank:", error);
           const errorMsg =
@@ -81,13 +80,12 @@ const AccountRegistartion = () => {
 
       BankPostApi(companyId, createPayload)
         .then((response) => {
-          toast.success("Bank Account added successfully", {
-            position: "top-right",
-            autoClose: 1000,
-          });
           setUpdate((prevState) => [...prevState, response.data.data]);
-          navigate("/accountsView");
-        })
+          setTimeout(() => {
+            toast.success("Bank Account added successfully");
+            navigate("/accountsView");
+          }, 1000); // 2-second delay    
+          })
         .catch((error) => {
           console.error("Error adding bank account:", error);
           const errorMessage =
@@ -246,7 +244,7 @@ const AccountRegistartion = () => {
     { value: "Savings", label: "Savings" },
     { value: "Current", label: "Current" },
     { value: "NRI", label: "NRI" },
-    { value: "Demat ", label: "Demat" },
+    { value: "Demat", label: "Demat" },
     { value: "Corporate", label: "Corporate" },
     { value:"Business",label:"Business"}
   ];

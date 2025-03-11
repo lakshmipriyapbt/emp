@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductColoumnsRequest {
+public class ProductColumnsRequest {
 
     private String key;
     private String title;

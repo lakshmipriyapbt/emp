@@ -93,7 +93,7 @@ const ExperienceLetter = () => {
             employeeId="E123456"
             jobTitle="Software Engineer"
             joiningDate="January 1, 2020"
-            lastWorkingDate="October 27, 2024"
+            experienceDate="October 27, 2024"
             department="Department"
             designation="Designation"
           />
@@ -111,7 +111,7 @@ const ExperienceLetter = () => {
             employeeId="E123456"
             jobTitle="Software Engineer"
             joiningDate="January 1, 2020"
-            lastWorkingDate="October 27, 2024"
+            experienceDate="October 27, 2024"
           />
         ),
       },

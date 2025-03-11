@@ -40,7 +40,5 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public ResponseEntity<?> deleteCustomer(String authToken,String companyId, String customerId) {
         return entityUtils.deleteRequest(authToken, Constants.COMPANY_ADD + companyId + Constants.CUSTOMER_GET + customerId);
-
     }
-
 }

@@ -1,16 +1,20 @@
 package com.pb.employee.serviceImpl;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.CompanyEntity;
+import com.pb.employee.persistance.model.CustomerEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
+import com.pb.employee.service.CustomerService;
 import com.pb.employee.service.DepartmentService;
 import com.pb.employee.util.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +47,12 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Autowired
     private EmailUtils emailUtils;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException{
@@ -298,7 +308,7 @@ public class CompanyServiceImpl implements CompanyService {
         }
     }
     @Override
-    public ResponseEntity<?> deleteCompanyById(String companyId) throws EmployeeException {
+    public ResponseEntity<?> deleteCompanyById(String companyId, String authToken) throws EmployeeException {
         log.info("getting details of {}", companyId);
         CompanyEntity companyEntity = null;
 
@@ -306,13 +316,33 @@ public class CompanyServiceImpl implements CompanyService {
             companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
-            if (companyEntity!=null) {
-                openSearchOperations.deleteEntity(companyEntity.getId(),Constants.INDEX_EMS);
-                log.info("The company is:"+companyEntity.getId());
+            ResponseEntity<?> costCustomerEntity = customerService.getCompanyByIdCustomer(companyId, authToken);
+            Object responseBody = costCustomerEntity.getBody();
+            List<CustomerEntity> customerEntity = new ArrayList<>();  // Initialize list to avoid null issues
 
-                openSearchOperations.deleteIndex(index);
-                log.info("Index deleted for short name: {}", companyEntity.getShortName());
+            if (responseBody != null) {
+                try {
+                    if (responseBody instanceof String && !((String) responseBody).isBlank() && !((String) responseBody).isEmpty()) {
+                        customerEntity = objectMapper.readValue((String) responseBody, new TypeReference<>() {});
+                    }
+                } catch (Exception e) {
+                    log.error("Error while parsing customer entity list", e);
+                }
             }
+
+            if (!customerEntity.isEmpty()) {
+                for (CustomerEntity customer : customerEntity) {
+                    customerService.deleteCustomer(authToken, customer.getCompanyId(), customer.getCustomerId());
+                }
+            }
+
+            openSearchOperations.deleteEntity(companyEntity.getId(),Constants.INDEX_EMS);
+            log.info("The company is:"+companyEntity.getId());
+
+            openSearchOperations.deleteIndex(index);
+            log.info("Index deleted for short name: {}", companyEntity.getShortName());
+        }catch (EmployeeException e){
+            throw e;
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_COMPANY),

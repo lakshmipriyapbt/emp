@@ -49,12 +49,12 @@ const CustomersRegistration = () => {
         .then((res) => {
           const successMessage =
             res.data.message || "Client updated successfully";
-          toast.success(successMessage, {
-            position: "top-right",
-            autoClose: 1000,
-          });
+          
           setUpdate(res.data.data);
-          navigate("/customersView");
+            setTimeout(() => {
+              toast.success(successMessage);
+              navigate("/customersView");
+            }, 1000); // 2-second delay  
         })
         .catch((error) => {
           console.error("Error updating Client:", error);
@@ -78,11 +78,10 @@ const CustomersRegistration = () => {
   
       CustomerPostApi(companyId, createPayload)
         .then((response) => {
-          toast.success("Client added successfully", {
-            position: "top-right",
-            autoClose: 1000,
-          });
-          navigate("/customersView");
+          setTimeout(() => {
+            toast.success("Client added successfully");
+            navigate("/customersView");
+          }, 1000); // 2-second delay  
         })
         .catch((error) => {
           const errorMessage =
@@ -642,9 +641,9 @@ const CustomersRegistration = () => {
                         {...register("address", {
                           required: "Address is Required",
                           pattern: {
-                            value:  /^(?=.*[a-zA-Z])[a-zA-Z0-9\s!@#&()*/.,_+:;-]+$/,
+                            value: /^(?=.*[a-zA-Z])[a-zA-Z0-9\s!@#&()*/.,_+:;-]+$/,
                             message:
-                              "Invalid Address Format. Only letters, numbers, spaces, and !@#&()*/.,_-+:; are allowed.",
+                              "Invalid Address Format. Only letters, numbers, spaces, and !@#&()*/.,_- are allowed.",
                           },
                           maxLength: {
                             value: 250,
