@@ -22,6 +22,8 @@ import {
   ModalHeader,
   ModalTitle,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../../Redux/EmployeeSlice";
 
 const AddIncrement = () => {
   const {
@@ -91,6 +93,15 @@ const AddIncrement = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -100,16 +111,12 @@ const AddIncrement = () => {
     }
   }, [id, salaryId]);
 
+
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter(
-          (employee) =>
-            employee.firstName !== null && employee.status !== "InActive"
-        )
-        .map(({ referenceId, ...rest }) => rest);
-      setEmployes(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -117,10 +124,11 @@ const AddIncrement = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []); 
+        }));
+
+      setEmployes(activeEmployees);
+    }
+  }, [employees]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -1358,6 +1366,10 @@ const AddIncrement = () => {
                                             selectedEmp.dateOfHiring
                                           );
                                           setValue(
+                                            "grossAmount",
+                                            selectedEmp.grossAmount
+                                          );
+                                          setValue(
                                             "id",
                                             selectedEmp.employeeId
                                           );
@@ -1449,6 +1461,26 @@ const AddIncrement = () => {
                                   </p>
                                 )}
                               </div>
+                              <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                <label className="form-label">
+                                  Current Gross Salary
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Current Gross Salary"
+                                  name="grossAmount"
+                                  readOnly
+                                  {...register("grossAmount", {
+                                    required: true,
+                                  })}
+                                />
+                                {errors.grossAmount && (
+                                  <p className="errorMsg">
+                                    Current Gross Amount Required
+                                  </p>
+                                )}
+                              </div>
                               {/* 
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">Time Period</label>
@@ -1491,6 +1523,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
                               <div className="col-lg-1"></div> */}
+                              <div className="col-lg-1"></div>
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">
                                   Appraisal Date (Hike Start Date)

@@ -67,6 +67,7 @@ import InvoicePdf from '../InvoiceModule/Invoice/InvoicePdf';
 import ProductView from '../InvoiceModule/Products/ProductsView';
 import ProductRegistration from '../InvoiceModule/Products/ProductRegistration'
 import CreatePassword from '../Login/CreatePassword';
+import EmployeeRegister from '../CompanyModule/Employee/EmployeeRegister';
 
 const Rout = () => {
   const location = useLocation();
@@ -133,6 +134,7 @@ const Rout = () => {
       <Route path='/companyView' element={<CompanyView />}></Route>
       <Route path='/department' element={<Department />}></Route>
       <Route path='/designation' element={<Designation />}></Route>
+      <Route path='/employeeRegister' element={<EmployeeRegister/>}></Route>
       <Route path='/employeeRegistration' element={<EmployeeRegistration />}></Route>
       <Route path='/employeeView' element={<EmployeeView />}></Route>
       <Route path='/relievingProcess' element={<ExistsEmpRegistration />}></Route>

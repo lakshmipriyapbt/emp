@@ -1,13 +1,11 @@
 import axios from "axios";
-import { companyId, employeeId } from "./Auth";
-import { json } from "react-router-dom";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
 
-const BASE_URL = `${protocol}//${hostname}:8092/ems`;
-const Login_URL = `${protocol}//${hostname}:9090/ems`;
+const BASE_URL = `${protocol}//${hostname}/ems/employee`;
+const Login_URL = `${protocol}//${hostname}/ems`;
 
 const token = localStorage.getItem("token");
 const axiosInstance = axios.create({
@@ -193,11 +191,6 @@ export const DesignationPutApiById = (designationId, data) => {
 export const EmployeeGetApi = () => {
    const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee`)
-    .then(response => response.data.data) // Assuming response.data.data contains your employee data
-    .catch(error => {
-      console.error('Error fetching employee data:', error);
-      return []; // Return empty array or handle error as needed
-    });
 }
 
 export const EmployeePostApi = (data) => {

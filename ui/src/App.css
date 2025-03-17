@@ -2307,7 +2307,6 @@ progress {
 	color: #cfd8e4;
 	background-color: #fff;
 	/* border: none; */
-	border-bottom: 2px solid #7878a3;
 	background: none;
 	border-radius: 0.2rem;
 	color: #323333;
@@ -15735,10 +15734,6 @@ body.active-modal {
 /* Style for dropdown items on hover */
 .dropdown-content a:hover {
 	background-color: #f1f1f1;
-}
-
-.form-select {
-	border-bottom: 2px solid #7878a3;
 }
 
 /* .profile-dropdown:hover .dropdown-content {display: block;} */

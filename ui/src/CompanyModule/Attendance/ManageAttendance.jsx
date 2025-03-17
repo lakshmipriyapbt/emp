@@ -5,6 +5,8 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
 import * as XLSX from "xlsx";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ManageAttendance = () => {
   const {
@@ -15,45 +17,39 @@ const ManageAttendance = () => {
   } = useForm();
 
   const [selectedFile, setSelectedFile] = useState(null);
-  const [employees, setEmployees] = useState([]);
+  const [emp, setEmp] = useState([]);
+
+  const dispatch = useDispatch(); // Initialize dispatch function
+
+  // Select employee state from Redux store
+  const { data: employees} = useSelector(
+    (state) => state.employees
+  );
+
+  // Step 1: Fetch employees when component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const data = await EmployeeGetApi();
-        const formattedData = data
-          .filter(
-            (employee) =>
-              employee.firstName !== null && employee.status !== "InActive"
-          )
-          .map(
-            ({
-              employeeId,
-              firstName,
-              lastName,
-              emailId,
-              Month,
-              Year,
-              workingDays,
-            }) => ({
-              employeeId,
-              firstName,
-              lastName,
-              emailId,
-              Month,
-              Year,
-              workingDays,
-            })
-          );
-        setEmployees(formattedData);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-        toast.error("Failed to fetch employee data");
-      }
-    };
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
+          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+          value: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          employeeId: employee.employeeId,
+          designationName: employee.designationName,
+          departmentName: employee.departmentName,
+          dateOfHiring: employee.dateOfHiring,
+          emailId:employee.emailId
+        }));
 
-    fetchEmployees();
-  }, []);
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   const onSubmit = async (data) => {
     const formData = new FormData();
@@ -90,29 +86,27 @@ const ManageAttendance = () => {
 
   const downloadExcel = () => {
     const currentDate = new Date();
-    const currentMonth = currentDate.toLocaleString("default", {
-      month: "long",
-    });
+    const currentMonth = currentDate.toLocaleString("default", { month: "long" });
     const currentYear = currentDate.getFullYear();
-    const updatedEmployees = employees.map((employee) => ({
-      ...employee,
+  
+    // Formatting employees data to match header keys
+    const updatedEmployees = emp.map((employee) => ({
+      EmployeeId: employee.employeeId,
+      EmployeeName: employee.employeeName,
+      "Email Id": employee.emailId, // Set default value if undefined
+      Departmemt: employee.departmentName,
+      Designation: employee.designationName,
       Month: currentMonth,
       Year: currentYear,
+      "Working Days": "", // You can update this dynamically if needed
     }));
-
-    const worksheet = XLSX.utils.json_to_sheet(updatedEmployees, {
-      header: [
-        "employeeId",
-        "firstName",
-        "lastName",
-        "emailId",
-        "Month",
-        "Year",
-        "workingDays",
-      ],
-    });
+     console.log("Email Id",updatedEmployees)
+    // Create worksheet and workbook
+    const worksheet = XLSX.utils.json_to_sheet(updatedEmployees);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
+  
+    // Generate Excel file
     XLSX.writeFile(workbook, "attendance_data.xlsx");
   };
 
