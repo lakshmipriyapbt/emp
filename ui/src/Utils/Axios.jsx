@@ -6,8 +6,8 @@ const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
 
-const BASE_URL = `${protocol}//${hostname}/ems/employee`;
-const Login_URL = `${protocol}//${hostname}/ems`;
+const BASE_URL = `${protocol}//${hostname}:8092/ems`;
+const Login_URL = `${protocol}//${hostname}:9090/ems`;
 
 const token = localStorage.getItem("token");
 const axiosInstance = axios.create({
