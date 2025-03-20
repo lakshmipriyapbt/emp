@@ -9,6 +9,7 @@ import com.pb.employee.request.SalaryUpdateRequest;
 import com.pb.employee.service.SalaryService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -85,6 +86,17 @@ public class SalaryController {
                                                       @PathVariable String employeeId,
                                                       @PathVariable String salaryId) throws EmployeeException {
         return salaryService.deleteEmployeeSalaryById(companyName,employeeId,salaryId);
+    }
+
+    @RequestMapping(value = "/{companyId}/employee/salaries/download", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.downloadEmployeeSalaries.tag}", description = "${api.downloadEmployeeSalaries.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> EmployeeSalariesDownload(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                         @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                      @PathVariable String companyId, @RequestParam String format, HttpServletRequest request) throws Exception {
+        return salaryService.downloadEmployeesSalaries(companyId, format, request);
     }
 
 }

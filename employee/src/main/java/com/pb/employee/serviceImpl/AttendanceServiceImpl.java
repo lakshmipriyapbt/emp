@@ -96,7 +96,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                         Integer.parseInt(attendanceRequest.getYear()),
                         MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue()
                 );
-               // Check if the attendance date is before the hiring date
+                // Check if the attendance date is before the hiring date
                 if (attendanceMonthYear.isBefore(hiringMonthYear)) {
                     log.error("Attendance date is before the hiring date for employee ID: {}", employeeId);
                     return new ResponseEntity<>(
@@ -176,6 +176,9 @@ public class AttendanceServiceImpl implements AttendanceService {
                 // Add attendance for past dates or current month after 25th
                 addAttendanceOfEmployees(attendanceRequest);
             }
+        }catch (EmployeeException employeeException){
+          log.error("Exception while adding the attendance {}" , employeeException);
+          throw employeeException;
         } catch (Exception e) {
             log.error("Error processing the uploaded file: {}", e.getMessage(), e);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -432,7 +435,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                         log.error("Error parsing numeric values for working days: {}", e.getMessage());
                         throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NUMBER_EXCEPTION), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
-
                     attendanceRequests.add(attendanceRequest);
                     log.info("Added attendance request for employee ID: {}", attendanceRequest.getEmployeeId());
                 }
@@ -491,13 +493,16 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             if (object != null) {
                 log.error("Attendance ID already exists {}", attendanceId);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ATTENDANCE_ALREADY_EXISTS),
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ATTENDANCE_ALREADY_EXISTS), attendanceRequest.getMonth()),
                         HttpStatus.NOT_ACCEPTABLE);
             }
             // Create and save the new AttendanceEntity
             Entity attendanceEntity = CompanyUtils.maskAttendanceProperties(attendanceRequest, attendanceId, employeeId);
             openSearchOperations.saveEntity(attendanceEntity, attendanceId, index);
 
+        }catch (EmployeeException e){
+            log.error("Unable to save the employee attendance details");
+            throw e;
         } catch (Exception exception) {
             log.error("Unable to save the employee attendance details {} {}", attendanceRequest.getType(), exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SAVE_ATTENDANCE),
@@ -506,6 +511,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
+
     private boolean isAttendancePeriodValid(String year, String month) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;

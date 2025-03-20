@@ -3,6 +3,7 @@ package com.pb.employee.request;
 
 import com.pb.employee.config.ValidAge;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -50,7 +51,7 @@ public class EmployeeRequest {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{invalid.password}")
     @NotBlank(message = "{password.notnull.message}")*/
     //password not mandatory
-    private String password;
+  //  private String password;
 
     @Schema(example = "designationId")
     @Size(min = 2, max = 100, message = "{designation.size.message}")
@@ -75,6 +76,16 @@ public class EmployeeRequest {
     @Size(min = 2, max = 200, message = "{location.notnull.message}")
     private String location;
 
+    @Schema(example = "tempAddress")
+    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{tempAddress.format}")
+    @Size(min = 2, max = 200, message = "{tempAddress.notnull.message}")
+    private String tempAddress;
+
+    @Schema(example = "permanentAddress")
+    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{permanentAddress.format}")
+    @Size(min = 2, max = 200, message = "{permanentAddress.notnull.message}")
+    private String permanentAddress;
+
     @Schema(example = "manager")
     @Pattern(regexp = "^(?!.*\\b([A-Z])\\s\\1\\s\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\.? ?[A-Z])? ?[A-Z][a-z]+|[A-Z][a-z]+(?: [A-Z](?:\\.? ?[A-Z])?)+)$", message = "{manager.format}")
     @Size(min = 3, max = 30, message = "{manager.notnull.message}")
@@ -86,7 +97,7 @@ public class EmployeeRequest {
     private String mobileNo;
 
     @Schema(example = "Active")
-    @Pattern(regexp = "^(Active|InActive)$", message = "{status.format}")
+    @Pattern(regexp = "^(Active|InActive|Relieved)$", message = "{status.format}")
     @NotBlank(message = "{status.notnull.message}")
     private String status;
 

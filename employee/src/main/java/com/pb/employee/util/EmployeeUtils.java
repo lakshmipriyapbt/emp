@@ -19,14 +19,14 @@ import java.util.Base64;
 public class EmployeeUtils {
 
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId) {
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
         String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
         }
-        if(employeeRequest.getPassword() != null) {
-            password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
-        }
+//        if(employeeRequest.getPassword() != null) {
+//            password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
+//        }
         if(employeeRequest.getUanNo() != null) {
             uan = Base64.getEncoder().encodeToString(employeeRequest.getUanNo().getBytes());
         }
@@ -42,6 +42,9 @@ public class EmployeeUtils {
         if(employeeRequest.getMobileNo() != null) {
             mobileNo = Base64.getEncoder().encodeToString(employeeRequest.getMobileNo().getBytes());
         }
+        // Encode default password
+        password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
+
         ObjectMapper objectMapper = new ObjectMapper();
 
         EmployeeEntity entity = objectMapper.convertValue(employeeRequest, EmployeeEntity.class);

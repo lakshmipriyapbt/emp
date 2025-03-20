@@ -244,7 +244,7 @@
             <p>We welcome you to our pursuit of excellence and we feel proud to have a professional of your stature as a
                 member of the ${company.companyName} family and wish you a long, rewarding, and satisfying career with
                 us. On behalf of ${company.companyName}., here in after referred to as 'the Company', we are pleased to
-                extend an offer for the position of '${offerLetter.employeePosition}' in our organization with the
+                extend an offer for the Designation of '${offerLetter.employeePosition}' in the Department '${offerLetter.department}' of our organization with the
                 following
                 mentioned details:
             </p>
@@ -255,7 +255,7 @@
                 <p class="with-arrow">You will be deployed at our office site and your job location would be at
                     '${offerLetter.jobLocation}'.
                 </p>
-                <p class="with-arrow">Your gross compensation per annum is '${offerLetter.grossCompensation}'</p>
+                <p class="with-arrow">Your Salary Package per annum is '${offerLetter.grossCompensation}'</p>
                 <p class="with-dot"><b>The proposed compensation details are attached as Annexure '1' , And details of
                         required
                         documents at the time of joining are attached as Annexure '2'.</b></p>

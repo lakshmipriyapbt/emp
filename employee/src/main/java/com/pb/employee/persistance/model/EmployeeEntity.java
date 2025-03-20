@@ -4,7 +4,6 @@ package com.pb.employee.persistance.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -27,7 +26,10 @@ public class EmployeeEntity implements Entity{
     private String dateOfHiring;
     private String department;
     private String departmentName;
+    private String grossAmount;
     private String location;
+    private String tempAddress;
+    private String permanentAddress;
     private String manager;
     private String mobileNo;
     private List<String> roles;

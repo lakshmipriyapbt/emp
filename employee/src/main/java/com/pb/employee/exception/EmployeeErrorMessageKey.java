@@ -106,7 +106,9 @@ public enum EmployeeErrorMessageKey {
     INVALID_BACKGROUND_DETAILS("invalid.background.details"),
     INVALID_EMPLOYEE_TYPE("invalid.employee.type"),
     NO_CHANGE_IN_BANK_DETAILS("nochange.bank.details"),
-    NO_CHANGE_IN_WORKING_DAYS("nochange.working.days");
+    NO_CHANGE_IN_WORKING_DAYS("nochange.working.days"),
+    PAYSLIP_ALREADY_GENERATED("payslip.already.exist"),
+    INVALID_DATES("invalid.dates");
 
     private final String key;
 

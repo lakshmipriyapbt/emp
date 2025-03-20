@@ -111,15 +111,17 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.CONFLICT);
         }
         try{
-            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId);
+            String defaultPassword = PasswordUtils.generateStrongPassword();
+            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId,defaultPassword);
             Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, Constants.INDEX_EMS);
         } catch (Exception exception) {
             log.error("Unable to save the company details {} {}", companyRequest.getCompanyName(),exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        String defaultPassword = PasswordUtils.generateStrongPassword();
         openSearchOperations.createIndex(companyRequest.getShortName());
-        String password = Base64.getEncoder().encodeToString(companyRequest.getPassword().getBytes());
+        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         log.info("Creating the employee of company admin");
 
         String employeeAdminId = ResourceIdUtils.generateEmployeeResourceId(companyRequest.getEmailId());
@@ -154,7 +156,7 @@ public class CompanyServiceImpl implements CompanyService {
             try {
                 String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.CREATE_PASSWORD ;
                 log.info("The company url : "+companyUrl);// Example URL
-                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE);
+                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,defaultPassword);
             } catch (Exception e) {
                 log.error("Error sending email to company: {}", companyRequest.getEmailId());
                 throw new RuntimeException(e);
@@ -186,7 +188,7 @@ public class CompanyServiceImpl implements CompanyService {
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

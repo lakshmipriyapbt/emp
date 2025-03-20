@@ -57,16 +57,21 @@ public class OfferLetterRequest {
     @Size(min = 1, max = 200, message = "{location.notnull.message}")
     private String jobLocation;
 
-    @Schema(example = "grossAmount")
+    @Schema(example = "salaryPackage")
     @Pattern(regexp = "^\\d{5,20}$", message = "{grossAmount.format}")
-    private String grossCompensation;
+    private String salaryPackage;
 
     private String companyId;
     private String salaryConfigurationId;
 
-    @Schema(example = "employeePosition")
+    @Schema(example = "designation")
     @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
             message = "{invalid.position.format}")
-    private String employeePosition;
+    private String designation;
+
+    @Schema(example = "department")
+    @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
+            message = "{department.format}")
+    private String department;
 
 }
