@@ -73,24 +73,28 @@
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
 
-    <h4>Company Employees</h4>
+    <h4>Company Employees Bank Details</h4>
 
     <table>
         <tr>
             <th>Name</th>
             <th>EmployeeId</th>
-            <th>Aadhaar No</th>
+            <th>Bank Name</th>
             <th>Bank Account No</th>
-            <th>UAN No</th>
+            <th>BankIFCCode</th>
+            <th>Pan Number</th>
+            <th>PF Number</th>
         </tr>
 
         <#list data as person>
             <tr>
                 <td>${person.firstName} ${person.lastName}</td>
                 <td>${person.employeeId}</td>
-                <td>${person.aadhaarId}</td>
+                <td>${person.bankName}</td>
                 <td>${person.accountNo}</td>
-                <td>${person.uanNo}</td>
+                <td>${person.ifscCode}</td>
+                <td>${person.panNo}</td>
+                <td><#if person.pfNo??>${person.pfNo}<#else> - </#if></td>
             </tr>
         </#list>
     </table>

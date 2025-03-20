@@ -60,7 +60,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity,request);
             salaryConfiguration =  openSearchOperations.getSalaryStructureById(offerLetterRequest.getSalaryConfigurationId(),null,Constants.INDEX_EMS+"_"+entity.getShortName());
             CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfiguration);
-            Map<String, Map<String, String>> salaryComponents = PayslipUtils.calculateSalaryComponents(salaryConfiguration,offerLetterRequest.getGrossCompensation());
+            Map<String, Map<String, String>> salaryComponents = PayslipUtils.calculateSalaryComponents(salaryConfiguration,offerLetterRequest.getSalaryPackage());
 
             // Check if the salary configuration is active
             if (salaryConfiguration==null || !salaryConfiguration.getStatus().equals(Constants.ACTIVE)) {

@@ -188,7 +188,7 @@ public class CompanyServiceImpl implements CompanyService {
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

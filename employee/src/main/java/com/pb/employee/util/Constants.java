@@ -178,4 +178,6 @@ public class Constants {
     public static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
     public static final String DIGITS = "0123456789";
     public static final String SPECIAL_CHARACTER = "@#&$%!";
+    public static final String EMPLOYEE_BANK_DETAILS = "employeeBankDetails.ftl";
+    public static final String EMPLOYEE_SALARIES_DETAILS = "employeeSalaries.ftl";
 }

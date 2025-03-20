@@ -88,6 +88,9 @@
                 and meticulous attention to detail. ${employee.firstName} ${employee.lastName} consistently met project
                 deadlines and collaborated seamlessly with team members to ensure the delivery of high-quality software
                 solutions.</p>
+                <p> <#if request.aboutEmployee?has_content>
+                                               About Employee: <b>${request.aboutEmployee}</b>.
+                 </#if> </p>
 
             <p>${employee.firstName} ${employee.lastName}’s dedication and hard work significantly contributed to the
                 success of our projects. His/Her innovative ideas and proactive approach were instrumental in overcoming

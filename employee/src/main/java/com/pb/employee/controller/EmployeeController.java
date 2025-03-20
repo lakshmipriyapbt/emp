@@ -83,15 +83,26 @@ public class EmployeeController {
         return employeeService.deleteEmployeeById(companyName,employeeId);
     }
 
-    @RequestMapping(value = "{companyName}/employees/download", method = RequestMethod.GET)
+    @RequestMapping(value = "{companyId}/employees/download", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
-            summary = "${api.downloadEmployees.tag}", description = "${api.downloadEmployees.description}")
+            summary = "${api.downloadEmployeesDetails.tag}", description = "${api.downloadEmployeesDetails.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> downloadEmployeesDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                         @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return employeeService.downloadEmployeeDetails(companyName, format, request);
+                                         @PathVariable String companyId, @RequestParam String format, HttpServletRequest request) throws Exception {
+        return employeeService.downloadEmployeeDetails(companyId, format, request);
+    }
+
+    @RequestMapping(value = "{companyId}/employees/bank", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.downloadEmployeesBank.tag}", description = "${api.downloadEmployeesBank.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> downloadEmployeesBankDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                      @PathVariable String companyId, @RequestParam String format, HttpServletRequest request) throws Exception {
+        return employeeService.downloadEmployeeBankDetails(companyId, format, request);
     }
 
 }

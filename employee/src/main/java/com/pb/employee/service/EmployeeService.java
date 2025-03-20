@@ -19,4 +19,6 @@ public interface EmployeeService {
     ResponseEntity<?> deleteEmployeeById( String companyName,String employeeId) throws EmployeeException;
 
     ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, HttpServletRequest request) throws Exception;
+
+    ResponseEntity<byte[]> downloadEmployeeBankDetails(String companyId, String format, HttpServletRequest request) throws Exception;
 }

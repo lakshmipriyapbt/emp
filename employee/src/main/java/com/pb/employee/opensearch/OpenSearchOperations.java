@@ -20,6 +20,7 @@ import org.opensearch.client.opensearch._types.mapping.KeywordProperty;
 import org.opensearch.client.opensearch._types.mapping.Property;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
 import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.search.Hit;
 import org.opensearch.client.opensearch.indices.*;
@@ -504,6 +505,7 @@ public class OpenSearchOperations {
         boolQueryBuilder = boolQueryBuilder
                 .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.SALARY)))
                 .filter(q -> q.matchPhrase(t -> t.field(Constants.EMPLOYEE_ID).query(employeeId)));
+
         BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
         SearchResponse<SalaryEntity> searchResponse = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
@@ -738,8 +740,11 @@ public class OpenSearchOperations {
         logger.debug("Getting employees for salary details {}", companyName);
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
         boolQueryBuilder = boolQueryBuilder
-                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.SALARY)))
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.SALARY)));
+        if (employeeId != null) {
+            boolQueryBuilder
                 .filter(q -> q.matchPhrase(t -> t.field(Constants.EMPLOYEE_ID).query(employeeId)));
+        }
         BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
         SearchResponse<EmployeeSalaryEntity> searchResponse = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
@@ -995,5 +1000,29 @@ public class OpenSearchOperations {
         }
 
         return salaryEntities;
+    }
+
+    public AttendanceEntity getEmployeeAttendance(String employeeId, String month, String year, String index) {
+        SearchResponse<AttendanceEntity> searchResponse = null;
+        try {
+            BoolQuery boolQuery = BoolQuery.of(b -> b
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.EMPLOYEE_ID).query(employeeId)))
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.MONTH).query(month)))
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.YEAR).query(year))))
+                    ;
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                    .index(index)  // Specify the index
+                    .query(Query.of(q -> q.bool(boolQuery)))
+                    .size(1));
+            searchResponse = esClient.search(searchRequest, AttendanceEntity.class);
+
+        } catch (IOException e) {
+            logger.error("Unable to fetch employee attendance by id: {} ", employeeId, e);
+        }
+        List<Hit<AttendanceEntity>> hits = searchResponse.hits().hits();
+        if (hits != null && !hits.isEmpty()) {
+            return hits.get(0).source();
+        }
+        return null;
     }
 }
