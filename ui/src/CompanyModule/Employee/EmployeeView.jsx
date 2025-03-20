@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeesFileAPI} from "../../Utils/Axios";
+import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
@@ -54,7 +54,7 @@ const EmployeeView = () => {
 
 
   const handleEdit = (id) => {
-    Navigate(`/employeeRegistration`, { state: { id } });
+    Navigate(`/employeeRegister`, { state: { id } });
   };
 
   const statusMappings = {
@@ -270,8 +270,15 @@ const EmployeeView = () => {
                     </Link>
                   </div>
                   <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-warning" onChange={(e) => downloadEmployeesFileAPI(e.target.value, showToast)}>
-                      <option value="">Download File</option>
+                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeesFileAPI(e.target.value, showToast)}>
+                      <option value="">Download Employees List</option>
+                      <option value="excel">Excel (.xlsx)</option>
+                      <option value="pdf">PDF (.pdf)</option>
+                    </select>
+                  </div>
+                  <div className="col-auto">
+                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeeBankDataAPI(e.target.value, showToast)}>
+                      <option value="">Download Bank List</option>
                       <option value="excel">Excel (.xlsx)</option>
                       <option value="pdf">PDF (.pdf)</option>
                     </select>
