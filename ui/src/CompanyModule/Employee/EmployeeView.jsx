@@ -4,13 +4,11 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { EmployeeGetApi } from "../../Utils/Axios";
+import { downloadEmployeesFileAPI} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeView = () => {
-  const [view, setView] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -32,6 +30,8 @@ const EmployeeView = () => {
   // Step 2: Display loading or error messages
   if (status === "loading") return <p>Loading employees...</p>;
   if (status === "failed") return <p>Error: {error}</p>;
+
+
 
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
@@ -230,6 +230,11 @@ const EmployeeView = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
+  const showToast = (message, type) => {
+    toast[type](message);
+  };
+
+
   return (
     <LayOut>
       <div className="container-fluid p-0">
@@ -258,12 +263,20 @@ const EmployeeView = () => {
             <div className="card flex-fill">
               <div className="card-header">
                 <div className="row">
-                  <div className="col-12 col-md-6 col-lg-4">
-                    <Link to={"/employeeRegistration"}>
-                      {" "}
+                <div className="row">
+                  <div className="col-auto">
+                    <Link to="/employeeRegistration">
                       <button className="btn btn-primary">Add Employee</button>
                     </Link>
                   </div>
+                  <div className="col-auto">
+                    <select className="form-select bg-primary border-0 text-warning" onChange={(e) => downloadEmployeesFileAPI(e.target.value, showToast)}>
+                      <option value="">Download File</option>
+                      <option value="excel">Excel (.xlsx)</option>
+                      <option value="pdf">PDF (.pdf)</option>
+                    </select>
+                  </div>
+                </div>
                   <div className="row col-12 mb-2">
 
                     <div className="col-md-4 mt-2 ">

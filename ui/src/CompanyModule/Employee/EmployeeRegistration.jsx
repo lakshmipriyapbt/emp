@@ -33,10 +33,8 @@ const EmployeeRegistration = () => {
     mode: "onChange",
   }); 
   const dispatch = useDispatch();
-
   // Step 2: Access employee data from the Redux store
   const { data: employees, status, error } = useSelector((state) => state.employees);
-
   // Step 3: Fetch employees on component mount
   useEffect(() => {
     if (status === "loading") {
@@ -86,7 +84,6 @@ const dropdownOptions = [
   ...managerOptions,
   { id: "CompanyAdmin", name: "CompanyAdmin" }
 ];
-
 
   // Get the last employeeId in the list
   const lastEmployeeId = employees.length > 0 ? employees[employees.length - 1].employeeId : "N/A";

@@ -1531,7 +1531,8 @@ const AddIncrement = () => {
                                 <input
                                   type="date"
                                   className="form-control"
-                                  max={getCurrentDate()}
+                                  max={new Date().toISOString().split("T")[0]} // Restricts future dates
+                                  onFocus={(e) => e.target.showPicker()} 
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation

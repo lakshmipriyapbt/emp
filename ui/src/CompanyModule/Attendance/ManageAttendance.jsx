@@ -86,21 +86,35 @@ const ManageAttendance = () => {
 
   const downloadExcel = () => {
     const currentDate = new Date();
-    const currentMonth = currentDate.toLocaleString("default", { month: "long" });
-    const currentYear = currentDate.getFullYear();
+    let month = currentDate.getMonth(); // 0-11 (January is 0)
+    let year = currentDate.getFullYear();
   
-    // Formatting employees data to match header keys
+    // If the date is before the 25th, use the previous month
+    if (currentDate.getDate() < 25) {
+      month -= 1;
+      if (month < 0) { // If January (0), shift to December of previous year
+        month = 11;
+        year -= 1;
+      }
+    }
+  
+    // Get the month name
+    const selectedMonth = new Date(year, month).toLocaleString("default", { month: "long" });
+  
+    // Formatting employees data
     const updatedEmployees = emp.map((employee) => ({
       EmployeeId: employee.employeeId,
       EmployeeName: employee.employeeName,
-      "Email Id": employee.emailId, // Set default value if undefined
-      Departmemt: employee.departmentName,
+      "Email Id": employee.emailId || "", // Ensure a default value
+      Department: employee.departmentName,
       Designation: employee.designationName,
-      Month: currentMonth,
-      Year: currentYear,
-      "Working Days": "", // You can update this dynamically if needed
+      Month: selectedMonth,
+      Year: year,
+      "Working Days": "", // Placeholder for working days
     }));
-     console.log("Email Id",updatedEmployees)
+  
+    console.log("Updated Employees:", updatedEmployees);
+  
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(updatedEmployees);
     const workbook = XLSX.utils.book_new();
@@ -109,6 +123,7 @@ const ManageAttendance = () => {
     // Generate Excel file
     XLSX.writeFile(workbook, "attendance_data.xlsx");
   };
+  
 
   const clearForm = () => {
     reset();
