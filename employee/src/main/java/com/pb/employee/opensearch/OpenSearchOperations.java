@@ -1025,4 +1025,46 @@ public class OpenSearchOperations {
         }
         return null;
     }
+
+    public EmployeePersonnelEntity getEmployeePersonnelDetails(String id, String index) {
+        SearchResponse<EmployeePersonnelEntity> searchResponse = null;
+        try {
+            BoolQuery boolQuery = BoolQuery.of(b -> b
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.EMPLOYEE_ID).query(id))));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                    .index(index)  // Specify the index
+                    .query(Query.of(q -> q.bool(boolQuery)))
+                    .size(1));
+            searchResponse = esClient.search(searchRequest, EmployeePersonnelEntity.class);
+
+        } catch (IOException e) {
+            logger.error("Unable to fetch employee salaries by id: {} ", id, e);
+        }
+        List<Hit<EmployeePersonnelEntity>> hits = searchResponse.hits().hits();
+        if (hits != null && !hits.isEmpty()) {
+            return hits.get(0).source();
+        }
+        return null;
+    }
+
+    public CompanyEntity getCompanyByCompanyName(String companyName, String index) {
+        SearchResponse<CompanyEntity> searchResponse = null;
+        try {
+            BoolQuery boolQuery = BoolQuery.of(b -> b
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.SHORT_NAME).query(companyName))));
+            SearchRequest searchRequest = SearchRequest.of(s -> s
+                    .index(index)  // Specify the index
+                    .query(Query.of(q -> q.bool(boolQuery)))
+                    .size(1));
+            searchResponse = esClient.search(searchRequest, CompanyEntity.class);
+
+        } catch (IOException e) {
+            logger.error("Unable to fetch company details", e);
+        }
+        List<Hit<CompanyEntity>> hits = searchResponse.hits().hits();
+        if (hits != null && !hits.isEmpty()) {
+            return hits.get(0).source();
+        }
+        return null;
+    }
 }

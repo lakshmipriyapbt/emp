@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
+import com.pb.employee.response.EmployeeResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.swing.text.Position;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -154,7 +156,7 @@ public class EmployeeUtils {
         return responseBody;
     }
 
-    public static int duplicateEmployeeProperties(EmployeeEntity user, EmployeeUpdateRequest employeeUpdateRequest) {
+    public static int duplicateEmployeeProperties(EmployeeEntity user, EmployeePersonnelEntity employeePersonnel, EmployeeUpdateRequest employeeUpdateRequest) {
         int noOfChanges = 0;
         String type=null, email=null;
         if (!user.getEmployeeType().equals(employeeUpdateRequest.getEmployeeType())){
@@ -191,8 +193,92 @@ public class EmployeeUtils {
         }if (!user.getBankName().equals(employeeUpdateRequest.getBankName())){
             noOfChanges +=1;
         }
+        noOfChanges += compareEmployeeExperience(
+                employeePersonnel.getEmployeeExperience(),
+                employeeUpdateRequest.getPersonnelEntity().getEmployeeExperience()
+        );
+
+        noOfChanges += compareEmployeeEducation(
+                employeePersonnel.getEmployeeEducation(),
+                employeeUpdateRequest.getPersonnelEntity().getEmployeeEducation()
+        );
         return noOfChanges;
     }
+
+    /**
+     * Compares two lists of EmployeeEducation and returns the number of differences.
+     *
+     * @param currentEducationList The list of current EmployeeEducation entries.
+     * @param updatedEducationList The list of updated EmployeeEducation entries.
+     * @return The number of differences between the two lists.
+     */
+    public static int compareEmployeeEducation(List<EmployeeEducation> currentEducationList, List<EmployeeEducation> updatedEducationList) {
+        int changes = 0;
+        changes += (int) currentEducationList.stream()
+                .filter(currentEducation ->
+                        updatedEducationList.stream().noneMatch(updatedEducation ->
+                                currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel()) &&
+                                        currentEducation.getInstituteName().equals(updatedEducation.getInstituteName()) &&
+                                        currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy()) &&
+                                        currentEducation.getBranch().equals(updatedEducation.getBranch()) &&
+                                        currentEducation.getYear().equals(updatedEducation.getYear()) &&
+                                        currentEducation.getPersentage().equals(updatedEducation.getPersentage())
+                        )
+                )
+                .count();
+
+        changes += (int) updatedEducationList.stream()
+                .filter(updatedEducation ->
+                        currentEducationList.stream().noneMatch(currentEducation ->
+                                currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel()) &&
+                                        currentEducation.getInstituteName().equals(updatedEducation.getInstituteName()) &&
+                                        currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy()) &&
+                                        currentEducation.getBranch().equals(updatedEducation.getBranch()) &&
+                                        currentEducation.getYear().equals(updatedEducation.getYear()) &&
+                                        currentEducation.getPersentage().equals(updatedEducation.getPersentage())
+                        )
+                )
+                .count();
+
+        return changes;
+    }
+
+
+    /**
+     * Compares two lists of EmployeeExperience and returns the number of differences.
+     *
+     * @param currentExperienceList The list of current EmployeeExperience entries.
+     * @param updatedExperienceList The list of updated EmployeeExperience entries.
+     * @return The number of differences between the two lists.
+     */
+    public static int compareEmployeeExperience(List<EmployeeExperience> currentExperienceList, List<EmployeeExperience> updatedExperienceList) {
+        int changes = 0;
+
+        changes += (int) currentExperienceList.stream()
+                .filter(currentExperience ->
+                        updatedExperienceList.stream().noneMatch(updatedExperience ->
+                                currentExperience.getCompanyName().equals(updatedExperience.getCompanyName()) &&
+                                        currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle()) &&
+                                        currentExperience.getStartDate().equals(updatedExperience.getStartDate()) &&
+                                        currentExperience.getEndDate().equals(updatedExperience.getEndDate())
+                        )
+                )
+                .count();
+
+        changes += (int) updatedExperienceList.stream()
+                .filter(updatedExperience ->
+                        currentExperienceList.stream().noneMatch(currentExperience ->
+                                currentExperience.getCompanyName().equals(updatedExperience.getCompanyName()) &&
+                                        currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle()) &&
+                                        currentExperience.getStartDate().equals(updatedExperience.getStartDate()) &&
+                                        currentExperience.getEndDate().equals(updatedExperience.getEndDate())
+                        )
+                )
+                .count();
+
+        return changes;
+    }
+
     public static EmployeeSalaryEntity unMaskEmployeeSalaryProperties(EmployeeSalaryEntity salaryEntity) {
 
         String var = null, fix = null, bas = null, gross = null;

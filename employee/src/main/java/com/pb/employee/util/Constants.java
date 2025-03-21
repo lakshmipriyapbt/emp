@@ -167,17 +167,14 @@ public class Constants {
     public static final String SLASH = "/";
     public static final String COMPANY_ADMIN = "company_admin";
     public static final String ADMIN = "CompanyAdmin";
-    public static final String NO_ATTENDANCE = "Attendance Not Found For All Employees";
     public static final String CUSTOMER_ID= "customerId";
+    public static final String BANK_JSON = "bank.json";
     public static final String EMPLOYEE_DETAILS = "employeeDetails.ftl";
     public static final String PDF_TYPE = "pdf";
     public static final String EXCEL_TYPE = "excel";
-    public static final String GENERATED_PAY_SLIP_EXISTED = "Generated Payslip Already Existed";
-    public static final String NO_PAY_SLIP_GENERATED = "Attendance Not Submitted for This Month";
-    public static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    public static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
-    public static final String DIGITS = "0123456789";
-    public static final String SPECIAL_CHARACTER = "@#&$%!";
+    public static final String INTERNSHIP_OFFER_LETTER_TEMPLATE = "internOfferTemplate.ftl";
     public static final String EMPLOYEE_BANK_DETAILS = "employeeBankDetails.ftl";
     public static final String EMPLOYEE_SALARIES_DETAILS = "employeeSalaries.ftl";
+    public static final String EMPLOYEE_PERSONNEL = "employee-personnel";
+    public static final String ID = "id";
 }

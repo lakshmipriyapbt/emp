@@ -2,6 +2,7 @@ package com.pb.employee.request;
 
 
 import com.pb.employee.config.ValidAge;
+import com.pb.employee.persistance.model.EmployeePersonnelEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -96,6 +97,15 @@ public class EmployeeRequest {
     @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "{invalid.mobileNo}")
     private String mobileNo;
 
+    @Schema(example = "alternateNo")
+    @Pattern(regexp = "^(\\+91 [6-9]\\d{9}|null|)$", message = "{invalid.alternateNo}")
+    private String alternateNo;
+
+    @Schema(example = "maritalStatus")
+    @Pattern(regexp = "^(?!.*\\b([A-Z])\\s\\1\\s\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\.? ?[A-Z])? ?[A-Z][a-z]+|[A-Z][a-z]+(?: [A-Z](?:\\.? ?[A-Z])?)+)$", message = "{maritalStatus.format}")
+    @Size(min = 3, max = 30, message = "{maritalStatus.notnull.message}")
+    private String maritalStatus;
+
     @Schema(example = "Active")
     @Pattern(regexp = "^(Active|InActive|Relieved)$", message = "{status.format}")
     @NotBlank(message = "{status.notnull.message}")
@@ -128,6 +138,14 @@ public class EmployeeRequest {
     @Size(min = 2, max = 100, message = "{bankName.size.message}")
     private String bankName;
 
+    @Schema(example = "bankBranch")
+    @Pattern(regexp =  "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{bankBranch.format}")
+    @Size(min = 2, max = 100, message = "{bankBranch.size.message}")
+    private String bankBranch;
+
     private String pfNo;
+
+    @Valid
+    private EmployeePersonnelEntity personnelEntity;
 
 }

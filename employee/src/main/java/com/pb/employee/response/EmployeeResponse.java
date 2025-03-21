@@ -1,18 +1,23 @@
-package com.pb.employee.persistance.model;
-
+package com.pb.employee.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pb.employee.persistance.model.EmployeePersonnelEntity;
+import com.pb.employee.persistance.model.Entity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EmployeeEntity implements Entity{
+public class EmployeeResponse {
+
     private String id;
     private String employeeType;
     private String companyId;
@@ -45,6 +50,7 @@ public class EmployeeEntity implements Entity{
     private String ifscCode;
     private String bankName;
     private String bankBranch;
-    private String type;
+    private EmployeePersonnelEntity employeePersonnelEntity;
+
 
 }
