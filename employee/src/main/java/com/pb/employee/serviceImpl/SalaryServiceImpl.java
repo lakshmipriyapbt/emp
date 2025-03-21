@@ -34,6 +34,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -156,33 +157,28 @@ public class SalaryServiceImpl implements SalaryService {
 
     }
 
-    @Override
-    public ResponseEntity<?> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
 
-        List<EmployeeSalaryEntity> salaryEntities = null;
-        Object entity = null;
-        List<EmployeeSalaryEntity> salaryEntityList;
+    @Override
+    public List<EmployeeSalaryResPayload> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
         try {
-            salaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employeeId);
-            salaryEntityList = new ArrayList<>();
-            for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                EmployeeSalaryEntity salary = EmployeeUtils.unMaskEmployeeSalaryProperties(salaryEntity);
-                salaryEntityList.add(salary);
-                entity = openSearchOperations.getById(salary.getEmployeeId(), null, index);
-                if (entity == null){
-                    log.error("Employee ID mismatch for salary {}: expected {}, found {}", salary.getSalaryId(), employeeId, salary.getEmployeeId());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
-                }
+           List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName);
+            if (employeeId != null) {
+                return employeeSalaryResPayload.stream()
+                        .filter(employee -> employee.getEmployeeId().equalsIgnoreCase(employeeId))
+                        .collect(Collectors.toList());
             }
-        } catch (Exception ex) {
+           return employeeSalaryResPayload;
+
+        } catch (EmployeeException ex){
+            log.error("Exception while fetching the employee salaries", ex);
+            throw ex;
+        }
+        catch (Exception ex) {
             log.error("Exception while fetching salaries for employees {}: {}", employeeId, ex.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(salaryEntityList), HttpStatus.OK);
+
     }
     @Override
     public ResponseEntity<?> deleteEmployeeSalaryById(String companyName, String employeeId,String salaryId) throws EmployeeException{
@@ -257,19 +253,19 @@ public class SalaryServiceImpl implements SalaryService {
 
 
     @Override
-    public ResponseEntity<byte[]> downloadEmployeesSalaries(String companyId, String format, HttpServletRequest request) throws Exception {
+    public ResponseEntity<byte[]> downloadEmployeesSalaries(String companyName, String format, HttpServletRequest request) throws Exception {
         byte[] fileBytes = null;
         HttpHeaders headers = new HttpHeaders();
         try {
 
-            CompanyEntity companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null){
                 log.error("Company is not found");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
             SSLUtil.disableSSLVerification();
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
-            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity);
+            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity.getShortName());
 
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
@@ -332,15 +328,15 @@ public class SalaryServiceImpl implements SalaryService {
         }
     }
 
-    private List<EmployeeSalaryResPayload> validateEmployeesSalaries(CompanyEntity companyEntity) throws EmployeeException {
+    private List<EmployeeSalaryResPayload> validateEmployeesSalaries(String companyName) throws EmployeeException {
         try {
             List<EmployeeSalaryResPayload> employeeSalaryResPayloads = new ArrayList<>();
-            List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(companyEntity.getShortName(), null);
+            List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(companyName, null);
             if (salaryEntities == null || salaryEntities.isEmpty()) {
                 log.error("Employees salaries do not exist in the company");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY), HttpStatus.NOT_FOUND);
             }
-            String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
                 if (salaryEntity.getStatus().equalsIgnoreCase(Constants.ACTIVE)) {
                     EmployeeUtils.unMaskEmployeeSalaryProperties(salaryEntity);
@@ -357,7 +353,8 @@ public class SalaryServiceImpl implements SalaryService {
             log.error("Exception while fetching the employee details");
             throw e;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("Exception while getting the employee details");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
