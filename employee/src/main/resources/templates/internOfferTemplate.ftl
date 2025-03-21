@@ -80,16 +80,24 @@
                     To accept this offer, please sign and return this letter by <b>${offerLetter.acceptDate}</b>. We look forward to welcoming you to <b>${company.companyName}</b>.
                 </p>
 
-                <div class="signature">
-                    Regards,<br/>
-                    <b>${offerLetter.hrName}</b><br/>
-                    Email: ${offerLetter.hrEmail}<br/>
-                    Mobile: ${offerLetter.hrMobileNo}<br/>
-                    Branch: ${company.companyBranch}<br/>
-                             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/><br/>
-                            <b>Authorized Signature</b><br/>
-                </div>
+                <div class="signature" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                Regards,<br/>
+                <b>${offerLetter.hrName}</b><br/>
+                Email: ${offerLetter.hrEmail}<br/>
+                Mobile: ${offerLetter.hrMobileNo}<br/>
+                Branch: ${company.companyBranch}<br/>
+
+            </div>
+            <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
+                    <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+                    <br/>
+                    <b>Authorized Signature</b>
+            </div>
+
         </div>
+
+</div>
 
         </body>
         </html>

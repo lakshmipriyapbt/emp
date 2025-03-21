@@ -84,8 +84,8 @@ public class InternshipOfferLetterRequest {
     private String hrName;
 
     @Schema(example = "emailId")
-    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
-    @NotBlank(message = "{emailId.notnull.message}")
+    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{hr.invalid.emailId}")
+    @NotBlank(message = "{hr.emailId.notnull.message}")
     private String hrEmail;
 
     @Schema(example = "emailId")
@@ -99,7 +99,7 @@ public class InternshipOfferLetterRequest {
     private String mobileNo;
 
     @Schema(example = "mobileNo")
-    @NotNull(message = "{mobileNo.notnull.message}")
-    @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "{invalid.mobileNo}")
+    @NotNull(message = "{hr.mobileNo.notnull.message}")
+    @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "{hr.invalid.mobileNo}")
     private String hrMobileNo;
 }
