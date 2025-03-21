@@ -168,6 +168,7 @@ public class Constants {
     public static final String COMPANY_ADMIN = "company_admin";
     public static final String ADMIN = "CompanyAdmin";
     public static final String CUSTOMER_ID= "customerId";
+    public static final String BANK_JSON = "bank.json";
     public static final String EMPLOYEE_DETAILS = "employeeDetails.ftl";
     public static final String PDF_TYPE = "pdf";
     public static final String EXCEL_TYPE = "excel";

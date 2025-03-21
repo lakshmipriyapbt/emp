@@ -116,8 +116,6 @@ public enum EmployeeErrorMessageKey {
     MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
     EMAIL_ID_MISS_MATCH("email.id.miss.match");
 
-
-
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {

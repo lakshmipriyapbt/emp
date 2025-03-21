@@ -20,4 +20,6 @@ public interface BankService {
     ResponseEntity<?> updateBankById(String companyId,String bankId, BankUpdateRequest bankUpdateRequest)throws EmployeeException,IOException;
 
     ResponseEntity<?> deleteBankById(String companyId, String bankId)throws EmployeeException,IOException;
+
+    ResponseEntity<?> getBankList() throws EmployeeException;
 }
