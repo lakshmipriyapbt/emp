@@ -1,10 +1,7 @@
 
 package com.pb.employee.serviceImpl;
 
-
-import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
-import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -12,9 +9,6 @@ import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.AttendanceUpdateRequest;
 import com.pb.employee.request.EmployeeStatus;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.poi.ss.usermodel.*;
 import com.pb.employee.request.AttendanceRequest;
 import com.pb.employee.service.AttendanceService;
