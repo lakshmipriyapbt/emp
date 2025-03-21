@@ -28,6 +28,4 @@ public class AttendanceEntity implements Entity{
     private String totalWorkingDays;
     private String noOfWorkingDays;
 
-
-
 }
