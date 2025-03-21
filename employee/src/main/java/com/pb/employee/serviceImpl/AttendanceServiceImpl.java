@@ -1,7 +1,6 @@
 
 package com.pb.employee.serviceImpl;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
@@ -202,7 +201,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
 
-
     @Override
     public ResponseEntity<?> getAllEmployeeAttendance(String companyName, String employeeId, String month, String year) throws IOException, EmployeeException {
         List<AttendanceEntity> attendanceEntities;
@@ -364,6 +362,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
     private List<AttendanceRequest> parseExcelFile(MultipartFile file, String company) throws Exception {
         List<AttendanceRequest> attendanceRequests = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -485,6 +484,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 return "";
         }
     }
+
     private ResponseEntity<?> addAttendanceOfEmployees(AttendanceRequest attendanceRequest) throws EmployeeException, IOException {
         log.debug("Attendance adding method is started ..");
         String index = ResourceIdUtils.generateCompanyIndex(attendanceRequest.getCompany());
