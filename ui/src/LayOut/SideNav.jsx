@@ -553,13 +553,24 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
+                      location.pathname === "/internOfferForm" ? "active" : ""
+                    }`}
+                  >
+                    <Link className="sidebar-link" to="/internOfferForm">
+                      Intern Offer Letter
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${
                       location.pathname === "/internsLetter" ? "active" : ""
                     }`}
                   >
                     <Link className="sidebar-link" to="/internsLetter">
-                      Interns
+                      Interns Certificate
                     </Link>
                   </li>
+               
                 </ul>
               </li>
 
@@ -640,16 +651,16 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
-                      location.pathname === "/employeeSalaryStructure"
+                      location.pathname === "/employeeSalaryView"
                         ? "active"
                         : ""
                     }`}
                   >
                     <Link
                       className="sidebar-link"
-                      to="/employeeSalaryStructure"
+                      to="/employeeSalaryView"
                     >
-                      Manage Salary
+                      Employee Salary List
                     </Link>
                   </li>
                   <li
@@ -919,11 +930,21 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
+                      location.pathname === "/internOfferTemplate" ? "active" : ""
+                    }`}
+                  >
+                    <Link className="sidebar-link" to="/internOfferTemplate">
+                      Interns Offer Template
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${
                       location.pathname === "/internsTemplates" ? "active" : ""
                     }`}
                   >
                     <Link className="sidebar-link" to="/internsTemplates">
-                      Interns Template
+                      Interns Ceriticate Template
                     </Link>
                   </li>
                   <li
@@ -1091,11 +1112,21 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
+                      location.pathname === "/internOfferForm" ? "active" : ""
+                    }`}
+                  >
+                    <Link className="sidebar-link" to="/internOfferForm">
+                      Intern Offer Letter
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${
                       location.pathname === "/internsLetter" ? "active" : ""
                     }`}
                   >
                     <Link className="sidebar-link" to="/internsLetter">
-                      Interns
+                      Interns Certificate Form
                     </Link>
                   </li>
                 </ul>
@@ -1178,16 +1209,16 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
-                      location.pathname === "/employeeSalaryStructure"
+                      location.pathname === "/employeeSalaryView"
                         ? "active"
                         : ""
                     }`}
                   >
                     <Link
                       className="sidebar-link"
-                      to="/employeeSalaryStructure"
+                      to="/employeeSalaryView"
                     >
-                      Manage Salary
+                      Employee Salary List
                     </Link>
                   </li>
                   <li
@@ -1294,6 +1325,16 @@ const SideNav = () => {
                   >
                     <Link className="sidebar-link" to="/relievingTemplates">
                       Relieving Template
+                    </Link>
+                  </li>
+                  <li
+                    style={{ paddingLeft: "40px" }}
+                    className={`sidebar-item ${
+                      location.pathname === "/internOfferTemplate" ? "active" : ""
+                    }`}
+                  >
+                    <Link className="sidebar-link" to="/internOfferTemplate">
+                      Interns Offer Template
                     </Link>
                   </li>
                   <li

@@ -2,8 +2,11 @@ import React, { useState,useEffect } from 'react';
 import LayOut from '../../LayOut/LayOut';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../../Redux/EmployeeSlice';
-import { DepartmentGetApi, DesignationGetApi } from '../../Utils/Axios';
+import { DepartmentGetApi, DesignationGetApi, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 
 export default function EmployeeRegister() {
   const {
@@ -13,7 +16,7 @@ export default function EmployeeRegister() {
     setValue,
     watch,reset,
     formState: { errors },
-    trigger
+    trigger,getValues
   } = useForm({
     mode:"onChange",
       defaultValues: {
@@ -55,12 +58,14 @@ export default function EmployeeRegister() {
       },
     });
 
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isStepValid, setIsStepValid] = useState(false); // Track validation state
-
+  const [errorMessage, setErrorMessage] = useState(""); // State for error message
+ const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   // Step 2: Access employee data from the Redux store
   const { data: employees, status, error } = useSelector((state) => state.employees);
@@ -92,10 +97,122 @@ const onPrevious = () => {
     { value: "Associate", label: "Associate" },
   ];
 
-  const onSubmit = (data) => {
-    console.log("Final Submitted Data:", data);
-    alert("Form Submitted Successfully!");
-    reset()
+  let company = user.company;
+  const onSubmit = async (data) => {
+    // const roles = data.roles ? [data.roles] : [];
+    // Constructing the payload
+    let payload = {
+      companyName: company,
+      employeeType: data.employeeType,
+      emailId: data.emailId,
+      password: data.password,
+      designation: data.designation,
+      location: data.location,
+      manager: data.manager,
+      //roles: roles,
+      mobileNo: data.mobileNo,
+      status: data.status,
+      accountNo: data.accountNo,
+      ifscCode: data.ifscCode,
+      bankName: data.bankName,
+      aadhaarId: data.aadhaarId,
+    };
+    if (location.state && location.state.id) {
+      payload = {
+        ...payload,
+        employeeId: data.employeeId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfHiring: data.dateOfHiring,
+        manager:data.manager,
+        department: data.department,
+        panNo: data.panNo,
+        uanNo: data.uanNo,
+        dateOfBirth: data.dateOfBirth,
+      };
+    } else {
+      payload = {
+        ...payload,
+        employeeId: data.employeeId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfHiring: data.dateOfHiring,
+        department: data.department,
+        panNo: data.panNo,
+        aadhaarId: data.aadhaarId,
+        uanNo: data.uanNo,
+        dateOfBirth: data.dateOfBirth,
+      };
+    }
+
+    try {
+      if (location.state && location.state.id) {
+        const response = await EmployeePatchApiById(location.state.id, payload);
+        console.log("Update successful", response.data);
+        toast.success("Employee Updated Successfully");
+      } else {
+        const response = await EmployeePostApi(payload);
+        console.log("Employee created", response.data);
+        toast.success("Employee Created Successfully");
+      }
+      setTimeout(() => {
+        navigate("/employeeView");
+      }, 1000); // Adjust the delay time as needed (in milliseconds)
+
+      reset();
+    } catch (error) {
+      let errorList = [];
+
+      // Check if error response exists
+      if (error.response) {
+        console.log("Axios response error:", error.response.data.error); // Log Axios error response
+
+        // Case 1: General error message
+        if (error.response.data.error && error.response.data.error.message) {
+          const generalErrorMessage = error.response.data.error.message;
+          errorList.push(generalErrorMessage);
+          toast.error(generalErrorMessage);
+        }
+
+        // Case 2: Specific error messages (multiple messages, such as form validation errors)
+        if (error.response.data.error && error.response.data.error.messages) {
+          const specificErrorMessages = error.response.data.error.messages;
+          toast.error("Invalid Format Fields");
+          specificErrorMessages.forEach((message) => {
+            // Display each error message individually
+            errorList.push(message);
+          });
+        }
+
+        // Case 3: Specific error data (duplicate value conflicts)
+        if (error.response.data.data) {
+          const conflictData = error.response.data.data;
+          let conflictMessage = "Error Details:\n";
+          toast.error(error.response.data.message);
+          // Check if data contains specific conflict details (e.g., duplicate values)
+          Object.keys(conflictData).forEach((key) => {
+            const value = conflictData[key];
+            conflictMessage += `${key}: ${value}\n,`;
+          });
+
+          // Display detailed conflict message in toast and add to error list
+          errorList.push(conflictMessage);
+        }
+
+        // Handle HTTP 409 Conflict Error (duplicate or other conflicts)
+        if (error.response.status === 409) {
+          const conflictMessage = "A conflict occurred.";
+          toast.error(conflictMessage); // Show conflict error in toast
+        }
+      } else {
+        // General error (non-Axios)
+        console.log("Error without response:", error);
+        toast.error("An unexpected error occurred. Please try again later.");
+      }
+
+      // Update the error messages in the state
+      setErrorMessage(errorList);
+    }
   };
 
   // eslint-disable-next-line no-undef
@@ -155,26 +272,27 @@ const dropdownOptions = [
   }, []);
 
   const calculateTenure = (index, startDate, endDate) => {
-    if (!startDate || !endDate) return;
-  
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-  
-    if (end < start) {
-      setValue(`experienceList.${index}.tenure`, "Invalid Date Range");
-      return;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (start < end) {
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+        let days = end.getDate() - start.getDate();
+
+         // Convert months and days to fractional years
+         const fractionalYears = years + (months / 12) + (days / 365);
+
+         // Set the tenure value in years with decimal precision
+         setValue(`experienceList.${index}.tenure`, `${fractionalYears.toFixed(2)} years`)
+
+        } else {
+        setValue(`experienceList.${index}.tenure`, "Invalid date range");
+      }
     }
-  
-    let years = end.getFullYear() - start.getFullYear();
-    let months = end.getMonth() - start.getMonth();
-  
-    if (months < 0) {
-      years -= 1;
-      months += 12;
-    }
-  
-    setValue(`experienceList.${index}.tenure`, `${years} Years, ${months} Months`);
   };
+
   return (
     <LayOut>
       <div className="container d-flex justify-content-center align-items-center min-vh-100">
@@ -380,7 +498,7 @@ const dropdownOptions = [
                   <input type="text" className="form-control" id="aadhaarId"
                     {...register("aadhaarId", {
                       required: "Aadhar Number is required",
-                      pattern: { value: /^\d{4}\s\d{4}\s\d{4}$/,
+                      pattern: { value: /^\d{12}$/,
                         message: "Enter a valid Aadhar Number",
                       },
                     })}
@@ -597,10 +715,10 @@ const dropdownOptions = [
                             {...register(`experienceList.${index}.startDate`, {
                               required: "Start Date is required",
                             })}
-                            onChange={() => calculateTenure(index, startDate, endDate)}
-                          />
-                          <small className="text-danger">{errors.experienceList?.[index]?.startDate?.message}</small>
-                        </div>
+                            onChange={(e) => calculateTenure(0, e.target.value, getValues(`experienceList.0.endDate`))}
+                            />
+                            <small className="text-danger">{errors.experienceList?.[0]?.startDate?.message}</small>
+                            </div>
 
                         <div className="col-md-2">
                           <label>End Date</label>
@@ -608,14 +726,16 @@ const dropdownOptions = [
                             {...register(`experienceList.${index}.endDate`, {
                               required: "End Date is required",
                             })}
-                            onChange={() => calculateTenure(index, startDate, endDate)}
-                          />
-                          <small className="text-danger">{errors.experienceList?.[index]?.endDate?.message}</small>
+                            onChange={(e) => calculateTenure(0, getValues(`experienceList.0.startDate`), e.target.value)}
+                            />
+                            <small className="text-danger">{errors.experienceList?.[0]?.endDate?.message}</small>
                         </div>
 
                         <div className="col-md-2">
                           <label>Tenure</label>
-                          <input type="text" className="form-control" {...register(`experienceList.${index}.tenure`)} readOnly />
+                          <input type="text" className="form-control"
+                            {...register(`experienceList.0.tenure`)}
+                          readOnly />
                         </div>
 
                         <div className="col-md-1">
@@ -685,6 +805,11 @@ const dropdownOptions = [
                </div>
               </div>
             )}
+              {errorMessage && (
+                      <div className="alert alert-danger mt-4 text-center">
+                        {errorMessage}
+                      </div>
+                    )}
              <div className="mt-3 d-flex justify-content-between">
         {step > 1 && (
           <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>

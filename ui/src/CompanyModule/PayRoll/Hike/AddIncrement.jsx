@@ -1531,8 +1531,11 @@ const AddIncrement = () => {
                                 <input
                                   type="date"
                                   className="form-control"
-                                  max={new Date().toISOString().split("T")[0]} // Restricts future dates
-                                  onFocus={(e) => e.target.showPicker()} 
+                                  max={(() => {
+                                    const maxDate = new Date();
+                                    maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 6 months ahead
+                                    return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
+                                  })()}                                   onFocus={(e) => e.target.showPicker()} 
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation

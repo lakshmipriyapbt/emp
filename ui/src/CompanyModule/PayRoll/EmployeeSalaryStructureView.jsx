@@ -4,11 +4,11 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
+import { downloadEmployeeBankDataAPI, downloadEmployeeSalaryDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
-const EmployeeView = () => {
+const EmployeeSalaryStructureView = () => {
   const [search, setSearch] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -240,7 +240,7 @@ const EmployeeView = () => {
       <div className="container-fluid p-0">
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
-            <h1 className="h3 mb-3"><strong>Employees</strong> </h1>
+            <h1 className="h3 mb-3"><strong>Employees Salary List</strong> </h1>
           </div>
           <div className="col-auto">
             <nav aria-label="breadcrumb">
@@ -250,7 +250,7 @@ const EmployeeView = () => {
                 </li>
 
                 <li className="breadcrumb-item active">
-                  Employees
+                  Employees Salary List
                 </li>
               </ol>
             </nav>
@@ -265,26 +265,20 @@ const EmployeeView = () => {
                 <div className="row">
                 <div className="row">
                   <div className="col-auto">
-                    <Link to="/employeeRegister">
-                      <button className="btn btn-primary">Add Employee</button>
+                    <Link to="/employeeSalaryStructure">
+                      <button className="btn btn-primary">Add Salary to Employee</button>
                     </Link>
                   </div>
                   <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeesFileAPI(e.target.value, showToast)}>
-                      <option value="">Download Employees List</option>
-                      <option value="excel">Excel (.xlsx)</option>
-                      <option value="pdf">PDF (.pdf)</option>
-                    </select>
-                  </div>
-                  <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeeBankDataAPI(e.target.value, showToast)}>
-                      <option value="">Download Bank List</option>
+                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeeSalaryDataAPI(e.target.value, showToast)}>
+                      <option value="">Download Employees Salary List</option>
                       <option value="excel">Excel (.xlsx)</option>
                       <option value="pdf">PDF (.pdf)</option>
                     </select>
                   </div>
                 </div>
                   <div className="row col-12 mb-2">
+
                     <div className="col-md-4 mt-2 ">
                       <input
                         type="search"
@@ -334,28 +328,13 @@ const EmployeeView = () => {
                   />
                 </div>
               </div>
-              {(!employees || employees.length === 0) ? (
-            <table className="table table-bordered text-center">
-              <thead>
-                <tr>
-                  <th className="text-danger">Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="text-danger"><b>No Employees Found</b></td>
-                </tr>
-              </tbody>
-            </table>
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredEmployees.length > 0 ? filteredEmployees : ""}
-              pagination
-              onChangePage={page => setCurrentPage(page)}
-              onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
-            />
-          )}
+              <DataTable
+                columns={columns}
+                data={filteredEmployees.length > 0 ? filteredEmployees : ""}
+                pagination
+                onChangePage={page => setCurrentPage(page)}
+                onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
+              />
             </div>
           </div>
         </div>
@@ -364,4 +343,4 @@ const EmployeeView = () => {
   );
 };
 
-export default EmployeeView;
+export default EmployeeSalaryStructureView;

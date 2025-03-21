@@ -68,6 +68,10 @@ import ProductView from '../InvoiceModule/Products/ProductsView';
 import ProductRegistration from '../InvoiceModule/Products/ProductRegistration'
 import CreatePassword from '../Login/CreatePassword';
 import EmployeeRegister from '../CompanyModule/Employee/EmployeeRegister';
+import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalaryStructureView';
+import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
+import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
+import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
 
 const Rout = () => {
   const location = useLocation();
@@ -158,6 +162,7 @@ const Rout = () => {
       <Route path='/attendanceReport' element={<AttendanceReport />}></Route>
       <Route path='/employeePayslip' element={<EmployeePayslips />}></Route>
       <Route path='/employeeSalary' element={<EmployeeSalaryById />}></Route>
+      <Route path='/salaries' element={<EmployeeSalaryStructureView/>}></Route>
       <Route path='/employeeSalaryView' element={<EmployeeSalaryView/>}></Route>
       <Route path='/offerLetter' element={<OfferLetter />}></Route>
       <Route path='/payslipLetter' element={<PaySlipLetter />}></Route>
@@ -173,6 +178,9 @@ const Rout = () => {
       <Route path='/relivingReview' element={<Preview/>}></Route>
       <Route path='/internsLetter' element={<InternShipForm/>}></Route>
       <Route path='/internsTemplates' element={<InternShipTemplates/>}></Route>
+      <Route path='/internOfferTemplate' element={<InternOfferLetter/>}></Route>
+      <Route path='/internOfferForm' element={<InternOfferForm/>}></Route>
+      <Route path='/internPrev' element={<InternOfferPrev/>}></Route>
       <Route path='/appraisalLetter' element={<AddIncrement/>}></Route>
       <Route path='/appraisalTemplates' element={<AppraisalTemplate/>}></Route>
       <Route path='/payslipUpdate1' element={<PayslipUpdate1 />}></Route>
