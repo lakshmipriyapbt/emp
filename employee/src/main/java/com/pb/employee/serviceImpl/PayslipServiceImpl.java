@@ -731,7 +731,7 @@ public class PayslipServiceImpl implements PayslipService {
                             .status(HttpStatus.CONFLICT)
                             .body(ResponseBuilder.builder()
                                     .build()
-                                    .createFailureResponse(Constants.GENERATED_PAY_SLIP_EXISTED));
+                                    .createFailureResponse(EmployeeErrorMessageKey.GENERATED_PAY_SLIP_EXISTED));
                 }
 
 
@@ -764,7 +764,7 @@ public class PayslipServiceImpl implements PayslipService {
                             .status(HttpStatus.CONFLICT)
                             .body(ResponseBuilder.builder()
                                     .build()
-                                    .createFailureResponse(Constants.NO_PAY_SLIP_GENERATED));
+                                    .createFailureResponse(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED));
                 }
             Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
