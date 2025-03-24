@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LayOut from "../../LayOut/LayOut";
-import { AttendanceManagementApi, EmployeeGetApi } from "../../Utils/Axios";
+import { AttendanceManagementApi, EmployeeGetApi, EmployeeNoAttendanceGetAPI } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
@@ -15,41 +15,28 @@ const ManageAttendance = () => {
     formState: { errors },
     reset,
   } = useForm();
-
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [isDataFetched, setIsDataFetched] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [emp, setEmp] = useState([]);
 
-  const dispatch = useDispatch(); // Initialize dispatch function
-
-  // Select employee state from Redux store
-  const { data: employees} = useSelector(
-    (state) => state.employees
-  );
-
-  // Step 1: Fetch employees when component mounts
-  useEffect(() => {
-    dispatch(fetchEmployees());
-  }, [dispatch]);
-
-
-  useEffect(() => {
-    if (employees) {
-      const activeEmployees = employees
-        .filter((employee) => employee.status === "Active")
-        .map((employee) => ({
-          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
-          value: employee.id,
-          employeeName: `${employee.firstName} ${employee.lastName}`,
-          employeeId: employee.employeeId,
-          designationName: employee.designationName,
-          departmentName: employee.departmentName,
-          dateOfHiring: employee.dateOfHiring,
-          emailId:employee.emailId
-        }));
-
-      setEmp(activeEmployees);
+  // Function to Fetch Data
+  const fetchEmployeeData = async () => {
+    if (!selectedMonth || !selectedYear) {
+      alert("Please select both month and year!");
+      return;
     }
-  }, [employees]);
+    try {
+      const response = await EmployeeNoAttendanceGetAPI(selectedMonth, selectedYear);
+      setEmployees(response.data.data); // Assuming API returns employee list
+      setIsDataFetched(true);
+    } catch (error) {
+      console.error("Error fetching employee data:", error);
+      setIsDataFetched(false);
+    }
+  };
 
   const onSubmit = async (data) => {
     const formData = new FormData();
@@ -85,45 +72,39 @@ const ManageAttendance = () => {
   };
 
   const downloadExcel = () => {
-    const currentDate = new Date();
-    let month = currentDate.getMonth(); // 0-11 (January is 0)
-    let year = currentDate.getFullYear();
-  
-    // If the date is before the 25th, use the previous month
-    if (currentDate.getDate() < 25) {
-      month -= 1;
-      if (month < 0) { // If January (0), shift to December of previous year
-        month = 11;
-        year -= 1;
-      }
+    if (employees.length === 0) {
+      alert("No data available to export!");
+      return;
     }
-  
-    // Get the month name
-    const selectedMonth = new Date(year, month).toLocaleString("default", { month: "long" });
-  
-    // Formatting employees data
-    const updatedEmployees = emp.map((employee) => ({
+ // Filtering out employees where firstName is null
+ const filteredEmployees = employees.filter((employee) => employee.firstName);
+
+ if (filteredEmployees.length === 0) {
+   alert("No valid employee data to export!");
+   return;
+ }
+    // Formatting employee data for Excel
+    const updatedEmployees = filteredEmployees.map((employee) => ({
       EmployeeId: employee.employeeId,
-      EmployeeName: employee.employeeName,
-      "Email Id": employee.emailId || "", // Ensure a default value
+      EmployeeName: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
+      "Email Id": employee.emailId || "", // Ensure default value
       Department: employee.departmentName,
       Designation: employee.designationName,
       Month: selectedMonth,
-      Year: year,
-      "Working Days": "", // Placeholder for working days
+      Year: selectedYear,
+      "Working Days": "", // Placeholder
     }));
-  
+
     console.log("Updated Employees:", updatedEmployees);
-  
+
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(updatedEmployees);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-  
-    // Generate Excel file
-    XLSX.writeFile(workbook, "attendance_data.xlsx");
+
+    // Generate and Download Excel File
+    XLSX.writeFile(workbook, `Attendance_${selectedMonth}_${selectedYear}.xlsx`);
   };
-  
 
   const clearForm = () => {
     reset();
@@ -154,19 +135,110 @@ const ManageAttendance = () => {
         <div className="row">
           <div className="col-12">
             <div className="card">
-              <div className="card-header d-flex justify-content-between align-items-center">
-                <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                  Manage Attendance
-                </h5>
-                <button
-                  type="button"
-                  className="btn btn-outline-primary"
-                  onClick={downloadExcel}
-                >
-                  Download Attendance Excel Sheet{" "}
-                  <Download size={20} className="ml-1" />
-                </button>
+            <div className="card-header" style={{ paddingLeft: "90px" }}>
+            <div className="row d-flex align-items-center">
+  {/* Title - Always Left-Aligned */}
+  <div className="col-12 col-md-3 col-lg-3 d-flex align-items-center">
+    <h5 className="card-title mt-4">Manage Attendance</h5>
+  </div>
+
+  {/* Select Month Dropdown */}
+  <div className="col-12 col-md-3 col-lg-3">
+    <label className="card-title text-white">
+      Select Month <span className="text-danger fw-100">*</span>
+    </label>
+    <select className="form-control" onChange={(e) => setSelectedMonth(e.target.value)}>
+      <option value="">Select Month</option>
+      {Array.from({ length: 12 }, (_, i) => {
+        const monthName = new Date(2000, i).toLocaleString("default", { month: "long" });
+        return (
+          <option key={i} value={monthName}>
+            {monthName}
+          </option>
+        );
+      })}
+    </select>
+  </div>
+
+  {/* Select Year Dropdown */}
+  <div className="col-12 col-md-3 col-lg-3">
+    <label className="card-title text-white">
+      Select Year <span className="text-danger fw-100">*</span>
+    </label>
+    <select className="form-control" onChange={(e) => setSelectedYear(e.target.value)}>
+      <option value="">Select Year</option>
+      {Array.from({ length: 5 }, (_, i) => {
+        const year = new Date().getFullYear() - i;
+        return <option key={year} value={year}>{year}</option>;
+      })}
+    </select>
+  </div>
+
+  {/* Fetch / Download Button */}
+  <div className="col-12 col-md-3 col-lg-3 d-flex justify-content-start mt-4 align-items-center">
+    {!isDataFetched ? (
+      <button type="button" className="btn btn-primary" onClick={fetchEmployeeData} disabled={!selectedMonth || !selectedYear}>
+        Fetch Data
+      </button>
+    ) : employees.length > 0 ? (
+      <button type="button" className="btn btn-outline-primary" onClick={downloadExcel}>
+        Download Excel <Download size={20} className="ml-1" />
+      </button>
+    ) : (
+      <p className="text-danger m-0">No Data Available</p>
+    )}
+  </div>
+</div>
+
               </div>
+            {/* <div className="card-header">
+  <h5 className="col-2  mb-0">Manage Attendance</h5>
+
+  <div className="d-flex col-10 justify-content-between align-items-center w-100">
+    
+    <div className="d-flex">
+      <label className="form-label">Select Month</label>
+      <select className="form-control" onChange={(e) => setSelectedMonth(e.target.value)}>
+        <option value="">Select Month</option>
+        {Array.from({ length: 12 }, (_, i) => {
+          const monthNumber = (i + 1).toString().padStart(2, "0");
+          const monthName = new Date(2000, i).toLocaleString("default", { month: "long" });
+          return (
+            <option key={monthNumber} value={monthName}>
+              {monthName}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+
+    <div className="d-flex flex-column">
+      <label className="form-label">Select Year</label>
+      <select className="form-control" onChange={(e) => setSelectedYear(e.target.value)}>
+        <option value="">Select Year</option>
+        {Array.from({ length: 5 }, (_, i) => {
+          const year = new Date().getFullYear() - i;
+          return (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+
+    <button type="button" className="btn btn-primary" onClick={fetchEmployeeData} disabled={!selectedMonth || !selectedYear}>
+      Fetch Data
+    </button>
+
+    {isDataFetched && employees.length > 0 && (
+      <button type="button" className="btn btn-outline-primary" onClick={downloadExcel}>
+        Download Excel <Download size={20} className="ml-1" />
+      </button>
+    )}
+  </div>
+</div> */}
+
               <div
                 className="dropdown-divider"
                 style={{ borderTopColor: "#d7d9dd" }}
