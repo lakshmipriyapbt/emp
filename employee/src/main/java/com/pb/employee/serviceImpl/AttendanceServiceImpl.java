@@ -189,8 +189,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 addAttendanceOfEmployees(attendanceRequest);
             }
         }catch (EmployeeException employeeException){
-          log.error("Exception while adding the attendance {}" , employeeException);
-          throw employeeException;
+            log.error("Exception while adding the attendance {}" , employeeException);
+            throw employeeException;
         } catch (Exception e) {
             log.error("Error processing the uploaded file: {}", e.getMessage(), e);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -231,7 +231,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                             HttpStatus.NOT_FOUND);
                 }
 
-            }  else {
+            } else {
                 // If employeeId is not provided, fetch attendance for all employees in the company for the given year/month
                 if (month != null && !month.isEmpty()) {
                     attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
@@ -254,6 +254,9 @@ public class AttendanceServiceImpl implements AttendanceService {
             }
             // Return success response with the retrieved attendance records
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(attendanceEntities), HttpStatus.OK);
+        }catch (EmployeeException employeeException) {
+            log.error("Exception While Fetching attendance");
+        throw employeeException;
 
         } catch (Exception ex) {
             log.error("Exception while fetching attendance for employees in company {}: {}", companyName, ex.getMessage());

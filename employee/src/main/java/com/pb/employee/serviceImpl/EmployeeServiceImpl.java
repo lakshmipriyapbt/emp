@@ -4,6 +4,7 @@ package com.pb.employee.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -13,6 +14,7 @@ import com.pb.employee.request.EmployeeExperience;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
 import com.pb.employee.response.EmployeeResponse;
+import com.pb.employee.service.AttendanceService;
 import com.pb.employee.service.EmployeeService;
 import com.pb.employee.util.*;
 import freemarker.template.Configuration;
@@ -47,6 +49,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
+    @Autowired
+    AttendanceService attendanceService;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -429,6 +433,53 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeWithoutAttendance(String companyName,String month,String year) throws IOException, EmployeeException {
+        try {
+            ResponseEntity<?> employeeResponse = getEmployees(companyName);
+
+            ResponseObject responseObject = (ResponseObject) employeeResponse.getBody();
+
+            List<EmployeeResponse> employees = (List<EmployeeResponse>) responseObject.getData();
+
+            if (employees == null || employees.isEmpty()) {
+                log.error("Employees Not Found {}", companyName);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+            }
+
+            ResponseEntity<?> responseEntity = attendanceService.getAllEmployeeAttendance(companyName, null, month, year);
+
+            ResponseObject object = (ResponseObject) responseEntity.getBody();
+
+            List<AttendanceEntity> attendanceRecords = (List<AttendanceEntity>) object.getData();
+
+            if (attendanceRecords == null || attendanceRecords.isEmpty()) {
+                log.error("Attendance not found");
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.NO_ATTENDANCE_FOUND), HttpStatus.NOT_FOUND);
+            }
+
+                // Filter employees who do have attendance records
+            Set<String> employeesWithAttendance = attendanceRecords.stream()
+                    .map(AttendanceEntity::getEmployeeId)
+                    .collect(Collectors.toSet());
+
+            List<EmployeeResponse> employeesWithoutAttendance = employees.stream()
+                    .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
+                            !employeesWithAttendance.contains(employee.getEmployeeId()))
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(
+                    ResponseBuilder.builder().build().createSuccessResponse(employeesWithoutAttendance), HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("An unexpected error occurred: {}", e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     private List<EmployeeEntity> validateEmployee(CompanyEntity companyEntity) throws EmployeeException {
