@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
@@ -80,5 +81,17 @@ public class AttendanceController {
                                                        @PathVariable String employeeId,
                                                        @PathVariable String attendanceId) throws EmployeeException {
         return attendanceService.deleteEmployeeAttendanceById(companyName, employeeId, attendanceId);
+    }
+
+    @RequestMapping(value = "/{companyName}/employee/attendance/download", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.downloadEmployeeSalaries.tag}", description = "${api.downloadEmployeeSalaries.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> downloadEmployeeAttendance(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                      @PathVariable String companyName, @RequestParam String format,
+                                                        @RequestParam(required = false) String month, @RequestParam(required = false) String year, @RequestParam(required = false) String employeeId,  HttpServletRequest request) throws Exception {
+        return attendanceService.downloadEmployeeAttendance(companyName, month, year, employeeId, format, request);
     }
 }
