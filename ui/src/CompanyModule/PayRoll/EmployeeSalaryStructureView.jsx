@@ -158,7 +158,6 @@ const EmployeeSalaryStructureView = () => {
 
   useEffect(() => {
     let updatedSalaries = salaries;
-  
     // Apply search filter (Name, ID, Status)
     if (searchQuery) {
       updatedSalaries = updatedSalaries.filter((salary) =>
@@ -177,17 +176,17 @@ const EmployeeSalaryStructureView = () => {
       updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.grossAmount) <= parseFloat(maxSalary));
     }
   
-    // Apply Net Salary filter
-    if (minNetSalary) {
-      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) >= parseFloat(minNetSalary));
-    }
+    // // Apply Net Salary filter
+    // if (minNetSalary) {
+    //   updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) >= parseFloat(minNetSalary));
+    // }
   
-    if (maxNetSalary) {
-      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) <= parseFloat(maxNetSalary));
-    }
+    // if (maxNetSalary) {
+    //   updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) <= parseFloat(maxNetSalary));
+    // }
   
     setFilteredSalaries(updatedSalaries);
-  }, [searchQuery, minSalary, maxSalary, minNetSalary, maxNetSalary, salaries]);
+  }, [searchQuery, minSalary, maxSalary,salaries]);
   
   const toInputTitleCase = (e) => {
     const input = e.target;
@@ -273,9 +272,9 @@ const EmployeeSalaryStructureView = () => {
                         type="search"
                         className="form-control"
                         placeholder="Search...."
-                        value={search}
+                        value={searchQuery}
                         onInput={toInputTitleCase}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
                     <div className="col-md-4 mt-2">

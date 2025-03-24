@@ -1,5 +1,4 @@
 import axios from "axios";
-import { companyId } from "./Auth";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -315,10 +314,50 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
     showToast(errorMessage, "error"); // Show error toast with API message
   }
 };
-export const roleApi = () => {
-  return axiosInstance.get("/role/all");
-}
 
+export const downloadAttendanceFileAPI = async (format, year, month, employeeId, showToast) => {
+  const company = localStorage.getItem("companyName");
+
+  if (!format) {
+    showToast("Please select a file format!", "warning");
+    return;
+  }
+
+  try {
+    showToast("Downloading file...", "info");
+
+    const response = await axiosInstance.get(`${company}/employee/download`, {
+      params: {
+        format, 
+        month: month || "", 
+        year: year || "", 
+        employeeId: employeeId || "", 
+      },
+      responseType: "blob",
+    });
+
+    if (response.data && response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Employees_Attendance_data.${format === "excel" ? "xlsx" : "pdf"}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    showToast("Download successful!", "success");
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    showToast(error.response?.data?.message || "Download failed. Please try again.", "error");
+  }
+};
 
 export const EmployeeSalaryPostApi = (employeeId, data) => {
   return axiosInstance.post(`/${employeeId}/salary`, data, {
@@ -359,7 +398,7 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employees/salaries/download?format=${format}`, {
+    const response = await axiosInstance.get(`${company}/employee/salaries/download?format=${format}`, {
       responseType: "blob",
     });
 
@@ -374,7 +413,7 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Employees_Bank_Data.${format === "excel" ? "xlsx" : "pdf"}`;
+    link.download = `Employees_Salaries_Data.${format === "excel" ? "xlsx" : "pdf"}`;
 
     document.body.appendChild(link);
     link.click();
@@ -688,6 +727,8 @@ export const InternOfferLetterDownload = async (payload) => {
     throw error; 
   }
 };
+
+
 
 export const InternshipCertificateDownload= async (payload) => {
   try {

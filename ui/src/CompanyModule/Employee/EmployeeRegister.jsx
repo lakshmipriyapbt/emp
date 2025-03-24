@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 import LayOut from '../../LayOut/LayOut';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../../Redux/EmployeeSlice';
-import { BankNamesGetApi, BankNamesGetApiById, DepartmentGetApi, DesignationGetApi, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
+import { BankNamesGetApi, BankNamesGetApiById, DepartmentGetApi, DesignationGetApi, EmployeeGetApiById, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -64,6 +64,8 @@ export default function EmployeeRegister() {
   const [designations, setDesignations] = useState([]);
   const [bank,setBank]=useState([]);
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false); // State to track if updating or creating
+  const [showNoticePeriodOption, setShowNoticePeriodOption] = useState(false);
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
  const navigate = useNavigate();
   const location = useLocation();
@@ -86,6 +88,51 @@ const onNext = async () => {
   const isValid = await trigger(); // Validate current step fields
   if (isValid) setStep(step + 1);
 };
+
+  useEffect(() => {
+    if (location && location.state && location.state.id) {
+      const fetchData = async () => {
+        try {
+          const response = await EmployeeGetApiById(location.state.id);
+          console.log(response.data);
+          reset(response.data);
+          setIsUpdating(true);
+          // Assuming roles is an array and setting the first role
+          const status = response.data.data.status;
+          setValue("status", status.toString());
+
+          // Conditionally show the "Notice Period" option based on the status
+          if (status === "NoticePeriod") {
+            setShowNoticePeriodOption(true);
+          }
+        } catch (error) {
+          handleApiErrors(error);
+        }
+      };
+
+      fetchData();
+    }
+  }, [location.state, reset, setValue]);
+
+    const handleApiErrors = (error) => {
+      // if (error.response && error.response.data && error.response.data.message) {
+      //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
+      //   alert(alertMessage);
+      // }
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error &&
+        error.response.data.error.message
+      ) {
+        const errorMessage = error.response.data.error.message;
+        setErrorMessage(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        // toast.error("Network Error !");
+      }
+      console.error(error.response);
+    };
 
 const onPrevious = () => {
   setStep(step - 1);
@@ -240,7 +287,7 @@ const managerOptions = managerEmployees.map((emp) => ({
 // Always include "CompanyAdmin" as an option
 const dropdownOptions = [
   ...managerOptions,
-  { id: "CompanyAdmin", name: "CompanyAdmin" }
+  { id: "Company Admin", name: "Company Admin" }
 ];
   // Get the last employeeId in the list
   const lastEmployeeId = employees.length > 0 ? employees[employees.length - 1].employeeId : "N/A";
@@ -268,10 +315,10 @@ const dropdownOptions = [
   };
 
   const fetchBankNames = async () => {
-    try {
-      const data = await BankNamesGetApi();
-      setBank(data);
-      console.log("bank",data);
+ try {
+      const res = await BankNamesGetApi();
+      setBank(res.data);
+      console.log("bank",res.data);
     } catch (error) {
       // handleApiErrors(error)
     } finally {
@@ -282,6 +329,7 @@ const dropdownOptions = [
   useEffect(() => {
     fetchDepartments();
     fetchDesignations();
+    fetchBankNames();
   }, []);
 
   const calculateTenure = (index, startDate, endDate) => {
@@ -311,7 +359,9 @@ const dropdownOptions = [
       <div className="container d-flex justify-content-center align-items-center min-vh-100">
       <div className="card shadow-lg p-4 w-100">
         <div className="card-body">
-        <h2 className="text-start text-dark">Employee Registration</h2>
+        <h2 className="text-start text-dark">
+          {isUpdating ? "Employee Data" : "Employee Registration"}
+        </h2>
           <div className="d-flex justify-content-end my-2">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
@@ -396,12 +446,12 @@ const dropdownOptions = [
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Employee Mail ID</label>
                     <input type="email" className="form-control"
-                     {...register("email", {
+                     {...register("emailId", {
                       required: "Email is required",
                       pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email format" },
                     })}
                   />
-                  <small className="text-danger">{errors.email?.message}</small>        
+                  <small className="text-danger">{errors.emailId?.message}</small>        
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Manager</label>
@@ -470,7 +520,7 @@ const dropdownOptions = [
                   <input type="tel" className="form-control" id="mobileNumber"
                   {...register("mobileNo", {
                     required: "Mobile Number is required",
-                    pattern: { value: /^\+?[1-9]\d{0,2}[6-9]\d{9}$/,
+                    pattern: { value: /^\+91\s?[1-9]\d{9}$/,
                       message: "Enter a valid mobile number with optional country code",
                     },
                   })}
@@ -482,7 +532,7 @@ const dropdownOptions = [
                   <input type="tel" className="form-control" 
                     {...register("alternateNo", {
                       required: "Alternate Number is required",
-                      pattern: { value: /^\+?[1-9]\d{0,2}[6-9]\d{9}$/,
+                      pattern: { value: /^\+91\s?[1-9]\d{9}$/,
                         message: "Enter a valid Alternate mobile number with optional country code",
                       },
                     })}
@@ -770,16 +820,18 @@ const dropdownOptions = [
                    <label>Bank Name</label>
                    <select className="form-control"  {...register("bankName", { required: "Bank Name is required" })}>
                      <option value="">Select Bank</option>
-                     <option value="HDFC">HDFC</option>
-                     <option value="SBI">SBI</option>
-                     <option value="ICICI">ICICI</option>
+                     {bank.map((bank,index) => (
+                    <option key={index} value={bank.bankName}>
+                      {bank.bankName}
+                    </option>
+                  ))}
                    </select>
                    <small className="text-danger">{errors.bankName?.message}</small>
                  </div>
                  <div className="col-md-6">
                    <label>Account Number</label>
-                   <input type="text" className="form-control" 
-                    {...register("accountNumber", {
+                   <input type="text" className="form-control" name='accountNo'
+                    {...register("accountNo", {
                       required: "Account Number is required",
                       pattern: {
                         value: /^\d{6,18}$/,
@@ -787,7 +839,7 @@ const dropdownOptions = [
                       },
                     })}
                   />
-                  <small className="text-danger">{errors.accountNumber?.message}</small>
+                  <small className="text-danger">{errors.accountNo?.message}</small>
                  </div>
                  <div className="col-md-6 mt-2">
                    <label>IFSC Code</label>
