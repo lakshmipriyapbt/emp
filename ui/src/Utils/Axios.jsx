@@ -210,6 +210,17 @@ export const EmployeeGetApiById = (employeeId) => {
     });
 }
 
+export const BankNamesGetApi = () => {
+  return axiosInstance.get("bank/list")
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      console.error('Error fetching company by ID:', error);
+      throw error;
+    });
+}
+
 export const EmployeeDeleteApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.delete(`/${company}/employee/${employeeId}`)
@@ -320,6 +331,11 @@ export const EmployeeSalaryPostApi = (employeeId, data) => {
 export const EmployeeSalaryGetApi = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}/salaries`);
+}
+
+export const EmployeesSalariesGetApi = () => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/${company}/employee/salaries`);
 }
 
 export const EmployeeSalaryGetApiById = (employeeId, salaryId) => {
@@ -648,6 +664,31 @@ export const OfferLetterDownload = async (payload) => {
   }
 };
 
+export const InternOfferLetterDownload = async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/internShipLetter/download`,payload, {
+      responseType: 'blob', 
+      headers: {
+        'Accept': 'application/pdf', 
+      }
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Intern_offer_letter.pdf`; 
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true; 
+
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error; 
+  }
+};
+
 export const InternshipCertificateDownload= async (payload) => {
   try {
     const response = await axiosInstance.post(`/internship/upload`,payload, {
@@ -671,6 +712,7 @@ export const InternshipCertificateDownload= async (payload) => {
     throw error; 
   }
 };
+
 
 export const AppraisalLetterDownload = async (payload) => {
   try {

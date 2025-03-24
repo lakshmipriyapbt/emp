@@ -163,7 +163,8 @@ const Rout = () => {
       <Route path='/employeePayslip' element={<EmployeePayslips />}></Route>
       <Route path='/employeeSalary' element={<EmployeeSalaryById />}></Route>
       <Route path='/salaries' element={<EmployeeSalaryStructureView/>}></Route>
-      <Route path='/employeeSalaryView' element={<EmployeeSalaryView/>}></Route>
+      <Route path='/employeeSalaryStrucutre' element={<EmployeeSalaryView/>}></Route>
+      <Route path='/employeesSalaryView' element={<EmployeeSalaryStructureView/>}></Route>
       <Route path='/offerLetter' element={<OfferLetter />}></Route>
       <Route path='/payslipLetter' element={<PaySlipLetter />}></Route>
       <Route path='/hikeLetter' element={<HikeLetter />}></Route>

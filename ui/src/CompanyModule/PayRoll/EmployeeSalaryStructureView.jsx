@@ -1,37 +1,40 @@
 import React, { useState, useEffect } from "react";
-import { PencilSquare, Wallet} from "react-bootstrap-icons";
+import { Pencil, PencilSquare, Wallet} from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeeSalaryDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
+import { downloadEmployeeBankDataAPI, downloadEmployeeSalaryDataAPI, downloadEmployeesFileAPI, EmployeesSalariesGetApi} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeSalaryStructureView = () => {
-  const [search, setSearch] = useState("");
+    const [filteredSalaries, setFilteredSalaries] = useState([]); // Stores filtered salaries
+    // Single Search Field
+    const [searchQuery, setSearchQuery] = useState(""); 
+    // Salary Range
+    const [minSalary, setMinSalary] = useState("");
+    const [maxSalary, setMaxSalary] = useState("");
+    const [salaries,setSalaries]=useState([]);
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
-  const dispatch = useDispatch(); // Initialize dispatch function
 
-  // Select employee state from Redux store
-  const { data: employees, status, error } = useSelector(
-    (state) => state.employees
-  );
-
-  // Step 1: Fetch employees when component mounts
-  useEffect(() => {
-    dispatch(fetchEmployees());
-  }, [dispatch]);
-
-  // Step 2: Display loading or error messages
-  if (status === "loading") return <p>Loading employees...</p>;
-  if (status === "failed") return <p>Error: {error}</p>;
-
-
+        useEffect(() => {
+        const fetchEmployeesSalaries = async () => {
+            try {
+            const res = await EmployeesSalariesGetApi();
+            const formattedData = res.data.data
+            setSalaries(formattedData);
+            console.log("salaries",res.data.data)
+            } catch (error) {
+            console.error("Error fetching employees:", error);
+            }
+        };
+            fetchEmployeesSalaries(); // Fetch all attendance data initially
+        }, []);
 
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
@@ -112,49 +115,23 @@ const EmployeeSalaryStructureView = () => {
     },
     {
       name: <h6><b>ID</b></h6>,
-      selector: row => row.employeeId || "N/A",
+      selector: row => row.employeeCreatedId|| "N/A",
       width: "100px",
     },
     {
       name: <h6><b>Name</b></h6>,
-      selector: row => (
-        <div title={`${row.firstName || ""} ${row.lastName || ""}`}>
-          {`${(row.firstName?.length > 10 ? row.firstName.slice(0, 10) + '...' : row.firstName) || "N/A"} 
-            ${(row.lastName?.length > 10 ? row.lastName.slice(0, 10) + '...' : row.lastName) || ""}`}
-        </div>
-      ),
+      selector: row => row.employeeName|| "N/A",
       width: "190px",
     },
     {
-      name: <h6><b>Email Id</b></h6>,
-      selector: row => (
-        <div title={row.emailId || "N/A"}>
-          {row.emailId?.length > 20 ? `${row.emailId.slice(0, 20)}...` : row.emailId || "N/A"}
-        </div>
-      ),
+      name: <h6><b>Gross Amount</b></h6>,
+      selector: row => row.grossAmount|| "N/A",
       width: "210px",
     },
     {
-      name: <h6><b>Department</b></h6>,
-      selector: row => (
-        <div title={row.departmentName || "N/A"}>
-          {row.departmentName?.length > 10 ? `${row.departmentName.slice(0, 10)}...` : row.departmentName || "N/A"}
-        </div>
-      ),
+        name: <h6><b>Net Salary </b></h6>,
+        selector: row => row.netSalary|| "N/A",
       width: "140px",
-    },
-    {
-      name: <h6><b>Date Of Hiring</b></h6>,
-      selector: row => row.dateOfHiring || "N/A",
-      format: row => {
-        if (!row.dateOfHiring) return "N/A";
-        const date = new Date(row.dateOfHiring);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
-      },
-      width: '150px',
     },
     {
       name: <h6><b>Status</b></h6>,
@@ -172,33 +149,45 @@ const EmployeeSalaryStructureView = () => {
             onClick={() => handleSalary(row.id)}
             title="View Salary"
           >
-            <Wallet size={22} color='#d116dd' />
-          </button>
-          <button
-            className="btn btn-sm"
-            style={{ backgroundColor: "transparent", border: "none", padding: "0", marginRight: "10px" }}
-            onClick={() => handleEdit(row.id)}
-            title="Edit"
-          >
-            <PencilSquare size={22} color='#2255a4' />
+            <PencilSquare size={22} color='#d116dd' />
           </button>
         </div>
       ),
     }
   ];  
 
-  const filteredEmployees = employees?.filter((employee) => {
-    const nameMatch =
-      (employee.firstName?.toLowerCase().includes(search.toLowerCase()) || "") ||
-      (employee.lastName?.toLowerCase().includes(search.toLowerCase()) || "") ||
-      (employee.emailId?.toLowerCase().includes(search.toLowerCase()) || "");
+  useEffect(() => {
+    let updatedSalaries = salaries;
   
-    const hireDate = employee.dateOfHiring ? new Date(employee.dateOfHiring) : null;
-    const monthMatch = selectedMonth ? hireDate?.getMonth() + 1 === parseInt(selectedMonth) : true;
-    const yearMatch = selectedYear ? hireDate?.getFullYear().toString() === selectedYear : true;
+    // Apply search filter (Name, ID, Status)
+    if (searchQuery) {
+      updatedSalaries = updatedSalaries.filter((salary) =>
+        salary.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        salary.employeeCreatedId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        salary.status.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
   
-    return nameMatch && monthMatch && yearMatch;
-  });
+    // Apply Gross Amount filter
+    if (minSalary) {
+      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.grossAmount) >= parseFloat(minSalary));
+    }
+  
+    if (maxSalary) {
+      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.grossAmount) <= parseFloat(maxSalary));
+    }
+  
+    // Apply Net Salary filter
+    if (minNetSalary) {
+      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) >= parseFloat(minNetSalary));
+    }
+  
+    if (maxNetSalary) {
+      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) <= parseFloat(maxNetSalary));
+    }
+  
+    setFilteredSalaries(updatedSalaries);
+  }, [searchQuery, minSalary, maxSalary, minNetSalary, maxNetSalary, salaries]);
   
   const toInputTitleCase = (e) => {
     const input = e.target;
@@ -330,7 +319,7 @@ const EmployeeSalaryStructureView = () => {
               </div>
               <DataTable
                 columns={columns}
-                data={filteredEmployees.length > 0 ? filteredEmployees : ""}
+                data={salaries}
                 pagination
                 onChangePage={page => setCurrentPage(page)}
                 onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}

@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 import LayOut from '../../LayOut/LayOut';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../../Redux/EmployeeSlice';
-import { DepartmentGetApi, DesignationGetApi, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
+import { BankNamesGetApi, BankNamesGetApiById, DepartmentGetApi, DesignationGetApi, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -62,6 +62,7 @@ export default function EmployeeRegister() {
   const [step, setStep] = useState(1);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
+  const [bank,setBank]=useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
  const navigate = useNavigate();
@@ -259,6 +260,18 @@ const dropdownOptions = [
     try {
       const data = await DesignationGetApi();
       setDesignations(data);
+    } catch (error) {
+      // handleApiErrors(error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchBankNames = async () => {
+    try {
+      const data = await BankNamesGetApi();
+      setBank(data);
+      console.log("bank",data);
     } catch (error) {
       // handleApiErrors(error)
     } finally {

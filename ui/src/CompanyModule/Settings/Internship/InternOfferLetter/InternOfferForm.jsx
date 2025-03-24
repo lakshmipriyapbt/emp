@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { DepartmentGetApi, DesignationGetApi, ExperienceFormPostApi } from "../../../../Utils/Axios";
+import { DepartmentGetApi, DesignationGetApi, ExperienceFormPostApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
 import { fetchEmployees } from "../../../../Redux/EmployeeSlice";
 import LayOut from "../../../../LayOut/LayOut";
 import InternOfferPrev from "./InternOfferPrev";
@@ -152,7 +152,6 @@ const InternOfferForm = () => {
         emp.designationName
       })`.trim(),
     }));
-
     setHrEmployees(hrEmployeeOptions);
   }, [employees]);
 
@@ -197,7 +196,7 @@ const InternOfferForm = () => {
   };
     const handleConfirmSubmission = async () => {
       try {
-        const success = await ExperienceFormPostApi(previewData);
+        const success = await InternOfferLetterDownload(previewData);
         if (success) {
           setShowPreview(true);
           reset();
@@ -683,7 +682,7 @@ const InternOfferForm = () => {
                         name="companyBranch"
                         onKeyDown={handleEmailChange}
                         onInput={toInputAddressCase}
-                        {...register("companyBranch ", {
+                        {...register("companyBranch", {
                           required: "Job Location is Required",
                           pattern: {
                             value:

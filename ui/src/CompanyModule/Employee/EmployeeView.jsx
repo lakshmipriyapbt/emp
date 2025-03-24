@@ -335,18 +335,9 @@ const EmployeeView = () => {
                 </div>
               </div>
               {(!employees || employees.length === 0) ? (
-            <table className="table table-bordered text-center">
-              <thead>
-                <tr>
-                  <th className="text-danger">Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="text-danger"><b>No Employees Found</b></td>
-                </tr>
-              </tbody>
-            </table>
+
+                  <span className="text-danger text-center p-5">No Employees Found</span>
+
           ) : (
             <DataTable
               columns={columns}

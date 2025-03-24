@@ -651,14 +651,14 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
-                      location.pathname === "/employeeSalaryView"
+                      location.pathname === "/employeesSalaryView"
                         ? "active"
                         : ""
                     }`}
                   >
                     <Link
                       className="sidebar-link"
-                      to="/employeeSalaryView"
+                      to="/employeesSalaryView"
                     >
                       Employee Salary List
                     </Link>
@@ -1209,14 +1209,14 @@ const SideNav = () => {
                   <li
                     style={{ paddingLeft: "40px" }}
                     className={`sidebar-item ${
-                      location.pathname === "/employeeSalaryView"
+                      location.pathname === "/employeesSalaryView"
                         ? "active"
                         : ""
                     }`}
                   >
                     <Link
                       className="sidebar-link"
-                      to="/employeeSalaryView"
+                      to="/employeesSalaryView"
                     >
                       Employee Salary List
                     </Link>
