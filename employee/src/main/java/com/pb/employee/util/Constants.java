@@ -176,7 +176,7 @@ public class Constants {
     public static final String EMPLOYEE_BANK_DETAILS = "employeeBankDetails.ftl";
     public static final String EMPLOYEE_SALARIES_DETAILS = "employeeSalaries.ftl";
     public static final String EMPLOYEE_ATTENDANCE_DETAILS = "employeeAttendance.ftl";
-    public static final String EMPLOYEE_PERSONNEL = "employee-personnel";
+    public static final String EMPLOYEE_PERSONNEL = "employee_personnel";
     public static final String ID = "id";
     public static final String SINGLE_EMPLOYEE_ATTENDANCE_DETAILS = "singleEmployeeAttendance.ftl";
 }

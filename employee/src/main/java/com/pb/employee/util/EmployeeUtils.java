@@ -1,25 +1,26 @@
 package com.pb.employee.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
-import com.pb.employee.response.EmployeeResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import javax.swing.text.Position;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import javax.swing.text.Position;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.lang.reflect.Field;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class EmployeeUtils {
-
 
     public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
         String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null;
@@ -193,15 +194,17 @@ public class EmployeeUtils {
         }if (!user.getBankName().equals(employeeUpdateRequest.getBankName())){
             noOfChanges +=1;
         }
-        noOfChanges += compareEmployeeExperience(
-                employeePersonnel.getEmployeeExperience(),
-                employeeUpdateRequest.getPersonnelEntity().getEmployeeExperience()
-        );
+        if (employeePersonnel != null) {
+            noOfChanges += compareEmployeeExperience(
+                    employeePersonnel.getEmployeeExperience(),
+                    employeeUpdateRequest.getPersonnelEntity().getEmployeeExperience()
+            );
 
-        noOfChanges += compareEmployeeEducation(
-                employeePersonnel.getEmployeeEducation(),
-                employeeUpdateRequest.getPersonnelEntity().getEmployeeEducation()
-        );
+            noOfChanges += compareEmployeeEducation(
+                    employeePersonnel.getEmployeeEducation(),
+                    employeeUpdateRequest.getPersonnelEntity().getEmployeeEducation()
+            );
+        }
         return noOfChanges;
     }
 
@@ -214,28 +217,35 @@ public class EmployeeUtils {
      */
     public static int compareEmployeeEducation(List<EmployeeEducation> currentEducationList, List<EmployeeEducation> updatedEducationList) {
         int changes = 0;
+        if (currentEducationList == null) {
+            currentEducationList = Collections.emptyList();
+        }
+        if (updatedEducationList == null) {
+            updatedEducationList = Collections.emptyList();
+        }
+        List<EmployeeEducation> finalUpdatedEducationList = updatedEducationList;
         changes += (int) currentEducationList.stream()
                 .filter(currentEducation ->
-                        updatedEducationList.stream().noneMatch(updatedEducation ->
-                                currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel()) &&
-                                        currentEducation.getInstituteName().equals(updatedEducation.getInstituteName()) &&
-                                        currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy()) &&
-                                        currentEducation.getBranch().equals(updatedEducation.getBranch()) &&
-                                        currentEducation.getYear().equals(updatedEducation.getYear()) &&
-                                        currentEducation.getPersentage().equals(updatedEducation.getPersentage())
+                        finalUpdatedEducationList.stream().noneMatch(updatedEducation ->
+                                (currentEducation.getEducationLevel() != null && updatedEducation.getEducationLevel() != null && currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel())) &&
+                                        (currentEducation.getInstituteName() != null && updatedEducation.getInstituteName() != null && currentEducation.getInstituteName().equals(updatedEducation.getInstituteName())) &&
+                                        (currentEducation.getBoardOfStudy() != null && updatedEducation.getBoardOfStudy() != null && currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy())) &&
+                                        (currentEducation.getBranch() != null && updatedEducation.getBranch() != null && currentEducation.getBranch().equals(updatedEducation.getBranch())) &&
+                                        (currentEducation.getYear() != null && updatedEducation.getYear() != null && currentEducation.getYear().equals(updatedEducation.getYear())) &&
+                                        (currentEducation.getPercentage() != null && updatedEducation.getPercentage() != null && currentEducation.getPercentage().equals(updatedEducation.getPercentage()))
                         )
                 )
                 .count();
-
+        List<EmployeeEducation> finalCurrentEducationList = currentEducationList;
         changes += (int) updatedEducationList.stream()
                 .filter(updatedEducation ->
-                        currentEducationList.stream().noneMatch(currentEducation ->
-                                currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel()) &&
-                                        currentEducation.getInstituteName().equals(updatedEducation.getInstituteName()) &&
-                                        currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy()) &&
-                                        currentEducation.getBranch().equals(updatedEducation.getBranch()) &&
-                                        currentEducation.getYear().equals(updatedEducation.getYear()) &&
-                                        currentEducation.getPersentage().equals(updatedEducation.getPersentage())
+                        finalCurrentEducationList.stream().noneMatch(currentEducation ->
+                                (currentEducation.getEducationLevel() != null && updatedEducation.getEducationLevel() != null && currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel())) &&
+                                        (currentEducation.getInstituteName() != null && updatedEducation.getInstituteName() != null && currentEducation.getInstituteName().equals(updatedEducation.getInstituteName())) &&
+                                        (currentEducation.getBoardOfStudy() != null && updatedEducation.getBoardOfStudy() != null && currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy())) &&
+                                        (currentEducation.getBranch() != null && updatedEducation.getBranch() != null && currentEducation.getBranch().equals(updatedEducation.getBranch())) &&
+                                        (currentEducation.getYear() != null && updatedEducation.getYear() != null && currentEducation.getYear().equals(updatedEducation.getYear())) &&
+                                        (currentEducation.getPercentage() != null && updatedEducation.getPercentage() != null && currentEducation.getPercentage().equals(updatedEducation.getPercentage()))
                         )
                 )
                 .count();
@@ -254,30 +264,40 @@ public class EmployeeUtils {
     public static int compareEmployeeExperience(List<EmployeeExperience> currentExperienceList, List<EmployeeExperience> updatedExperienceList) {
         int changes = 0;
 
+        // Check for null lists to avoid NullPointerException
+        if (currentExperienceList == null) {
+            currentExperienceList = Collections.emptyList();
+        }
+        if (updatedExperienceList == null) {
+            updatedExperienceList = Collections.emptyList();
+        }
+        List<EmployeeExperience> finalUpdatedExperienceList = updatedExperienceList;
         changes += (int) currentExperienceList.stream()
                 .filter(currentExperience ->
-                        updatedExperienceList.stream().noneMatch(updatedExperience ->
-                                currentExperience.getCompanyName().equals(updatedExperience.getCompanyName()) &&
-                                        currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle()) &&
-                                        currentExperience.getStartDate().equals(updatedExperience.getStartDate()) &&
-                                        currentExperience.getEndDate().equals(updatedExperience.getEndDate())
+                        finalUpdatedExperienceList.stream().noneMatch(updatedExperience ->
+                                (currentExperience.getCompanyName() != null && updatedExperience.getCompanyName() != null && currentExperience.getCompanyName().equals(updatedExperience.getCompanyName())) &&
+                                        (currentExperience.getPositionOrTitle() != null && updatedExperience.getPositionOrTitle() != null && currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle())) &&
+                                        (currentExperience.getStartDate() != null && updatedExperience.getStartDate() != null && currentExperience.getStartDate().equals(updatedExperience.getStartDate())) &&
+                                        (currentExperience.getEndDate() != null && updatedExperience.getEndDate() != null && currentExperience.getEndDate().equals(updatedExperience.getEndDate()))
                         )
                 )
                 .count();
 
+        List<EmployeeExperience> finalCurrentExperienceList = currentExperienceList;
         changes += (int) updatedExperienceList.stream()
                 .filter(updatedExperience ->
-                        currentExperienceList.stream().noneMatch(currentExperience ->
-                                currentExperience.getCompanyName().equals(updatedExperience.getCompanyName()) &&
-                                        currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle()) &&
-                                        currentExperience.getStartDate().equals(updatedExperience.getStartDate()) &&
-                                        currentExperience.getEndDate().equals(updatedExperience.getEndDate())
+                        finalCurrentExperienceList.stream().noneMatch(currentExperience ->
+                                (currentExperience.getCompanyName() != null && updatedExperience.getCompanyName() != null && currentExperience.getCompanyName().equals(updatedExperience.getCompanyName())) &&
+                                        (currentExperience.getPositionOrTitle() != null && updatedExperience.getPositionOrTitle() != null && currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle())) &&
+                                        (currentExperience.getStartDate() != null && updatedExperience.getStartDate() != null && currentExperience.getStartDate().equals(updatedExperience.getStartDate())) &&
+                                        (currentExperience.getEndDate() != null && updatedExperience.getEndDate() != null && currentExperience.getEndDate().equals(updatedExperience.getEndDate()))
                         )
                 )
                 .count();
 
         return changes;
     }
+
 
     public static EmployeeSalaryEntity unMaskEmployeeSalaryProperties(EmployeeSalaryEntity salaryEntity) {
 
@@ -484,5 +504,16 @@ public class EmployeeUtils {
             }
         }
         return noOfChanges;
+    }
+
+    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(List<EmployeeEntity> employees, List<AttendanceEntity> attendanceRecords) {
+        Set<String> employeesWithAttendance = attendanceRecords.stream()
+                .map(AttendanceEntity::getEmployeeId)
+                .collect(Collectors.toSet());
+
+        return employees.stream()
+                .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
+                        !employeesWithAttendance.contains(employee.getEmployeeId()))
+                .collect(Collectors.toList());
     }
 }

@@ -299,7 +299,7 @@ public class SalaryServiceImpl implements SalaryService {
 
             Sheet sheet = workbook.createSheet("Employees");
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Name", "EmployeeId", "Gross Amount", "Income Tax", "Net Salary"};
+            String[] headers = {"Name", "EmployeeId", "Gross Amount", "TDS", "Net Salary"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -316,7 +316,7 @@ public class SalaryServiceImpl implements SalaryService {
                 row.createCell(1).setCellValue(salaryResPayload.getEmployeeCreatedId());
                 row.createCell(2).setCellValue(salaryResPayload.getGrossAmount());
                 row.createCell(3).setCellValue(salaryResPayload.getIncomeTax());
-                row.createCell(5).setCellValue(salaryResPayload.getNetSalary());
+                row.createCell(4).setCellValue(salaryResPayload.getNetSalary());
             }
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);

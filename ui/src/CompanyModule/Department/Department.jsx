@@ -428,7 +428,6 @@ const Department = () => {
               id={selectedItemId}
               pageName="Department"
             />
-
             {addDepartment && (
               <div
                 role="dialog"

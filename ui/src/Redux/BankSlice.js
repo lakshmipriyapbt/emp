@@ -4,9 +4,7 @@ import { BankGetAllApi } from '../Utils/Axios';
 // Create the async thunk for fetching banks
 export const fetchBanks = createAsyncThunk('banks/fetchBanks', async (companyId) => {
   try {
-    console.log('Fetching banks for companyId:', companyId);
     const response = await BankGetAllApi(companyId); // Call the Bank API
-    console.log('Fetched banks data from BankSlice:', response.data.data); // Log the banks data
     return response.data.data; // Return the banks data
   } catch (error) {
     console.error('Error in fetchBanks thunk:', error);
