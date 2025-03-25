@@ -162,11 +162,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                     entity = openSearchOperations.getDepartmentById(employee.getDepartment(), null, index);
                     designationEntity = openSearchOperations.getDesignationById(employee.getDesignation(), null, index);
                 }
-                // Unmask employee properties
                 EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
-                // Fetch relieving details for each employee
 
-                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getEmployeeId());
+                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId());
                 if (employeeSalaryEntity != null && employeeSalaryEntity.isEmpty()){
                     String grossAmounts = String.valueOf(employeeSalaryEntity.stream()
                             .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus())) // Filter for active salaries
@@ -198,15 +196,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                         }
                     }
                 }
-
-                EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
-                if (employeePersonnelEntity == null){
-                    log.error("Employee personnel details are not exist for the employee {}", employee.getFirstName());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
+                if (!isCompanyAdmin(employee)) {
+                    EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
+                    if (employeePersonnelEntity == null) {
+                        log.error("Employee personnel details are not exist for the employee {}", employee.getFirstName());
+                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
+                    }
+                    EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
+                    employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
+                    employeeResponses.add(employeeResponse);
                 }
-                EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
-                employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
-                employeeResponses.add(employeeResponse);
             }
         } catch (Exception ex) {
             log.error("Exception while fetching employees for company {}: {}", companyName, ex.getMessage());
@@ -216,6 +215,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(employeeResponses), HttpStatus.OK);
+    }
+
+    private boolean isCompanyAdmin(EmployeeEntity employee) {
+        return Constants.ADMIN.equalsIgnoreCase(employee.getEmployeeType());
     }
 
     @Override
@@ -261,7 +264,14 @@ public class EmployeeServiceImpl implements EmployeeService {
             user = openSearchOperations.getEmployeeById(employeeId, null, index);
 
             employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
+            if (employeePersonnelEntity == null){
+                employeePersonnelEntity = new EmployeePersonnelEntity();
+                String resourceId = ResourceIdUtils.generateEmployeePersonnelId(employeeId);
+                employeePersonnelEntity.setId(resourceId);
+                employeePersonnelEntity.setEmployeeId(employeeId);
+                employeePersonnelEntity.setType(Constants.EMPLOYEE_PERSONNEL);
 
+            }
             List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(employeeUpdateRequest.getCompanyName());
             employees.removeIf(employee -> employee.getId().equals(employeeId));
             Map<String, Object> duplicateValues = EmployeeUtils.duplicateUpdateValues(employeeUpdateRequest, employees);
@@ -304,8 +314,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                     HttpStatus.CONFLICT);
         }
         Entity entity = CompanyUtils.maskEmployeeUpdateProperties(user, employeeUpdateRequest);
-        BeanUtils.copyProperties( employeeUpdateRequest.getPersonnelEntity(), employeePersonnelEntity, getNullPropertyNames(employeeUpdateRequest.getPersonnelEntity()));
-         openSearchOperations.saveEntity(employeePersonnelEntity, employeePersonnelEntity.getId(), index);
+        BeanUtils.copyProperties(employeeUpdateRequest.getPersonnelEntity(), employeePersonnelEntity, getNullPropertyNames(employeeUpdateRequest.getPersonnelEntity()));
+        openSearchOperations.saveEntity(employeePersonnelEntity, employeePersonnelEntity.getId(), index);
         openSearchOperations.saveEntity(entity, employeeId, index);
         // Step 7: Deactivate Salaries if Employee is Made Inactive
         if (Constants.INACTIVE.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
