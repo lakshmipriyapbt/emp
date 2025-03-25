@@ -22,6 +22,8 @@ import {
   ModalHeader,
   ModalTitle,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../../Redux/EmployeeSlice";
 
 const AddIncrement = () => {
   const {
@@ -89,8 +91,19 @@ const AddIncrement = () => {
   const [error, setError] = useState("");
   const [showCards, setShowCards] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [previousGrossAmount, setPreviousGrossAmount] = useState(0);
+  const [hikePercentage, setHikePercentage] = useState(0);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -100,16 +113,12 @@ const AddIncrement = () => {
     }
   }, [id, salaryId]);
 
+
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter(
-          (employee) =>
-            employee.firstName !== null && employee.status !== "InActive"
-        )
-        .map(({ referenceId, ...rest }) => rest);
-      setEmployes(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -117,10 +126,15 @@ const AddIncrement = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []); 
+          grossAmount:"360000"
+        }));
+      setEmployes(activeEmployees);
+      // Store the previous grossAmount before setting the new one
+      if (activeEmployees.length > 0) {
+        setPreviousGrossAmount(grossAmount); // Store old gross amount
+      }
+    }
+  }, [employees]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -516,6 +530,7 @@ const AddIncrement = () => {
       dateOfHiring,
       months,
       years,
+      grossAmount
     } = getValues(); // Get current form values
     // Check if any required field is missing
     if (
@@ -524,7 +539,7 @@ const AddIncrement = () => {
       !departmentName ||
       !dateOfHiring ||
       !months ||
-      !years
+      !years||grossAmount
     ) {
       setMessage("Please fill all the required fields.");
       setShowFields(true); // Optionally hide or show some fields based on conditions
@@ -557,8 +572,9 @@ const AddIncrement = () => {
 
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
+    setPreviousGrossAmount(grossAmount); // Store previous before updating
     setGrossAmount(newGrossSalary);
-  }, [variableAmount, fixedAmount]);
+    }, [variableAmount, fixedAmount]);
 
   useEffect(() => {
     const monthlySalaryValue = parseFloat(grossAmount || 0) / 12;
@@ -569,6 +585,25 @@ const AddIncrement = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
+  useEffect(() => {
+    console.log("Previous Gross Amount:", previousGrossAmount);
+    console.log("Current Gross Amount:", grossAmount);
+  
+    const prevSalary = parseFloat(previousGrossAmount) || 0;
+    const newSalary = parseFloat(grossAmount) || 0;
+  
+    if (prevSalary > 0) {
+      if (newSalary > prevSalary) {
+        const hike = ((newSalary - prevSalary) / prevSalary) * 100;
+        console.log("hike",hike);
+        setHikePercentage(hike.toFixed(2));
+      } else {
+        setHikePercentage(0); // No hike if the salary is the same or lower
+      }
+    }
+  }, [grossAmount, previousGrossAmount]); // Ensure previousGrossAmount is included
+  
+  
   const fetchSalary = async () => {
     try {
       const response = await CompanySalaryStructureGetApi();
@@ -606,14 +641,12 @@ const AddIncrement = () => {
     const pfTaxValue = parseFloat(pfTax) || 0;
     const incomeTax = data.incomeTax || "";
     const statusValue = data.status || "";
-
     if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
       toast.error("All amounts cannot be zero.");
       return;
     }
     const allowancesData = {};
     const deductionsData = {};
-
     Object.entries(allowances).forEach(([key, value]) => {
       let displayValue = value;
 
@@ -947,7 +980,8 @@ const AddIncrement = () => {
                         </div>
                         <div className="col-md-5 mb-3">
                           <label className="form-label">
-                            Gross Amount<span style={{ color: "red" }}>*</span>
+                            Gross Amount<span style={{ color: "red" }}>*</span> Hike Percentage: {hikePercentage}%
+
                           </label>
                           <input
                             type="text"
@@ -1358,6 +1392,10 @@ const AddIncrement = () => {
                                             selectedEmp.dateOfHiring
                                           );
                                           setValue(
+                                            "grossAmount",
+                                            selectedEmp.grossAmount
+                                          );
+                                          setValue(
                                             "id",
                                             selectedEmp.employeeId
                                           );
@@ -1449,6 +1487,26 @@ const AddIncrement = () => {
                                   </p>
                                 )}
                               </div>
+                              <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                <label className="form-label">
+                                  Current Gross Salary
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Current Gross Salary"
+                                  name="grossAmount"
+                                  readOnly
+                                  {...register("grossAmount", {
+                                    required: true,
+                                  })}
+                                />
+                                {errors.grossAmount && (
+                                  <p className="errorMsg">
+                                    Current Gross Amount Required
+                                  </p>
+                                )}
+                              </div>
                               {/* 
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">Time Period</label>
@@ -1491,6 +1549,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
                               <div className="col-lg-1"></div> */}
+                              <div className="col-lg-1"></div>
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">
                                   Appraisal Date (Hike Start Date)
@@ -1498,12 +1557,18 @@ const AddIncrement = () => {
                                 <input
                                   type="date"
                                   className="form-control"
-                                  max={getCurrentDate()}
+                                  max={(() => {
+                                    const maxDate = new Date();
+                                    maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
+                                    return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
+                                  })()}
+                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation
                                   })}
                                 />
+
                                 {errors.dateOfSalaryIncrement && (
                                   <p className="errorMsg">
                                     {errors.dateOfSalaryIncrement.message}

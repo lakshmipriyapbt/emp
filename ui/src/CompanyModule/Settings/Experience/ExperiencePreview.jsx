@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Bounce, toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import {toast } from "react-toastify";
 import ExperienceTemplate1 from "./ExperienceTemplate1";
 import ExperienceTemplate2 from "./ExperienceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";

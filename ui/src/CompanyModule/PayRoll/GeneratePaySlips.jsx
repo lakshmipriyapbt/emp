@@ -5,7 +5,6 @@ import { Bounce, toast } from "react-toastify";
 import DataTable from "react-data-table-component";
 import LayOut from "../../LayOut/LayOut";
 import {
-  EmployeePayslipGeneration,
   EmployeePayslipGenerationPostById,
   EmployeePayslipResponse,
   TemplateGetAPI,
@@ -13,16 +12,18 @@ import {
 import { useAuth } from "../../Context/AuthContext";
 import { PencilSquare } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const GeneratePaySlip = () => {
   const {
     handleSubmit,
     control,
     formState: { errors },
-    reset,
   } = useForm();
   const [view, setView] = useState([]);
   const [show, setShow] = useState(false);
+  const [emp,setEmp]=useState([]);
   const [attendanceNull, setAttendanceNull] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -32,6 +33,32 @@ const GeneratePaySlip = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // Initialize dispatch function
+
+  // Select employee state from Redux store
+  const { data: employees} = useSelector(
+    (state) => state.employees
+  );
+
+  // Step 1: Fetch employees when component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
+          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+          value: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          employeeId: employee.employeeId,
+        }));
+
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   const years = Array.from(
     { length: new Date().getFullYear() - 1999 },
@@ -74,13 +101,6 @@ const GeneratePaySlip = () => {
         year: year.label,
       });
       setView(response.data.data.generatePayslip);
-
-      // Log the attendance data received from the API
-      console.log(
-        "Attendance Data from API:",
-        response.data.data.employeesWithoutAttendance
-      );
-
       setAttendanceNull(response.data.data.employeesWithoutAttendance || []); // Ensure it's always an array
       setSelectedMonthYear(`${month.label} ${year.label}`);
       setShow(true);
@@ -96,12 +116,9 @@ const GeneratePaySlip = () => {
         setAttendanceNull([]);
         console.log("Attendance Error Data: []");
       }
-      const errorMessage =
-        error.response?.data?.error?.message || "Error fetching payslip data.";
-      // toast.error(errorMessage);
     }
   };
-
+  
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
     setSelectedEmployees(
@@ -293,7 +310,31 @@ const GeneratePaySlip = () => {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="card-body">
                   <div className="row">
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                  <div className="col-12 col-md-6 col-lg-4 mb-2">
+                      <label className="form-label">Select Employee Name</label>
+                      <Controller
+                        name="employeeId"
+                        control={control}
+                        rules={{ required: "Employee Name is required" }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            options={emp}
+                            value={
+                              emp.find(
+                                (option) => option.value === field.value
+                              ) || null
+                            } // Handle clearing
+                            onChange={(selectedOption) => field.onChange(selectedOption.value)} // Ensure correct value is passed
+                            placeholder="Select Employee Name"
+                          />
+                        )}
+                      />
+                      {errors.employeeId && (
+                        <p className="errorMsg">{errors.employeeId.message}</p>
+                      )}
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <label className="form-label">Select Year</label>
                       <Controller
                         name="year"
@@ -308,7 +349,7 @@ const GeneratePaySlip = () => {
                       />
                       {errors.year && <p>Year is Required</p>}
                     </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <label className="form-label">Select Month</label>
                       <Controller
                         name="month"
