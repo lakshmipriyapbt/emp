@@ -2,11 +2,12 @@ import React, { useState,useEffect } from 'react';
 import LayOut from '../../LayOut/LayOut';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../../Redux/EmployeeSlice';
-import { BankNamesGetApi, BankNamesGetApiById, DepartmentGetApi, DesignationGetApi, EmployeeGetApiById, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
+import { BankNamesGetApi,DepartmentGetApi, DesignationGetApi, EmployeeGetApiById, EmployeePatchApiById, EmployeePostApi } from '../../Utils/Axios';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
+import { validateFirstName, validateLastName } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -354,6 +355,7 @@ const dropdownOptions = [
     }
   };
 
+
   return (
     <LayOut>
       <div className="container d-flex justify-content-center align-items-center min-vh-100">
@@ -383,7 +385,7 @@ const dropdownOptions = [
                     <label>Employee First Name</label>
                     <input type="text" className="form-control" name='firstName'
                       {...register("firstName", { required: "First Name is required",
-                        pattern: { value: /^[A-Za-z]+$/, message: "Invalid format" },
+                        validate:validateFirstName
                        })}
                     />
                     <small className="text-danger">{errors.firstName?.message}</small>
@@ -392,8 +394,8 @@ const dropdownOptions = [
                     <label>Employee Last Name</label>
                     <input type="text" className="form-control" name='lastName'
                       {...register("lastName", { required: "Last Name is required",
-                        pattern: { value: /^[A-Za-z]+$/, message: "Invalid format" },
-                       })}
+                       validate:validateLastName
+                      })}
                     />
                       <small className="text-danger">{errors.lastName?.message}</small>
                   </div>
