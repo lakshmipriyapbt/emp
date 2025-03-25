@@ -57,7 +57,7 @@ public class EmployeeController {
     public ResponseEntity<?> getEmployeeWithoutAttendance(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                           @PathVariable String companyName,
-                                                          @RequestParam(required = false, name = Constants.MONTH) String month,
+                                                          @RequestParam(Constants.MONTH) String month,
                                                           @RequestParam(Constants.YEAR) String year) throws IOException,EmployeeException {
         return employeeService.getEmployeeWithoutAttendance(companyName,month,year);
     }
