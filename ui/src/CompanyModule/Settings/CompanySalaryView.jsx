@@ -139,7 +139,7 @@ const CompanySalaryView = () => {
                     <div className="card-body">
                       <div className="row">
                         <div className="col-12 col-md-5 mb-3">
-                          <h5>Allowances</h5>
+                          <h5>Earnings</h5>
                           <hr />
                           {Object.keys(structure.allowances).length > 0 ? (
                             Object.keys(structure.allowances)
@@ -179,7 +179,7 @@ const CompanySalaryView = () => {
                                 </div>
                               ))
                           ) : (
-                            <p>No allowances found.</p>
+                            <p>No Earnings found.</p>
                           )}
                         </div>
                         <div className="col-lg-1"></div>

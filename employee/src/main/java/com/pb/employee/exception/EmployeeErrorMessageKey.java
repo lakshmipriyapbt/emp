@@ -107,7 +107,14 @@ public enum EmployeeErrorMessageKey {
     INVALID_EMPLOYEE_TYPE("invalid.employee.type"),
     NO_CHANGE_IN_BANK_DETAILS("nochange.bank.details"),
     NO_CHANGE_IN_WORKING_DAYS("nochange.working.days"),
-    PAYSLIP_ALREADY_GENERATED("payslip.already.exist");
+    PAYSLIP_ALREADY_GENERATED("payslip.already.exist"),
+    INVALID_DATES("invalid.dates"),
+    UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS("unable.get.employee.personnel.details"),
+    END_DATE_BEFORE_START_DATE("end.date.before.start.date"),
+    GENERATED_PAY_SLIP_EXISTED("generated.pay.slip.exited"),
+    NO_PAY_SLIP_GENERATED("no.payslip.generated"),
+    MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
+    EMAIL_ID_MISS_MATCH("email.id.miss.match");
 
     private final String key;
 

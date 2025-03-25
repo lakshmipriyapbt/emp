@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
 import LayOut from "../../../LayOut/LayOut";
+import { DepartmentGetApi, DesignationGetApi } from "../../../Utils/Axios";
 
 const OfferLetterForm = () => {
   const {
@@ -14,13 +15,42 @@ const OfferLetterForm = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-
+  const [designations, setDesignations] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState(null);
   const navigate = useNavigate();
 
   const nextSixMonths = new Date();
   nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
   const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
+
+  const fetchDepartments = async () => {
+    try {
+      const data = await DepartmentGetApi();
+      setDepartments(data.data.data);
+    } catch (error) {
+      // handleApiErrors(error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    try {
+      const data = await DesignationGetApi();
+      setDesignations(data);
+    } catch (error) {
+      // handleApiErrors(error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+    fetchDesignations();
+  }, []);
 
   const onSubmit = (data) => {
     const previewData = {
@@ -517,12 +547,12 @@ const OfferLetterForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Gross Compensation</label>
+                      <label className="form-label">Salary Package</label>
                       <input
                         type="text"
                         className="form-control"
                         maxLength={10}
-                        placeholder="Enter Gross Compensation"
+                        placeholder="Enter Salary Package"
                         name="grossCompensation"
                         {...register("grossCompensation", {
                           required: "Gross Compensation is required",
@@ -542,34 +572,61 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Position</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        maxLength={40}
-                        onInput={toInputTitleCase}
-                        onKeyDown={handleEmailChange}
-                        placeholder="Enter Position"
-                        name="employeePosition"
-                        {...register("employeePosition", {
-                          required: "Position is required",
-                          validate: {
-                            validatePosition,
-                          },
-                        })}
+                      <label className="form-label">Department</label>
+                      <Controller
+                        name="department"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: "Department is Required" }}
+                        render={({ field }) => (
+                          <select {...field} className="form-select">
+                            <option value="" disabled>
+                              Select Department
+                            </option>
+                            {departments.map((department) => (
+                              <option key={department.id} value={department.id}>
+                                {department.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       />
-                      {errors.employeePosition && (
-                        <p className="errorMsg">
-                          {errors.employeePosition.message}
-                        </p>
+                      {errors.department && (
+                        <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Designation</label>
+                      <Controller
+                        name="designation"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <select {...field} className="form-select">
+                            <option value="" disabled>
+                              Select Designation
+                            </option>
+                            {designations.map((designation) => (
+                              <option
+                                key={designation.id}
+                                value={designation.id}
+                              >
+                                {designation.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      />
+                      {errors && errors.designation && (
+                        <p className="errorMsg">Designation is Required</p>
+                      )}
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
-                      <input
+                      <textarea
                         type="text"
                         className="form-control"
                         placeholder="Enter Address"
@@ -592,8 +649,9 @@ const OfferLetterForm = () => {
                             value: 200,
                             message: "Maximum 200 Characters allowed",
                           },
-                          validate: (value) => 
-                            value.trim().length === value.length || "Spaces at the end are not allowed.",
+                          validate: (value) =>
+                            value.trim().length === value.length ||
+                            "Spaces at the end are not allowed.",
                         })}
                       />
                       {errors.employeeAddress && (

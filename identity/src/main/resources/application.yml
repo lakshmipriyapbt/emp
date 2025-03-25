@@ -42,6 +42,7 @@ es:
   esHost: localhost
   esPort: 9201
 
+
 springdoc:
   swagger-ui:
     tagsSorter: alpha

@@ -81,10 +81,7 @@
             <th>EmployeeId</th>
             <th>Aadhaar No</th>
             <th>Bank Account No</th>
-            <th>Contact No</th>
-            <th>Date Of Birth</th>
             <th>UAN No</th>
-            <th>Department & Designation</th>
         </tr>
 
         <#list data as person>
@@ -93,10 +90,7 @@
                 <td>${person.employeeId}</td>
                 <td>${person.aadhaarId}</td>
                 <td>${person.accountNo}</td>
-                <td>${person.mobileNo}</td>
-                <td>${person.dateOfBirth}</td>
                 <td>${person.uanNo}</td>
-                <td>${person.departmentName}, ${person.designationName}</td>
             </tr>
         </#list>
     </table>
