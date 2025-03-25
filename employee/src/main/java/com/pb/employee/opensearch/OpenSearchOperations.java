@@ -1030,7 +1030,8 @@ public class OpenSearchOperations {
         SearchResponse<EmployeePersonnelEntity> searchResponse = null;
         try {
             BoolQuery boolQuery = BoolQuery.of(b -> b
-                    .filter(f -> f.matchPhrase(m -> m.field(Constants.EMPLOYEE_ID).query(id))));
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.EMPLOYEE_ID).query(id)))
+                    .filter(f -> f.matchPhrase(m -> m.field(Constants.TYPE).query(Constants.EMPLOYEE_PERSONNEL))));
             SearchRequest searchRequest = SearchRequest.of(s -> s
                     .index(index)  // Specify the index
                     .query(Query.of(q -> q.bool(boolQuery)))
