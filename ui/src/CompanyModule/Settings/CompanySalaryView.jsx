@@ -17,7 +17,7 @@ const CompanySalaryView = () => {
   } = useForm({ mode: "onChange" });
   const [salaryStructures, setSalaryStructures] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const { user } = useAuth();
+  const { authUser } = useAuth();
 
   const fetchSalary = async () => {
     try {
@@ -100,7 +100,7 @@ const CompanySalaryView = () => {
             </nav>
           </div>
         </div>
-        {user && user.userRole && user.userRole.includes("company_admin") && (
+        {authUser && authUser.userRole && authUser.userRole.includes("company_admin") && (
           <div className="col-12 col-md-6 col-lg-4 mb-3">
             <Link to="/companySalaryStructure">
               <button className="btn btn-primary">Add Salary Structure</button>

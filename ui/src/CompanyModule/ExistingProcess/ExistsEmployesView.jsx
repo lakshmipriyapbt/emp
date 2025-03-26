@@ -19,7 +19,7 @@ const ExistsEmployesView = () => {
     formState: { errors },
     reset,
   } = useForm();
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -135,7 +135,7 @@ const onSubmit = (data) => {
     resignationDate: data.resignationDate || "",
     lastWorkingDate: data.relievingDate || "",
     noticePeriod,
-    companyName: user.company,
+    companyName: authUser.company,
   };
   setPreviewData(preview);
   setShowPreview(true);

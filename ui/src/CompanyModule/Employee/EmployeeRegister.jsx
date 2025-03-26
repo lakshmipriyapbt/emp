@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { validateFirstName, validateLastName } from '../../Utils/Validate';
+import { validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -59,7 +59,7 @@ export default function EmployeeRegister() {
       },
     });
 
-  const { user } = useAuth();
+  const { authUser} = useAuth();
   const [step, setStep] = useState(1);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
@@ -95,8 +95,8 @@ const onNext = async () => {
       const fetchData = async () => {
         try {
           const response = await EmployeeGetApiById(location.state.id);
-          console.log(response.data);
-          reset(response.data);
+          console.log(response.data.data);
+          reset(response.data.data);
           setIsUpdating(true);
           // Assuming roles is an array and setting the first role
           const status = response.data.data.status;
@@ -146,123 +146,79 @@ const onPrevious = () => {
     { value: "Associate", label: "Associate" },
   ];
 
-  let company = user.company;
   const onSubmit = async (data) => {
-    // const roles = data.roles ? [data.roles] : [];
-    // Constructing the payload
+    console.log("data",data)
+
+    // Constructing the payload with all required fields
     let payload = {
-      companyName: company,
-      employeeType: data.employeeType,
-      emailId: data.emailId,
-      password: data.password,
-      designation: data.designation,
-      location: data.location,
-      manager: data.manager,
-      //roles: roles,
-      mobileNo: data.mobileNo,
-      status: data.status,
-      accountNo: data.accountNo,
-      ifscCode: data.ifscCode,
-      bankName: data.bankName,
-      aadhaarId: data.aadhaarId,
-    };
-    if (location.state && location.state.id) {
-      payload = {
-        ...payload,
+        companyName: authUser.company,
+        employeeType: data.employeeType,
         employeeId: data.employeeId,
         firstName: data.firstName,
         lastName: data.lastName,
-        dateOfHiring: data.dateOfHiring,
-        manager:data.manager,
+        emailId: data.emailId,
+        designation: data.designation,
+        dateOfHiring: data.dateOfHiring, // Format: yyyy-mm-dd
+        dateOfBirth: data.dateOfBirth,   // Format: yyyy-mm-dd
         department: data.department,
+        location: data.location,
+        tempAddress: data.tempAddress,
+        permanentAddress: data.permanentAddress,
+        manager: data.manager,
+        mobileNo: data.mobileNo,
+        alternateNo: data.alternateNo,
+        maritalStatus: data.maritalStatus,
+        status: data.status,
         panNo: data.panNo,
         uanNo: data.uanNo,
-        dateOfBirth: data.dateOfBirth,
-      };
-    } else {
-      payload = {
-        ...payload,
-        employeeId: data.employeeId,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfHiring: data.dateOfHiring,
-        department: data.department,
-        panNo: data.panNo,
         aadhaarId: data.aadhaarId,
-        uanNo: data.uanNo,
-        dateOfBirth: data.dateOfBirth,
-      };
+        accountNo: data.accountNo,
+        ifscCode: data.ifscCode,
+        bankName: data.bankName,
+        bankBranch: data.bankBranch,
+        pfNo: data.pfNo, // Default value if empty
+              // Correcting personnelEntity
+              personnelEntity: {
+                employeeEducation: data.educationList?.map((edu) => ({
+                    educationLevel: edu.level || "",
+                    instituteName: edu.institution || "",
+                    boardOfStudy: edu.board || "",
+                    branch: edu.branch || "",
+                    year: edu.year || "",
+                    persentage: edu.percentage || ""
+                })) || [],
+    
+                employeeExperience: data.experienceList?.map((exp) => ({
+                    companyName: exp.company || "",
+                    positionOrTitle: exp.position || "",
+                    startDate: exp.startDate || "",
+                    endDate: exp.endDate || ""
+                })) || [],
     }
+  }
 
     try {
-      if (location.state && location.state.id) {
-        const response = await EmployeePatchApiById(location.state.id, payload);
-        console.log("Update successful", response.data);
-        toast.success("Employee Updated Successfully");
-      } else {
-        const response = await EmployeePostApi(payload);
-        console.log("Employee created", response.data);
-        toast.success("Employee Created Successfully");
-      }
-      setTimeout(() => {
-        navigate("/employeeView");
-      }, 1000); // Adjust the delay time as needed (in milliseconds)
+        if (location.state && location.state.id) {
+            // Update existing employee
+            const response = await EmployeePatchApiById(location.state.id, payload);
+            console.log("Update successful", response.data);
+            toast.success("Employee Updated Successfully");
+        } else {
+            // Create new employee
+            const response = await EmployeePostApi(payload);
+            console.log("Employee created", response.data);
+            toast.success("Employee Created Successfully");
+        }
 
-      reset();
+        setTimeout(() => {
+            navigate("/employeeView");
+        }, 1000); // Adjust delay time if needed
+
     } catch (error) {
-      let errorList = [];
-
-      // Check if error response exists
-      if (error.response) {
-        console.log("Axios response error:", error.response.data.error); // Log Axios error response
-
-        // Case 1: General error message
-        if (error.response.data.error && error.response.data.error.message) {
-          const generalErrorMessage = error.response.data.error.message;
-          errorList.push(generalErrorMessage);
-          toast.error(generalErrorMessage);
-        }
-
-        // Case 2: Specific error messages (multiple messages, such as form validation errors)
-        if (error.response.data.error && error.response.data.error.messages) {
-          const specificErrorMessages = error.response.data.error.messages;
-          toast.error("Invalid Format Fields");
-          specificErrorMessages.forEach((message) => {
-            // Display each error message individually
-            errorList.push(message);
-          });
-        }
-
-        // Case 3: Specific error data (duplicate value conflicts)
-        if (error.response.data.data) {
-          const conflictData = error.response.data.data;
-          let conflictMessage = "Error Details:\n";
-          toast.error(error.response.data.message);
-          // Check if data contains specific conflict details (e.g., duplicate values)
-          Object.keys(conflictData).forEach((key) => {
-            const value = conflictData[key];
-            conflictMessage += `${key}: ${value}\n,`;
-          });
-
-          // Display detailed conflict message in toast and add to error list
-          errorList.push(conflictMessage);
-        }
-
-        // Handle HTTP 409 Conflict Error (duplicate or other conflicts)
-        if (error.response.status === 409) {
-          const conflictMessage = "A conflict occurred.";
-          toast.error(conflictMessage); // Show conflict error in toast
-        }
-      } else {
-        // General error (non-Axios)
-        console.log("Error without response:", error);
-        toast.error("An unexpected error occurred. Please try again later.");
-      }
-
-      // Update the error messages in the state
-      setErrorMessage(errorList);
+        console.error("Error submitting data:", error);
+        toast.error("Error submitting employee details");
     }
-  };
+};
 
   // eslint-disable-next-line no-undef
   useEffect(() => {
@@ -449,7 +405,7 @@ const dropdownOptions = [
                     <input type="email" className="form-control"
                      {...register("emailId", {
                       required: "Email is required",
-                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Invalid email format" },
+                      validate:validateEmail
                     })}
                   />
                   <small className="text-danger">{errors.emailId?.message}</small>        
@@ -479,14 +435,14 @@ const dropdownOptions = [
                     <input type="text" className="form-control"
                      {...register("location", {
                       required: "Branch Location is required",
-                      pattern: { value: /^[A-Za-z\s]+$/, message: "Only alphabets allowed" },
+                      validate:validateLocation
                     })}
                   />
                   <small className="text-danger">{errors.location?.message}</small>
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Status</label>
-                    <select className="form-control" id='status' name='status'
+                    <select className="form-select" id='status' name='status'
                      {...register("status", { required: "Select Status" })}
                      >
                       <option value="">Select Status</option>
@@ -521,9 +477,7 @@ const dropdownOptions = [
                   <input type="tel" className="form-control" id="mobileNumber"
                   {...register("mobileNo", {
                     required: "Mobile Number is required",
-                    pattern: { value: /^\+91\s?[1-9]\d{9}$/,
-                      message: "Enter a valid mobile number with optional country code",
-                    },
+                   validate:validatePhoneNumber
                   })}
                 />
               <small className="text-danger">{errors.mobileNo?.message}</small>
@@ -533,9 +487,7 @@ const dropdownOptions = [
                   <input type="tel" className="form-control" 
                     {...register("alternateNo", {
                       required: "Alternate Number is required",
-                      pattern: { value: /^\+91\s?[1-9]\d{9}$/,
-                        message: "Enter a valid Alternate mobile number with optional country code",
-                      },
+                     validate:validatePhoneNumber,
                     })}
                   />
                     <small className="text-danger">{errors.alternateNo?.message}</small>
@@ -550,10 +502,10 @@ const dropdownOptions = [
                       {...register("maritalStatus", { required: "Please select your Marital Status" })}
                   >
                       <option value="">Select Marital Status</option>
-                      <option value="single">Single</option>
-                      <option value="married">Married</option>
-                      <option value="divorced">Divorced</option>
-                      <option value="widowed">Widowed</option>
+                      <option value="Single">Single</option>
+                      <option value="Married">Married</option>
+                      <option value="Divorced">Divorced</option>
+                      <option value="Widowed">Widowed</option>
                   </select>
                     <small className="text-danger">{errors.maritalStatus?.message}</small>
                 </div>
@@ -562,9 +514,7 @@ const dropdownOptions = [
                   <input type="text" className="form-control" id="aadhaarId"
                     {...register("aadhaarId", {
                       required: "Aadhar Number is required",
-                      pattern: { value: /^\d{12}$/,
-                        message: "Enter a valid Aadhar Number",
-                      },
+                      validate:validateAadhar
                     })}
                     />
                     <small className="text-danger">{errors.aadhaarId?.message}</small>
@@ -577,9 +527,7 @@ const dropdownOptions = [
                   <input type="text" className="form-control" id="panNo" 
                   {...register("panNo", {
                     required: "PAN Number is required",
-                    pattern: { value: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
-                      message: "Enter a valid PAN Number",
-                    },
+                   validate:validatePAN
                   })}
                   />
                   <small className="text-danger">{errors.panNo?.message}</small>
@@ -589,9 +537,7 @@ const dropdownOptions = [
                   <input type="text" className="form-control" id="uanNumber" 
                   {...register("uanNo", {
                     required: "UAN Number is required",
-                    pattern: { value: /^\d{12}$/,
-                      message: "Enter a valid UAN Number",
-                    },
+                    validate:validateUAN
                   })}
                   />
                   <small className="text-danger">{errors.uanNo?.message}</small>
@@ -603,9 +549,7 @@ const dropdownOptions = [
                   <textarea type="text" className="form-control"
                    {...register("pAddress", {
                     required: "Permanent Address is required",
-                    pattern: { value: /^[A-Za-z0-9\s,.-]{5,100}$/,
-                      message: "Enter a valid Permanent Address",
-                    },
+                   validate:validateLocation
                   })}
                   />
                   <small className="text-danger">{errors.pAddress?.message}</small>
@@ -615,9 +559,7 @@ const dropdownOptions = [
                   <textarea type="text" className="form-control"
                    {...register("tAddress ", {
                     required: "Temporary Address is required",
-                    pattern: { value: /^[A-Za-z0-9\s,.-]{5,100}$/,
-                      message: "Enter a valid Temporary Address",
-                    },
+                  validate:validateLocation
                   })}
                   />
                   <small className="text-danger">{errors.tAddress?.message}</small>
@@ -858,7 +800,7 @@ const dropdownOptions = [
                  <div className="col-md-6 mt-2">
                    <label>Branch</label>
                    <input type="text" className="form-control" 
-                    {...register("branch", {
+                    {...register("bankBranch", {
                       required: "Branch Name is required",
                       pattern: {
                         value: /^[A-Za-z\s]+$/,
@@ -866,7 +808,7 @@ const dropdownOptions = [
                       },
                     })}
                   />
-                  <small className="text-danger">{errors.branch?.message}</small>
+                  <small className="text-danger">{errors.bankBranch?.message}</small>
                  </div>
                </div>
               </div>

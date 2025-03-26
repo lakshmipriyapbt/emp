@@ -17,17 +17,17 @@ const InvoicePdf = () => {
   const location = useLocation();
   const [companyDetails, setCompanyDetails] = useState({});
   const { customerId, invoiceId } = location.state || {};
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee.companyId;
   console.log("companyId", companyId);
 
   // Fetch company details
   useEffect(() => {
-    if (user.companyId) {
+    if (employee.companyId) {
       const fetchCompanyDetails = async () => {
         try {
-          const response = await companyViewByIdApi(user.companyId);
-          console.log("Fetched company details for companyId:", user.companyId);
+          const response = await companyViewByIdApi(employee.companyId);
+          console.log("Fetched company details for companyId:", employee.companyId);
           console.log("Company Details:", response.data);
           setCompanyDetails(response.data);
           const companyData = response.data;
@@ -58,7 +58,7 @@ const InvoicePdf = () => {
 
       fetchCompanyDetails();
     }
-  }, [user.companyId, setValue]);
+  }, [employee.companyId, setValue]);
 
   // Fetch invoice details
   useEffect(() => {
@@ -112,7 +112,7 @@ const InvoicePdf = () => {
   const handleDownload = async () => {
     if (location && location.state && location.state.invoiceId) {
       const { invoiceId, customerId } = location.state;
-      const companyId = user.companyId;
+      const companyId = employee.companyId;
 
       if (companyId && customerId && invoiceId) {
         try {

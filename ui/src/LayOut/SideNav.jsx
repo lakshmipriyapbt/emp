@@ -14,7 +14,8 @@ const SideNav = () => {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isLettresOpen, setIsLettersOpen] = useState(false);
   const location = useLocation();
-  const { user = {}, logoFileName, loading } = useAuth();
+  const { authUser = {}, logoFileName, loading } = useAuth();
+  console.log("authUser",authUser);
 
   useEffect(() => {
     if (
@@ -341,10 +342,10 @@ const SideNav = () => {
                   style={{ height: "55px", width: "160px" }}
                 />
               ) : // If logoFileName doesn't exist, display "Add Logo"
-              user &&
-                user.userRole &&
-                user.userRole.includes("company_admin") ? (
-                // Only show "Add Logo" if the user is a company admin
+              authUser &&
+                authUser.userRole &&
+                authUser.userRole.includes("company_admin") ? (
+                // Only show "Add Logo" if the authUser is a company admin
                 <a href="/profile">
                   <span
                     className="text-warning fs-6"
@@ -354,11 +355,11 @@ const SideNav = () => {
                   </span>
                 </a>
               ) : null}
-              {user &&
-                user.userRole &&
-                user.userRole.includes("ems_admin") &&
+              {authUser &&
+                authUser.userRole &&
+                authUser.userRole.includes("ems_admin") &&
                 !logoFileName && (
-                  // Display the EMS Admin Logo if the user is an EMS admin and logoFileName is not present
+                  // Display the EMS Admin Logo if the authUser is an EMS admin and logoFileName is not present
                   <img
                     className="align-middle"
                     src="assets/img/pathbreaker_logo.png"
@@ -370,7 +371,7 @@ const SideNav = () => {
           )}
         </a>
         <ul className="sidebar-nav mt-2">
-          {user && user.userRole && user.userRole.includes("ems_admin") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("ems_admin") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -437,7 +438,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("company_admin") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("company_admin") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -961,7 +962,7 @@ const SideNav = () => {
               </li>
             </>
           )}
-          {user && user.userRole && user.userRole.includes("employee") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("employee") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -996,7 +997,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("HR") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("HR") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -1362,7 +1363,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("Accountant") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("Accountant") && (
             <>
               <li className="sidebar-item has-dropdown">
                 <a

@@ -36,7 +36,7 @@ const CompanySalaryStructure = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState("");
   const [selected, setSelected]=useState(false);
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [fieldCheckboxes, setFieldCheckboxes] = useState({
     allowances: {},
     deductions: {},
@@ -302,7 +302,7 @@ const CompanySalaryStructure = () => {
 
   const onSubmit = async () => {
     const jsonData = {
-      companyName: user.company,
+      companyName: authUser.company,
       status: "Active",
       allowances: {},
       deductions: {
@@ -450,7 +450,7 @@ const CompanySalaryStructure = () => {
       .split("")
       .filter((char) => allowedCharsRegex.test(char))
       .join("");
-    // Capitalize first letter of each word & keep others as user typed
+    // Capitalize first letter of each word & keep others as authUser typed
   const words = value.split(" ");
   const formattedValue = words.map((word) =>
     word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ""

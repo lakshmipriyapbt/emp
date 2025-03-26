@@ -210,5 +210,123 @@ export const validateFirstName = (value) => {
     return true; // Validation passed
 };
 
+//validate MailId
+export const validateEmail = (email) => {
+    if (email !== email.trim()) {
+        return "Email should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(email)) {
+        return "Email should not contain any spaces.";
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+)\.[a-zA-Z]{2,}$/;
+    
+    const match = email.match(emailRegex);
+    if (!match) {
+        return "Invalid email format. Please enter a valid email address.";
+    }
+
+    return true;
+};
+
+// validate Aadhar number
+export const validateAadhar = (aadhar) => {
+    if (aadhar !== aadhar.trim()) {
+        return "Aadhar number should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(aadhar)) {
+        return "Aadhar number should not contain any spaces.";
+    }
+
+    const aadharRegex = /^\d{12}$/;
+    if (!aadharRegex.test(aadhar)) {
+        return "Invalid Aadhar number. It must be exactly 12 digits.";
+    }
+
+    return true;
+};
+
+//validate PAN Number
+export const validatePAN = (pan) => {
+    if (pan !== pan.trim()) {
+        return "PAN should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(pan)) {
+        return "PAN should not contain any spaces.";
+    }
+
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+    if (!panRegex.test(pan)) {
+        return "Invalid PAN number. Format should be 5 uppercase letters, 4 digits, and 1 uppercase letter (e.g., ABCDE1234F).";
+    }
+
+    return true;
+};
+
+// validate UAN Number
+export const validateUAN = (uan) => {
+    if (uan !== uan.trim()) {
+        return "UAN should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(uan)) {
+        return "UAN should not contain any spaces.";
+    }
+
+    const uanRegex = /^\d{12}$/;
+    if (!uanRegex.test(uan)) {
+        return "Invalid UAN number. It must be exactly 12 digits.";
+    }
+
+    return true;
+};
+
+//Bank Account Number
+export const validateBankAccount = (accountNumber) => {
+    if (accountNumber !== accountNumber.trim()) {
+        return "Bank account number should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(accountNumber)) {
+        return "Account number should not contain any spaces.";
+    }
+
+    const accountRegex = /^\d{6,18}$/;
+    if (!accountRegex.test(accountNumber)) {
+        return "Invalid Bank Account Number. It must be between 6 to 18 digits.";
+    }
+
+    return true;
+};
+
+//Bank IFSC Code
+export const validateIFSC = (ifsc) => {
+    if (ifsc !== ifsc.trim()) {
+        return "IFSC code should not have leading or trailing spaces.";
+    }
+    if (/\s/.test(ifsc)) {
+        return "IFSC Code should not contain any spaces.";
+    }
+
+
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (!ifscRegex.test(ifsc)) {
+        return "Invalid IFSC Code. Format should be 4 uppercase letters, '0', and 6 alphanumeric characters (e.g., SBIN0001234).";
+    }
+
+    return true;
+};
+
+//validate Bank Branch
+
+export const validateBankBranch =(bankBranch)=>{
+    if(bankBranch !== bankBranch.trim()){
+        return "No Leading and Trailing Spaces"
+    }
+    const bankBranchRegex=/^[a-zA-Z0-9,.-_]{2,50}$/;
+    if(!bankBranchRegex.test(bankBranch)){
+        return "Invalid Branch Format"
+    }
+    return true;
+}
+
 
 
