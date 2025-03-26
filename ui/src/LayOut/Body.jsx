@@ -6,11 +6,11 @@ import { toast } from 'react-toastify';
 import { PeopleFill, PersonFillCheck, PersonFillExclamation } from 'react-bootstrap-icons';
 
 const Body = () => {
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [employees, setEmployees]= useState([]);;
 
-  const isAdmin = user?.userRole?.includes("ems_admin");
-  const isCompanyAdmin = user?.userRole?.includes("company_admin");
+  const isAdmin = authUser?.userRole?.includes("ems_admin");
+  const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
 
   const [data, setData] = useState({
     totalEmployeesCount: 0,
@@ -84,7 +84,7 @@ const Body = () => {
           <strong>Dashboard</strong>
         </h1>
         <div className="row h-100">
-          {user && user.userRole && user.userRole.includes("ems_admin") ? (
+          {authUser && authUser.userRole && authUser.userRole.includes("ems_admin") ? (
            
                 <div className='card'>
                   <iframe

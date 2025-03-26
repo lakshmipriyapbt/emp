@@ -19,7 +19,7 @@ const EmployeeSalaryUpdate = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -398,7 +398,7 @@ const EmployeeSalaryUpdate = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = user.company;
+  const companyName = authUser.company;
   const onSubmit = (data) => {
     // Check if there's an error related to salary structures
     if (error) {

@@ -26,7 +26,7 @@ const ExistsEmpRegistration = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -175,7 +175,7 @@ const ExistsEmpRegistration = () => {
       resignationDate: data.resignationDate || "",
       lastWorkingDate: data.relievingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName: authUser.company,
     };
     setPreviewData(preview);
     setShowPreview(true);
