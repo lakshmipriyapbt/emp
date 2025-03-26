@@ -213,13 +213,6 @@ public class CompanyUtils {
 
         return existingEntity;
     }
-    public static CompanyEntity maskCompanyStampImageUpdateProperties(CompanyEntity existingEntity, CompanyStampUpdate companyRequest) {
-        if(companyRequest.getImage() != null){
-            existingEntity.setStampImage(companyRequest.getImage());
-        }
-
-        return existingEntity;
-    }
 
 
     public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId,String defaultPassword) {
