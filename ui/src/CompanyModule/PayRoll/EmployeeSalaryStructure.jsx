@@ -20,6 +20,8 @@ import {
   ModalHeader,
   ModalTitle,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeSalaryStructure = () => {
   const {
@@ -29,7 +31,7 @@ const EmployeeSalaryStructure = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -86,27 +88,28 @@ const EmployeeSalaryStructure = () => {
     }
   }, [id, salaryId]);
 
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter(
-          (employee) =>
-            employee.firstName !== null && employee.status !== "InActive"
-        )
-        .map(({ referenceId, ...rest }) => rest);
-      setEmployes(
-        filteredData.map((employee) => ({
-          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
-          value: employee.id,
-          employeeName: `${employee.firstName} ${employee.lastName}`,
-          employeeId: employee.employeeId,
-          designationName: employee.designationName,
-          departmentName: employee.departmentName,
-          dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []);
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
+    useEffect(() => {
+      if (employees) {
+        const activeEmployees = employees
+          .filter((employee) => employee.status === "Active")
+          .map((employee) => ({
+            label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+            value: employee.id,
+          }));
+  
+        setEmployes(activeEmployees);
+      }
+    }, [employees]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -552,7 +555,7 @@ const EmployeeSalaryStructure = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = user.company;
+  const companyName = authUser.company;
 
   const onSubmit = (data) => {
     console.log("data", data);

@@ -107,6 +107,7 @@
     <p>
     We are pleased to inform you that your salary increase effective from <b>${appraisal.dateOfSalaryIncrement}. </b>
     The amount of your salary increase is <b>Rs. ${appraisal.grossCompensation} pa.</b>
+    This represents a <b>${appraisal.salaryHikePersentage}%</b> increase, demonstrating our appreciation for your dedication.
     We understand this is a sustainable increase in your pay and we appreciate
     your hard work and dedication to the company.
     <br />
@@ -130,6 +131,10 @@
             <tr class="gross-salary">
                 <td>Gross Salary</td>
                 <td>${appraisal.grossCompensation}</td>
+            </tr>
+            <tr class="gross-salary">
+               <td>Hike Persentage</td>
+               <td>${appraisal.salaryHikePersentage}</td>
             </tr>
     </table>
     </div>

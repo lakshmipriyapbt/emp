@@ -19,8 +19,8 @@ const AccountRegistartion = () => {
   } = useForm();
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee.companyId;
   console.log("companyId from accounts registartion", companyId);
   const [passwordShown, setPasswordShown] = useState(false);
   const [update, setUpdate] = useState([]);

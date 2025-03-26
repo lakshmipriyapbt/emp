@@ -76,6 +76,9 @@
             results-oriented, professional, and sincere. He/She possess excellent interpersonal skills and knowledge,
             which helped in completing many valuable business assignments. He/She are a true team player and a
             fun-loving individual who mixes well with both seniors and juniors.</p>
+            <p> <#if request.aboutEmployee?has_content>
+                               About Employee: <b>${request.aboutEmployee}</b>.
+             </#if> </p>
         <p>We are sure that his/her passion and dedication will help him/her excel in whatever they choose to do next in
             their life. He/She have shown a high level of commitment throughout his/her time with our company.</p>
         <p>We wish him/her all the best for future ventures. Please feel free to contact us for any further information

@@ -17,8 +17,8 @@ const ProductView = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee} = useAuth();
+  const companyId = employee.companyId;
 
   // Fetch all products on component mount
   useEffect(() => {

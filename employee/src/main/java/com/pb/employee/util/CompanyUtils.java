@@ -16,8 +16,8 @@ import java.util.List;
 @Component
 public class CompanyUtils {
 
-    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id) {
-        String password = Base64.getEncoder().encodeToString(companyRequest.getPassword().getBytes());
+    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.toString().getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null, regNo = null, mobileNo=null, landNo= null, gstNo=null, cinNo=null, pmNo=null, psmailId=null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -213,17 +213,10 @@ public class CompanyUtils {
 
         return existingEntity;
     }
-    public static CompanyEntity maskCompanyStampImageUpdateProperties(CompanyEntity existingEntity, CompanyStampUpdate companyRequest) {
-        if(companyRequest.getImage() != null){
-            existingEntity.setStampImage(companyRequest.getImage());
-        }
-
-        return existingEntity;
-    }
 
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId) {
-        String password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId,String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null;
         ObjectMapper objectMapper = new ObjectMapper();
 

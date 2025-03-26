@@ -20,4 +20,6 @@ public class ExperienceLetterFieldsRequest {
     @NotBlank(message = "{date.notnull.message}")
     private String date;
 
+    private String aboutEmployee;
+
 }

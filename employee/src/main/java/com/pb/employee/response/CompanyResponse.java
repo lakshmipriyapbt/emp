@@ -4,6 +4,7 @@ package com.pb.employee.response;
 import lombok.Data;
 
 @Data
+
 public class CompanyResponse {
 
     private String companyId;

@@ -167,6 +167,17 @@ public class Constants {
     public static final String SLASH = "/";
     public static final String COMPANY_ADMIN = "company_admin";
     public static final String ADMIN = "CompanyAdmin";
-    public static final String NO_ATTENDANCE = "Attendance Not Found For All Employees";
     public static final String CUSTOMER_ID= "customerId";
+    public static final String BANK_JSON = "bank.json";
+    public static final String EMPLOYEE_DETAILS = "employeeDetails.ftl";
+    public static final String PDF_TYPE = "pdf";
+    public static final String EXCEL_TYPE = "excel";
+    public static final String INTERNSHIP_OFFER_LETTER_TEMPLATE = "internOfferTemplate.ftl";
+    public static final String EMPLOYEE_BANK_DETAILS = "employeeBankDetails.ftl";
+    public static final String EMPLOYEE_SALARIES_DETAILS = "employeeSalaries.ftl";
+    public static final String EMPLOYEE_ATTENDANCE_DETAILS = "employeeAttendance.ftl";
+    public static final String EMPLOYEE_PERSONNEL = "employee_personnel";
+    public static final String ID = "id";
+    public static final String SINGLE_EMPLOYEE_ATTENDANCE_DETAILS = "singleEmployeeAttendance.ftl";
+    public static final String LOGIN = "login";
 }

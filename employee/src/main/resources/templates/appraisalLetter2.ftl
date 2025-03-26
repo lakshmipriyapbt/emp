@@ -108,6 +108,7 @@
     We are pleased to inform you that based on your performance and contribution
     to the company, our management has revised your compensation to
     <b>Rs.${appraisal.grossCompensation} pa</b> which is cost to company with effect from <b>${appraisal.dateOfSalaryIncrement}.</b>
+    This represents a <b>${appraisal.salaryHikePersentage}%</b> increase, demonstrating our appreciation for your dedication.
     <br />
     <br />
     All other T&C are same as per the original offer letter.  We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.

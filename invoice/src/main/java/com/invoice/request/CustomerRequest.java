@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidStateCode
 public class CustomerRequest {
 
     @NotBlank(message = "{customerName.notnull.message}")

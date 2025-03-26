@@ -129,7 +129,7 @@ public class DepartmentServiceImpl implements DepartmentService {
         String index = ResourceIdUtils.generateCompanyIndex(departmentUpdateRequest.getCompanyName());
         try {
 
-            departmentEntity = openSearchOperations.getDepartmentById(departmentId, null, index);
+           departmentEntity = openSearchOperations.getDepartmentById(departmentId, null, index);
             if (departmentEntity == null) {
                 log.error("unable to find the department");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT),
