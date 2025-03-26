@@ -41,7 +41,7 @@ public class AttendanceController {
             @Parameter(required = true, description = "${api.attendance.Payload.description}")
             @PathVariable String companyName,
             @RequestParam(Constants.FILE) MultipartFile file) throws EmployeeException {
-        return attendanceService.uploadAttendanceFile(companyName,file);
+        return attendanceService.uploadAttendanceFile(companyName, file);
     }
 
     @RequestMapping(value = "/{companyName}/attendance", method = RequestMethod.GET)
