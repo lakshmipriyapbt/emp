@@ -76,7 +76,8 @@ export default function EmployeeRegister() {
   // Step 3: Fetch employees on component mount
 
  // Manage dynamic fields for education
- const { fields: educationFields, append: addEducation, remove: removeEducation } = useFieldArray({
+ const { fields: 
+  educationFields, append: addEducation, remove: removeEducation } = useFieldArray({
   control, name: "educationList"
 });
 
@@ -311,6 +312,36 @@ const dropdownOptions = [
     }
   };
 
+  // Watch DOB & Hiring Date to validate them dynamically
+const dob = watch("dateOfBirth");
+const hiringDate = watch("dateOfHiring");
+
+// Custom Validation Function
+const validateDOB = (value) => {
+  if (!value) return "Date of Birth is required";
+
+  const dobDate = new Date(value);
+  const minHiringDate = new Date(dobDate);
+  minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+
+  if (hiringDate && new Date(hiringDate) < minHiringDate) {
+    return "Employee must be at least 16 years old at hiring.";
+  }
+  return true;
+};
+
+const validateHiringDate = (value) => {
+  if (!value) return "Date of Hiring is required";
+
+  const hiringDate = new Date(value);
+  const dobDate = new Date(dob);
+
+  if (dob && hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))) {
+    return "Hiring date must be at least 16 years after DOB.";
+  }
+  return true;
+};
+
   return (
     <LayOut>
       <div className="container d-flex justify-content-center align-items-center min-vh-100">
@@ -426,6 +457,7 @@ const dropdownOptions = [
                     <input type="date" className="form-control"
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
+                      validate:validateHiringDate
                     })}
                   />
                   <small className="text-danger">{errors.dateOfHiring?.message}</small>
@@ -468,6 +500,7 @@ const dropdownOptions = [
                   <input type="date" className="form-control" id="dob" 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
+                    validate:validateDOB
                   })}
                 />
                 <small className="text-danger">{errors.dateOfBirth?.message}</small>
