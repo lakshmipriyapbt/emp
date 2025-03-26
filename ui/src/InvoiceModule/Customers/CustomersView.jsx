@@ -25,8 +25,8 @@ const CustomersView = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [isFetching, setIsFetching] = useState(true); // Local loading state
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee.companyId;
 
   // Fetch all customers on component mount
   useEffect(() => {

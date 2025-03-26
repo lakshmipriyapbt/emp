@@ -17,7 +17,7 @@ const CustomersView = () => {
     const [filteredData, setFilteredData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const { user } = useAuth();
+    const { authUser } = useAuth();
     const companyId = user.companyId;
 
     // Fetch all customers on component mount

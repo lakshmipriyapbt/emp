@@ -87,13 +87,6 @@ export const companyViewApi = async () => {
 
 export const companyViewByIdApi = (companyId) => {
   return axiosInstance.get(`/company/${companyId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
 };
 
 export const companyDetailsByIdApi = async (companyId) => {
@@ -208,13 +201,6 @@ export const EmployeePostApi = (data) => {
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
 }
 
 export const BankNamesGetApi = () => {

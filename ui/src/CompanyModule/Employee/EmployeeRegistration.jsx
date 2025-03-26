@@ -41,7 +41,7 @@ const EmployeeRegistration = () => {
       dispatch(fetchEmployees());
     }
   }, [dispatch, status]);  
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,7 @@ const EmployeeRegistration = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(user.company);
+  console.log(authUser.company);
   const [passwordShown, setPasswordShown] = useState(false);
 
   const togglePasswordVisiblity = () => {
@@ -236,7 +236,7 @@ console.log("lastEmployeeId",lastEmployeeId)
     e.target.value = newValue;
   };
 
-  let company = user.company;
+  let company = authUser.company;
   const onSubmit = async (data) => {
     // const roles = data.roles ? [data.roles] : [];
     // Constructing the payload

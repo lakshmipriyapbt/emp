@@ -31,7 +31,7 @@ const EmployeeSalaryStructure = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -555,7 +555,7 @@ const EmployeeSalaryStructure = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = user.company;
+  const companyName = authUser.company;
 
   const onSubmit = (data) => {
     console.log("data", data);
