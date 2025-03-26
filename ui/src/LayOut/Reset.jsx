@@ -51,7 +51,6 @@ const Reset = ({ companyName, onClose, show }) => {
           console.log("Employee ID:", response.data.employeeId);
         } else {
           console.error("Employee ID is missing in the response");
-          toast.error("Employee ID not found in the response");
         }
       } catch (error) {
         console.error("Error fetching employee data:", error);

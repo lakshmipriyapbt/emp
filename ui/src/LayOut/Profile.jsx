@@ -496,52 +496,6 @@ const closeStampModal = () => setShowStampModal(false);
                         readOnly
                       />
                     </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label">
-                        Alternate Number <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Enter Alternate Number"
-                        autoComplete="off"
-                        maxLength={14}
-                        defaultValue="+91 " // Set the initial value to +91 with a space
-                        onInput={handlePhoneNumberChange} // Handle input changes
-                        onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
-                        {...register("alternateNo", {
-                          validate: {
-                            startsWithPlus91: (value) => {
-                              if (!value.startsWith("+91 ")) {
-                                return "Alternate Number must start with +91 and a space.";
-                              }
-                              return true;
-                            },
-                            correctLength: (value) => {
-                              if (value.length !== 14) {
-                                return "Alternate Number must be exactly 10 digits (including +91).";
-                              }
-                              return true;
-                            },
-                            notRepeatingDigits: (value) => {
-                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return (
-                                !isRepeating ||
-                                "Alternate Number cannot consist of the same digit repeated."
-                              );
-                            },
-                          },
-                          pattern: {
-                            value: /^\+91\s\d{10}$/, // Ensure it starts with +91, followed by a space and exactly 10 digits
-                            message: "Alternate Number is Required",
-                          },
-                        })}
-                      />
-                      {errors.alternateNo && (
-                        <p className="errorMsg">{errors.alternateNo.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Contact Number <span style={{ color: "red" }}>*</span>
@@ -586,6 +540,52 @@ const closeStampModal = () => setShowStampModal(false);
                       />
                       {errors.mobileNo && (
                         <p className="errorMsg">{errors.mobileNo.message}</p>
+                      )}
+                    </div>
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-2">
+                      <label className="form-label">
+                        Alternate Number <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="Enter Alternate Number"
+                        autoComplete="off"
+                        maxLength={14}
+                        defaultValue="+91 " // Set the initial value to +91 with a space
+                        onInput={handlePhoneNumberChange} // Handle input changes
+                        onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
+                        {...register("alternateNo", {
+                          validate: {
+                            startsWithPlus91: (value) => {
+                              if (!value.startsWith("+91 ")) {
+                                return "Alternate Number must start with +91 and a space.";
+                              }
+                              return true;
+                            },
+                            correctLength: (value) => {
+                              if (value.length !== 14) {
+                                return "Alternate Number must be exactly 10 digits (including +91).";
+                              }
+                              return true;
+                            },
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
+                              return (
+                                !isRepeating ||
+                                "Alternate Number cannot consist of the same digit repeated."
+                              );
+                            },
+                          },
+                          pattern: {
+                            value: /^\+91\s\d{10}$/, // Ensure it starts with +91, followed by a space and exactly 10 digits
+                            message: "Alternate Number is Required",
+                          },
+                        })}
+                      />
+                      {errors.alternateNo && (
+                        <p className="errorMsg">{errors.alternateNo.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
