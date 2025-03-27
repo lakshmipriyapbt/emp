@@ -7,14 +7,25 @@ const hostname = window.location.hostname;
 const BASE_URL = `${protocol}//${hostname}/ems/employee`;
 const Login_URL = `${protocol}//${hostname}/ems`;
 
-const token = localStorage.getItem("token");
+// ✅ Create Axios Instance (Without Token)
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  },
 });
+
+// ✅ Attach Token Dynamically Using Axios Interceptors
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export const loginApi = (data) => {
   return axios
