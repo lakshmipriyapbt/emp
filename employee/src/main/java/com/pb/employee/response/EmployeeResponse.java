@@ -50,7 +50,7 @@ public class EmployeeResponse {
     private String ifscCode;
     private String bankName;
     private String bankBranch;
-    private EmployeePersonnelEntity employeePersonnelEntity;
+    private EmployeePersonnelEntity personnelEntity;
 
 
 }
