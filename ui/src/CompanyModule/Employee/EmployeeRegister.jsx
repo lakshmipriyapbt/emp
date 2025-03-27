@@ -41,14 +41,14 @@ export default function EmployeeRegister() {
         aadhar: "",
         uan: "",
         pan: "",
-        pAddress: "",
-        tAddress: "",
+        permanentAddress: "",
+        tempAddress: "",
   
         // Step 3: Education Details
-        educationList: [{ level: "", institution: "", board: "", branch: "", year: "", percentage: "" }],
+        employeeEducation: [{ educationLevel: "", instituteName: "", boardOfStudy: "", branch: "", year: "", percentage: "" }],
   
         // Step 4: Experience Details
-        experienceList: [{ company: "", position: "", startDate: "", endDate: "", tenure: "" }],
+        employeeExperience: [{ companyName: "", positionOrTitle: "", startDate: "", endDate: "", tenure: "" }],
   
         // Step 5: Bank Details
         bankName: "",
@@ -76,13 +76,14 @@ export default function EmployeeRegister() {
   // Step 3: Fetch employees on component mount
 
  // Manage dynamic fields for education
- const { fields: educationFields, append: addEducation, remove: removeEducation } = useFieldArray({
-  control, name: "educationList"
+ const { fields: 
+  educationFields, append: addEducation, remove: removeEducation } = useFieldArray({
+  control, name: "employeeEducation"
 });
 
 // Manage dynamic fields for experience
 const { fields: experienceFields, append: addExperience, remove: removeExperience } = useFieldArray({
-  control, name: "experienceList"
+  control, name: "employeeExperience"
 });
 
 const onNext = async () => {
@@ -90,30 +91,49 @@ const onNext = async () => {
   if (isValid) setStep(step + 1);
 };
 
-  useEffect(() => {
-    if (location && location.state && location.state.id) {
-      const fetchData = async () => {
-        try {
-          const response = await EmployeeGetApiById(location.state.id);
-          console.log(response.data.data);
-          reset(response.data.data);
-          setIsUpdating(true);
-          // Assuming roles is an array and setting the first role
-          const status = response.data.data.status;
-          setValue("status", status.toString());
+useEffect(() => {
+  if (location && location.state && location.state.id) {
+    const fetchData = async () => {
+      try {
+        const response = await EmployeeGetApiById(location.state.id);
+        console.log(response.data.data);
+        
+        // Reset the entire form data
+        reset(response.data.data);
 
-          // Conditionally show the "Notice Period" option based on the status
-          if (status === "NoticePeriod") {
-            setShowNoticePeriodOption(true);
-          }
-        } catch (error) {
-          handleApiErrors(error);
+        // Set status manually
+        const status = response.data.data.status;
+        setValue("status", status.toString());
+
+        // Conditionally show "Notice Period" option based on status
+        if (status === "NoticePeriod") {
+          setShowNoticePeriodOption(true);
         }
-      };
 
-      fetchData();
-    }
-  }, [location.state, reset, setValue]);
+        // Set employeeEducation data
+        if (response.data.data.personnelEntity?.employeeEducation?.length) {
+          reset((prev) => ({
+            ...prev,
+            employeeEducation: response.data.data.personnelEntity.employeeEducation
+          }));
+        }
+
+        // Set employeeExperience data
+        if (response.data.data.personnelEntity?.employeeExperience?.length) {
+          reset((prev) => ({
+            ...prev,
+            employeeExperience: response.data.data.personnelEntity.employeeExperience
+          }));
+        }
+
+      } catch (error) {
+        handleApiErrors(error);
+      }
+    };
+
+    fetchData();
+  }
+}, [location.state, reset, setValue]);
 
     const handleApiErrors = (error) => {
       // if (error.response && error.response.data && error.response.data.message) {
@@ -179,18 +199,18 @@ const onPrevious = () => {
         pfNo: data.pfNo, // Default value if empty
               // Correcting personnelEntity
               personnelEntity: {
-                employeeEducation: data.educationList?.map((edu) => ({
-                    educationLevel: edu.level || "",
-                    instituteName: edu.institution || "",
-                    boardOfStudy: edu.board || "",
+                employeeEducation: data.employeeEducation?.map((edu) => ({
+                    educationLevel: edu.educationLevel || "",
+                    instituteName: edu.instituteName || "",
+                    boardOfStudy: edu.boardOfStudy || "",
                     branch: edu.branch || "",
                     year: edu.year || "",
-                    persentage: edu.percentage || ""
+                    percentage: edu.percentage || ""
                 })) || [],
     
-                employeeExperience: data.experienceList?.map((exp) => ({
-                    companyName: exp.company || "",
-                    positionOrTitle: exp.position || "",
+                employeeExperience: data.employeeExperience?.map((exp) => ({
+                    companyName: exp.companyName || "",
+                    positionOrTitle: exp.positionOrTitle || "",
                     startDate: exp.startDate || "",
                     endDate: exp.endDate || ""
                 })) || [],
@@ -293,7 +313,6 @@ const dropdownOptions = [
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      
       if (start < end) {
         let years = end.getFullYear() - start.getFullYear();
         let months = end.getMonth() - start.getMonth();
@@ -303,13 +322,43 @@ const dropdownOptions = [
          const fractionalYears = years + (months / 12) + (days / 365);
 
          // Set the tenure value in years with decimal precision
-         setValue(`experienceList.${index}.tenure`, `${fractionalYears.toFixed(2)} years`)
+         setValue(`employeeExperience.${index}.tenure`, `${fractionalYears.toFixed(2)} years`)
 
         } else {
-        setValue(`experienceList.${index}.tenure`, "Invalid date range");
+        setValue(`employeeExperience.${index}.tenure`, "Invalid date range");
       }
     }
   };
+
+  // Watch DOB & Hiring Date to validate them dynamically
+const dob = watch("dateOfBirth");
+const hiringDate = watch("dateOfHiring");
+
+// Custom Validation Function
+const validateDOB = (value) => {
+  if (!value) return "Date of Birth is required";
+
+  const dobDate = new Date(value);
+  const minHiringDate = new Date(dobDate);
+  minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+
+  if (hiringDate && new Date(hiringDate) < minHiringDate) {
+    return "Employee must be at least 16 years old at hiring.";
+  }
+  return true;
+};
+
+const validateHiringDate = (value) => {
+  if (!value) return "Date of Hiring is required";
+
+  const hiringDate = new Date(value);
+  const dobDate = new Date(dob);
+
+  if (dob && hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))) {
+    return "Hiring date must be at least 16 years after DOB.";
+  }
+  return true;
+};
 
   return (
     <LayOut>
@@ -426,6 +475,7 @@ const dropdownOptions = [
                     <input type="date" className="form-control"
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
+                      validate:validateHiringDate
                     })}
                   />
                   <small className="text-danger">{errors.dateOfHiring?.message}</small>
@@ -468,6 +518,7 @@ const dropdownOptions = [
                   <input type="date" className="form-control" id="dob" 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
+                    validate:validateDOB
                   })}
                 />
                 <small className="text-danger">{errors.dateOfBirth?.message}</small>
@@ -545,24 +596,24 @@ const dropdownOptions = [
               </div>
               <div className="row mb-3">
                 <div className="col-md-6">
-                  <label htmlFor="pAddress" className="form-label">Permanent Address</label>
+                  <label htmlFor="permanentAddress" className="form-label">Permanent Address</label>
                   <textarea type="text" className="form-control"
-                   {...register("pAddress", {
+                   {...register("permanentAddress", {
                     required: "Permanent Address is required",
                    validate:validateLocation
                   })}
                   />
-                  <small className="text-danger">{errors.pAddress?.message}</small>
+                  <small className="text-danger">{errors.permanentAddress?.message}</small>
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="tAddress" className="form-label">Temporary Address</label>
+                  <label htmlFor="tempAddress" className="form-label">Temporary Address</label>
                   <textarea type="text" className="form-control"
-                   {...register("tAddress ", {
+                   {...register("tempAddress", {
                     required: "Temporary Address is required",
                   validate:validateLocation
                   })}
                   />
-                  <small className="text-danger">{errors.tAddress?.message}</small>
+                  <small className="text-danger">{errors.tempAddress?.message}</small>
                 </div>
               </div>
               {/* <h5 className="mt-4 mb-3">Permanent Address</h5>
@@ -613,67 +664,67 @@ const dropdownOptions = [
                     <div className="col-md-4">
                       <label>Education Level</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.level`, {
+                        {...register(`employeeEducation.${index}.educationLevel`, {
                           required: "Education Level is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.level?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.educationLevel?.message}</small>
                     </div>
 
                     <div className="col-md-4">
                       <label>Name of Institution/University</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.institution`, {
+                        {...register(`employeeEducation.${index}.instituteName`, {
                           required: "Institution is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.institution?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.instituteName?.message}</small>
                     </div>
 
                     <div className="col-md-4">
                       <label>Board of Study</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.board`, {
+                        {...register(`employeeEducation.${index}.boardOfStudy`, {
                           required: "Board of Study is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.board?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.boardOfStudy?.message}</small>
                     </div>
 
                     <div className="col-md-4">
                       <label>Branch/Specialization</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.branch`, {
+                        {...register(`employeeEducation.${index}.branch`, {
                           required: "Branch is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.branch?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.branch?.message}</small>
                     </div>
 
                     <div className="col-md-4">
                       <label>Year of Pass Out</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.year`, {
+                        {...register(`employeeEducation.${index}.year`, {
                           required: "Year is required",
                           pattern: { value: /^(19|20)\d{2}$/, message: "Enter a valid 4-digit year (1900-2099)" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.year?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.year?.message}</small>
                     </div>
 
                     <div className="col-md-4">
                       <label>Percentage</label>
                       <input type="text" className="form-control"
-                        {...register(`educationList.${index}.percentage`, {
+                        {...register(`employeeEducation.${index}.percentage`, {
                           required: "Percentage is required",
                           pattern: { value: /^(100|[0-9]{1,2}(\.\d{1,2})?)$/, message: "Enter a valid percentage (0-100)" }
                         })}
                       />
-                      <small className="text-danger">{errors.educationList?.[index]?.percentage?.message}</small>
+                      <small className="text-danger">{errors.employeeEducation?.[index]?.percentage?.message}</small>
                     </div>
 
                     <div className="col-md-1">
@@ -681,7 +732,7 @@ const dropdownOptions = [
                     </div>
                   </div>
                 ))}
-                <button type="button" className="btn btn-primary mt-2" onClick={() => addEducation({ level: "", institution: "", board: "", branch: "", year: "", percentage: "" })}>
+                <button type="button" className="btn btn-primary mt-2" onClick={() => addEducation({ educationLevel: "", instituteName: "", boardOfStudy: "", branch: "", year: "", percentage: "" })}>
                   Add More
                 </button>
               </div>
@@ -691,56 +742,54 @@ const dropdownOptions = [
                 <div>
                   <h3 className="mb-3">Step 4: Experience Details</h3>
                   {experienceFields.map((exp, index) => {
-                    const startDate = watch(`experienceList.${index}.startDate`);
-                    const endDate = watch(`experienceList.${index}.endDate`);
+                    const startDate = watch(`employeeExperience.${index}.startDate`);
+                    const endDate = watch(`employeeExperience.${index}.endDate`);
                     return (
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
                           <input type="text" className="form-control"
-                            {...register(`experienceList.${index}.company`, {
-                              required: "Company Name is required",
+                            {...register(`employeeExperience.${index}.companyName`, {
+                              validate:validateFirstName
                             })}
                           />
-                          <small className="text-danger">{errors.experienceList?.[index]?.company?.message}</small>
+                          <small className="text-danger">{errors.employeeExperience?.[index]?.companyName?.message}</small>
                         </div>
 
                         <div className="col-md-3">
                           <label>Position/Title</label>
                           <input type="text" className="form-control"
-                            {...register(`experienceList.${index}.position`, {
-                              required: "Position is required",
+                            {...register(`employeeExperience.${index}.positionOrTitle`, {
+                              validate:validateFirstName
                             })}
                           />
-                          <small className="text-danger">{errors.experienceList?.[index]?.position?.message}</small>
+                          <small className="text-danger">{errors.employeeExperience?.[index]?.positionOrTitle?.message}</small>
                         </div>
 
                         <div className="col-md-2">
                           <label>Start Date</label>
                           <input type="date" className="form-control"
-                            {...register(`experienceList.${index}.startDate`, {
-                              required: "Start Date is required",
+                            {...register(`employeeExperience.${index}.startDate`, {
                             })}
-                            onChange={(e) => calculateTenure(0, e.target.value, getValues(`experienceList.0.endDate`))}
+                            onChange={(e) => calculateTenure(0, e.target.value, getValues(`employeeExperience.0.endDate`))}
                             />
-                            <small className="text-danger">{errors.experienceList?.[0]?.startDate?.message}</small>
+                            <small className="text-danger">{errors.employeeExperience?.[0]?.startDate?.message}</small>
                             </div>
 
                         <div className="col-md-2">
                           <label>End Date</label>
                           <input type="date" className="form-control"
-                            {...register(`experienceList.${index}.endDate`, {
-                              required: "End Date is required",
+                            {...register(`employeeExperience.${index}.endDate`, {
                             })}
-                            onChange={(e) => calculateTenure(0, getValues(`experienceList.0.startDate`), e.target.value)}
+                            onChange={(e) => calculateTenure(0, getValues(`employeeExperience.0.startDate`), e.target.value)}
                             />
-                            <small className="text-danger">{errors.experienceList?.[0]?.endDate?.message}</small>
+                            <small className="text-danger">{errors.employeeExperience?.[0]?.endDate?.message}</small>
                         </div>
 
                         <div className="col-md-2">
                           <label>Tenure</label>
                           <input type="text" className="form-control"
-                            {...register(`experienceList.0.tenure`)}
+                            {...register(`employeeExperience.0.tenure`)}
                           readOnly />
                         </div>
 
@@ -750,7 +799,7 @@ const dropdownOptions = [
                       </div>
                     );
                   })}
-                  <button type="button" className="btn btn-primary mt-2" onClick={() => addExperience({ company: "", position: "", startDate: "", endDate: "", tenure: "" })}>
+                  <button type="button" className="btn btn-primary mt-2" onClick={() => addExperience({ companyName: "", positionOrTitle: "", startDate: "", endDate: "", tenure: "" })}>
                     Add More
                   </button>
                 </div>
