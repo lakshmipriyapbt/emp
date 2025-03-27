@@ -11,7 +11,7 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const { user} = useAuth();
+  const {authUser, company,employee} = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -20,29 +20,12 @@ const Header = ({ toggleSidebar }) => {
   const [lastName, setLastName] = useState("");
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
-  useEffect(() => {
-    if (!user) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await EmployeeGetApiById(user.userId);
-        const { firstName, lastName } = response.data;
-        setFirstName(firstName);
-        setLastName(lastName);
-      } catch (error) {
-        setError("Failed to fetch data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user]);
+   console.log("company in Header",company)
+   console.log("employee in Header",employee)
 
   const token = localStorage.getItem("token");
-
+  const companyName=localStorage.getItem("companyName")
   useEffect(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
@@ -153,7 +136,7 @@ const Header = ({ toggleSidebar }) => {
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">{user.company}</span>
+                <span className="text-dark p-2 mb-3">{companyName}</span>
                 <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
@@ -211,7 +194,7 @@ const Header = ({ toggleSidebar }) => {
         </ul>
       </div>
       <Reset
-        companyName={user.company}
+        companyName={companyName}
         show={showResetPasswordModal}
         onClose={() => setShowResetPasswordModal(false)}
       />

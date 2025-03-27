@@ -89,7 +89,7 @@ public class EmployeeUpdateRequest {
     private String ifscCode;
 
     @Schema(example = "bankName")
-    @Pattern(regexp = "^(?!\\b([A-Z])\\s([A-Z])\\b)(?!\\b([A-Z])\\s([A-Z])\\s([A-Z])\\b)(?:(?:[A-Z][a-zA-Z]*(?:[-\\s][A-Za-z]+)*)(?:[,.]? [A-Za-z]+)*(?:\\.)?)?$", message = "{bankName.format}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{bankName.pattern.message}")
     @Size(min = 3, max = 100, message = "{bankName.size.message}")
     private String bankName;
 

@@ -130,7 +130,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         CompletableFuture.runAsync(() -> {
             try {
                 String defaultPassword = PasswordUtils.generateStrongPassword();
-                String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.CREATE_PASSWORD;
+                String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
                 emailUtils.sendRegistrationEmail(employeeRequest.getEmailId(), companyUrl,Constants.EMPLOYEE,defaultPassword);
             } catch (Exception e) {
@@ -227,6 +227,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         EmployeeEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         EmployeeResponse employeeResponse;
+        EmployeePersonnelEntity employeePersonnelEntity = null;
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
             DepartmentEntity departmentEntity =null;
@@ -237,13 +238,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(entity, departmentEntity, designationEntity);
 
             }
-            EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
-            if (employeePersonnelEntity == null){
-                log.error("Employee personnel details are not exist for the employee {}", entity.getFirstName());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
+            if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
+                employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
+                if (employeePersonnelEntity == null) {
+                    log.error("Employee personnel details are not exist for the employee {}", entity.getFirstName());
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
+                }
             }
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
+
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
