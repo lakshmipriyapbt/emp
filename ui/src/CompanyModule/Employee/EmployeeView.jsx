@@ -28,8 +28,8 @@ const EmployeeView = () => {
   }, [dispatch]);
 
   // Step 2: Display loading or error messages
-  if (status === "loading") return <p>Loading employees...</p>;
-  if (status === "failed") return <p>Error: {error}</p>;
+  if (status === "loading") return <LayOut><p>Loading employees...</p></LayOut>;
+  if (status === "failed") return <LayOut><p>Error: {error}</p></LayOut>;
 
 
 
