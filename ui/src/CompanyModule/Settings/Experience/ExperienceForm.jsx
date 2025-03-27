@@ -27,7 +27,7 @@ const ExperienceForm = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { user, companyData } = useAuth();
+  const { authUser, companyData } = useAuth();
   const [emp, setEmp] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [noticePeriod, setNoticePeriod] = useState(0);
@@ -66,6 +66,7 @@ const ExperienceForm = () => {
   useEffect(() => {
     fetchTemplate();
   }, []);
+  
   const fetchTemplate = async (companyId) => {
     try {
       const res = await TemplateGetAPI(companyId);
@@ -77,6 +78,7 @@ const ExperienceForm = () => {
       setTemplateAvailable(false);
     }
   };
+
   useEffect(() => {
     if (employees) {
       const activeEmployees = employees
@@ -164,7 +166,7 @@ const ExperienceForm = () => {
     console.log(data);
     const submissionData = {
       employeeId: data.employeeId,
-      companyName: user.company,
+      companyName: authUser.company,
       date: data.experienceDate,
     };
     // Format the date fields to dd-mm-yyyy format
@@ -181,10 +183,11 @@ const ExperienceForm = () => {
       designationName: data.designationName || "",
       departmentName: data.departmentName || "",
       joiningDate: formattedHiringDate || "",
+      aboutEmployee:data.aboutEmployee || "",
       experienceDate: formattedExperinceDate || "", // Resignation date formatted
       date: formattedLastWorkingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName: authUser.company,
       companyData: companyData,
     };
    console.log("previewData",preview)
@@ -420,7 +423,7 @@ const ExperienceForm = () => {
                       readOnly
                       {...register("employeeId")}
                     />
-
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Designation</label>
                       <input
@@ -449,6 +452,7 @@ const ExperienceForm = () => {
                         <p className="errorMsg">Department Required</p>
                       )} */}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Date of Hired</label>
                       <input
