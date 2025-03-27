@@ -70,7 +70,7 @@ const Reset = ({ companyName, onClose, show }) => {
 
     try {
       setLoading(true);
-      const response = await resetPassword(formData, id);
+      const response = await resetPassword(formData, authUser.userId);
       console.log("Password Reset Successful:", response.data);
       setLoading(false);
       onClose(); 

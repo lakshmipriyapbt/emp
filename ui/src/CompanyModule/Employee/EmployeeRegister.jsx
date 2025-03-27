@@ -497,9 +497,9 @@ const validateHiringDate = (value) => {
                      >
                       <option value="">Select Status</option>
                       <option value='Active'>Active</option>
-                      <option value='In Active'>InActive</option>
-                      <option value='On Board'>OnBoard</option>
-                      <option value='Notice Period'>Notice Period</option>
+                      <option value='InActive'>In Active</option>
+                      <option value='OnBoard'>OnBoard</option>
+                      <option value='NoticePeriod'>Notice Period</option>
                       <option value='Relieved'>Relieved</option>
                     </select>
                     <small className="text-danger">{errors.status?.message}</small>
@@ -666,7 +666,7 @@ const validateHiringDate = (value) => {
                       <input type="text" className="form-control"
                         {...register(`employeeEducation.${index}.educationLevel`, {
                           required: "Education Level is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z0-9\s]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.educationLevel?.message}</small>

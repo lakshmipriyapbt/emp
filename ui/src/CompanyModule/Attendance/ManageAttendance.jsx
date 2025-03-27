@@ -85,11 +85,10 @@ const ManageAttendance = () => {
  }
     // Formatting employee data for Excel
     const updatedEmployees = filteredEmployees.map((employee) => ({
-      EmployeeId: employee.employeeId,
-      EmployeeName: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
+       EmployeeId: employee.employeeId,
+      "First Name": `${employee.firstName || ""}`.trim(),
+      "Last Name" :`${employee.lastName || ""}`.trim(),
       "Email Id": employee.emailId || "", // Ensure default value
-      Department: employee.departmentName,
-      Designation: employee.designationName,
       Month: selectedMonth,
       Year: selectedYear,
       "Working Days": "", // Placeholder

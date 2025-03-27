@@ -7,6 +7,7 @@ import LayOut from "../../LayOut/LayOut";
 import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
+import Loader from "../../Utils/Loader";
 
 const EmployeeView = () => {
   const [search, setSearch] = useState("");
@@ -28,10 +29,8 @@ const EmployeeView = () => {
   }, [dispatch]);
 
   // Step 2: Display loading or error messages
-  if (status === "loading") return <p>Loading employees...</p>;
-  if (status === "failed") return <p>Error: {error}</p>;
-
-
+  if (status === "loading") return <Loader/>;
+  if (status === "failed") return <Loader/>;
 
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
