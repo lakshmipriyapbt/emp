@@ -21,7 +21,6 @@ const PayslipUpdate2 = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const [companyData, setCompanyData] = useState({});
   const [allowanceFields, setAllowanceFields] = useState([]);
   const [deductionFields, setDeductionFields] = useState([]);
   const [taxFields, setTaxFields] = useState([{ label: "New Tax", value: 0 }]);
@@ -53,7 +52,7 @@ const PayslipUpdate2 = () => {
   const salaryId = queryParams.get("salaryId");
   const month = queryParams.get("month");
   const year = queryParams.get("year");
-  const { user, logoFileName } = useAuth();
+  const { user, company} = useAuth();
 
   const numberToWords = (num) => {
     const units = [
@@ -147,23 +146,10 @@ const PayslipUpdate2 = () => {
     return result.trim();
   };
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
   const fetchEmployeeDetails = async (employeeId) => {
     try {
       const response = await EmployeeGetApiById(employeeId);
       setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        await fetchCompanyData(response.data.companyId);
-      }
     } catch (err) {
       console.error("Error fetching employee details:", err);
       toast.error("Failed to fetch employee details");
@@ -643,10 +629,10 @@ const PayslipUpdate2 = () => {
               }}
             >
               <div style={{ paddingTop: "20px" }}>
-                {logoFileName ? (
+                {company?.imageFile ? (
                   <img
                     className="align-middle"
-                    src={logoFileName}
+                    src={company?.imageFile}
                     alt="Logo"
                     style={{ height: "80px", width: "180px" }}
                   />
@@ -658,9 +644,9 @@ const PayslipUpdate2 = () => {
                 className="company-details text-center"
                 style={{ padding: "2px" }}
               >
-                <h6>{companyData.companyAddress}.</h6>
-                <h6>{companyData.mobileNo}</h6>
-                <h6>{companyData.emailId}</h6>
+                <h6>{company?.companyAddress}.</h6>
+                <h6>{company?.mobileNo}</h6>
+                <h6>{company?.emailId}</h6>
               </div>
             </div>
           </div>

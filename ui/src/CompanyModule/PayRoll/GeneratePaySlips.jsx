@@ -5,6 +5,7 @@ import { Bounce, toast } from "react-toastify";
 import DataTable from "react-data-table-component";
 import LayOut from "../../LayOut/LayOut";
 import {
+  CompanySalaryStructureGetApi,
   EmployeePayslipGenerationPostById,
   EmployeePayslipResponse,
   TemplateGetAPI,
@@ -24,6 +25,7 @@ const GeneratePaySlip = () => {
   const [view, setView] = useState([]);
   const [show, setShow] = useState(false);
   const [emp,setEmp]=useState([]);
+  const [companySalaryId,setCompanySalaryId]=useState(null)
   const [attendanceNull, setAttendanceNull] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -31,7 +33,7 @@ const GeneratePaySlip = () => {
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch(); // Initialize dispatch function
 
@@ -78,8 +80,20 @@ const GeneratePaySlip = () => {
         toast.error("Failed to fetch payslip templates.");
       }
     };
+    const fetchCompanySalaryId = async () => {
+      try {
+        const response = await CompanySalaryStructureGetApi();
+        setCompanySalaryId(response.data.data.id);
+        console.log("company Salary",response.data.data);
+      } catch (error) {
+        toast.error("Failed to fetch Company Salary.");
+      }
+    };
     fetchTemplate();
+    fetchCompanySalaryId();
   }, []);
+
+  console.log("salaryId",companySalaryId)
 
   const handleEditClick = (employeeId, payslipId, salaryId, month, year) => {
     const payslipTemplateNo = currentTemplate?.payslipTemplateNo;
@@ -95,8 +109,8 @@ const GeneratePaySlip = () => {
 
   const onSubmit = async ({ month, year }) => {
     try {
-      const response = await EmployeePayslipResponse(user.salaryId, {
-        companyName: user.company,
+      const response = await EmployeePayslipResponse(companySalaryId, {
+        companyName: authUser.company,
         month: month.label,
         year: year.label,
       });
@@ -149,7 +163,7 @@ const GeneratePaySlip = () => {
       await Promise.all(
         selectedEmployees.map(({ employeeId, salaryId }) =>
           EmployeePayslipGenerationPostById(employeeId, salaryId, {
-            companyName: user.company,
+            companyName: authUser.company,
             month,
             year,
           })
@@ -310,7 +324,7 @@ const GeneratePaySlip = () => {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="card-body">
                   <div className="row">
-                  <div className="col-12 col-md-6 col-lg-4 mb-2">
+                  {/* <div className="col-12 col-md-6 col-lg-4 mb-2">
                       <label className="form-label">Select Employee Name</label>
                       <Controller
                         name="employeeId"
@@ -333,7 +347,7 @@ const GeneratePaySlip = () => {
                       {errors.employeeId && (
                         <p className="errorMsg">{errors.employeeId.message}</p>
                       )}
-                    </div>
+                    </div> */}
                     <div className="col-12 col-md-6 col-lg-3 mb-3">
                       <label className="form-label">Select Year</label>
                       <Controller

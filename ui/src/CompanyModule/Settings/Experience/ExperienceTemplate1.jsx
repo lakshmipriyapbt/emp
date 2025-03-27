@@ -97,6 +97,10 @@ const ExperienceTemplate1 = ({
         <div className="mt-5 pt-3">
           <p className="mb-5">Sincerely,</p>
           <div className="mt-5 pt-5">
+          <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
             <h4>{companyData?.companyName},</h4>
             <p>
               {companyData?.mobileNo},{companyData?.emailId}

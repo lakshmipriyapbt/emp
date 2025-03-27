@@ -23,11 +23,11 @@ const InternShipTemplate2 = ({
         {/* Left side: Company Information */}
         <div className="text-start">
           <div style={{ textAlign: "left" }}>
-            <h4>{companyData.companyName}</h4>
-            <p>{companyData.companyAddress}</p>
+            <h4>{companyData?.companyName}</h4>
+            <p>{companyData?.companyAddress}</p>
             <p>
               {" "}
-              {companyData.mobileNo} | {companyData.emailId}
+              {companyData?.mobileNo} | {companyData?.emailId}
             </p>
           </div>
         </div>
@@ -36,7 +36,7 @@ const InternShipTemplate2 = ({
         <div>
           <img
             src={companyLogo}
-            alt={`${companyData.companyName} Logo`}
+            alt={`${companyData?.companyName} Logo`}
             style={{
               maxWidth: "160px",
               position: "absolute",
@@ -83,7 +83,7 @@ const InternShipTemplate2 = ({
         <p>
           We are pleased to inform that <strong>{employeeName}</strong>&nbsp;
           has successfully completed an internship program with{" "}
-          <strong>{companyData.companyName}</strong> as a{" "}
+          <strong>{companyData?.companyName}</strong> as a{" "}
           <strong>{designation}</strong> in the <strong>{department}</strong>{" "}
           department from <strong>{startDate}</strong> to{" "}
           <strong>{endDate}</strong>.

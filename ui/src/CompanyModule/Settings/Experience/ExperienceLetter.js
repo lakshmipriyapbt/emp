@@ -13,14 +13,11 @@ import ExperienceTemplate2 from "./ExperienceTemplate2";
 
 const ExperienceLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { authUser, company={} } = useAuth();
+  const { company={} } = useAuth();
 
   const fetchTemplate = async () => {
     try {

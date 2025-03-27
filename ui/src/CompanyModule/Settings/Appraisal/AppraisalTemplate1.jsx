@@ -16,7 +16,6 @@ const AppraisalTemplate1 = ({
 }) => {
   console.log("Basic Salary: ", basicSalary);
 
-  const { logoFileName } = useAuth();
   // Extract employeeId from URL query params if needed
 
   return (
@@ -30,10 +29,10 @@ const AppraisalTemplate1 = ({
       }}
     >
       <div style={{ textAlign: "right" }}>
-        {logoFileName ? (
+        {companyData ? (
           <img
             className="align-middle"
-            src={companyLogo}
+            src={companyData?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "150px" }}
           />
@@ -206,11 +205,15 @@ const AppraisalTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
+            <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
             <h6>{companyName}</h6>
             <h6>
-              PH: {companyData.mobileNo}, Email: {companyData.emailId}{" "}
+              PH: {companyData?.mobileNo}, Email: {companyData?.emailId}{" "}
             </h6>
-            <h6>{companyData.companyAddress}</h6>
+            <h6>{companyData?.companyAddress}</h6>
           </div>
         </div>
       </div>

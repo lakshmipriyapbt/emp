@@ -8,43 +8,14 @@ const InternOfferPrev = ({
 }) => {
       const [companyData, setCompanyData] = useState({});
       const [loading, setLoading] = useState(false);
-      const { user,logoFileName,stamp } = useAuth();
-      const fetchCompanyData = async (companyId) => {
-        try {
-          const response = await companyViewByIdApi(companyId);
-          setCompanyData(response.data);
-        } catch (err) {
-          console.error("Error fetching company data:", err);
-          toast.error("Failed to fetch company data");
-        }
-      };
-    
-      const fetchEmployeeDetails = async (employeeId) => {
-        try {
-          const response = await EmployeeGetApiById(employeeId);
-          if (response.data.companyId) {
-            fetchCompanyData(response.data.companyId);
-          }
-        } catch (err) {
-          console.error("Error fetching employee details:", err);
-          toast.error("Failed to fetch employee details");
-        }
-      };
-    
-      useEffect(() => {
-        const userId = user.userId;
-        setLoading(true);
-        if (userId) {
-          fetchEmployeeDetails(userId);
-        }
-        setLoading(false);
-      }, [user.userId]);
+      const { company } = useAuth();
+
   return (
     <div className="p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
       <div className="logo text-end me-5">
-        <img src={logoFileName} alt="Company Logo" />
+        <img src={company?.imageFile} alt="Company Logo" />
       </div>
       <p>Date: {previewData.date}</p>
       <p>
@@ -89,7 +60,7 @@ const InternOfferPrev = ({
       </div>
 
       <div className="logo text-end me-5">
-        <img src={stamp} alt="stamp" />
+        <img src={company?.stampImage} alt="stamp" />
         <p>Authorized Signature</p>
       </div>
       </div>
