@@ -10,10 +10,10 @@ const ExperienceTemplate2 = ({
     designation,
     department,
     joiningDate,
-    experienceDate
-
+    experienceDate,
+    aboutEmployee
 }) => {
-  const {logoFileName} = useAuth();
+  const {company} = useAuth();
 
     return (
             <div
@@ -48,7 +48,7 @@ const ExperienceTemplate2 = ({
         right: '30%',
         width: '50%',
         height: '50%',
-        backgroundImage: `url(${logoFileName})`, // Use the logo or another image
+        backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
         transform: 'rotate(340deg)',
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
@@ -84,6 +84,7 @@ const ExperienceTemplate2 = ({
               and proactive approach were instrumental in overcoming challenges
               and achieving project objectives.
             </p>
+            <p>About Emoployee :{aboutEmployee}</p>
             <p>
               We commend <strong>{employeeName}</strong> for his outstanding performance and
               professionalism throughout his/her tenure with{" "}

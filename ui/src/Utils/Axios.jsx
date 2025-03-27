@@ -286,7 +286,7 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employees/download?format=${format}`, {
+    const response = await axiosInstance.get(`${company}/employees/bank?format=${format}`, {
       responseType: "blob",
     });
 

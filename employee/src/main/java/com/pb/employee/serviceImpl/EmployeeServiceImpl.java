@@ -151,6 +151,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<EmployeeResponse> employeeResponses = new ArrayList<>();
         EmployeePersonnelEntity employeePersonnelEntity= null;
 
+
         try {
             LocalDate currentDate = LocalDate.now();
             employeeEntities = openSearchOperations.getCompanyEmployees(companyName);

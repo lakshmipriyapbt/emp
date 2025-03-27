@@ -106,6 +106,10 @@ const RelievingTemplate3 = ({
         <div className="pt-4">
           <p className="mb-5">Yours Sincerely,</p>
           <p className="mt-5">Authorized Signature,</p>
+          <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
           <h5>{companyData.companyName}</h5>
           <p>{companyData.companyAddress}</p>
           <p>{companyData.cityStatePin}</p>
