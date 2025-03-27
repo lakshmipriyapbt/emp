@@ -149,6 +149,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         List<EmployeeEntity> employeeEntities = null;
         List<EmployeeResponse> employeeResponses = new ArrayList<>();
+        EmployeePersonnelEntity employeePersonnelEntity= null;
 
         try {
             LocalDate currentDate = LocalDate.now();
@@ -197,15 +198,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                     }
                 }
                 if (!isCompanyAdmin(employee)) {
-                    EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
-                    if (employeePersonnelEntity == null) {
-                        log.error("Employee personnel details are not exist for the employee {}", employee.getFirstName());
-                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
-                    }
-                    EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
-                    employeeResponse.setPersonnelEntity(employeePersonnelEntity);
-                    employeeResponses.add(employeeResponse);
+                    employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
                 }
+                EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
+                employeeResponse.setPersonnelEntity(employeePersonnelEntity);
+                employeeResponses.add(employeeResponse);
             }
         } catch (Exception ex) {
             log.error("Exception while fetching employees for company {}: {}", companyName, ex.getMessage());
@@ -240,10 +237,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
-                if (employeePersonnelEntity == null) {
-                    log.error("Employee personnel details are not exist for the employee {}", entity.getFirstName());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
-                }
             }
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             employeeResponse.setPersonnelEntity(employeePersonnelEntity);
