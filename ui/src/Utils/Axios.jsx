@@ -7,7 +7,6 @@ const hostname = window.location.hostname;
 const BASE_URL = `${protocol}//${hostname}:8012/ems`;
 const Login_URL = `${protocol}//${hostname}:9002/ems`;
 
-const token = localStorage.getItem("token");
 // ✅ Create Axios Instance (Without Token)
 const axiosInstance = axios.create({
   baseURL: BASE_URL,

@@ -147,7 +147,7 @@ const ManageAttendance = () => {
     <label className="card-title text-white">
       Select Month <span className="text-danger fw-100">*</span>
     </label>
-    <select className="form-control" onChange={(e) => setSelectedMonth(e.target.value)}>
+    <select className="form-select" onChange={(e) => setSelectedMonth(e.target.value)}>
       <option value="">Select Month</option>
       {Array.from({ length: 12 }, (_, i) => {
         const monthName = new Date(2000, i).toLocaleString("default", { month: "long" });
@@ -165,9 +165,9 @@ const ManageAttendance = () => {
     <label className="card-title text-white">
       Select Year <span className="text-danger fw-100">*</span>
     </label>
-    <select className="form-control" onChange={(e) => setSelectedYear(e.target.value)}>
+    <select className="form-select" onChange={(e) => setSelectedYear(e.target.value)}>
       <option value="">Select Year</option>
-      {Array.from({ length: 5 }, (_, i) => {
+      {Array.from({ length: 30 }, (_, i) => {
         const year = new Date().getFullYear() - i;
         return <option key={year} value={year}>{year}</option>;
       })}

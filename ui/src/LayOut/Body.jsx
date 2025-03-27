@@ -4,6 +4,7 @@ import { useAuth } from '../Context/AuthContext';
 import { EmployeeGetApi } from '../Utils/Axios';
 import { toast } from 'react-toastify';
 import { PeopleFill, PersonFillCheck, PersonFillExclamation } from 'react-bootstrap-icons';
+import Loader from '../Utils/Loader';
 
 const Body = () => {
   const { authUser } = useAuth();
@@ -59,8 +60,6 @@ const Body = () => {
     }
   };
   
-  
-
   const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
       const errorMessage = error.response.data.error.message;
@@ -97,8 +96,8 @@ const Body = () => {
           ) : (
             <>
               {loading ? (
-                <p>Loading...</p>
-              ) : (
+<Loader/>
+) : (
                 <div className="row">
                   <div className="col-xl-4 col-12 mb-3">
                     <div className="card mt-3">
