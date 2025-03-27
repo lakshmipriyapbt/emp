@@ -14,15 +14,12 @@ import RelievingTemplate3 from "./RelievingTemplate3";
 
 const RelievingLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [isFetched, setIsFetched] = useState(false);
 
-  const { authUser, company } = useAuth();
-  const logo = "/assets/img/adapt_adapt_logo.png";
+  const { company } = useAuth();
 
 
   const fetchTemplate = async () => {
@@ -122,7 +119,7 @@ const RelievingLetter = () => {
 
   const handleSubmitTemplate = async () => {
     const dataToSubmit = {
-      companyId: companyData.id, // Ensure this is correct
+      companyId: company.id, // Ensure this is correct
       relievingTemplateNo: selectedTemplate.name,
       // Add other necessary fields if required
     };

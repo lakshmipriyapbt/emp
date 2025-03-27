@@ -36,7 +36,7 @@ const InternshipTemplate1 = ({
         </div>
         <img
           src={companyLogo}
-          alt={`${companyData.companyName} Logo`}
+          alt={`${companyData?.companyName} Logo`}
           style={{
             maxWidth: "160px",
             position: "absolute",
@@ -80,7 +80,7 @@ const InternshipTemplate1 = ({
           {" "}
           This is to certify that <strong>{employeeName}</strong> has
           successfully completed an internship program with{" "}
-          <strong>{companyData.companyName}</strong> as a{" "}
+          <strong>{companyData?.companyName}</strong> as a{" "}
           <strong>{designation}</strong> in the <strong>{department}</strong>{" "}
           department from <strong>{startDate}</strong> to{" "}
           <strong>{endDate}</strong>.
@@ -99,10 +99,14 @@ const InternshipTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            <h4>{companyData.companyName},</h4>
-            <p>{companyData.emailId},</p>
-            <p>{companyData.mobileNo},</p>
-            <p>{companyData.companyAddress}.</p>
+            <img 
+              src={companyData?.stampImage}
+              alt="Stamp"
+              style={{ height: "100px", width: "160px" }}/>
+            <h4>{companyData?.companyName},</h4>
+            <p>{companyData?.emailId},</p>
+            <p>{companyData?.mobileNo},</p>
+            <p>{companyData?.companyAddress}.</p>
           </div>
         </div>
       </div>

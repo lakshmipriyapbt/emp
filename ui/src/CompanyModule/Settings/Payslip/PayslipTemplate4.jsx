@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../../../Context/AuthContext";
 
 const PayslipTemplate4 = () => {
-    const { logoFileName } = useAuth();
+    const { company } = useAuth();
 
     return (
         <div>
@@ -11,8 +11,8 @@ const PayslipTemplate4 = () => {
                     <div className="card-header mt-4" style={{ background: "none", paddingBottom: "0px", paddingLeft: "30px", paddingRight: "30px" }}>
                         <div className="header-content mt-4" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
-                                {logoFileName ? (
-                                    <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                                {company?.imageFile ? (
+                                    <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                                 ) : (
                                     <p>Logo</p>
                                 )}
