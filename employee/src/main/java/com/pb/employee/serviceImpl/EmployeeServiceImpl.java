@@ -203,7 +203,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                         throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
                     }
                     EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
-                    employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
+                    employeeResponse.setPersonnelEntity(employeePersonnelEntity);
                     employeeResponses.add(employeeResponse);
                 }
             }
@@ -246,7 +246,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
             }
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
-            employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
+            employeeResponse.setPersonnelEntity(employeePersonnelEntity);
 
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
@@ -355,7 +355,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             );
         }
         try {
-            openSearchOperations.deleteEntity(entity.getEmployeePersonnelEntity().getId(), index);
+            openSearchOperations.deleteEntity(entity.getPersonnelEntity().getId(), index);
             openSearchOperations.deleteEntity(employeeId, index);
 
         } catch (Exception ex) {
