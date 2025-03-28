@@ -112,6 +112,21 @@ const OfferLetterPreview = () => {
     }
   };
 
+  const formatFieldName = (fieldName) => {
+    return fieldName
+      .split(" ")
+      .map((token) => {
+        if (token === token.toUpperCase()) {
+          return token;
+        }
+        return token
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+          .trim();
+      })
+      .join(" ");
+  };
+
   useEffect(() => {
     fetchSalary();
   }, []); // Initially fetch the salary structures
@@ -191,14 +206,19 @@ const OfferLetterPreview = () => {
     const totalDeductions = Object.entries(deductions).reduce(
       (acc, [key, value]) => {
         let deductionAmount = 0;
-    
-        if (key === "Provident Fund Employee" || key === "Provident Fund Employer") {
+
+        if (
+          key === "Provident Fund Employee" ||
+          key === "Provident Fund Employer"
+        ) {
           console.log(`Calculating ${key} deduction.`); // Log for debugging
-    
+
           if (typeof value === "string" && value.includes("%")) {
             const percentageValue = parseFloat(value.slice(0, -1)) / 100; // Convert percentage to decimal
-            deductionAmount = basicSalaryAmount * percentageValue;  // Provident Fund deduction based on Gross Amount
-            console.log(`${key} deduction calculated as percentage: ${deductionAmount}`); // Log percentage-based deduction calculation
+            deductionAmount = basicSalaryAmount * percentageValue; // Provident Fund deduction based on Gross Amount
+            console.log(
+              `${key} deduction calculated as percentage: ${deductionAmount}`
+            ); // Log percentage-based deduction calculation
           } else {
             deductionAmount = parseFloat(value); // Fixed deduction value for Provident Fund
             console.log(`${key} deduction as fixed value: ${deductionAmount}`); // Log fixed deduction value
@@ -208,17 +228,19 @@ const OfferLetterPreview = () => {
           if (typeof value === "string" && value.includes("%")) {
             const percentageValue = parseFloat(value.slice(0, -1)) / 100; // Convert percentage to decimal
             deductionAmount = grossAmount * percentageValue; // Other deductions based on Gross Amount
-            console.log(`${key} deduction calculated as percentage: ${deductionAmount}`); // Log percentage-based deduction calculation
+            console.log(
+              `${key} deduction calculated as percentage: ${deductionAmount}`
+            ); // Log percentage-based deduction calculation
           } else {
             deductionAmount = parseFloat(value); // Fixed deduction value
             console.log(`${key} deduction as fixed value: ${deductionAmount}`); // Log fixed deduction value
           }
         }
-    
+
         return acc + deductionAmount;
       },
       0
-    );    
+    );
     const netSalary = grossAmount - totalDeductions;
     console.log("Net Salary: ", netSalary); // Log the calculated net salary
 
@@ -685,10 +707,22 @@ const OfferLetterPreview = () => {
                   let otherAllowanceNegative = false; // Flag to track if "Other Allowance" is negative
                   return (
                     <React.Fragment key={structure.id}>
-                      {Object.entries(structure.allowances).map(
-                        ([key, value]) => {
+                      {/* ALLOWANCES */}
+                      {Object.entries(structure.allowances)
+                        // 1. Sort the entries so "Basic Salary" comes first, "HRA" second
+                        .sort(([keyA], [keyB]) => {
+                          if (keyA === "Basic Salary") return -1;
+                          if (keyB === "Basic Salary") return 1;
+                          if (keyA === "HRA") return -1;
+                          if (keyB === "HRA") return 1;
+                          return 0;
+                        })
+                        .map(([key, value]) => {
                           let allowanceAmount;
-                          if (key === "HRA" || key==='Provident Fund Employer') {
+                          if (
+                            key === "HRA" ||
+                            key === "Provident Fund Employer"
+                          ) {
                             // Assuming Basic Salary is part of structure and it can be accessed, calculate HRA as a percentage of Basic Salary
                             if (value.includes("%")) {
                               allowanceAmount =
@@ -708,11 +742,7 @@ const OfferLetterPreview = () => {
 
                           return (
                             <tr key={key}>
-                              <td>
-                                {key
-                                  .replace(/([A-Z])/g, " $1")
-                                  .replace(/^./, (str) => str.toUpperCase())}
-                              </td>
+                              <td>{formatFieldName(key)}</td>
                               <td>
                                 {Math.floor(allowanceAmount.toFixed(2) / 12)}
                               </td>{" "}
@@ -723,8 +753,7 @@ const OfferLetterPreview = () => {
                               {/* Annual calculation */}
                             </tr>
                           );
-                        }
-                      )}
+                        })}
                       {/* Other Allowance row */}
                       <tr>
                         <td>
@@ -795,7 +824,10 @@ const OfferLetterPreview = () => {
                       {Object.entries(structure.deductions).map(
                         ([key, value]) => {
                           let deductionAmount;
-                          if (key === "Provident Fund Employee" || key==='Provident Fund Employer') {
+                          if (
+                            key === "Provident Fund Employee" ||
+                            key === "Provident Fund Employer"
+                          ) {
                             // Assuming Basic Salary is part of structure and it can be accessed, calculate HRA as a percentage of Basic Salary
                             if (value.includes("%")) {
                               deductionAmount =
@@ -815,11 +847,7 @@ const OfferLetterPreview = () => {
 
                           return (
                             <tr key={key}>
-                              <td>
-                                {key
-                                  .replace(/([A-Z])/g, " $1")
-                                  .replace(/^./, (str) => str.toUpperCase())}
-                              </td>
+                              <td>{formatFieldName(key)}</td>
                               <td>
                                 {Math.round(deductionAmount.toFixed(2) / 12)}
                               </td>

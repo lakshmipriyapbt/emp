@@ -1,321 +1,328 @@
 package com.invoice.util;
 
-import com.invoice.config.Config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.invoice.config.NumberToWordsConverter;
 import com.invoice.exception.InvoiceErrorMessageKey;
 import com.invoice.exception.InvoiceException;
 import com.invoice.model.*;
-import com.invoice.repository.ProductRepository;
+import com.invoice.opensearch.OpenSearchOperations;
+import com.invoice.request.CustomerRequest;
 import com.invoice.request.InvoiceRequest;
-import com.invoice.request.OrderRequest;
-import com.invoice.response.InvoiceResponse;
+import com.invoice.request.ProductColumnsRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import static com.invoice.util.ProductUtils.unmaskProductProperties;
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
+
+@Slf4j
 public class InvoiceUtils {
 
-    public static InvoiceModel initializeInvoice(InvoiceRequest request, CustomerModel customer, String companyId, String customerId) {
-        String customerName = null;
+    @Autowired
+    private static OpenSearchOperations openSearchOperations;
 
-        // Unmasking the properties by decoding the Base64 encoded values
-        if (customer.getCustomerName() != null) {
-            customerName = new String(Base64.getDecoder().decode(customer.getCustomerName()));
-        }
-        InvoiceModel invoice = new InvoiceModel();
-        invoice.setCustomerId(customerId);
-        invoice.setPurchaseOrder(request.getPurchaseOrder());
-        invoice.setVendorCode(request.getVendorCode());
-        invoice.setInvoiceDate(String.valueOf(request.getInvoiceDate()));
-        invoice.setStatus(request.getStatus());
-        invoice.setDueDate(request.getDueDate());
-        invoice.setCompanyId(companyId);
-        return invoice;
-    }
+    public static InvoiceModel maskInvoiceProperties(InvoiceRequest request, String invoiceId, String invoiceNo, CompanyEntity companyEntity, CustomerModel customerModel, BankEntity bankEntity) throws InvoiceException {
+        ObjectMapper objectMapper = new ObjectMapper();
 
-    public static List<OrderModel> processOrders(List<OrderRequest> orderRequests, InvoiceModel invoice,
-                                                 ProductRepository productRepository) throws InvoiceException {
-        List<OrderModel> orders = new ArrayList<>();
+        // Convert the InvoiceRequest to InvoiceModel
+        InvoiceModel entity = objectMapper.convertValue(request, InvoiceModel.class);
 
-        for (OrderRequest orderRequest : orderRequests) {
-            // Fetch the product from repository
-            ProductModel product = productRepository.findById(orderRequest.getProductId())
-                    .orElseThrow(() -> new InvoiceException(InvoiceErrorMessageKey.PRODUCT_NOT_FOUND.getMessage(), HttpStatus.NOT_FOUND));
-
-            // Unmask product properties if necessary
-            product = unmaskProductProperties(product);
-
-            // Calculate total cost using the quantity from the OrderRequest and the unit cost of the product
-            BigDecimal quantity = new BigDecimal(orderRequest.getQuantity());
-            String cost = product.getUnitCost();
-            BigDecimal totalCost = quantity.multiply(new BigDecimal(cost));
-
-            // Create an OrderModel instance and set properties
-            OrderModel order = new OrderModel();
-            order.setProduct(product);
-            order.setPurchaseDate(orderRequest.getPurchaseDate());
-            order.setQuantity(orderRequest.getQuantity().toString());
-            order.setCost(cost.toString());
-            order.setTotalCost(String.valueOf(totalCost));
-            order.setInvoiceModel(invoice);
-
-            // Add the masked order to the list
-            orders.add(order);
+        // Validate product details
+        if (request.getProductData() == null || request.getProductData().isEmpty()) {
+            throw new InvoiceException(InvoiceErrorMessageKey.PRODUCT_NOT_FOUND.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        return orders;
-    }
-
-    public static BigDecimal calculateTotalAmount(List<OrderModel> orders) {
-        return orders.stream()
-                .map(order -> new BigDecimal(order.getTotalCost()))  // Convert String to BigDecimal
-                .reduce(BigDecimal.ZERO, BigDecimal::add);  // Sum the BigDecimal values
-    }
-
-    private static String extractStateCode(String gstNumber) {
-        if (gstNumber == null || gstNumber.length() < 2) {
-            return null;
-        }
-        return gstNumber.substring(0, 2);
-    }
-
-    public static void calculateGstAndGrandTotal(InvoiceModel invoice, CompanyEntity company, CustomerModel customer,
-                                                 BigDecimal totalAmount, Config config) {
-
-        String companyStateCode = extractStateCode(company.getGstNo());
-        String customerStateCode = extractStateCode(customer.getGstNo());
-        BigDecimal gstRate = config.getRate();
-        BigDecimal gstAmount;
-        // Check if customer GST number is null or empty
-        String customerGstNo = customer.getGstNo();
-        if (customerGstNo == null || customerGstNo.trim().isEmpty()) {
-            invoice.setGst(Constants.ZERO);
-            invoice.setCGst(Constants.ZERO);
-            invoice.setSGst(Constants.ZERO);
-            invoice.setIGst(Constants.ZERO);
-            invoice.setGrandTotal(String.valueOf(totalAmount));
-            return;
-        }
-        // Determine GST values based on state codes
-        if (Objects.equals(companyStateCode, customerStateCode)) {
-            gstAmount = totalAmount.multiply(gstRate).divide(config.getValue());
-            invoice.setCGst(gstAmount.toString());
-            invoice.setSGst(gstAmount.toString());
-            invoice.setIGst(Constants.ZERO);
-            invoice.setGst(Constants.ZERO);
-        } else {
-            gstAmount = totalAmount.multiply(gstRate);
-            invoice.setCGst(Constants.ZERO);
-            invoice.setSGst(Constants.ZERO);
-            invoice.setGst(Constants.ZERO);
-            invoice.setIGst(gstAmount.toString());
-        }
-        BigDecimal grandTotal = totalAmount.add(gstAmount);
-        invoice.setGrandTotal(String.valueOf(grandTotal));
-    }
-
-    public static InvoiceModel encodeInvoiceData(InvoiceModel invoice) {
-
-        if (invoice.getCGst() != null) {
-            invoice.setCGst(Base64.getEncoder().encodeToString(invoice.getCGst().getBytes()));
-        }
-        if (invoice.getGst() != null) {
-            invoice.setGst(Base64.getEncoder().encodeToString(invoice.getGst().getBytes()));
-        }
-        if (invoice.getSGst() != null) {
-            invoice.setSGst(Base64.getEncoder().encodeToString(invoice.getSGst().getBytes()));
-        }
-        if (invoice.getIGst() != null) {
-            invoice.setIGst(Base64.getEncoder().encodeToString(invoice.getIGst().getBytes()));
-        }
-        if (invoice.getTotalAmount() != null) {
-            invoice.setTotalAmount(Base64.getEncoder().encodeToString(invoice.getTotalAmount().getBytes()));
+        // ✅ Validate productColumns (Ensure no empty or null values)
+        if (request.getProductColumns() == null || request.getProductColumns().isEmpty()) {
+            throw new InvoiceException(InvoiceErrorMessageKey.PLEASE_ENTER_FIELD_NAME.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        if (invoice.getGrandTotal() != null) {
-            String grandTotalAsString = invoice.getGrandTotal().toString();
-            String encodedGrandTotal = Base64.getEncoder().encodeToString(grandTotalAsString.getBytes(StandardCharsets.UTF_8));
-            invoice.setGrandTotal((encodedGrandTotal));
-        }
-        if (invoice.getGrandTotalInWords() != null) {
-            invoice.setGrandTotalInWords(Base64.getEncoder().encodeToString(invoice.getGrandTotalInWords().getBytes()));
-        }
-        // Encode all order data if needed
-        if (invoice.getOrderModels() != null) {
-            for (OrderModel order : invoice.getOrderModels()) {
-                if (order.getQuantity() != null) {
-                    order.setQuantity(Base64.getEncoder().encodeToString(order.getQuantity().getBytes()));
-                }
-                if (order.getCost() != null) {
-                    order.setCost(Base64.getEncoder().encodeToString(order.getCost().getBytes()));
-                }
-                if (order.getTotalCost() != null) {
-                    String totalCostAsString = order.getTotalCost().toString();
-                    String encodedTotalCost = Base64.getEncoder().encodeToString(totalCostAsString.getBytes(StandardCharsets.UTF_8));
-                    order.setTotalCost((encodedTotalCost));
-                }
+        for (ProductColumnsRequest column : request.getProductColumns()) {
+            if (column.getKey() == null || column.getTitle().trim().isEmpty()) {
+                throw new InvoiceException(InvoiceErrorMessageKey.PLEASE_ENTER_FIELD_NAME.getMessage(), HttpStatus.BAD_REQUEST);
             }
         }
-        return invoice;
+        // Set the necessary fields
+        entity.setInvoiceId(invoiceId);
+        entity.setType(Constants.INVOICE);
+        entity.setStatus(request.getStatus());
+        entity.setCompanyId(companyEntity.getId());
+        entity.setCustomerId(customerModel.getCustomerId());
+        entity.setBank(bankEntity);
+        entity.setCustomer(customerModel);
+        entity.setCompany(companyEntity);
+        entity.setInvoiceNo(invoiceNo);
+
+        // Mask productData (List<Map<String, String>>)
+        if (request.getProductData() != null) {
+            List<Map<String, String>> maskedProductData = request.getProductData().stream()
+                    .map(InvoiceUtils::maskMapValues) // Mask each map in the list
+                    .collect(Collectors.toList());
+            entity.setProductData(maskedProductData);
+        }
+
+        // Mask productColumns (List<ProductColumnsRequest>)
+        if (request.getProductColumns() != null) {
+            List<ProductColumnsRequest> maskedColumns = request.getProductColumns().stream()
+                    .map(InvoiceUtils::maskProductColumn)
+                    .collect(Collectors.toList());
+            entity.setProductColumns(maskedColumns);
+        }
+
+        // Mask other string fields
+        entity.setInvoiceDate(maskValue(request.getInvoiceDate()));
+        entity.setDueDate(maskValue(request.getDueDate()));
+        entity.setPurchaseOrder(maskValue(request.getPurchaseOrder()));
+        entity.setVendorCode(maskValue(request.getVendorCode()));
+        entity.setSubTotal(maskValue(request.getSubTotal()));
+
+        return entity;
     }
 
-    public static InvoiceResponse fromEntities(CompanyEntity companyEntity, CustomerModel customerModel, InvoiceModel invoiceModel, List<BankEntity> bankEntities) {
-        // Map all bank details
-        List<InvoiceResponse.BankDetailResponse> bankDetails = bankEntities.stream()
-                .map(bank -> InvoiceResponse.BankDetailResponse.builder()
-                        .bankName(bank.getBankName())
-                        .accountNumber(bank.getAccountNumber())
-                        .accountType(bank.getAccountType())
-                        .branch(bank.getBranch())
-                        .ifscCode(bank.getIfscCode())
-                        .bankAddress(bank.getAddress())
-                        .build())
-                .toList();
-        // Map all order details
-        List<InvoiceResponse.OrderDetailResponse> orderDetails = invoiceModel.getOrderModels().stream()
-                .map(order -> InvoiceResponse.OrderDetailResponse.builder()
-                        .productName(order.getProduct().getProductName())
-                        .hsnNo(order.getProduct().getHsnNo())
-                        .service(order.getProduct().getService())
-                        .quantity(order.getQuantity())
-                        .unitCost(order.getCost())
-                        .totalCost(order.getTotalCost())
-                        .build())
-                .toList();
-        return InvoiceResponse.builder()
-                .companyName(companyEntity.getCompanyName())
-                .companyAddress(companyEntity.getCompanyAddress())
-                .companyBranch(companyEntity.getCompanyBranch())
-                .cinNo(companyEntity.getCinNo())
-                .customerName(customerModel.getCustomerName())
-                .customerEmail(customerModel.getEmail())
-                .contactNumber(customerModel.getMobileNumber())
-                .customerGstNo(customerModel.getGstNo())
-                .gstNo(companyEntity.getGstNo())
-                .customerAddress(customerModel.getAddress())
-                .customerState(customerModel.getState())
-                .customerCity(customerModel.getCity())
-                .customerPinCode(customerModel.getPinCode())
-                .invoiceDate(invoiceModel.getInvoiceDate().toString())
-                .dueDate(invoiceModel.getDueDate().toString())
-                .invoiceNumber(invoiceModel.getInvoiceId())
-                .purchaseOrder(invoiceModel.getPurchaseOrder())
-                .vendorCode(invoiceModel.getVendorCode())
-                .status(invoiceModel.getStatus())
-                .gst(invoiceModel.getGst())
-                .cGst(invoiceModel.getCGst())
-                .sGst(invoiceModel.getSGst())
-                .iGst(invoiceModel.getIGst())
-                .totalAmount(invoiceModel.getTotalAmount())
-                .grandTotal(invoiceModel.getGrandTotal())
-                .grandTotalInWords(invoiceModel.getGrandTotalInWords())
-                .bankDetails(bankDetails)
-                .orderDetails(orderDetails)
+    // Mask values in a Map<String, String>
+    private static Map<String, String> maskMapValues(Map<String, String> data) {
+        return data.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, // Keep the key as is
+                        entry -> maskValue(entry.getValue()) // Mask the value
+                ));
+    }
+
+    // Mask ProductColumnsRequest fields
+    private static ProductColumnsRequest maskProductColumn(ProductColumnsRequest column) {
+        return ProductColumnsRequest.builder()
+                .key(maskValue(column.getKey()))
+                .title(maskValue(column.getTitle()))
+                .type(maskValue(column.getType()))
                 .build();
     }
 
-    public static InvoiceResponse decodeInvoiceResponse(InvoiceResponse invoiceResponse) {
-        // Decode each field that may be Base64 encoded
-        if (invoiceResponse.getCinNo() != null) {
-            invoiceResponse.setCinNo(new String(Base64.getDecoder().decode(invoiceResponse.getCinNo()), StandardCharsets.UTF_8));
+    // Masking logic (Base64 encoding)
+    private static String maskValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
         }
-        if (invoiceResponse.getCustomerName() != null) {
-            invoiceResponse.setCustomerName(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerName()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerEmail() != null) {
-            invoiceResponse.setCustomerEmail(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerEmail()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getContactNumber() != null) {
-            invoiceResponse.setContactNumber(new String(Base64.getDecoder().decode(invoiceResponse.getContactNumber()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getGstNo() != null) {
-            invoiceResponse.setGstNo(new String(Base64.getDecoder().decode(invoiceResponse.getGstNo()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerGstNo() != null) {
-            invoiceResponse.setCustomerGstNo(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerGstNo()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerAddress() != null) {
-            invoiceResponse.setCustomerAddress(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerAddress()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerState() != null) {
-            invoiceResponse.setCustomerState(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerState()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerCity() != null) {
-            invoiceResponse.setCustomerCity(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerCity()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCustomerPinCode() != null) {
-            invoiceResponse.setCustomerPinCode(new String(Base64.getDecoder().decode(invoiceResponse.getCustomerPinCode()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getGrandTotal() != null) {
-            invoiceResponse.setGrandTotal(new String(Base64.getDecoder().decode(invoiceResponse.getGrandTotal()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getGrandTotalInWords() != null) {
-            invoiceResponse.setGrandTotalInWords(new String(Base64.getDecoder().decode(invoiceResponse.getGrandTotalInWords()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getTotalAmount() != null) {
-            invoiceResponse.setTotalAmount(new String(Base64.getDecoder().decode(invoiceResponse.getTotalAmount()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getGst() != null) {
-            invoiceResponse.setGst(new String(Base64.getDecoder().decode(invoiceResponse.getGst()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getCGst() != null) {
-            invoiceResponse.setCGst(new String(Base64.getDecoder().decode(invoiceResponse.getCGst()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getSGst() != null) {
-            invoiceResponse.setSGst(new String(Base64.getDecoder().decode(invoiceResponse.getSGst()), StandardCharsets.UTF_8));
-        }
-        if (invoiceResponse.getIGst() != null) {
-            invoiceResponse.setIGst(new String(Base64.getDecoder().decode(invoiceResponse.getIGst()), StandardCharsets.UTF_8));
-        }
-        // Decode the list of bank details and order details if present
-        if (invoiceResponse.getBankDetails() != null) {
-            for (InvoiceResponse.BankDetailResponse bankDetail : invoiceResponse.getBankDetails()) {
-                if (bankDetail.getBankName() != null) {
-                    bankDetail.setBankName(new String(Base64.getDecoder().decode(bankDetail.getBankName()), StandardCharsets.UTF_8));
-                }
-                if (bankDetail.getAccountNumber() != null) {
-                    bankDetail.setAccountNumber(new String(Base64.getDecoder().decode(bankDetail.getAccountNumber()), StandardCharsets.UTF_8));
-                }
-                if (bankDetail.getAccountType() != null) {
-                    bankDetail.setAccountType(new String(Base64.getDecoder().decode(bankDetail.getAccountType()), StandardCharsets.UTF_8));
-                }
-                if (bankDetail.getBranch() != null) {
-                    bankDetail.setBranch(new String(Base64.getDecoder().decode(bankDetail.getBranch()), StandardCharsets.UTF_8));
-                }
-                if (bankDetail.getIfscCode() != null) {
-                    bankDetail.setIfscCode(new String(Base64.getDecoder().decode(bankDetail.getIfscCode()), StandardCharsets.UTF_8));
-                }
-                if (bankDetail.getBankAddress() != null) {
-                    bankDetail.setBankAddress(new String(Base64.getDecoder().decode(bankDetail.getBankAddress()), StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(value.getBytes());
+    }
+
+
+    public static void unMaskInvoiceProperties(InvoiceModel invoiceEntity, HttpServletRequest request) {
+        if (invoiceEntity != null) {
+            log.debug("Unmasking invoice: {}", invoiceEntity);
+
+            if (invoiceEntity.getInvoiceId() != null) {
+                invoiceEntity.setInvoiceId(invoiceEntity.getInvoiceId());
+            }
+
+            invoiceEntity.setInvoiceDate(unMaskValue(invoiceEntity.getInvoiceDate()));
+            invoiceEntity.setDueDate(unMaskValue(invoiceEntity.getDueDate()));
+            invoiceEntity.setPurchaseOrder(unMaskValue(invoiceEntity.getPurchaseOrder()));
+            invoiceEntity.setVendorCode(unMaskValue(invoiceEntity.getVendorCode()));
+            invoiceEntity.setSubTotal(unMaskValue(invoiceEntity.getSubTotal()));
+            invoiceEntity.setInvoiceNo(invoiceEntity.getInvoiceNo());
+
+
+            // Unmask productData (List<Map<String, String>>)
+            if (invoiceEntity.getProductData() != null) {
+                List<Map<String, String>> unmaskedProductData = invoiceEntity.getProductData().stream()
+                        .map(productMap -> {
+                            Map<String, String> unmaskedMap = new HashMap<>();
+                            for (Map.Entry<String, String> entry : productMap.entrySet()) {
+                                unmaskedMap.put(entry.getKey(), unMaskValue(entry.getValue()));
+                            }
+                            return unmaskedMap;
+                        })
+                        .collect(Collectors.toList());
+                invoiceEntity.setProductData(unmaskedProductData);
+            }
+
+            // Unmask productColumns (List<ProductColumnsRequest>)
+            if (invoiceEntity.getProductColumns() != null) {
+                List<ProductColumnsRequest> unmaskedColumns = invoiceEntity.getProductColumns().stream()
+                        .map(InvoiceUtils::unMaskProductColumn)
+                        .collect(Collectors.toList());
+                invoiceEntity.setProductColumns(unmaskedColumns);
+            }
+
+            if (invoiceEntity.getCustomer() != null) {
+                log.debug("Before unmasking customer: {}", invoiceEntity.getCustomer());
+                invoiceEntity.getCustomer().setAddress(unMaskValue(invoiceEntity.getCustomer().getAddress()));
+                invoiceEntity.getCustomer().setCity(unMaskValue(invoiceEntity.getCustomer().getCity()));
+                invoiceEntity.getCustomer().setState(unMaskValue(invoiceEntity.getCustomer().getState()));
+                invoiceEntity.getCustomer().setStateCode(unMaskValue(invoiceEntity.getCustomer().getStateCode()));
+                invoiceEntity.getCustomer().setPinCode(unMaskValue(invoiceEntity.getCustomer().getPinCode()));
+                invoiceEntity.getCustomer().setMobileNumber(unMaskValue(invoiceEntity.getCustomer().getMobileNumber()));
+                invoiceEntity.getCustomer().setEmail(unMaskValue(invoiceEntity.getCustomer().getEmail()));
+                invoiceEntity.getCustomer().setCustomerGstNo(unMaskValue(invoiceEntity.getCustomer().getCustomerGstNo()));
+                invoiceEntity.getCustomer().setCustomerName(unMaskValue(invoiceEntity.getCustomer().getCustomerName()));
+                log.debug("After unmasking customer: {}", invoiceEntity.getCustomer());
+            }
+
+            if (invoiceEntity.getBank() != null) {
+                log.debug("Before unmasking bank: {}", invoiceEntity.getBank());
+                invoiceEntity.getBank().setAccountNumber(unMaskValue(invoiceEntity.getBank().getAccountNumber()));
+                invoiceEntity.getBank().setAccountType(unMaskValue(invoiceEntity.getBank().getAccountType()));
+                invoiceEntity.getBank().setBankName(unMaskValue(invoiceEntity.getBank().getBankName()));
+                invoiceEntity.getBank().setBranch(unMaskValue(invoiceEntity.getBank().getBranch()));
+                invoiceEntity.getBank().setIfscCode(unMaskValue(invoiceEntity.getBank().getIfscCode()));
+                invoiceEntity.getBank().setAddress(unMaskValue(invoiceEntity.getBank().getAddress()));
+                log.debug("After unmasking bank: {}", invoiceEntity.getBank());
+            }
+
+            if (invoiceEntity.getCompany() != null) {
+                log.debug("Before unmasking company: {}", invoiceEntity.getCompany());
+                invoiceEntity.getCompany().setGstNo(unMaskValue(invoiceEntity.getCompany().getGstNo()));
+                invoiceEntity.getCompany().setPanNo(unMaskValue(invoiceEntity.getCompany().getPanNo()));
+                invoiceEntity.getCompany().setMobileNo(unMaskValue(invoiceEntity.getCompany().getMobileNo()));
+                invoiceEntity.getCompany().setCinNo(unMaskValue(invoiceEntity.getCompany().getCinNo()));
+                String baseUrl = getBaseUrl(request);
+                String image = baseUrl + "var/www/ems/assets/img/" + invoiceEntity.getCompany().getImageFile();
+                invoiceEntity.getCompany().setImageFile(image);
+                String stampImage = baseUrl + "var/www/ems/assets/img/" + invoiceEntity.getCompany().getStampImage();
+                invoiceEntity.getCompany().setStampImage(stampImage);
+            }
+            // Convert subTotal to a numeric value
+            double subTotal = parseAmount(invoiceEntity.getSubTotal());
+            double cGst = 0.0, sGst = 0.0, iGst = 0.0, grandTotal = subTotal;
+
+            // Get GST numbers
+            String companyGstNo = (invoiceEntity.getCompany() != null) ? invoiceEntity.getCompany().getGstNo() : null;
+            String customerGstNo = (invoiceEntity.getCustomer() != null) ? invoiceEntity.getCustomer().getCustomerGstNo() : null;
+
+            // Validate GST numbers
+            if (customerGstNo != null && !customerGstNo.isEmpty() && !customerGstNo.matches("^0+$")) {
+                if (companyGstNo != null && companyGstNo.length() >= 2 && customerGstNo.length() >= 2) {
+                    // Compare first two digits
+                    if (companyGstNo.substring(0, 2).equals(customerGstNo.substring(0, 2))) {
+                        cGst = subTotal * 0.09; // 9% CGST
+                        sGst = subTotal * 0.09; // 9% SGST
+                        grandTotal += cGst + sGst;
+                    } else {
+                        iGst = subTotal * 0.18; // 18% IGST
+                        grandTotal += iGst;
+                    }
                 }
             }
+            // Set calculated values back to entity
+            invoiceEntity.setCGst(formatAmount(cGst));
+            invoiceEntity.setSGst(formatAmount(sGst));
+            invoiceEntity.setIGst(formatAmount(iGst));
+            invoiceEntity.setGrandTotal(formatAmount(grandTotal));
+
+            // Convert grand total to words and set it in the entity
+            BigDecimal grandTotalValue = new BigDecimal(grandTotal);
+            String grandTotalInWords = NumberToWordsConverter.convert(grandTotalValue);
+            invoiceEntity.setGrandTotalInWords(grandTotalInWords);
+
+            log.debug("Updated Invoice - cGst: {}, sGst: {}, iGst: {}, grandTotal: {}",
+                    invoiceEntity.getCGst(), invoiceEntity.getSGst(), invoiceEntity.getIGst(), invoiceEntity.getGrandTotal());
+        }
+    }
+
+    /**
+     * Formats a double value to two decimal places and converts it to a string.
+     */
+    private static String formatAmount(double amount) {
+        return String.format("%.2f", amount);
+    }
+
+    public static String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme(); // http or https
+        String serverName = request.getServerName(); // localhost or IP address
+        int serverPort = request.getServerPort(); // port number
+        String contextPath = "/" + request.getContextPath(); // context path
+
+        return scheme + "://" + serverName + ":" + serverPort + contextPath + "/";
+    }
+
+    /**
+     * Parses a string amount into a double, handling nulls and invalid values.
+     */
+    private static double parseAmount(String amount) {
+        if (amount == null || amount.trim().isEmpty()) {
+            return 0.0;
+        }
+        try {
+            return Double.parseDouble(amount);
+        } catch (NumberFormatException e) {
+            log.error("Invalid amount format: {}", amount);
+            return 0.0;
+
+        }
+    }
+
+    /**
+     * Method to unmask a ProductColumn.
+     */
+    private static ProductColumnsRequest unMaskProductColumn(ProductColumnsRequest column) {
+        if (column != null) {
+            column.setKey(unMaskValue(column.getKey()));
+            column.setType(unMaskValue(column.getType()));
+            column.setTitle(unMaskValue(column.getTitle()));
+        }
+        return column;
+    }
+
+    /**
+     * Base64 decoding method to unmask values.
+     */
+    private static String unMaskValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return value; // Return as is if null or empty
+        }
+        return new String(Base64.getDecoder().decode(value)); // Correctly decode without extra bytes conversion
+    }
+
+    public static String generateNextInvoiceNumber(String companyId, String shortName, OpenSearchOperations openSearchOperations) throws InvoiceException {
+        // Fetch last invoice number from OpenSearch
+        String lastInvoiceNo = openSearchOperations.findLastInvoiceNumber(companyId, shortName);
+
+        // If no previous invoice exists, start with the first invoice of the financial year
+        if (lastInvoiceNo == null || lastInvoiceNo.isEmpty()) {
+            return generateFirstInvoiceNumber();
         }
 
-        if (invoiceResponse.getOrderDetails() != null) {
-            for (InvoiceResponse.OrderDetailResponse orderDetail : invoiceResponse.getOrderDetails()) {
-                if (orderDetail.getProductName() != null) {
-                    orderDetail.setProductName(new String(Base64.getDecoder().decode(orderDetail.getProductName()), StandardCharsets.UTF_8));
-                }
-                if (orderDetail.getHsnNo() != null) {
-                    orderDetail.setHsnNo(new String(Base64.getDecoder().decode(orderDetail.getHsnNo()), StandardCharsets.UTF_8));
-                }
-                if (orderDetail.getQuantity() != null) {
-                    orderDetail.setQuantity(new String(Base64.getDecoder().decode(orderDetail.getQuantity()), StandardCharsets.UTF_8));
-                }
-                if (orderDetail.getUnitCost() != null) {
-                    orderDetail.setUnitCost(new String(Base64.getDecoder().decode(orderDetail.getUnitCost()), StandardCharsets.UTF_8));
-                }
-                if (orderDetail.getTotalCost() != null) {
-                    orderDetail.setTotalCost(new String(Base64.getDecoder().decode(orderDetail.getTotalCost()), StandardCharsets.UTF_8));
-                }
-                if (orderDetail.getService() != null) {
-                    orderDetail.setService(new String(Base64.getDecoder().decode(orderDetail.getService()), StandardCharsets.UTF_8));
-                }
-            }
+        String[] parts = lastInvoiceNo.split("-");
+
+        // Validate the format to avoid incorrect invoice numbers
+        if (parts.length < 3) {
+            log.error("Invalid invoice number format retrieved: {}", lastInvoiceNo);
+            throw new InvoiceException(InvoiceErrorMessageKey.INVALID_INVOICE_ID_FORMAT.getMessage() + lastInvoiceNo, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return invoiceResponse;
+
+        try {
+            int nextNumber = Integer.parseInt(parts[2]) + 1;  // Increment last invoice number
+            return parts[0] + "-" + parts[1] + "-" + String.format("%03d", nextNumber);
+        } catch (NumberFormatException e) {
+            log.error("Error parsing invoice number: {}", lastInvoiceNo, e);
+            throw new InvoiceException("Error parsing invoice number: " + lastInvoiceNo, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public static String generateFirstInvoiceNumber() {
+        LocalDate currentDate = LocalDate.now();
+        int year = currentDate.getYear();
+        int nextYear = (year + 1) % 100; // Get last two digits of next year
+        int prevYear = year - 1;
+
+        // Determine financial year (April - March cycle)
+        String financialYear;
+        if (currentDate.getMonthValue() < 4) { // If Jan, Feb, Mar → previous financial year
+            financialYear = prevYear + "-" + String.format("%02d", year % 100);
+        } else { // April onwards → current financial year
+            financialYear = year + "-" + String.format("%02d", nextYear);
+        }
+
+        return financialYear + "-001"; // Example: 2024-25-001
     }
 }

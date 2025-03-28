@@ -13,6 +13,8 @@ import {
   EmployeePostApi,
 } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeRegistration = () => {
   const {
@@ -29,8 +31,17 @@ const EmployeeRegistration = () => {
       roles: null,
     },
     mode: "onChange",
-  });
-  const { user } = useAuth();
+  }); 
+  const dispatch = useDispatch();
+  // Step 2: Access employee data from the Redux store
+  const { data: employees, status, error } = useSelector((state) => state.employees);
+  // Step 3: Fetch employees on component mount
+  useEffect(() => {
+    if (status === "loading") {
+      dispatch(fetchEmployees());
+    }
+  }, [dispatch, status]);  
+  const { authUser } = useAuth();
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,14 +53,41 @@ const EmployeeRegistration = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(user.company);
+  console.log(authUser.company);
   const [passwordShown, setPasswordShown] = useState(false);
+
   const togglePasswordVisiblity = () => {
     setPasswordShown(!passwordShown);
   };
   const handlePasswordChange = (e) => {
     setPasswordShown(e.target.value);
   };
+
+  console.log("employees",employees);
+
+// Filter employees whose designation starts or ends with "Manager"
+const managerEmployees = employees.filter(
+  (emp) =>
+    emp.designationName &&
+    (emp.designationName.trim().toLowerCase().startsWith("manager") ||
+      emp.designationName.trim().toLowerCase().endsWith("manager"))
+);
+
+// Map manager employees to dropdown format
+const managerOptions = managerEmployees.map((emp) => ({
+  id: emp.id,
+  name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
+}));
+
+// Always include "CompanyAdmin" as an option
+const dropdownOptions = [
+  ...managerOptions,
+  { id: "CompanyAdmin", name: "CompanyAdmin" }
+];
+
+  // Get the last employeeId in the list
+  const lastEmployeeId = employees.length > 0 ? employees[employees.length - 1].employeeId : "N/A";
+console.log("lastEmployeeId",lastEmployeeId)
 
   const handleEmailChange = (e) => {
     // Get the current value of the input field
@@ -69,6 +107,7 @@ const EmployeeRegistration = () => {
     { value: "Contract", label: "Contract" },
     { value: "Trainee", label: "Trainee" },
     { value: "Support", label: "Support" },
+    { value: "Associate", label: "Associate" },
   ];
 
   const Roles = [
@@ -134,7 +173,7 @@ const EmployeeRegistration = () => {
     // Remove leading spaces
     value = value.replace(/^\s+/g, "");
 
-    // Ensure only allowed characters (alphabets, numbers, and some special chars)
+    // Ensure only allowed characters (alphabets and spaces)
     const allowedCharsRegex = /^[a-zA-Z\s]+$/;
     value = value
       .split("")
@@ -170,30 +209,6 @@ const EmployeeRegistration = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Initially disallow spaces if there are no non-space characters
-    if (!/\S/.test(value)) {
-      // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, "");
-    } else {
-      // Allow spaces if there are non-space characters
-      value = value.toLowerCase();
-      value = value.replace(/^\s+/g, ""); // Remove leading spaces
-      const words = value.split(" ");
-      const capitalizedWords = words.map((word) => {
-        return word.charAt(0).toLowerCase() + word.slice(1);
-      });
-      value = capitalizedWords.join(" ");
-    }
-    // Update input value
-    input.value = value;
-  };
-
   const toInputSpaceCase = (e) => {
     let inputValue = e.target.value;
     let newValue = "";
@@ -221,7 +236,7 @@ const EmployeeRegistration = () => {
     e.target.value = newValue;
   };
 
-  let company = user.company;
+  let company = authUser.company;
   const onSubmit = async (data) => {
     // const roles = data.roles ? [data.roles] : [];
     // Constructing the payload
@@ -248,6 +263,7 @@ const EmployeeRegistration = () => {
         firstName: data.firstName,
         lastName: data.lastName,
         dateOfHiring: data.dateOfHiring,
+        manager:data.manager,
         department: data.department,
         panNo: data.panNo,
         uanNo: data.uanNo,
@@ -473,30 +489,37 @@ const EmployeeRegistration = () => {
       return "Field is Required.";
     }
 
-    // Allow alphabetic characters, numbers, spaces, and the / character
+    // Check for trailing spaces first
+    if (/\s$/.test(value)) {
+      return "Spaces at the end are not allowed.";
+    } else if (/^\s/.test(value)) {
+      return "No Leading Space Allowed.";
+    }
+
+    // Ensure only alphabetic characters and spaces
     else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters are Allowed.";
-    } else {
-      const words = trimmedValue.split(" ");
+    }
 
-      // Check for minimum and maximum word length
+    // Check for minimum and maximum word length
+    else {
+      const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 1) {
           return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
         } else if (word.length > 100) {
-          return "Max Length 100 Characters Required."; // If any word is longer than 40 characters
+          return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
         }
       }
 
-      if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed."; // Trailing space error
-      } else if (/^\s/.test(value)) {
-        return "No Leading Space Allowed."; // Leading space error
+      // Check if there are multiple spaces between words
+      if (/\s{2,}/.test(trimmedValue)) {
+        return "No Multiple Spaces Between Words Allowed.";
       }
 
-      // Check if there are multiple spaces between words
-      else if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
+      // Check minimum character length after other validations
+      if (trimmedValue.length < 1) {
+        return "Minimum 1 Characters Required.";
       }
     }
 
@@ -504,40 +527,44 @@ const EmployeeRegistration = () => {
   };
 
   const validateFirstName = (value) => {
+    // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
 
+    // Check if value is empty after trimming (meaning it only had spaces)
     if (trimmedValue.length === 0) {
       return "Field is Required.";
-    } else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
+    }
+
+    // Check for trailing spaces first
+    if (/\s$/.test(value)) {
+      return "Spaces e at the end are not allowed.";
+    } else if (/^\s/.test(value)) {
+      return "No Leading Space Allowed.";
+    }
+
+    // Ensure only alphabetic characters and spaces
+    else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters are Allowed.";
-    } else {
+    }
+
+    // Check for minimum and maximum word length
+    else {
       const words = trimmedValue.split(" ");
-
-      // Check for minimum and maximum word length, allowing one-character words at the end
-      for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-
-        // If the word length is less than 3 and it's not the last word, show error
-        if (word.length < 3 && i !== words.length - 1) {
-          return "Minimum Length 3 Characters Required.";
-        }
-
-        // Check maximum word length
-        if (word.length > 100) {
-          return "Max Length 100 Characters Exceeded.";
+      for (const word of words) {
+        if (word.length < 1) {
+          return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
+        } else if (word.length > 100) {
+          return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
         }
       }
-
-      // Check for trailing and leading spaces
-      if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed."; // Trailing space error
-      } else if (/^\s/.test(value)) {
-        return "No Leading Space Allowed."; // Leading space error
-      }
-
       // Check if there are multiple spaces between words
-      else if (/\s{2,}/.test(trimmedValue)) {
+      if (/\s{2,}/.test(trimmedValue)) {
         return "No Multiple Spaces Between Words Allowed.";
+      }
+
+      // Check minimum character length after other validations
+      if (trimmedValue.length < 3) {
+        return "Minimum 3 Characters Required.";
       }
     }
 
@@ -547,7 +574,7 @@ const EmployeeRegistration = () => {
   const validateNumber = (value) => {
     // Check if the input is empty
     if (!value || value.trim().length === 0) {
-      return "UAN Number is Required.";
+      return true;
     }
 
     // Check if the value contains only digits
@@ -573,52 +600,45 @@ const EmployeeRegistration = () => {
 
     return true; // Return true if all validations pass
   };
-  const validatePAN = (value) => {
-    const spaceError = "Spaces are not allowed in the PAN Number.";
-    const patternError = "Invalid PAN Number format";
-
-    if (/\s/.test(value)) {
-      return spaceError; // Return space error if spaces are found
-    }
-
-    // Check the pattern for the CIN Number
-    if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value)) {
-      return patternError; // Return pattern error if it doesn't match
-    }
-
-    return true; // Return true if all checks pass
-  };
 
   const validateLocation = (value) => {
-    if (!value || value.trim().length === 0) {
+    // Trim leading and trailing spaces before further validation
+    const trimmedValue = value.trim();
+
+    // Check if value is empty after trimming (meaning it only had spaces)
+    if (trimmedValue.length === 0) {
       return "Location is Required.";
-    } else if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(value)) {
+    }
+
+    // Check for trailing spaces first
+    if (/\s$/.test(value)) {
+      return "Spaces at the end are not allowed."; // Trailing space error
+    } else if (/^\s/.test(value)) {
+      return "No Leading Space Allowed."; // Leading space error
+    }
+
+    // Ensure only allowed characters (alphabets, numbers, spaces, and some special chars)
+    else if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(trimmedValue)) {
       return "Invalid Format of Location.";
-    } else {
-      const words = value.split(" ");
+    }
 
-      // Check for minimum and maximum word length, allowing one-character words at the end
-      for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-
-        // If the word length is less than 3 and it's not the last word, show error
-        if (word.length < 3 && i !== words.length - 1) {
-          return "Minimum Length 3 Characters Required.";
-        }
-
-        // Check maximum word length
-        if (word.length > 250) {
-          return "Max Length 250 Characters Exceeded.";
+    // Check for minimum and maximum word length
+    else {
+      const words = trimmedValue.split(" ");
+      for (const word of words) {
+        if (word.length < 1) {
+          return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
+        } else if (word.length > 100) {
+          return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
         }
       }
 
-      if (/^\s|\s$/.test(value)) {
-        return "Spaces at the end are not allowed.";
-      } else if (/\s{2,}/.test(value)) {
+      // Check if there are multiple spaces between words
+      if (/\s{2,}/.test(trimmedValue)) {
         return "No Multiple Spaces Between Words Allowed.";
       }
-      if (/\s$/.test(value)) {
-        return "No Trailing Space Allowed."; // Space after the last character is not allowed
+       if (trimmedValue.length < 3) {
+        return "Minimum 3 Characters Required.";
       }
     }
 
@@ -652,10 +672,10 @@ const EmployeeRegistration = () => {
     let formattedValue = capitalizedWords.join(" ");
 
     // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 2) {
+    if (formattedValue.length > 1) {
       formattedValue =
-        formattedValue.slice(0, 2) +
-        formattedValue.slice(2).replace(/\s+/g, " ");
+        formattedValue.slice(0, 1) +
+        formattedValue.slice(1).replace(/\s+/g, " ");
     }
 
     // Update input value
@@ -688,32 +708,6 @@ const EmployeeRegistration = () => {
     // Update the input field's value
     event.target.value = value;
   }
-
-  // Function to handle keydown for specific actions (e.g., prevent multiple spaces)
-  function handlePhoneNumberKeyDown(event) {
-    let value = event.target.value;
-
-    // Prevent multiple spaces after +91
-    if (event.key === " " && value.charAt(3) === " ") {
-      event.preventDefault();
-    }
-  }
-  const toInputEmailCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-
-    // Remove all spaces from the input
-    value = value.replace(/\s+/g, "");
-
-    // If the first character is not lowercase, make it lowercase
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    // Update the input value
-    input.value = value;
-  };
-
   // In your component
   const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
 
@@ -802,9 +796,7 @@ const EmployeeRegistration = () => {
                             <Select
                               {...field}
                               options={Employement}
-                              value={Employement.find(
-                                (option) => option.value === field.value
-                              )}
+                              value={field.value ? Employement.find((option) => option.value === field.value) : null}
                               onChange={(val) => field.onChange(val.value)}
                               placeholder="Select Employee Type"
                             />
@@ -820,7 +812,7 @@ const EmployeeRegistration = () => {
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
-                        Employee Id <span style={{ color: "red" }}>*</span>
+                        Employee Id <span style={{ color: "red" }}>*</span>{lastEmployeeId}
                       </label>
                       <input
                         type={isUpdating ? "text" : "text"}
@@ -869,14 +861,10 @@ const EmployeeRegistration = () => {
                         onKeyDown={handleEmailChange}
                         {...register("firstName", {
                           required: "First Name is Required",
-                          minLength: {
-                            value: 3,
-                            message: "Mimimum 3 Characters Required."
-                          },
                           maxLength: {
                             value: 150,
                             message: "Max lenght 150 Characters Exceeded.", // Maximum 150 characters
-                          },  
+                          },
                           validate: {
                             validateFirstName,
                           },
@@ -904,10 +892,6 @@ const EmployeeRegistration = () => {
                         {...register("lastName", {
                           required: "Last Name is Required",
                           validate: { validateLastName },
-                          minLength: {
-                            value: 1,
-                            message: "Minimum 1 Character Required",
-                          },
                         })}
                       />
                       {errors.lastName && (
@@ -1028,29 +1012,12 @@ const EmployeeRegistration = () => {
                       <label className="form-label">
                         Manager <span style={{ color: "red" }}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Manager"
-                        onInput={toInputTitleCase}
-                        autoComplete="off"
-                        minLength={1}
-                        onKeyDown={handleEmailChange}
-                        {...register("manager", {
-                          required: "Manager is Required",
-                          minLength: {
-                            value: 3,
-                            message: "Mimimum 3 Characters Required."
-                          },
-                          maxLength: {
-                            value: 150,
-                            message: "Max lenght 150 Characters Exceeded.", // Maximum 150 characters
-                          },
-                          validate: {
-                            validateFirstName,
-                          },
-                        })}
-                      />
+                      <select className="form-select">
+                        <option value="">Select Manager</option>
+                        {dropdownOptions.map(emp => (
+                          <option key={emp.id} value={emp.id}>{emp.name}</option>
+                        ))}
+                      </select>
                       {errors.manager && (
                         <p className="errorMsg">{errors.manager.message}</p>
                       )}
@@ -1072,10 +1039,6 @@ const EmployeeRegistration = () => {
                         {...register("location", {
                           required: "Location is Required",
                           validate: validateLocation,
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 Characters allowed",
-                          },
                           maxLength: {
                             value: 250,
                             message: "Maximum 250 Characters allowed",
@@ -1118,9 +1081,8 @@ const EmployeeRegistration = () => {
                               })}
                             />
                             <span
-                              className={`bi bi-eye field-icon pb-1 toggle-password ${
-                                passwordShown ? "text-primary" : ""
-                              }`}
+                              className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? "text-primary" : ""
+                                }`}
                               onClick={togglePasswordVisiblity}
                               style={{
                                 background: "transparent",
@@ -1181,17 +1143,17 @@ const EmployeeRegistration = () => {
                             options={
                               showNoticePeriodOption
                                 ? [
-                                    { value: "Active", label: "Active" },
-                                    { value: "InActive", label: "InActive" },
-                                    {
-                                      value: "NoticePeriod",
-                                      label: "Notice Period",
-                                    }, // Show Notice Period
-                                  ]
+                                  { value: "Active", label: "Active" },
+                                  { value: "InActive", label: "InActive" },
+                                  {
+                                    value: "NoticePeriod",
+                                    label: "Notice Period",
+                                  }, // Show Notice Period
+                                ]
                                 : [
-                                    { value: "Active", label: "Active" },
-                                    { value: "InActive", label: "InActive" }, // Show only Active and InActive
-                                  ]
+                                  { value: "Active", label: "Active" },
+                                  { value: "InActive", label: "InActive" }, // Show only Active and InActive
+                                ]
                             }
                             value={
                               field.value
@@ -1361,16 +1323,12 @@ const EmployeeRegistration = () => {
                         {...register("bankName", {
                           required: "Bank Name is Required",
                           validate: validateFirstName,
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 Characters Required",
-                          },
                           maxLength: {
                             value: 50,
                             message: "Maximum 50 Characters Required",
                           },
                         })}
-                        // disabled={editMode}
+                      // disabled={editMode}
                       />
                       {errors.bankName && (
                         <p className="errorMsg">{errors.bankName.message}</p>
@@ -1411,9 +1369,7 @@ const EmployeeRegistration = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        PAN Number <span style={{ color: "red" }}>*</span>
-                      </label>
+                      <label className="form-label">PAN Number</label>
                       <input
                         type={isUpdating ? "text" : "text"}
                         readOnly={isUpdating}
@@ -1425,7 +1381,6 @@ const EmployeeRegistration = () => {
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("panNo", {
-                          required: "PAN Number is Required",
                           maxLength: {
                             value: 10,
                             message: "Pan Number must not exceed 10 Characters",

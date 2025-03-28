@@ -153,8 +153,8 @@
         <img src="${company.imageFile}" alt="Company Logo" />
         <p class="company">
             ${company.companyAddress}<br />
-            ${company.mobileNo}<br />
-            ${company.emailId}
+             <!-- ${company.mobileNo}<br />
+                  ${company.emailId} -->
         </p>
     </div>
     </td>
@@ -266,10 +266,10 @@
     <div class="salary-details">
         <table class="salary-table">
             <tr>
-                <th class="emp-heading" style= "padding: 20px;width:30%;">Earnings (A)</th>
-                <th class="emp-heading" style= "padding: 20px;">Amount (A)</th>
-                <th class="emp-heading" style= "padding: 20px;">Deductions (B)</th>
-                <th class="emp-heading" style= "padding: 20px;">Amount (B)</th>
+                <th class="emp-heading" style= "padding: 10px;width:30%;">Earnings (A)</th>
+                <th class="emp-heading" style= "padding: 10px;">Amount (A)</th>
+                <th class="emp-heading" style= "padding: 10px;">Deductions (B)</th>
+                <th class="emp-heading" style= "padding: 10px;">Amount (B)</th>
             </tr>
 <tr>
                         <!-- Column for Allowances and Amounts -->

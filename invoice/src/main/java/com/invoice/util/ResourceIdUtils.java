@@ -4,17 +4,16 @@ import com.invoice.model.ResourceType;
 
 public class ResourceIdUtils {
 
-    public static String generateProductResourceId(String hsnNo, String productCategory) {
-        return generateGlobalResourceId(ResourceType.PRODUCT, hsnNo, productCategory);
+    public static String generateProductResourceId(String hsnNo,String productName, String productCategory) {
+        return generateGlobalResourceId(ResourceType.PRODUCT, hsnNo,productName, productCategory);
     }
 
     public static String generateCustomerResourceId(String email, String mobileNumber) {
         return generateGlobalResourceId(ResourceType.CUSTOMER, email,mobileNumber);
     }
 
-    public static String generateInvoiceResourceId(String companyId, String customerId, String invoiceDate) {
-        long timestamp = System.currentTimeMillis(); // Add timestamp for uniqueness
-        return generateGlobalResourceId(ResourceType.INVOICE, companyId, customerId, invoiceDate, timestamp);
+    public static String generateInvoiceResourceId(String companyId, String customerId,String timeStamp) {
+        return generateGlobalResourceId(ResourceType.INVOICE, companyId, customerId,timeStamp);
     }
 
     public static String generateCompanyIndex(String name) {

@@ -29,8 +29,12 @@ public class CustomerUpdateRequest {
     @Pattern(regexp = "^[A-Za-z0-9 \\-]{3,10}$", message = "{pinCode.format}")
     private String pinCode;
 
+    @Pattern(regexp = "^(Active|InActive)$", message = "{status.format}")
+    @NotBlank(message = "{status.notnull.message}")
+    private String status;
+
     @Nullable
-    private String gstNo;
+    private String customerGstNo;
 
     @Nullable
     private String stateCode;

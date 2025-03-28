@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Bounce, toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import {toast } from "react-toastify";
 import ExperienceTemplate1 from "./ExperienceTemplate1";
 import ExperienceTemplate2 from "./ExperienceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";
@@ -9,39 +8,20 @@ import { companyViewByIdApi, EmployeeGetApiById} from "../../../Utils/Axios";
 const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept previewData as a prop
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user,logoFileName } = useAuth();
-  const navigate=useNavigate();
-
-  const fetchCompanyData = async (companyId) => {
+  const { company } = useAuth();
+  console.log("preview",previewData)
+  const fetchCompanyData = async () => {
     try {
-      const response = await companyViewByIdApi(companyId);
+      const response = await companyViewByIdApi(company.id);
       setCompanyData(response.data);
     } catch (err) {
       console.error("Error fetching company data:", err);
       toast.error("Failed to fetch company data");
     }
   };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
+  useEffect(()=>{
+    fetchCompanyData();
+  },[])
 
   const templates = useMemo(() => [
     {
@@ -49,14 +29,14 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
       name: "1",
       content: () => (
         <ExperienceTemplate1
-          companyLogo={logoFileName}
-          companyData={previewData.companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
           department={previewData.departmentName}
-          joiningDate={previewData.dateOfHiring}
-          experienceDate={previewData.resignationDate}
+          joiningDate={previewData.joiningDate}
+          experienceDate={previewData.experienceDate}
           date={previewData.date}
         />
       ),
@@ -66,19 +46,19 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
       name: "2",
       content: () => (
         <ExperienceTemplate2
-          companyLogo={logoFileName}
-          companyData={previewData.companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
           department={previewData.departmentName}
-          joiningDate={previewData.dateOfHiring}
-          experienceDate={previewData.resignationDate}
+          joiningDate={previewData.joiningDate}
+          experienceDate={previewData.experienceDate}
           date={previewData.date}
         />
       ),
     },
-  ], [companyData, logoFileName, previewData]);
+  ], [companyData, company?.imageFile, previewData]);
 
   const selectedTemplateContent = useMemo(() => {
     const template = templates.find(t => t.name === selectedTemplate);

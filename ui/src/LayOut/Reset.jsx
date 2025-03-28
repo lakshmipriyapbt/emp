@@ -22,7 +22,7 @@ const Reset = ({ companyName, onClose, show }) => {
   const [id, setEmployeeId] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const toggleOldPasswordVisibility = () => {
     setOldPasswordShown(!oldPasswordShown);
   };
@@ -36,22 +36,21 @@ const Reset = ({ companyName, onClose, show }) => {
   };
 
   useEffect(() => {
-    // Ensure the user object and userId are available
-    if (!user || !user.userId) {
+    // Ensure the authUser object and userId are available
+    if (!authUser || !authUser.userId) {
       console.error("User ID is not available");
       return; // Avoid making API call if userId is not available
     }
 
     const fetchData = async () => {
       try {
-        const response = await EmployeeGetApiById(user.userId);
+        const response = await EmployeeGetApiById(authUser.userId);
         console.log("Fetched employee data:", response);
         if (response && response.data && response.data.employeeId) {
           setEmployeeId(response.data.employeeId);
           console.log("Employee ID:", response.data.employeeId);
         } else {
           console.error("Employee ID is missing in the response");
-          toast.error("Employee ID not found in the response");
         }
       } catch (error) {
         console.error("Error fetching employee data:", error);
@@ -60,7 +59,7 @@ const Reset = ({ companyName, onClose, show }) => {
     };
 
     fetchData();
-  }, [user]);
+  }, [authUser]);
 
   const onSubmit = async (data) => {
     const formData = {
@@ -71,7 +70,7 @@ const Reset = ({ companyName, onClose, show }) => {
 
     try {
       setLoading(true);
-      const response = await resetPassword(formData, id);
+      const response = await resetPassword(formData, authUser.userId);
       console.log("Password Reset Successful:", response.data);
       setLoading(false);
       onClose(); 

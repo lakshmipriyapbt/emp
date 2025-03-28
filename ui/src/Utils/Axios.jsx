@@ -1,10 +1,5 @@
 import axios from "axios";
-import { employeeId } from "./Auth";
-import { json } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
 
- const { user } = useAuth;
-  console.log("user in Auth",user)
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
@@ -14,12 +9,26 @@ const Login_URL = `${protocol}//${hostname}:9004/ems`;
 
 const token = localStorage.getItem("token");
 
+// ✅ Create Axios Instance (Without Token)
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    Authorization: `Bearer ${token}`,
-  }
+    "Content-Type": "application/json",
+  },
 });
+
+// ✅ Attach Token Dynamically Using Axios Interceptors
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const loginApi = (data) => {
   return axios
     .post(`${Login_URL}/emsadmin/login`, data)
@@ -91,13 +100,6 @@ export const companyViewApi = async () => {
 
 export const companyViewByIdApi = (companyId) => {
   return axiosInstance.get(`/company/${companyId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
 };
 
 export const companyDetailsByIdApi = async (companyId) => {
@@ -195,21 +197,27 @@ export const DesignationPutApiById = (designationId, data) => {
 export const EmployeeGetApi = () => {
    const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee`)
-    .then(response => response.data.data) // Assuming response.data.data contains your employee data
-    .catch(error => {
-      console.error('Error fetching employee data:', error);
-      return []; // Return empty array or handle error as needed
-    });
 }
 
+export const EmployeeNoAttendanceGetAPI = (month, year) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${company}/withoutAttendance`, {
+    params: { month, year }, // Passing month and year as query params
+  });
+};
+
+
 export const EmployeePostApi = (data) => {
-  const company = localStorage.getItem("companyName")
   return axiosInstance.post('/employee', data);
 }
 
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}`)
+}
+
+export const BankNamesGetApi = () => {
+  return axiosInstance.get("bank/list")
     .then(response => {
       return response.data;
     })
@@ -235,10 +243,128 @@ export const EmployeePatchApiById = (employeeId, data) => {
   return axiosInstance.patch(`/employee/${employeeId}`, data)
 };
 
-export const roleApi = () => {
-  return axiosInstance.get("/role/all");
-}
+export const downloadEmployeesFileAPI = async (format, showToast) => {
+  const company = localStorage.getItem("companyName")
+  try {
+    showToast("Downloading file...", "info"); // Show info toast before downloading
 
+    const response = await axiosInstance.get(`${company}/employees/download?format=${format}`, {
+      responseType: "blob",
+    });
+
+    // Check if the response contains an error message
+    if (response.data && response.data.error) {
+      throw new Error(response.data.error); // If API returns an error message, throw it
+    }
+
+    // If the response is valid, proceed with the download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Employees_data.${format === "excel" ? "xlsx" : "pdf"}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    showToast("Download successful!", "success"); // Show success toast
+  } catch (error) {
+    console.error("Error downloading file:", error);
+
+    // Extract API-provided error message if available
+    const errorMessage =
+      error.response?.data?.message || error.message || "Download failed. Please try again.";
+
+    showToast(errorMessage, "error"); // Show error toast with API message
+  }
+};
+
+export const downloadEmployeeBankDataAPI = async (format, showToast) => {
+  const company = localStorage.getItem("companyName")
+
+  try {
+    showToast("Downloading file...", "info"); // Show info toast before downloading
+
+    const response = await axiosInstance.get(`${company}/employees/bank?format=${format}`, {
+      responseType: "blob",
+    });
+
+    // Check if the response contains an error message
+    if (response.data && response.data.error) {
+      throw new Error(response.data.error); // If API returns an error message, throw it
+    }
+
+    // If the response is valid, proceed with the download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Employees_Bank_Data.${format === "excel" ? "xlsx" : "pdf"}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    showToast("Download successful!", "success"); // Show success toast
+  } catch (error) {
+    console.error("Error downloading file:", error);
+
+    // Extract API-provided error message if available
+    const errorMessage =
+      error.response?.data?.message || error.message || "Download failed. Please try again.";
+
+    showToast(errorMessage, "error"); // Show error toast with API message
+  }
+};
+
+export const downloadAttendanceFileAPI = async (format, year, month, employeeId, showToast) => {
+  const company = localStorage.getItem("companyName");
+
+  if (!format) {
+    showToast("Please select a file format!", "warning");
+    return;
+  }
+
+  try {
+    showToast("Downloading file...", "info");
+
+    const response = await axiosInstance.get(`${company}/employee/attendance/download`, {
+      params: {
+        format, 
+        month: month || "", 
+        year: year || "", 
+        employeeId: employeeId || "", 
+      },
+      responseType: "blob",
+    });
+
+    if (response.data && response.data.error) {
+      throw new Error(response.data.error);
+    }
+
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Employees_Attendance_data.${format === "excel" ? "xlsx" : "pdf"}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    showToast("Download successful!", "success");
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    showToast(error.response?.data?.message || "Download failed. Please try again.", "error");
+  }
+};
 
 export const EmployeeSalaryPostApi = (employeeId, data) => {
   return axiosInstance.post(`/${employeeId}/salary`, data, {
@@ -251,6 +377,11 @@ export const EmployeeSalaryPostApi = (employeeId, data) => {
 export const EmployeeSalaryGetApi = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}/salaries`);
+}
+
+export const EmployeesSalariesGetApi = () => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/${company}/employee/salaries`);
 }
 
 export const EmployeeSalaryGetApiById = (employeeId, salaryId) => {
@@ -267,6 +398,46 @@ export const EmployeeSalaryDeleteApiById = (employeeId, salaryId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.delete(`/${company}/employee/${employeeId}/salary/${salaryId}`);
 }
+
+export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
+  const company = localStorage.getItem("companyName")
+
+  try {
+    showToast("Downloading file...", "info"); // Show info toast before downloading
+
+    const response = await axiosInstance.get(`${company}/employee/salaries/download?format=${format}`, {
+      responseType: "blob",
+    });
+
+    // Check if the response contains an error message
+    if (response.data && response.data.error) {
+      throw new Error(response.data.error); // If API returns an error message, throw it
+    }
+
+    // If the response is valid, proceed with the download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Employees_Salaries_Data.${format === "excel" ? "xlsx" : "pdf"}`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    showToast("Download successful!", "success"); // Show success toast
+  } catch (error) {
+    console.error("Error downloading file:", error);
+
+    // Extract API-provided error message if available
+    const errorMessage =
+      error.response?.data?.message || error.message || "Download failed. Please try again.";
+
+    showToast(errorMessage, "error"); // Show error toast with API message
+  }
+};
 
   export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
     return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);
@@ -355,7 +526,11 @@ export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
 
 export const AttendanceManagementApi = (formData) => {
   const company = localStorage.getItem("companyName")
-  return axiosInstance.post(`/${company}/employee/attendance`, formData);
+  return axiosInstance.post(`/${company}/employee/attendance`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 }
 
 export const AttendanceReportApi = (employeeId, month, year) => {
@@ -384,6 +559,13 @@ export const CompanyImagePatchApi = (companyId, formData) => {
   });
 };
 
+export const CompanyStampPatchApi = (companyId, formData) => {
+  return axiosInstance.patch(`/company/stampImage/${companyId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
 export const CompanyImageGetApi = (companyId) => {
   return axiosInstance.get(`/company/${companyId}/image`);
@@ -530,6 +712,33 @@ export const OfferLetterDownload = async (payload) => {
   }
 };
 
+export const InternOfferLetterDownload = async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/internShipLetter/download`,payload, {
+      responseType: 'blob', 
+      headers: {
+        'Accept': 'application/pdf', 
+      }
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Intern_offer_letter.pdf`; 
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true; 
+
+  } catch (error) {
+    console.error('Download error:', error);
+    throw error; 
+  }
+};
+
+
+
 export const InternshipCertificateDownload= async (payload) => {
   try {
     const response = await axiosInstance.post(`/internship/upload`,payload, {
@@ -553,6 +762,7 @@ export const InternshipCertificateDownload= async (payload) => {
     throw error; 
   }
 };
+
 
 export const AppraisalLetterDownload = async (payload) => {
   try {
@@ -581,3 +791,209 @@ export const AppraisalLetterDownload = async (payload) => {
     throw error; // Re-throw for handling by calling code
   }
 };
+
+export const CustomerGetAllApi = (companyId) => {
+  return axiosInstance.get(`/company/${companyId}/customer/all`);
+};
+
+export const CustomerPostApi = (companyId,data) => {
+  return axiosInstance.post(`/company/${companyId}/customer`, data)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error creating customer:', error);
+      throw error;
+    });
+};
+
+export const CustomerGetApiById = (companyId,customerId) => {
+  return axiosInstance.get(`/company/${companyId}/customer/${customerId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching customer by ID:', error);
+      throw error;
+    });
+};
+
+export const CustomerDeleteApiById = (companyId,customerId) => {
+  return axiosInstance.delete(`/company/${companyId}/customer/${customerId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error deleting customer by ID:', error);
+      throw error;
+    });
+};
+
+export const CustomerPutApiById = (companyId, customerId, data) => {
+  return axiosInstance.patch(`/company/${companyId}/customer/${customerId}`, data,{
+    headers:{
+      "Content-Type":'application/json'
+    }
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error updating customer by ID:', error);
+      throw error;
+    });
+};
+
+export const ProductGetAllApi = (companyId) => {
+  return axiosInstance.get(`/company/${companyId}/product/all`);
+};
+
+export const ProductPostApi = (companyId, data) => {
+  return axiosInstance.post(`/company/${companyId}/product`, data)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error creating product:', error);
+      throw error;
+    });
+};
+
+export const ProductGetApiById = (companyId, productId) => {
+  return axiosInstance.get(`/company/${companyId}/product/${productId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching product by ID:', error);
+      throw error;
+    });
+};
+
+export const ProductDeleteApiById = (companyId, productId) => {
+  return axiosInstance.delete(`/company/${companyId}/product/${productId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error deleting product by ID:', error);
+      throw error;
+    });
+};
+
+export const ProductPutApiById = (companyId, productId, data) => {
+  return axiosInstance.patch(`/company/${companyId}/product/${productId}`, data, {
+    headers: {
+      "Content-Type": 'application/json'
+    }
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error updating product by ID:', error);
+      throw error;
+    });
+};
+
+
+// Bank Get All API
+export const BankGetAllApi = (companyId) => {
+  return axiosInstance.get(`/company/${companyId}/bank`)
+    // .then(response => response.data)
+    // .catch(error => {
+    //   console.error('Error fetching all banks:', error);
+    //   throw error;
+    // });
+};
+
+// Bank Post API (Create a new bank)
+export const BankPostApi = (companyId, data) => {
+  return axiosInstance.post(`/company/${companyId}/bank`, data)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error creating bank:', error);
+      throw error;
+    });
+};
+
+// Bank Get API by ID
+export const BankGetApiById = (companyId, bankId) => {
+  return axiosInstance.get(`/company/${companyId}/bank/${bankId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching bank by ID:', error);
+      throw error;
+    });
+};
+
+// Bank Delete API by ID
+export const BankDeleteApiById = (companyId, bankId) => {
+  return axiosInstance.delete(`/company/${companyId}/bank/${bankId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error deleting bank by ID:', error);
+      throw error;
+    });
+};
+
+// Bank Patch API by ID (Update a bank)
+export const BankPutApiById = (companyId, bankId, data) => {
+  return axiosInstance.patch(`/company/${companyId}/bank/${bankId}`, data, {
+    headers: {
+      "Content-Type": 'application/json'
+    }
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error updating bank by ID:', error);
+      throw error;
+    });
+};
+
+export const InvoicePostApi = (companyId, customerId, data) => {
+  return axiosInstance.post(`/company/${companyId}/customer/${customerId}/invoice`, data)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error creating product:', error);
+      throw error;
+    });
+};
+
+export const InvoiceGetAllApi = (companyId) => {
+  return axiosInstance.get(`/company/${companyId}/invoice`);
+};
+
+export const InvoiceGetByCustomerIdApi = (companyId, customerId) => {
+  return axiosInstance.get(`/company/${companyId}/customer/${customerId}/invoice`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching product by ID:', error);
+      throw error;
+    });
+};
+
+export const InvoiceGetApiById = (companyId, customerId, invoiceId) => {
+  return axiosInstance.get(`/company/${companyId}/customer/${customerId}/invoice/${invoiceId}`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error('Error fetching product by ID:', error);
+      throw error;
+    });
+};
+
+export const InvoiceDownloadById = async (companyId, customerId, invoiceId) => {
+  try {
+    // Make the API request with specific headers for this request
+    const response = await axiosInstance.get(`/company/${companyId}/customer/${customerId}/downloadInvoice/${invoiceId}`, {
+      responseType: 'blob', // Handle the response as a binary blob (PDF)
+      headers: {
+        'Accept': 'application/pdf',  // Indicate that we expect a PDF
+      },
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `invoice_${customerId}_${invoiceId}.pdf`; // Customize the filename
+    document.body.appendChild(link);
+    link.click(); // Trigger the download
+    document.body.removeChild(link); // Clean up the link element
+
+    // Optionally revoke the URL to free up memory
+    window.URL.revokeObjectURL(url);
+
+    return true;  // Indicate success
+  } catch (error) {
+    console.error('Download error:', error);
+    return false;  // Indicate failure
+  }
+};
+
+

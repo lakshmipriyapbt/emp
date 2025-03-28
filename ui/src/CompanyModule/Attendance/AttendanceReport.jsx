@@ -4,14 +4,16 @@ import Select from "react-select";
 import { useForm } from "react-hook-form";
 import { Bounce, toast } from "react-toastify";
 import {
-  EmployeeGetApi,
   AttendanceReportApi,
   AttendancePatchById,
+  downloadAttendanceFileAPI,
 } from "../../Utils/Axios";
 import { PencilSquare } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
 import { ModalTitle, ModalHeader, ModalBody } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const AttendanceReport = () => {
   const {
@@ -21,7 +23,7 @@ const AttendanceReport = () => {
     reset,
     watch,
   } = useForm({ mode: "onChange" });
-  const [employees, setEmployees] = useState([]);
+  const [emp,setEmp]=useState([])
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -39,7 +41,15 @@ const AttendanceReport = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [noDataFound, setNoDataFound] = useState(false); // State to track if no data is found
   const [isFilterClicked, setIsFilterClicked] = useState(false); // New state to track "Go" button click
+  const dispatch = useDispatch();
 
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
   const navigate = useNavigate();
 
   const getLastMonth = () => {
@@ -55,27 +65,20 @@ const AttendanceReport = () => {
   }, []);
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const data = await EmployeeGetApi();
-        const formattedData = data
-          .filter((employee) => employee.firstName !== null)
-          .map(({ id, firstName, lastName, employeeId }) => ({
-            label: `${firstName} ${lastName} (${employeeId})`,
-            value: id,
-            firstName,
-            lastName,
-            employeeId,
-          }));
-        setEmployees(formattedData);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-      }
-    };
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
+          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+          value: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          employeeId: employee.employeeId,
+        }));
 
-    fetchEmployees();
-    fetchAttendanceData(); // Fetch all attendance data initially
-  }, []);
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
+
   // Fetch Attendance Data
   const fetchAttendanceData = async (empId, month = "", year = "") => {
     try {
@@ -99,6 +102,7 @@ const AttendanceReport = () => {
       setNoDataFound(true); // Set to true in case of an error
     }
   };
+
   useEffect(() => {
     const lastMonth = getLastMonth(); // Get the last month
     const currentYear = new Date().getFullYear(); // Get the current year
@@ -106,6 +110,7 @@ const AttendanceReport = () => {
     setSelectedYear(currentYear); // Default to current year
     fetchAttendanceData(employeeId, lastMonth, currentYear); // Fetch data with both last month and current year
   }, []);
+
 
   const handleEmployeeChange = (selectedOption) => {
     setEmployeeId(selectedOption.value);
@@ -154,6 +159,32 @@ const AttendanceReport = () => {
     setShowEditModal(false);
     setSelectedAttendance({});
   };
+
+  const showToast = (message, type) => {
+    toast[type](message);
+  };
+  
+  const handleDownloadAttendance = (format) => {
+    if (!format) {
+      showToast("Please select a file format!", "warning");
+      return;
+    }
+  
+    let message = `You are about to download the employee attendance data in ${format.toUpperCase()} format.\n\n`;
+  
+    if (selectedYear && selectedMonth && employeeId) {
+      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+    } else if (selectedYear && selectedMonth) {
+      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}`;
+    } else if (employeeId) {
+      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+    }
+  
+    // Show confirmation popup
+    if (window.confirm(message)) {
+      downloadAttendanceFileAPI(format, selectedYear || "", selectedMonth || "", employeeId || "", showToast);
+    }
+  };  
 
   const onSubmit = async (data) => {
     try {
@@ -209,23 +240,16 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
-      width: "80px",
+      // width: "50px",
     },
     {
-      name: (
-        <h6>
-          <b>Name</b>
-        </h6>
+      name: <h6><b>Name</b></h6>,
+      selector: row => (
+        <div title={`${row.firstName} ${row.lastName}`}>
+           {`${row.firstName.length > 18 ? row.firstName.slice(0, 10) + '...' : row.firstName} ${row.lastName.length > 10 ? row.lastName.slice(0, 10) + '...' : row.lastName}`}
+        </div>      
       ),
-      selector: (row) => `${row.firstName} ${row.lastName}`,
-    },
-    {
-      name: (
-        <h6>
-          <b>Mail</b>
-        </h6>
-      ),
-      selector: (row) => row.emailId,
+      width: "190px",
     },
     {
       name: (
@@ -234,14 +258,7 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.month,
-    },
-    {
-      name: (
-        <h6>
-          <b>Year</b>
-        </h6>
-      ),
-      selector: (row) => row.year,
+      width: "140px",
     },
     {
       name: (
@@ -250,7 +267,7 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.noOfWorkingDays,
-      width: "240px",
+      width: "200px",
     },
     {
       name: (
@@ -259,7 +276,7 @@ const AttendanceReport = () => {
         </h6>
       ),
       selector: (row) => row.totalWorkingDays,
-      width: "240px",
+      width: "200px",
     },
     {
       name: (
@@ -318,7 +335,7 @@ const AttendanceReport = () => {
                       Select Employee <span className="text-danger">*</span>
                     </label>
                     <Select
-                      options={employees}
+                      options={emp}
                       onChange={handleEmployeeChange}
                       placeholder="Select Employee"
                       menuPortalTarget={document.body}
@@ -332,7 +349,7 @@ const AttendanceReport = () => {
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)} // Update the selectedMonth state
                     >
-                      <option value=''>Select Month</option>
+                      <option value="">Select Month</option>
                       {Array.from({ length: 12 }, (_, i) =>
                         new Date(0, i).toLocaleString("en-US", {
                           month: "long",
@@ -372,7 +389,7 @@ const AttendanceReport = () => {
                   </div>
 
                   <div
-                    className="col-12 col-md-3 col-lg-3 d-flex justify-content-center align-items-center"
+                    className="col-12 col-md-1 col-lg-1 d-flex justify-content-center align-items-center"
                     style={{ marginTop: "30px" }}
                   >
                     <button
@@ -384,6 +401,21 @@ const AttendanceReport = () => {
                       Go
                     </button>
                   </div>
+
+                  <div
+  className="col-12 col-md-2 col-lg-2 d-flex justify-content-center align-items-center"
+  style={{ marginTop: "30px" }}
+>
+  <select
+    className="form-select bg-primary border-0 text-white"
+    onChange={(e) => handleDownloadAttendance(e.target.value)}
+  >
+    <option value="">Download Attendance Data</option>
+    <option value="excel">Excel (.xlsx)</option>
+    <option value="pdf">PDF (.pdf)</option>
+  </select>
+</div>
+
                 </div>
               </div>
 
@@ -403,57 +435,14 @@ const AttendanceReport = () => {
                     <p className="text-center">No Attendance Found</p>
                   ) : (
                     <DataTable
-                      columns={[
-                        {
-                          name: "#",
-                          selector: (row, index) =>
-                            (currentPage - 1) * rowsPerPage + index + 1,
-                        },
-                        {
-                          name: "Name",
-                          selector: (row) => `${row.firstName} ${row.lastName}`,
-                        },
-                        {
-                          name: "Month",
-                          selector: (row) => row.month,
-                        },
-                        {
-                          name: "Total Working Days",
-                          selector: (row) => row.totalWorkingDays,
-                        },
-                        {
-                          name: "Days Worked",
-                          selector: (row) => row.noOfWorkingDays,
-                        },
-                        {
-                          name: (
-                            <h6>
-                              <b>Actions</b>
-                            </h6>
-                          ),
-                          cell: (row) => (
-                            <div>
-                              <button
-                                className="btn btn-sm"
-                                style={{
-                                  backgroundColor: "transparent",
-                                  border: "none",
-                                  padding: "10px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() => handleShowEditModal(row)}
-                                title="Edit"
-                              >
-                                <PencilSquare size={22} color="#2255a4" />
-                              </button>
-                            </div>
-                          ),
-                        },
-                      ]}
+                      columns={columns}
                       data={attendanceData}
                       pagination
                       highlightOnHover
                       pointerOnHover
+                      dense
+                      onChangePage={(page) => setCurrentPage(page)}
+                      onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
                     />
                   )}
                 </div>

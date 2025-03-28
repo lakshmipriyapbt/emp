@@ -68,7 +68,7 @@
     <h5 style="text-align:center; font-size: 15px;">TO WHOMSOEVER IT MAY CONCERN</h5>
 
     <div class = "details">
-           <p> This is to certify that <strong>${internship.employeeName}</strong> has successfully completed an
+           <p>We are pleased to inform that <strong>${internship.employeeName}</strong> has successfully completed an
            internship program with our company <strong>${company.companyName}</strong> as a <strong>${internship.designation}</strong>
            in the <strong>${internship.department}</strong> department from <strong>${internship.startDate}</strong>
            to <strong>${internship.endDate}</strong>.</p>

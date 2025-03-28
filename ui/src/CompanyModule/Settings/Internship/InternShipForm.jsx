@@ -14,6 +14,8 @@ import {
 } from "../../../Utils/Axios";
 import { useAuth } from "../../../Context/AuthContext";
 import InternShipPreview from "./InternShipPreview";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../../Redux/EmployeeSlice";
 
 const InternShipForm = () => {
   const {
@@ -22,8 +24,8 @@ const InternShipForm = () => {
     control,
     formState: { errors },
     reset,
-  } = useForm({ mode: 'onChange' });
-  const { user, companyData, logoFileName } = useAuth();
+  } = useForm({ mode: "onChange" });
+  const { authUser, company } = useAuth();
   const [emp, setEmp] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -37,10 +39,19 @@ const InternShipForm = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null); // New state to store the selected employee
   const [templateAvailable, setTemplateAvailable] = useState(true);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  // Fetch employees from Redux store
+  const { data: employees, status } = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+  
+  useEffect(() => {
+   
+      const filteredData = employees
         .filter((employee) => employee.firstName !== null)
         .map(({ referenceId, ...rest }) => rest);
       setEmp(
@@ -54,7 +65,6 @@ const InternShipForm = () => {
           dateOfHiring: employee.dateOfHiring,
         }))
       );
-    });
   }, []);
 
   const fetchDepartments = async () => {
@@ -84,9 +94,9 @@ const InternShipForm = () => {
     fetchDesignations();
   }, []);
 
-  const fetchTemplate = async (companyId) => {
+  const fetchTemplate = async () => {
     try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(company.id);
       const templateNumber = res.data.data.internshipTemplateNo;
       setSelectedTemplate(templateNumber);
       setTemplateAvailable(!!templateNumber);
@@ -101,7 +111,7 @@ const InternShipForm = () => {
 
   const onSubmit = (data) => {
     const currentDate = new Date().toISOString().split("T")[0]; // "2024-11-15"
-    const id = companyData.id;
+    const id = company.id;
     const lastWorkingDate = data.lastWorkingDate;
     const dateOfHiring = data.dateOfHiring;
     // Call the validateDatePeriod function to check for errors
@@ -114,7 +124,7 @@ const InternShipForm = () => {
     }
 
     const submissionData = {
-      companyId: id,
+      companyId: company.id,
       employeeName: data.employeeName,
       department: data.departmentName,
       designation: data.designationName,
@@ -124,7 +134,7 @@ const InternShipForm = () => {
     };
     console.log("submissionData", submissionData);
     const preview = {
-      companyLogo: logoFileName,
+      companyLogo: company?.imageFile,
       employeeName: selectedEmployee
         ? selectedEmployee.employeeName
         : data.employeeName,
@@ -135,8 +145,8 @@ const InternShipForm = () => {
       departmentName: data.departmentName || "",
       startDate: data.dateOfHiring || "",
       lastWorkingDate: data.lastWorkingDate || "",
-      companyName: user.company,
-      companyData: companyData,
+      companyName: authUser.company,
+      companyData: company,
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -262,11 +272,23 @@ const InternShipForm = () => {
   const getCurrentDate = () => {
     const today = new Date();
     const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, '0');
-    const dd = today.getDate().toString().padStart(2, '0');
+    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
+    const dd = today.getDate().toString().padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
-  };  
+  };
 
+  const handleEmailChange = (e) => {
+    // Get the current value of the input field
+    const value = e.target.value;
+    // Check if the value is empty
+    if (value.trim() !== "") {
+      return; // Allow space button
+    }
+    // Prevent space character entry if the value is empty
+    if (e.keyCode === 32) {
+      e.preventDefault();
+    }
+  };
 
   const validateName = (value) => {
     // Trim leading and trailing spaces before further validation
@@ -381,6 +403,7 @@ const InternShipForm = () => {
                         onInput={toInputTitleCase}
                         minLength={2}
                         autoComplete="off"
+                        onKeyDown={handleEmailChange}
                         {...register("employeeName", {
                           required: "Employee Name is Required",
                           minLength: {

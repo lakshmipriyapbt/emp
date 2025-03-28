@@ -57,7 +57,21 @@ import Template from '../CompanyModule/Settings/OfferLetter/Template';
 import OfferLetterForm from '../CompanyModule/Settings/OfferLetter/OfferLetterForm';
 import OfferLetterPreview from '../CompanyModule/Settings/OfferLetter/OfferLetterPreview';
 import EmployeeSalaryView from '../EmployeeModule/EmployeeSalaryView';
+import AccountRegistration from '../InvoiceModule/AccountDetails/AccountRegistration';
+import AccountsView from '../InvoiceModule/AccountDetails/AccountsView';
+import CustomersRegistration from '../InvoiceModule/Customers/CustomerRegistration';
+import CustomersView from '../InvoiceModule/Customers/CustomersView'
+import InvoiceRegistration from '../InvoiceModule/Invoice/InvoiceRegistration';
+import InvoiceView from '../InvoiceModule/Invoice/InvoiceView';
+import InvoicePdf from '../InvoiceModule/Invoice/InvoicePdf';
+import ProductView from '../InvoiceModule/Products/ProductsView';
+import ProductRegistration from '../InvoiceModule/Products/ProductRegistration'
 import CreatePassword from '../Login/CreatePassword';
+import EmployeeRegister from '../CompanyModule/Employee/EmployeeRegister';
+import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalaryStructureView';
+import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
+import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
+import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
 
 const Rout = () => {
   const location = useLocation();
@@ -124,6 +138,7 @@ const Rout = () => {
       <Route path='/companyView' element={<CompanyView />}></Route>
       <Route path='/department' element={<Department />}></Route>
       <Route path='/designation' element={<Designation />}></Route>
+      <Route path='/employeeRegister' element={<EmployeeRegister/>}></Route>
       <Route path='/employeeRegistration' element={<EmployeeRegistration />}></Route>
       <Route path='/employeeView' element={<EmployeeView />}></Route>
       <Route path='/relievingProcess' element={<ExistsEmpRegistration />}></Route>
@@ -147,7 +162,9 @@ const Rout = () => {
       <Route path='/attendanceReport' element={<AttendanceReport />}></Route>
       <Route path='/employeePayslip' element={<EmployeePayslips />}></Route>
       <Route path='/employeeSalary' element={<EmployeeSalaryById />}></Route>
-      <Route path='/employeeSalaryView' element={<EmployeeSalaryView/>}></Route>
+      <Route path='/salaries' element={<EmployeeSalaryStructureView/>}></Route>
+      <Route path='/employeeSalaryStrucutre' element={<EmployeeSalaryView/>}></Route>
+      <Route path='/employeesSalaryView' element={<EmployeeSalaryStructureView/>}></Route>
       <Route path='/offerLetter' element={<OfferLetter />}></Route>
       <Route path='/payslipLetter' element={<PaySlipLetter />}></Route>
       <Route path='/hikeLetter' element={<HikeLetter />}></Route>
@@ -162,6 +179,9 @@ const Rout = () => {
       <Route path='/relivingReview' element={<Preview/>}></Route>
       <Route path='/internsLetter' element={<InternShipForm/>}></Route>
       <Route path='/internsTemplates' element={<InternShipTemplates/>}></Route>
+      <Route path='/internOfferTemplate' element={<InternOfferLetter/>}></Route>
+      <Route path='/internOfferForm' element={<InternOfferForm/>}></Route>
+      <Route path='/internPrev' element={<InternOfferPrev/>}></Route>
       <Route path='/appraisalLetter' element={<AddIncrement/>}></Route>
       <Route path='/appraisalTemplates' element={<AppraisalTemplate/>}></Route>
       <Route path='/payslipUpdate1' element={<PayslipUpdate1 />}></Route>
@@ -172,7 +192,16 @@ const Rout = () => {
       <Route path='/payslipDoc2' element={<PayslipDoc2/>}></Route>
       <Route path='/payslipDoc3' element={<PayslipDoc3 />}></Route>
       <Route path='/payslipDoc4' element={<PayslipDoc4/>}></Route>
-      <Route path='/:companyName/createPassword' element={<CreatePassword/>}></Route>
+      <Route path='/customerRegistration' element={<CustomersRegistration/>}></Route>
+      <Route path='/customersView' element={<CustomersView/>}></Route>
+      <Route path='/productRegistartion' element={<ProductRegistration/>}></Route>
+      <Route path='/productsView' element={<ProductView/>}></Route>
+      <Route path='/invoiceRegistartion' element={<InvoiceRegistration/>}></Route>
+      <Route path='/invoiceView' element={<InvoiceView/>}></Route>
+      <Route path='/invoicePdf' element={<InvoicePdf/>}></Route>
+      <Route path='/accountRegistration' element={<AccountRegistration/>}></Route>
+      <Route path='/accountsView' element={<AccountsView/>}></Route>
+      <Route path='/:company/createPassword' element={<CreatePassword/>}></Route>
     </Routes>
   );
 };

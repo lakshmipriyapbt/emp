@@ -1,6 +1,7 @@
 package com.pb.employee.serviceImpl;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
@@ -15,12 +16,20 @@ import com.pb.employee.util.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -50,7 +59,7 @@ public class BankServiceImpl implements BankService {
         String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
         // Step 4.1: Generate a unique resource ID for the bank using companyId and bankName
-        String resourceId = ResourceIdUtils.generateBankResourceId(bankRequest.getBankName(), bankRequest.getAccountNumber());
+        String resourceId = ResourceIdUtils.generateBankResourceId(companyId,bankRequest.getAccountNumber());
 
         // Step 4.2: Check for inter-list duplicates (against the database)
         BankEntity dbBankRecords = openSearchOperations.getBankById(index,null,resourceId);  // Fetch bank records from the DB
@@ -60,9 +69,16 @@ public class BankServiceImpl implements BankService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.BANK_ALREADY_EXISTS),
                     HttpStatus.CONFLICT);
         }
+        List<BankEntity> bankEntities = openSearchOperations.getBankDetailsOfCompany(index);
+        Map<String, Object> duplicateValuesInTheBank = BankUtils.duplicateValuesInBank(bankRequest,bankEntities);
+        if (!duplicateValuesInTheBank.isEmpty()) {
+            return new ResponseEntity<>(
+                    ResponseBuilder.builder().build().failureResponse(duplicateValuesInTheBank),
+                    HttpStatus.CONFLICT
+            );
+        }
         // Step 4.3: Mask and prepare the bank entity
         bankEntity = BankUtils.maskCompanyBankProperties(bankRequest, resourceId, companyId);
-
         try {
           // Step 4.4: Save the bank details to the generated index for each bank entry
            openSearchOperations.saveEntity(bankEntity, resourceId, index);
@@ -124,6 +140,11 @@ public class BankServiceImpl implements BankService {
         String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
         try {
             entity = openSearchOperations.getBankById(index, null,bankId);
+            if (entity == null) {
+                log.error("Bank with ID {} not found", bankId);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS), companyId),
+                        HttpStatus.NOT_FOUND);
+            }
             BankUtils.unmaskBankProperties(entity);
 
         } catch (Exception ex) {
@@ -164,15 +185,21 @@ public class BankServiceImpl implements BankService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_BANK_DETAILS),
                         HttpStatus.NOT_FOUND);
             }
+            int noOfChanges = BankUtils.noChangeInValuesOfBank(bankEntity,bankUpdateRequest);
+            if (noOfChanges==0){
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGE_IN_BANK_DETAILS)))),
+                        HttpStatus.CONFLICT);
+            }
         } catch (Exception ex) {
             log.error("Exception while fetching bank details: {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_BANK_DETAILS),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
         // Process and mask sensitive bank details before saving
-        Entity entity = BankUtils.maskCompanyBankUpdateProperties(bankUpdateRequest, bankId, companyId);
+        Entity entity = BankUtils.maskCompanyBankUpdateProperties(bankUpdateRequest, bankEntity,bankId, companyId);
         // Save the updated bank details back to OpenSearch
-        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        openSearchOperations.saveEntity(entity, bankId, index);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK
         );
@@ -206,6 +233,27 @@ public class BankServiceImpl implements BankService {
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETED), HttpStatus.OK);
+    }
 
+    @Override
+    public ResponseEntity<?> getBankList() throws EmployeeException {
+        log.info("Fetching bank details");
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Resource resource = new ClassPathResource(Constants.BANK_JSON);
+            InputStream inputStream = resource.getInputStream();
+
+            Map<String, String> bankMap = mapper.readValue(inputStream, new TypeReference<>() {});
+            List<BankListAPIEntity> banks = new ArrayList<>();
+            bankMap.forEach((code, name) -> banks.add(new BankListAPIEntity(code, name)));
+
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(banks), HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("Exception while reading bank list: {}", e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_BANK_DETAILS),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

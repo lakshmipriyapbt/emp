@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidStateCode
 public class CustomerRequest {
 
     @NotBlank(message = "{customerName.notnull.message}")
@@ -44,8 +45,8 @@ public class CustomerRequest {
 
     @Nullable
     @Pattern(regexp = "^$|[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}[Z]{1}[A-Z0-9]{1}$",
-            message = "{gstNo.invalid}")
-    private String gstNo;
+            message = "{customerGstNo.invalid}")
+    private String customerGstNo;
 
     @Nullable
     private String stateCode;

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,18 +54,6 @@ public class InvoiceController {
         return invoiceService.getInvoiceById(authToken,companyId,customerId,invoiceId);
     }
 
-    @GetMapping("company/{companyId}/customer/{customerId}/invoice")
-    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getCustomerAllInvoices.tag}", description = "${api.getInvoice.description}")
-    @ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> getCustomerAllInvoices(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                       @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                       @Parameter(required = true, description = "${api.getCompanyPayload.description}")
-                                                       @PathVariable String companyId,
-                                                       @Parameter(required = true, description = "${api.getCustomerPayload.description}")
-                                                       @PathVariable String customerId
-                                                       ) throws EmployeeException {
-        return invoiceService.getCustomerAllInvoices(authToken,companyId,customerId);
-    }
 
     @GetMapping("company/{companyId}/invoice")
     @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.getCompanyAllInvoices.tag}", description = "${api.getInvoice.description}")
@@ -72,8 +61,23 @@ public class InvoiceController {
     public ResponseEntity<?> getCompanyAllInvoices(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                     @Parameter(required = true, description = "${api.getCompanyPayload.description}")
-                                                    @PathVariable String companyId
+                                                    @PathVariable String companyId,
+                                                    @RequestParam(required = false,name = Constants.CUSTOMER_ID) String customerId
                                                     ) throws EmployeeException {
-        return invoiceService.getCompanyAllInvoices(authToken,companyId);
+        return invoiceService.getCompanyAllInvoices(authToken,companyId,customerId);
+    }
+
+    @GetMapping("company/{companyId}/customer/{customerId}/downloadInvoice/{invoiceId}")
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.downloadInvoice.tag}", description = "${api.detInvoice.description}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> downloadInvoice(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                             @Parameter(required = true, description = "${api.getCompanyPayload.description}")
+                                             @PathVariable String companyId,
+                                             @Parameter(required = true, description = "${api.getCustomerPayload.description}")
+                                             @PathVariable String customerId,
+                                             @Parameter(required = true, description = "${api.getInvoicePayload.description}")
+                                             @PathVariable String invoiceId,HttpServletRequest request) throws EmployeeException {
+        return invoiceService.downloadInvoice(authToken,companyId,customerId,invoiceId,request);
     }
 }

@@ -6,14 +6,14 @@ import { useAuth } from "../Context/AuthContext";
 const EmployeeProfile = () => {
     const [error, setError] = useState("");
     const [employeeData, setEmployeeData] = useState(false);
-    const { user } = useAuth();
-    console.log("EmployeeProfile", user.userId)
+    const { authUser } = useAuth();
+    console.log("EmployeeProfile", authUser.userId)
     useEffect(() => {
-        if (!user.userId) return; 
+        if (!authUser.userId) return; 
 
         const fetchData = async () => {
             try {
-                const response = await EmployeeGetApiById(user.userId);
+                const response = await EmployeeGetApiById(authUser.userId);
                 console.log("API Response:", response.data);
                 setEmployeeData(response.data);
             } catch (error) {
@@ -21,9 +21,8 @@ const EmployeeProfile = () => {
                 console.error("Error fetching employee data:", error);
             }
         };
-
         fetchData();
-    }, [user.userId]); 
+    }, [authUser.userId]); 
 
 
     return (

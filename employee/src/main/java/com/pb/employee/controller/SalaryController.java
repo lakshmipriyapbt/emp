@@ -1,14 +1,13 @@
 package com.pb.employee.controller;
 
 
+import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeException;
-import com.pb.employee.request.EmployeeSalaryRequest;
-import com.pb.employee.request.EmployeeUpdateRequest;
-import com.pb.employee.request.SalaryRequest;
-import com.pb.employee.request.SalaryUpdateRequest;
+import com.pb.employee.request.*;
 import com.pb.employee.service.SalaryService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +17,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @RestController
@@ -47,7 +47,19 @@ public class SalaryController {
     public ResponseEntity<?> getEmployeeSalary(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                @PathVariable String companyName,@PathVariable String employeeId) throws  EmployeeException {
-        return salaryService.getEmployeeSalary(companyName,employeeId);
+        List<EmployeeSalaryResPayload> salaryResPayloads = salaryService.getEmployeeSalary(companyName, employeeId);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(salaryResPayloads), HttpStatus.OK);    }
+
+    @RequestMapping(value = "/{companyName}/employee/salaries", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.getSalary.tag}", description = "${api.getSalary.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> getEmployeeSalary(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                               @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                               @PathVariable String companyName) throws  EmployeeException {
+        List<EmployeeSalaryResPayload> salaryResPayloads = salaryService.getEmployeeSalary(companyName, null);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(salaryResPayloads), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{companyName}/employee/{employeeId}/salary/{salaryId}", method = RequestMethod.GET)
@@ -85,6 +97,17 @@ public class SalaryController {
                                                       @PathVariable String employeeId,
                                                       @PathVariable String salaryId) throws EmployeeException {
         return salaryService.deleteEmployeeSalaryById(companyName,employeeId,salaryId);
+    }
+
+    @RequestMapping(value = "/{companyName}/employee/salaries/download", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.downloadEmployeeSalaries.tag}", description = "${api.downloadEmployeeSalaries.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> EmployeeSalariesDownload(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                         @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                      @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
+        return salaryService.downloadEmployeesSalaries(companyName, format, request);
     }
 
 }

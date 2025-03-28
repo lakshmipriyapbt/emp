@@ -698,8 +698,8 @@ public class PayslipUtils {
         }
 
         // **Other Allowance** (Gross CTC - Total Allowances - Deductions)
-        double otherAllowanceAnnual = grossAmount - totalAllowanceAnnual;
-        double otherAllowanceMonthly = otherAllowanceAnnual / 12;
+        double otherAllowanceAnnual = Math.round(grossAmount - totalAllowanceAnnual);
+        double otherAllowanceMonthly = Math.round(otherAllowanceAnnual / 12);
 
         if (otherAllowanceAnnual > 0) {
             Map<String, String> otherAllowanceData = new HashMap<>();
@@ -729,8 +729,8 @@ public class PayslipUtils {
 
             // Convert the percentage to a double and calculate the annual and monthly Provident Fund Employee
             double pfEmployeePercentage = Double.parseDouble(pfEmployeePercentageString);
-            double pfEmployeeAnnual = basicSalaryAnnual * (pfEmployeePercentage / 100);  // Calculate annual PF Employee from Basic Salary
-            double pfEmployeeMonthly = pfEmployeeAnnual / 12; // Calculate monthly PF Employee
+            double pfEmployeeAnnual = Math.round(basicSalaryAnnual * (pfEmployeePercentage / 100));  // Calculate annual PF Employee from Basic Salary
+            double pfEmployeeMonthly = Math.round(pfEmployeeAnnual / 12); // Calculate monthly PF Employee
 
             // Add the Provident Fund Employee contribution to components
             Map<String, String> pfEmployeeData = new HashMap<>();
@@ -751,8 +751,8 @@ public class PayslipUtils {
 
             // Convert the percentage to a double and calculate the annual and monthly Provident Fund Employer
             double pfEmployerPercentage = Double.parseDouble(pfEmployerPercentageString);
-            double pfEmployerAnnual = basicSalaryAnnual * (pfEmployerPercentage / 100);  // Calculate annual PF Employer from Basic Salary
-            double pfEmployerMonthly = pfEmployerAnnual / 12; // Calculate monthly PF Employer
+            double pfEmployerAnnual = Math.round(basicSalaryAnnual * (pfEmployerPercentage / 100));  // Calculate annual PF Employer from Basic Salary
+            double pfEmployerMonthly = Math.round(pfEmployerAnnual / 12); // Calculate monthly PF Employer
 
             // Add the Provident Fund Employer contribution to components
             Map<String, String> pfEmployerData = new HashMap<>();

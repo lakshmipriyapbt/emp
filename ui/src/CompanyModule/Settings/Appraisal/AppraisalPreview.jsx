@@ -8,7 +8,7 @@ import AppraisalTemplate2 from "./AppraisalTemplate2";
 const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept previewData as a prop
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -33,13 +33,13 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
   const templates = useMemo(() => [
     {
@@ -47,10 +47,11 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
       name: "1",
       content: () => (
         <AppraisalTemplate1
-        companyLogo={logoFileName}
-        companyData={companyData}
+        companyLogo={company?.imageFile}
+        companyData={company}
         allowances={previewData.allowances}   
         date={previewData.date}
+        hike={previewData.salaryHikePersentage}
         employeeName={previewData.employeeName}
         employeeId={previewData.employeeId}
         designation={previewData.designationName}
@@ -66,8 +67,9 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
       name: "2",
       content: () => (
         <AppraisalTemplate2
-          companyLogo={logoFileName}
-          companyData={companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
+          hike={previewData.salaryHikePersentage}
           allowances={previewData.allowances}   // Passing allowances dynamically
           date={previewData.date}
           employeeName={previewData.employeeName}
@@ -80,7 +82,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
          />
       ),
     },    
-  ], [companyData, logoFileName]);
+  ], [companyData, company?.imageFile]);
   
 
   const selectedTemplateContent = useMemo(() => {

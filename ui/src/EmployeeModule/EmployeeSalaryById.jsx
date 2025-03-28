@@ -10,18 +10,49 @@ const EmployeeSalaryById = () => {
   const [expanded, setExpanded] = useState({});
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const toggleExpand = (index) => {
     setExpanded((prevState) => ({ ...prevState, [index]: !prevState[index] }));
   };
 
   useEffect(() => {
+<<<<<<< HEAD
     if (user.userId) {
       EmployeeSalaryGetApi(user.userId).then((response) => {
+=======
+    if (authUser.userId) {
+      EmployeeSalaryGetApi(authUser.userId).then((response) => {
+>>>>>>> main
         setEmployeeSalaryView(response.data.data);
       });
     }
-  }, [user.userId]);
+  }, [authUser.userId]);
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Active":
+        return {
+          backgroundColor: "green",
+          color: "white",
+          padding: "2px 8px",
+          borderRadius: "4px",
+        };
+      case "InActive":
+        return {
+          backgroundColor: "red",
+          color: "white",
+          padding: "2px 8px",
+          borderRadius: "4px",
+        };
+      default:
+        return {
+          backgroundColor: "gray",
+          color: "white",
+          padding: "2px 8px",
+          borderRadius: "4px",
+        };
+    }
+  };
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -52,7 +83,11 @@ const EmployeeSalaryById = () => {
   const handleEditClick = (salaryId, event) => {
     event.stopPropagation(); // Prevent the card from toggling when editing
     navigate(
+<<<<<<< HEAD
       `/employeeSalaryView?salaryId=${salaryId}&employeeId=${user.userId}`
+=======
+      `/employeeSalaryView?salaryId=${salaryId}&employeeId=${authUser.userId}`
+>>>>>>> main
     ); // Navigate with both parameters
   };
 

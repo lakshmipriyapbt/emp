@@ -3,8 +3,8 @@ import { useAuth } from "../../../Context/AuthContext";
 import { toast } from "react-toastify";
 
 const PayslipTemplate1 = () => {
-    const { logoFileName } = useAuth();
-    
+    const { company } = useAuth();
+
     return (
         <div>
             <div className="container mt-4" style={{ pointerEvents: "none" }}>
@@ -12,8 +12,8 @@ const PayslipTemplate1 = () => {
                     <div className="card-header mt-4" style={{ background: "none", display: "flex", padding: "0px 25px", borderBottomWidth: "0px" }}>
                         <div className="header-content mt-4" style={{ textAlign: "center", height: "150px", display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#9fc7df", border: "1px solid black", borderBottom: "none", borderRight: "none", width: "50%" }}>
                             <div style={{ paddingTop: "20px" }}>
-                                {logoFileName ? (
-                                    <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                                {company?.imageFile ? (
+                                    <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                                 ) : (
                                     <p>Logo</p>
                                 )}

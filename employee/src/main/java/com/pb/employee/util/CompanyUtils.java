@@ -16,8 +16,8 @@ import java.util.List;
 @Component
 public class CompanyUtils {
 
-    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id) {
-        String password = Base64.getEncoder().encodeToString(companyRequest.getPassword().getBytes());
+    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.toString().getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null, regNo = null, mobileNo=null, landNo= null, gstNo=null, cinNo=null, pmNo=null, psmailId=null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -213,17 +213,10 @@ public class CompanyUtils {
 
         return existingEntity;
     }
-    public static CompanyEntity maskCompanyStampImageUpdateProperties(CompanyEntity existingEntity, CompanyStampUpdate companyRequest) {
-        if(companyRequest.getImage() != null){
-            existingEntity.setStampImage(companyRequest.getImage());
-        }
-
-        return existingEntity;
-    }
 
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId) {
-        String password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId,String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -429,8 +422,8 @@ public class CompanyUtils {
     public static Map<String, Object> duplicateValues(CompanyRequest companyRequest, List<CompanyEntity> companyEntities) {
         Map<String, Object> responseBody = new HashMap<>();
            String cinNo = null, regNo = null, mobileNo = null, landNo =  null,
-                   gstNo = null, panNo= null, personalMail = null, personalMobile = null,
-                   emailId=null,mailId=null;
+                   panNo= null, personalMail = null, personalMobile = null,
+                   mailId=null;
         for (CompanyEntity companyEntity :companyEntities) {
 
             if (companyRequest.getEmailId() != null && companyEntity.getEmailId() != null) {
@@ -466,14 +459,6 @@ public class CompanyUtils {
 
             if (companyRequest.getEmailId().equals(companyRequest.getPersonalMailId())){
                 responseBody.put(Constants.DUPLICATE_AS_EMAIL_NO, companyRequest.getEmailId());
-            }
-
-            if (companyRequest.getGstNo() != null && companyEntity.getGstNo() != null) {
-                gstNo = new String(Base64.getDecoder().decode(companyEntity.getGstNo().getBytes()));
-                if (gstNo.equals(companyRequest.getGstNo())){
-                    responseBody.put(Constants.DUPLICATE_GST_NO, companyRequest.getGstNo());
-                }
-
             }
             if (companyRequest.getPanNo() != null && companyEntity.getPanNo() != null) {
                 panNo = new String(Base64.getDecoder().decode(companyEntity.getPanNo().getBytes()));
@@ -843,8 +828,6 @@ public class CompanyUtils {
     public static Map<String, Object> duplicateValuesInCompany(CompanyRequest companyRequest) {
 
         Map<String, Object> responseBody = new HashMap<>();
-        String cinNo = null, regNo = null, mobileNo = null, landNo =  null, gstNo = null, panNo= null, personalMail = null, personalMobile = null, emailId=null;
-
 
             if (companyRequest.getAlternateNo().equals(companyRequest.getMobileNo())){
                 responseBody.put(Constants.DUPLICATE_AS_MOBILE_NO, companyRequest.getAlternateNo());

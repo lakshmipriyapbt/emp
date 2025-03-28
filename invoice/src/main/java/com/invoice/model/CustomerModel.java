@@ -1,13 +1,9 @@
 package com.invoice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.micrometer.common.lang.Nullable;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.persistence.Entity;
 import lombok.*;
-import java.util.List;
 
 @Getter
 @Setter
@@ -31,6 +27,6 @@ public class CustomerModel {
     private String stateCode;
     private String mobileNumber;
     private String email;
-    private String gstNo;
+    private String customerGstNo;
     private String status;
 }

@@ -319,5 +319,4 @@ public class LoginServiceImpl implements LoginService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
-
 }

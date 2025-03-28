@@ -9,6 +9,7 @@ import com.pb.ems.exception.IdentityErrorMessageKey;
 import com.pb.ems.exception.IdentityException;
 import com.pb.ems.model.*;
 import com.pb.ems.service.LoginService;
+import com.pb.ems.util.Constants;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +109,15 @@ public class LoginController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
     public ResponseEntity<?> updatePassword(@RequestBody @Valid EmployeePasswordforgot request) throws IdentityException {
         return loginService.updatePasswordForForgot(request);
+    }
+
+    @RequestMapping(value = "/health/livez", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(summary = "${api.getApiCheck.tag}", description = "${api.getApiCheck.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+    public String getApi() {
+        log.info("Entered the Identity API check controller");
+        return Constants.SUCCESS;
     }
 
 

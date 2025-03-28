@@ -12,7 +12,10 @@ const PayslipTemplates = () => {
     const [currentTemplate, setCurrentTemplate] = useState(<PayslipTemplate1 />);
     const [payslipTemplateNo, setPayslipTemplateNo] = useState("");
     const [loading, setLoading] = useState(false);
-    const { user} = useAuth();
+    const { employee } = useAuth();
+
+    console.log("companyId:",employee.companyId);
+    
 
     const templates = [
         { id: 1, title: 'Template 1', bgColor: '#e6e6fa', headingColor: '#4682b4', component: <PayslipTemplate1 /> },
@@ -28,7 +31,7 @@ const PayslipTemplates = () => {
         }
         setLoading(true);
         const data = {
-            companyId: user.companyId,
+            companyId: employee.companyId,
             payslipTemplateNo,
         };
 

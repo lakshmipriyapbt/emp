@@ -58,9 +58,13 @@ public class ResourceIdUtils {
     public static String generateRelievingId(String companyName, String relievingDate, String resignationDate) {
         return generateGlobalResourceId(ResourceType.RELIEVING, companyName, relievingDate,resignationDate);
     }
-    public static String generateBankResourceId(String bankName,String accountNo ) {
-        return generateGlobalResourceId(ResourceType.BANK, bankName,accountNo);
+    public static String generateBankResourceId(String companyId,String accountNo ) {
+        return generateGlobalResourceId(ResourceType.BANK, companyId,accountNo);
 
+    }
+
+    public static String generateEmployeePersonnelId(String resourceId) {
+        return generateGlobalResourceId(ResourceType.EMPLOYEE_PERSONNEL, resourceId);
     }
     public static String generateBackgroundResourceId(String companyName, String employeeId) {
         return generateGlobalResourceId(ResourceType.BACKGROUND, companyName,employeeId);
@@ -119,7 +123,11 @@ public class ResourceIdUtils {
         if (type == ResourceType.BACKGROUND) {
             prefix = Constants.BACKGROUND +"-";
 
+        }   if (type == ResourceType.EMPLOYEE_PERSONNEL) {
+            prefix = Constants.EMPLOYEE_PERSONNEL +"-";
+
         }
+
 
         StringBuilder md5Input = new StringBuilder();
         for (Object arg : args) {
@@ -141,7 +149,5 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
-
-
 
 }

@@ -21,7 +21,7 @@ public class BankRequest {
 
     @Schema(example = "accountType")
     @Size(min = 1, max = 35, message = "{accountType.notnull.message}")
-    @Pattern(regexp = "^(?:[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]*\\s[A-Z])$", message = "{accountType.message}")
+    @Pattern(regexp = "^(?:[A-Z][a-z]*|[A-Z]+)(?: [A-Z][a-z]*| [A-Z]+)*$", message = "{accountType.message}")
     private String accountType;
 
     @Schema(example = "bankName")

@@ -24,5 +24,7 @@ public class CompanyEntity {
     private String cinNo;
     private String stampImage;
     private String shortName;
+    private String mobileNo;
+    private String emailId;
 
 }

@@ -19,7 +19,7 @@ const EmployeeSalaryUpdate = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -56,10 +56,10 @@ const EmployeeSalaryUpdate = () => {
   const navigate = useNavigate();
   const debounceTimerRef = useRef(null);
 
-  const backForm=()=>{
+  const backForm = () => {
     reset();
     navigate(`/employeeSalaryList?id=${id}`);
-  }
+  };
 
   useEffect(() => {
     if (id && salaryId) {
@@ -118,7 +118,7 @@ const EmployeeSalaryUpdate = () => {
           const { allowances, deductions } = salaryConfigurationEntity;
 
           // Ensure that the status is "Active" before processing
-          if (status === "Active" || status === "InActive") { 
+          if (status === "Active" || status === "InActive") {
             setSalaryStructure([salaryData]); // Set the salary structure
             setAllowances(allowances); // Set the allowances
             setDeductions(deductions); // Set the deductions
@@ -170,61 +170,61 @@ const EmployeeSalaryUpdate = () => {
   };
 
   const handleAllowanceChange = (key, newValue) => {
-      let validValue = newValue;
-      const isPercentage = newValue.includes("%");
-      let errorMessage = "";
-      
-      // Check for non-numeric characters (excluding the '%' symbol)
-      if (!isPercentage && /[^0-9.-]/.test(newValue)) {
-          errorMessage = "Only numeric values are allowed.";
+    let validValue = newValue;
+    const isPercentage = newValue.includes("%");
+    let errorMessage = "";
+
+    // Check for non-numeric characters (excluding the '%' symbol)
+    if (!isPercentage && /[^0-9.-]/.test(newValue)) {
+      errorMessage = "Only numeric values are allowed.";
+    }
+
+    // Handle percentage-specific validation
+    if (isPercentage) {
+      validValue = newValue.replace(/[^0-9%]/g, "");
+      if (validValue.includes("%")) {
+        const digitsBeforePercentage = validValue.split("%")[0].slice(0, 2);
+        validValue = digitsBeforePercentage + "%";
       }
-  
-      // Handle percentage-specific validation
-      if (isPercentage) {
-          validValue = newValue.replace(/[^0-9%]/g, "");
-          if (validValue.includes("%")) {
-              const digitsBeforePercentage = validValue.split("%")[0].slice(0, 2);
-              validValue = digitsBeforePercentage + "%";
-          }
-          if (validValue.length > 4) {
-              errorMessage = "Percentage value should have up to 2 digits before '%'.";
-          }
-      } else {
-          if (validValue.length > 10) {
-              errorMessage = "Numeric value cannot exceed 10 digits.";
-          }
-          if (parseFloat(validValue) < 0) {
-              errorMessage = "Allowance value cannot be negative.";
-          }
+      if (validValue.length > 4) {
+        errorMessage =
+          "Percentage value should have up to 2 digits before '%'.";
       }
-  
-      // Update the allowances state only if there's no error
-      if (!errorMessage) {
-          setAllowances((prevAllowances) => ({
-              ...prevAllowances,
-              [key]: validValue,
-          }));
+    } else {
+      if (validValue.length > 10) {
+        errorMessage = "Numeric value cannot exceed 10 digits.";
       }
-  
-      // Only update the error message if there's an error
-      setErrorMessage(errorMessage);
+      if (parseFloat(validValue) < 0) {
+        errorMessage = "Allowance value cannot be negative.";
+      }
+    }
+
+    // Update the allowances state only if there's no error
+    if (!errorMessage) {
+      setAllowances((prevAllowances) => ({
+        ...prevAllowances,
+        [key]: validValue,
+      }));
+    }
+
+    // Only update the error message if there's an error
+    setErrorMessage(errorMessage);
   };
-  
+
   // For useRef debouncing and preventing the blinking:
   const inputValueRef = useRef("");
-  
+
   const handleChangeWithDebounce = (key, newValue) => {
     // Cancel the previous debounce timer
     if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      clearTimeout(debounceTimerRef.current);
     }
 
     // Set a new debounce timer
     debounceTimerRef.current = setTimeout(() => {
-        handleAllowanceChange(key, newValue);
+      handleAllowanceChange(key, newValue);
     }, 500); // Debounce delay in milliseconds
-};
-  
+  };
 
   useEffect(() => {
     const totalAllow = calculateTotalAllowances();
@@ -398,7 +398,7 @@ const EmployeeSalaryUpdate = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = user.company;
+  const companyName = authUser.company;
   const onSubmit = (data) => {
     // Check if there's an error related to salary structures
     if (error) {
@@ -630,57 +630,58 @@ const EmployeeSalaryUpdate = () => {
                         {errorMessage}
                       </span>
                     )}
-                    {Object.keys(allowances).map((key) => {
-                      const allowanceValue = allowances[key];
-                      const isPercentage = allowanceValue.includes("%");
-                     // let displayValue = allowanceValue;
-                      const isOtherAllowanceReadOnly =
-                        key === "Other Allowances";
-                      // Folr numeric fields, we display them as whole numbers
-                      // if (!isPercentage) {
-                      //   displayValue = Math.floor(allowanceValue);
-                      // }
+                    {Object.keys(allowances)
+                      .sort((a, b) => {
+                        // Custom sorting to ensure Basic Salary is first and HRA is second
+                        if (a === "Basic Salary") return -1; // Basic Salary first
+                        if (b === "Basic Salary") return 1; // Basic Salary first
+                        if (a === "HRA") return -1; // HRA second
+                        if (b === "HRA") return 1; // HRA second
+                        return 0; // Keep the rest in original order
+                      })
+                      .map((key) => {
+                        const allowanceValue = allowances[key];
+                        const isPercentage = allowanceValue.includes("%");
+                        const isOtherAllowanceReadOnly =
+                          key === "Other Allowances";
 
-                      return (
-                        <div key={key} className="mb-2">
-                          <label className="form-label">
-                            {key}:
-                            <span className="text-danger me-1">
-                              ({allowanceValue})
-                            </span>
-                            {isPercentage && (
-                              <span
-                                className="m-1"
-                                data-toggle="tooltip"
-                                title="Percentage values are calculated based on Gross Amount."
-                              >
-                                <span className="text-primary">
-                                  <i className="bi bi-info-circle"></i>
-                                </span>
+                        return (
+                          <div key={key} className="mb-2">
+                            <label className="form-label">
+                              {key}:
+                              <span className="text-danger me-1">
+                                ({allowanceValue})
                               </span>
-                            )}
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            readOnly={isOtherAllowanceReadOnly}
-                            value={Math.round(allowanceValue)}
-                            onChange={(e) => {
-                              // Allow only numbers and '%' characters
-                              const newValue = e.target.value.replace(
-                                /[^0-9%]/g,
-                                ""
-                              );
-                              handleAllowanceChange(key, newValue);
-                            }}
-                            maxLength={isPercentage ? 4 : 10}
-                          />
-                          {/* {errorMessage && (
-                            <p className="text-danger">{errorMessage}</p>
-                          )} */}
-                        </div>
-                      );
-                    })}
+                              {isPercentage && (
+                                <span
+                                  className="m-1"
+                                  data-toggle="tooltip"
+                                  title="Percentage values are calculated based on Gross Amount."
+                                >
+                                  <span className="text-primary">
+                                    <i className="bi bi-info-circle"></i>
+                                  </span>
+                                </span>
+                              )}
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              readOnly={isOtherAllowanceReadOnly}
+                              value={Math.round(allowanceValue)}
+                              onChange={(e) => {
+                                // Allow only numbers and '%' characters
+                                const newValue = e.target.value.replace(
+                                  /[^0-9%]/g,
+                                  ""
+                                );
+                                handleAllowanceChange(key, newValue);
+                              }}
+                              maxLength={isPercentage ? 4 : 10}
+                            />
+                          </div>
+                        );
+                      })}
                     <div className="mb-3">
                       <label>Total Allowances:</label>
                       <input
@@ -871,14 +872,17 @@ const EmployeeSalaryUpdate = () => {
                     </div>
                   </div>
                 </div>
-               
 
                 <div className="text-end">
-                {showFields && (
-                   <button className="btn btn-secondary me-2" type="button" onClick={backForm}>
-                   Back
-                 </button>
-                )}
+                  {showFields && (
+                    <button
+                      className="btn btn-secondary me-2"
+                      type="button"
+                      onClick={backForm}
+                    >
+                      Back
+                    </button>
+                  )}
                   <button
                     type="submit"
                     className="btn btn-danger ms-2"

@@ -20,7 +20,6 @@ const CompanyRegistration = () => {
   } = useForm({ mode: "onChange" });
   const [postImage, setPostImage] = useState("");
   const [companyType, setCompanyType] = useState("");
-  const [passwordShown, setPasswordShown] = useState("");
   const [editMode, setEditMode] = useState(false); // State to track edit mode
   const [errorMessage, setErrorMessage] = useState("");
   const watchRegistrationNumber = watch("cinNo", "");
@@ -28,12 +27,6 @@ const CompanyRegistration = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const togglePasswordVisiblity = () => {
-    setPasswordShown(!passwordShown);
-  };
-  const handlePasswordChange = (e) => {
-    setPasswordShown(e.target.value);
-  };
   const handleEmailChange = (e) => {
     const value = e.target.value;
 
@@ -146,8 +139,8 @@ const CompanyRegistration = () => {
         try {
           const response = await companyViewByIdApi(location.state.id);
           console.log(response.data);
-          reset(response.data);
-          setCompanyType(response.data.companyType);
+          reset(response.data.data);
+          setCompanyType(response.data.data.companyType);
           setEditMode(true);
         } catch (error) {
           handleApiErrors(error);
@@ -397,6 +390,10 @@ const CompanyRegistration = () => {
   const validateGST = (value) => {
     const spaceError = "Spaces are not allowed in the GST Number.";
     const patternError = "Invalid GST Number format";
+
+    if (!value){
+      return true;
+    }
 
     if (/\s/.test(value)) {
       return spaceError; // Return space error if spaces are found
@@ -716,8 +713,6 @@ const CompanyRegistration = () => {
                         <p className="errorMsg">{errors.emailId.message}</p>
                       )}
                     </div>
-                    {editMode ? (
-                      <>
                         <div className="col-lg-1"></div>
                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                           <label className="form-label">
@@ -768,115 +763,7 @@ const CompanyRegistration = () => {
                               {errors.mobileNo.message}
                             </p>
                           )}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="col-lg-1"></div>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Password <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <div className="col-sm-12 password-input-container">
-                            <input
-                              className="form-control"
-                              placeholder="Enter Password"
-                              onChange={handlePasswordChange}
-                              autoComplete="off"
-                              onPaste={handlePaste}
-                              onKeyDown={handleEmailChange}
-                              type={passwordShown ? "text" : "password"}
-                              {...register("password", {
-                                required: "Password is Required",
-                                validate: validatePassword,
-                                minLength: {
-                                  value: 6,
-                                  message: "Minimum 6 Characters Required",
-                                },
-                                maxLength: {
-                                  value: 16,
-                                  message:
-                                    "Minimum 6 & Maximum 16 Characters allowed",
-                                },
-                              })}
-                            />
-                            {/* Eye Icon to toggle password visibility */}
-                            <span
-                              className={`bi bi-eye field-icon pb-1 toggle-password ${
-                                passwordShown ? "text-primary" : ""
-                              }`}
-                              onClick={togglePasswordVisiblity}
-                              style={{
-                                background: "transparent",
-                                borderLeft: "none",
-                              }}
-                            ></span>
-                          </div>
-                          {errors.password && (
-                            <p className="errorMsg">
-                              {errors.password.message}
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    )}
-                    {!editMode && (
-                      <>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Mobile Number{" "}
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            className="form-control"
-                            placeholder="Enter Mobile Number"
-                            autoComplete="off"
-                            maxLength={14} // Limit input to 15 characters
-                            defaultValue="+91 " // Set the initial value to +91 with a space
-                            onInput={handlePhoneNumberChange} // Handle input changes
-                            // onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
-                            {...register("mobileNo", {
-                              required: "Mobile Number is Required",
-                              validate: {
-                                startsWithPlus91: (value) => {
-                                  if (!value.startsWith("+91 ")) {
-                                    return "Mobile Number must start with +91 and a space.";
-                                  }
-                                  return true;
-                                },
-                                correctLength: (value) => {
-                                  if (value.length !== 14) {
-                                    return "Mobile Number is Required";
-                                  }
-                                  return true;
-                                },
-                                notRepeatingDigits: (value) => {
-                                  const isRepeating = /^(\d)\1{12}$/.test(
-                                    value
-                                  ); // Check for repeating digits
-                                  return (
-                                    !isRepeating ||
-                                    "Mobile Number cannot consist of the same digit repeated."
-                                  );
-                                },
-                              },
-                              pattern: {
-                                value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                                message: "Mobile Number is Required",
-                              },
-                            })}
-                          />
-                          {errors.mobileNo && (
-                            <p className="errorMsg">
-                              {errors.mobileNo.message}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="col-lg-1"></div>
-                      </>
-                    )}
+                        </div>          
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
                       <label className="form-label">
                         Alternate Number <span style={{ color: "red" }}>*</span>
@@ -922,7 +809,7 @@ const CompanyRegistration = () => {
                         <p className="errorMsg">{errors.alternateNo.message}</p>
                       )}
                     </div>
-                    {editMode && <div className="col-lg-1"></div>}
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Company Address <span style={{ color: "red" }}>*</span>
@@ -1313,7 +1200,7 @@ const CompanyRegistration = () => {
             </div>
           </div>
         </form>
-      </div>
+      </div>,,
     </LayOut>
   );
 };

@@ -13,6 +13,8 @@ import {
 } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import Preview from "../Settings/Relieving/Preview";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ExistsEmpRegistration = () => {
   const {
@@ -26,7 +28,7 @@ const ExistsEmpRegistration = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser,company } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -38,6 +40,16 @@ const ExistsEmpRegistration = () => {
   const [templateAvailable, setTemplateAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const calculateNoticePeriod = (
     resignationDate,
@@ -120,12 +132,10 @@ const ExistsEmpRegistration = () => {
   };
 
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter((employee) => employee.firstName !== null)
-        .map(({ referenceId, ...rest }) => rest);
-      setEmp(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -133,10 +143,11 @@ const ExistsEmpRegistration = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []);
+        }));
+
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -172,7 +183,7 @@ const ExistsEmpRegistration = () => {
       resignationDate: data.resignationDate || "",
       lastWorkingDate: data.relievingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName: authUser.company,
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -531,7 +542,7 @@ const ExistsEmpRegistration = () => {
                             type="date"
                             className="form-control"
                             placeholder="Last Working Date"
-                            max={getCurrentDate()}  
+                            max={getCurrentDate()}
                           />
                         )}
                       />

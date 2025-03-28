@@ -11,5 +11,6 @@ const decodedToken = token ? jwtDecode(token) : null;
 export const userId = decodedToken ? decodedToken.sub : null;
 export const userRoles = decodedToken ? decodedToken.roles : null;
 export const company = decodedToken ? decodedToken.company : null;
+export const companyId=decodedToken ? decodedToken.companyId:null;
 export const employeeId = decodedToken ? decodedToken.employee : null;
 

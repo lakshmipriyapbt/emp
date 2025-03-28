@@ -1,19 +1,17 @@
-
 services:
   frontend:
     build:
-      context: /var/lib/jenkins/workspace/ems-deployement
-      dockerfile: docker/frontend
+      context: ../ui
+      dockerfile: Dockerfile
     ports:
-      - "2800:3000"
+      - "2800:2800"
     networks:
       - ems-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9200
-
   identity:
     build:
-      context: /var/lib/jenkins/workspace/ems-deployement
+      context: ../
       dockerfile: docker/identity
     ports:
       - "9090:9090"
@@ -21,10 +19,9 @@ services:
       - ems-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9200
-
   employee:
     build:
-      context: /var/lib/jenkins/workspace/ems-deployement
+      context: ../
       dockerfile: docker/employee
     ports:
       - "8092:8092"
@@ -32,6 +29,14 @@ services:
       - ems-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9200
-
 networks:
   ems-network:
+
+
+
+
+
+
+
+
+

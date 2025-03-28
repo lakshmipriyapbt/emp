@@ -56,8 +56,8 @@ public class DesignationServiceImpl implements DesignationService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        List<DesignationEntity> designationEntities = openSearchOperations.getCompanyDesignationByName(designationRequest.getCompanyName(), designationRequest.getName());
-        if(designationEntities !=null && designationEntities.size() > 0) {
+        boolean designationEntities = openSearchOperations.isDesignationPresent(designationRequest.getCompanyName(), designationRequest.getName());
+        if(designationEntities) {
             log.error("Designation with name {} already existed", designationRequest.getName());
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_ID_ALREADY_EXISTS), designationRequest.getName()),
                     HttpStatus.CONFLICT);

@@ -14,7 +14,7 @@ const CreatePassword = () => {
     password: '',
     confirmPassword: '',
   }, });
-  const { companyName } = useParams();
+  const { company } = useParams();
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [passwordShown, setPasswordShown] = useState(false);
@@ -29,8 +29,8 @@ const CreatePassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.setItem("companyName", companyName);
-  }, [companyName]);
+    localStorage.setItem("companyName", company);
+  }, [company]);
 
   useEffect(() => {
     if (otpTimeLimit > 0) {
@@ -52,7 +52,7 @@ const CreatePassword = () => {
     setLoading(true);
     const formData = {
       username: data.email,
-      company: companyName
+      company: company
     };
     try {
       const response = await forgotPasswordStep1(formData);
@@ -74,7 +74,7 @@ const CreatePassword = () => {
     const formData = {
       username: data.email,
       otp: data.otp,
-      company: companyName,
+      company: company,
     };
   
     try {
@@ -113,13 +113,13 @@ const CreatePassword = () => {
       const formData = {
         username: email,
         password: data.password,
-        company: companyName,
+        company: company,
         companyFullName: data.companyName,
       };
       await forgotPasswordStep2(formData);
       toast.success("Password Updated Successfully");
       reset(); // Reset the form data
-      navigate(`/${companyName}/login`);    } catch (error) {
+      navigate(`/${company}/login`);    } catch (error) {
       handleApiErrors(error);
     } finally {
       setLoading(false);
@@ -152,7 +152,7 @@ const CreatePassword = () => {
     reset();
     setOtpTimeLimit(40); // Reset the OTP timer
     // setStep(1);  // Go back to Step 1
-    navigate(`/${companyName}/login`);
+    navigate(`/${company}/login`);
   };
   
 
@@ -384,7 +384,7 @@ const CreatePassword = () => {
 
             <div className="text-center mt-4">
               <button type="submit" className="btn btn-primary" disabled={loading || isSubmitting}>
-                {loading ? "Loading..." : "Update Password"}
+                {loading ? "Loading..." : "Create Password"}
               </button>
             </div>
           </form>

@@ -19,7 +19,7 @@ const AppraisalTemplate = () => {
   const [allowances, setAllowances] = useState({});
   const [error, setError] = useState("");
 
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   // Fetching Salary Structures
@@ -52,41 +52,9 @@ const AppraisalTemplate = () => {
     fetchSalaryStructures();
   }, []);
 
-  const fetchCompanyData = async (companyId) => {
+  const fetchTemplate = async () => {
     try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
-
-  const fetchTemplate = async (companyId) => {
-    try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(company.id);
       const templateNo = res.data.data.appraisalTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -102,10 +70,8 @@ const AppraisalTemplate = () => {
   };
 
   useEffect(() => {
-    if (companyData) {
-      fetchTemplate(companyData.id);
-    }
-  }, [companyData]);
+      fetchTemplate();
+  }, []);
 
   const templates = useMemo(() => [
     {
@@ -113,15 +79,18 @@ const AppraisalTemplate = () => {
       name: "1",
       content: () => (
         <AppraisalTemplate1
-          companyLogo={logoFileName}
-          companyData={companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
           employeeName="John Doe"
+          hike="45"
+          salaryIncrease="600000"
           employeeId="E123456"
           jobTitle="Software Engineer"
           joiningDate="January 1, 2020"
           lastWorkingDate="October 27, 2024"
+          effectiveDate="November,2024"
         />
       ),
     },
@@ -130,18 +99,20 @@ const AppraisalTemplate = () => {
       name: "2",
       content: () => (
         <AppraisalTemplate2
-          companyLogo={logoFileName}
-          companyData={companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
           employeeName="John Doe"
+          salaryIncrease="500000"
           employeeId="E123456"
+          hike="40"
           jobTitle="Software Engineer"
           effectiveDate="November,2024"
         />
       ),
     },
-  ], [companyData, allowances, logoFileName]);
+  ], [company, allowances,company]);
 
   useEffect(() => {
     // Set default template as Template 1
@@ -157,7 +128,7 @@ const AppraisalTemplate = () => {
 
   const handleSubmitTemplate = async () => {
     const dataToSubmit = {
-      companyId: companyData.id, // Ensure this is correct
+      companyId: company.id, // Ensure this is correct
       appraisalTemplateNo: selectedTemplate.name,
       // Add other necessary fields if required
     };
@@ -176,16 +147,17 @@ const AppraisalTemplate = () => {
     } catch (error) {
       // Log the error for debugging
       console.error("API call error:", error);
-      handleApiErrors(error)
-    }
-  };
-
- const handleApiErrors = (error) => {
-      if (error.response && error.response.data && error.response.data.error) {
-        const errorMessage = error.response.data.error?.message || "An error occurred";
-        toast.error(`Error: ${errorMessage}`);
+  
+      // Check if the error response has details
+      if (error.response) {
+        console.error("Response data:", error.response.data.error.message); // Log response data
+        const errorMessage = error.response.data.error.message || "An error occurred";
+        toast.error(`${errorMessage}`);
+      } else {
+        toast.error("An unexpected error occurred");
       }
     };
+  }
   return (
     <LayOut>
       <div className="container-fluid p-0">

@@ -1,13 +1,12 @@
 package com.invoice.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.invoice.request.ProductColumnsRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,29 +14,31 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity
-@Table(name = "invoice")
-public class InvoiceModel {
+public class InvoiceModel implements Entity{
 
     @Id
     private String invoiceId;
-
-    private String purchaseOrder;
-    private String vendorCode;
-    private String invoiceDate;
-
-    @OneToMany(mappedBy = "invoiceModel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderModel> orderModels;
-
+    private String companyId;
     private String customerId;
-    private String gst;
+
+    private CompanyEntity company;
+    private CustomerModel customer;
+    private BankEntity bank;
+
+    private String vendorCode;
+    private String purchaseOrder;
+    private String invoiceDate;
+    private String dueDate;
+    private String invoiceNo;
+    private String subTotal;
     private String cGst;
     private String sGst;
     private String iGst;
-    private String totalAmount;
     private String grandTotal;
-    private String dueDate;
     private String grandTotalInWords;
+
+    private List<Map<String,  String>> productData;
+    private List<ProductColumnsRequest> productColumns;
     private String status;
-    private String companyId;
+    private String type;
 }

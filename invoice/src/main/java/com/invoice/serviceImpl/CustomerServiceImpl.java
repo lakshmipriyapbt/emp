@@ -15,7 +15,6 @@ import com.invoice.util.Constants;
 import com.invoice.util.CustomerUtils;
 
 import com.invoice.util.ResourceIdUtils;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,20 +46,26 @@ public class CustomerServiceImpl implements CustomerService {
         }
         try {
             // Step 4.1: Generate a unique resource ID for the customer using companyId and customer details
-            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getCustomerName(),companyId);
+            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getEmail(),companyId);
 
             // Step 2: Fetch all customers for the given companyId
             List<CustomerModel> customers = repository.findByCompanyId(companyId); // Assuming you have a method to fetch all customers for a company
 
+            // Encode the mobile number from the request into Base64 format
+            String encodedMobileNumber = Base64.getEncoder().encodeToString(customerRequest.getMobileNumber().getBytes());
+
             // Step 3: Search for the customer with the provided customerId
-            Optional<CustomerModel> customerOptional = customers.stream()
-                    .filter(customer -> customer.getCustomerId().equals(customerId)) // Filter the customer by ID
+            Optional<CustomerModel> existingCustomer = customers.stream()
+                    .filter(customer -> customer.getCustomerId().equals(customerId) ||
+                            customer.getMobileNumber().equals(encodedMobileNumber))
                     .findFirst();
 
-            if (customerOptional.isPresent()) {
+            if (existingCustomer.isPresent()) {
                 log.error("Customer already exists with ID: {}", customerId);
                 // Return a response indicating that the customer already exists
-                throw  new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_ALREADY_EXISTS),
+                return  new ResponseEntity<>(ResponseBuilder.builder().build().
+                        createFailureResponse(new Exception(String.valueOf(InvoiceErrorMessageHandler.getMessage
+                                (InvoiceErrorMessageKey.CUSTOMER_ALREADY_EXISTS)))),
                         HttpStatus.CONFLICT);
             }
             // If customer does not exist, proceed to create a new customer
@@ -85,6 +90,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.COMPANY_NOT_FOUND),
                     HttpStatus.NOT_FOUND);
         }
+
         try {
             List<CustomerModel> customers = null;
             customers = repository.findByCompanyId(companyId);
@@ -97,11 +103,10 @@ public class CustomerServiceImpl implements CustomerService {
                 }
                 // Return the list of unmasked customers
                 return ResponseEntity.ok(customers);
-            }
-            else {
+            } else {
               // If no customers are found, return a 404 error
               log.error("No customers found for company ID: {}", companyId);
-              throw new InvoiceException(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND, HttpStatus.NOT_FOUND);
+              throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
             // Log the error and throw an internal server error if something goes wrong
@@ -153,7 +158,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public ResponseEntity<?> updateCustomer(String companyId,String customerId, @Valid CustomerUpdateRequest customerRequest) throws InvoiceException,IOException {
+    public ResponseEntity<?> updateCustomer(String companyId,String customerId, CustomerUpdateRequest customerRequest) throws InvoiceException,IOException {
         log.info("Updating customer with ID: {}", customerId);
 
         CompanyEntity companyEntity;
@@ -173,6 +178,15 @@ public class CustomerServiceImpl implements CustomerService {
 
             if (customerOptional.isPresent()) {
                 CustomerModel customer = customerOptional.get();
+
+                // Step 4: Check if any field has changed before updating
+                int noOfChanges = CustomerUtils.noChangeInValuesOfBank(customer,customerRequest);
+                if (noOfChanges==0){
+                    log.error("No changes detected for customer with ID: {}", customerId);
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.NO_CHANGES_DETECTED)))),
+                            HttpStatus.CONFLICT);
+                }
 
                 CustomerUtils.updateCustomerFromRequest(customer, customerRequest);
                 CustomerUtils.maskCustomerUpdateProperties(customerRequest,customer);
@@ -202,7 +216,7 @@ public class CustomerServiceImpl implements CustomerService {
             }
             repository.deleteById(customerId);
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETE_SUCCESS), HttpStatus.OK);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error deleting customer with ID {}: {}", customerId, e.getMessage(), e);
             throw new InvoiceException(InvoiceErrorMessageKey.UNABLE_TO_DELETE_CUSTOMER, HttpStatus.INTERNAL_SERVER_ERROR);
         }

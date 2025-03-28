@@ -1,5 +1,6 @@
 package com.pb.employee.common;
 
+import com.pb.employee.util.Constants;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,15 @@ public class ResponseBuilder {
                 .error(object)
                 .build();
     }
+
+    public <T> ResponseObject<T> createFailureResponse(T errorDetails) {
+        return ResponseObject.<T>builder()
+                .path(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .toUriString())
+                .data(errorDetails)
+                .build();
+    }
+
 
     public<T> ResponseObject<T> createSuccessResponse(T object) {
         return ResponseObject.<T>builder()

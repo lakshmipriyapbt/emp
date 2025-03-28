@@ -118,8 +118,8 @@
             alt="Company Logo" />
         <p class="company">
             ${company.companyAddress}<br />
-            ${company.mobileNo}<br />
-            ${company.emailId}
+           <!-- ${company.mobileNo}<br />
+            ${company.emailId} -->
         </p>
     </div>
     <div class="title"><b>SALARY SLIP</b></div>

@@ -18,5 +18,4 @@ public interface CustomerService {
     ResponseEntity<?> updateCustomer(String authToken,String companyId,String customerId, CustomerUpdateRequest customerRequest);
 
     ResponseEntity<?> deleteCustomer(String authToken,String companyId, String customerId);
-
 }

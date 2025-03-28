@@ -27,7 +27,7 @@ const Designation = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedItemId, setSelectedItemId] = useState(null); 
-  const { user } = useAuth();
+  const { authUser } = useAuth();
 
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
@@ -62,30 +62,38 @@ const Designation = () => {
     setLoading(true);
     try {
       const formData = {
-        companyName: user.company,
+        companyName: authUser.company,
         name: data.name
       };
+  
+      let updatedDesignations = [...designations]; // Create a copy for optimistic update
+  
       if (editingUserId) {
-        await DesignationPutApiById(editingUserId, formData);
-        setTimeout(() => {
-          toast.success('Designation Updated Successfully');
-          fetchDesignation(); // Fetch updated list of departments after delay
-          setAddDesignation(false);
-        }, 1500);
-
+        const index = updatedDesignations.findIndex(dept => dept.id === editingUserId); // Find the index of the designation to update
+        if (index !== -1) {
+          updatedDesignations[index] = { ...updatedDesignations[index], name: data.name }; // Optimistic update
+          setDesignations(updatedDesignations); // Update the state immediately
+        }
+        await DesignationPutApiById(editingUserId, formData); // Await the actual API call
+        toast.success('Designation Updated Successfully');
       } else {
-        await DesignationPostApi(formData);
-
-        setTimeout(() => {
-          toast.success('Designation Created Successfully');
-          fetchDesignation(); // Fetch updated list of departments after delay
-          setAddDesignation(false);
-        }, 1500);
+        const newDesignation = { ...formData }; // Create a new designation object (you might need to add the ID if your API returns it)
+        updatedDesignations.push(newDesignation); // Optimistic update
+        setDesignations(updatedDesignations); // Update the state immediately
+        await DesignationPostApi(formData); // Await the actual API call
+        toast.success('Designation Created Successfully');
       }
+  
+      setAddDesignation(false); // Close the modal *after* successful update
       reset();
       setEditingUserId(null);
+      setTimeout(() => {
+        fetchDesignation();
+      }, 1500);
     } catch (error) {
       handleApiErrors(error);
+      // Revert the optimistic update in case of error
+      fetchDesignation(); // Refetch designations from the API to correct the UI
     } finally {
       setLoading(false);
     }
@@ -130,20 +138,20 @@ const Designation = () => {
   };
 
   const validateName = (value) => {
-    // Trim leading and trailing spaces before further validation
+    // Trim leading and trailing spaces before validation
     const trimmedValue = value.trim();
-
+  
     // Check if value is empty after trimming (meaning it only had spaces)
     if (trimmedValue.length === 0) {
-      return "Department Name is Required.";
+      return "Designation Name is Required.";
     }
-
+  
     // Allow alphabetic characters, numbers, spaces, and some special characters like /, !, @, #, &...
     else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
     } else {
       const words = trimmedValue.split(" ");
-
+  
       // Check for minimum and maximum word length
       for (const word of words) {
         // If the word is a single character and it's not the only word in the string, skip this rule
@@ -153,12 +161,17 @@ const Designation = () => {
           return "Max Length 40 Characters Required.";  // If any word is longer than 40 characters
         }
       }
-
+  
+      // Check for the total length of the string after trimming (no more than 40 characters)
+      if (trimmedValue.length > 40) {
+        return "Designation name must not exceed 40 characters.";  // If the total length of the input is more than 40 characters
+      }
+  
       // Check for multiple spaces between words
       if (/\s{2,}/.test(trimmedValue)) {
         return "No Multiple Spaces Between Words Allowed.";
       }
-
+  
       // Check if the value has leading or trailing spaces (shouldn't happen due to trimming)
       if (/^\s/.test(value)) {
         return "Leading space not allowed.";  // Leading space error
@@ -166,7 +179,7 @@ const Designation = () => {
         return "Spaces at the end are not allowed.";  // Trailing space error
       }
     }
-
+  
     return true; // Return true if all conditions are satisfied
   };
 

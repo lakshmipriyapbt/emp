@@ -10,6 +10,7 @@ import com.invoice.request.CustomerUpdateRequest;
 import org.springframework.http.HttpStatus;
 
 import java.util.Base64;
+import java.util.Objects;
 
 public class CustomerUtils {
 
@@ -19,7 +20,7 @@ public class CustomerUtils {
     public static CustomerModel maskCustomerProperties(CustomerRequest customerRequest,String companyId,String customerId) {
         // Declare masked variables
         String customerName = null, email = null, mobileNo = null,
-                address = null,state =null,city =null,
+                address = null,state =null,city =null, status = null,
                 gst=null,pinCode=null,stateCode=null;
         // Masking bank details
         if (customerRequest.getCustomerName() != null) {
@@ -39,15 +40,19 @@ public class CustomerUtils {
             // Masking the branch name as an example
             state = Base64.getEncoder().encodeToString(customerRequest.getState().getBytes());
         }
+        if (customerRequest.getStatus() != null) {
+            // Masking the branch name as an example
+            status = Base64.getEncoder().encodeToString(customerRequest.getStatus().getBytes());
+        }
 
         if (customerRequest.getCity() != null) {
             // Masking the state information
             city = Base64.getEncoder().encodeToString(customerRequest.getCity().getBytes());
         }
 
-        if (customerRequest.getGstNo() != null) {
+        if (customerRequest.getCustomerGstNo() != null) {
             // Masking the state information
-            gst = Base64.getEncoder().encodeToString(customerRequest.getGstNo().getBytes());
+            gst = Base64.getEncoder().encodeToString(customerRequest.getCustomerGstNo().getBytes());
         }
         if (customerRequest.getPinCode() != null) {
             // Masking the state information
@@ -64,7 +69,8 @@ public class CustomerUtils {
         customerModel.setCustomerName(customerName);
         customerModel.setCity(city);
         customerModel.setEmail(email);
-        customerModel.setGstNo(gst);
+        customerModel.setStatus(status);
+        customerModel.setCustomerGstNo(gst);
         customerModel.setState(state);
         customerModel.setAddress(address);
         customerModel.setStateCode(stateCode);
@@ -77,7 +83,7 @@ public class CustomerUtils {
     public static CustomerModel unmaskCustomerProperties(CustomerModel customerModel) {
         // Declare unmasked variables
         String customerName = null, email = null, mobileNo = null,
-                address = null, state = null, city = null,
+                address = null, state = null, city = null, status = null,
                 gst = null, pinCode = null, stateCode = null;
 
         // Unmasking the properties by decoding the Base64 encoded values
@@ -86,6 +92,9 @@ public class CustomerUtils {
         }
         if (customerModel.getEmail() != null) {
             email = new String(Base64.getDecoder().decode(customerModel.getEmail()));
+        }
+        if(customerModel.getStatus() !=null) {
+            status = new String(Base64.getDecoder().decode(customerModel.getStatus()));
         }
         if (customerModel.getAddress() != null) {
             address = new String(Base64.getDecoder().decode(customerModel.getAddress()));
@@ -99,8 +108,8 @@ public class CustomerUtils {
         if (customerModel.getCity() != null) {
             city = new String(Base64.getDecoder().decode(customerModel.getCity()));
         }
-        if (customerModel.getGstNo() != null) {
-            gst = new String(Base64.getDecoder().decode(customerModel.getGstNo()));
+        if (customerModel.getCustomerGstNo() != null) {
+            gst = new String(Base64.getDecoder().decode(customerModel.getCustomerGstNo()));
         }
         if (customerModel.getPinCode() != null) {
             pinCode = new String(Base64.getDecoder().decode(customerModel.getPinCode()));
@@ -111,11 +120,12 @@ public class CustomerUtils {
         // Create a CustomerRequest object and set the unmasked properties
         customerModel.setCustomerName(customerName);
         customerModel.setEmail(email);
+        customerModel.setStatus(status);
         customerModel.setAddress(address);
         customerModel.setMobileNumber(mobileNo);
         customerModel.setState(state);
         customerModel.setCity(city);
-        customerModel.setGstNo(gst);
+        customerModel.setCustomerGstNo(gst);
         customerModel.setPinCode(pinCode);
         customerModel.setStateCode(stateCode);
 
@@ -125,7 +135,7 @@ public class CustomerUtils {
 
     public static CustomerModel maskCustomerUpdateProperties(CustomerUpdateRequest customerRequest, CustomerModel customerModel) {
         // Declare unmasked variables
-        String address = null, state = null, city = null,
+        String address = null, state = null, city = null, status=null,
                 gst = null, pinCode = null, stateCode = null;
 
         if (customerRequest.getAddress() != null) {
@@ -140,10 +150,13 @@ public class CustomerUtils {
             // Masking the state information
             city = Base64.getEncoder().encodeToString(customerRequest.getCity().getBytes());
         }
+        if (customerRequest.getStatus() != null) {  // ✅ Fixed getter method
+            status = Base64.getEncoder().encodeToString(customerRequest.getStatus().getBytes());  // No need to encode status
+        }
 
-        if (customerRequest.getGstNo() != null) {
+        if (customerRequest.getCustomerGstNo() != null) {
             // Masking the state information
-            gst = Base64.getEncoder().encodeToString(customerRequest.getGstNo().getBytes());
+            gst = Base64.getEncoder().encodeToString(customerRequest.getCustomerGstNo().getBytes());
         }
         if (customerRequest.getPinCode() != null) {
             // Masking the state information
@@ -156,11 +169,12 @@ public class CustomerUtils {
         }
 
         customerModel.setCity(city);
-        customerModel.setGstNo(gst);
+        customerModel.setCustomerGstNo(gst);
         customerModel.setState(state);
         customerModel.setAddress(address);
         customerModel.setStateCode(stateCode);
         customerModel.setPinCode(pinCode);
+        customerModel.setStatus(status);
         // Add any other fields that need masking and setting...
         return customerModel;
     }
@@ -176,6 +190,61 @@ public class CustomerUtils {
             return new String(Base64.getEncoder().encode(encodedName.getBytes()));
         }
         return null;
+    }
+
+    public static int noChangeInValuesOfBank(CustomerModel customerModel, CustomerUpdateRequest customerUpdateRequest) {
+        int noOfChanges = 0;
+
+        if (customerModel.getAddress() != null && customerUpdateRequest.getAddress() != null) {
+            String address = new String(Base64.getDecoder().decode(customerModel.getAddress()));
+            if (!address.equals(customerUpdateRequest.getAddress())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getState() != null && customerUpdateRequest.getState() != null) {
+            String state = new String(Base64.getDecoder().decode(customerModel.getState()));
+            if (!state.equals(customerUpdateRequest.getState())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getCity() != null && customerUpdateRequest.getCity() != null) {
+            String city = new String(Base64.getDecoder().decode(customerModel.getCity()));
+            if (!city.equals(customerUpdateRequest.getCity())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getPinCode() != null && customerUpdateRequest.getPinCode() != null) {
+            String pinCode = new String(Base64.getDecoder().decode(customerModel.getPinCode()));
+            if (!pinCode.equals(customerUpdateRequest.getPinCode())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getStatus() != null && customerUpdateRequest.getStatus() != null) {
+            String status = new String(Base64.getDecoder().decode(customerModel.getStatus()));
+            if (!status.equals(customerUpdateRequest.getStatus())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getCustomerGstNo() != null && customerUpdateRequest.getCustomerGstNo() != null) {
+            String customerGstNo = new String(Base64.getDecoder().decode(customerModel.getCustomerGstNo()));
+            if (!customerGstNo.equals(customerUpdateRequest.getCustomerGstNo())) {
+                noOfChanges += 1;
+            }
+        }
+
+        if (customerModel.getStateCode() != null && customerUpdateRequest.getStateCode() != null) {
+            String stateCode = new String(Base64.getDecoder().decode(customerModel.getStateCode()));
+            if (!stateCode.equals(customerUpdateRequest.getStateCode())) {
+                noOfChanges += 1;
+            }
+        }
+
+        return noOfChanges;
     }
 
 }

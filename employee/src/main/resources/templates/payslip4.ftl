@@ -277,8 +277,8 @@
               <hr />
               <p>
               Company Address: ${company.companyAddress}<br />
-              Mobile No: ${company.mobileNo}<br />
-              Email ID: ${company.emailId}
+              <!-- Mobile No: ${company.mobileNo}<br />
+              Email ID: ${company.emailId} -->
               </p>
             </div>
 </body>

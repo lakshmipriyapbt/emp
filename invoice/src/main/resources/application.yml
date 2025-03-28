@@ -1,12 +1,12 @@
 server:
-  port: 8002
+  port: 8004
   servlet:
     contextPath: /invoice
   ssl:
     enabled: true
-    key-store: ../certificates/ssl.jks
+    key-store: /opt/ems-prod/certificates/keystore.jks
     key-store-password: pathbreaker
-    key-alias: pbt
+    key-alias: ems.pathbreakertech.in
     key-store-type: JKS
 # MySQL Database Configuration
 spring:
@@ -15,7 +15,7 @@ spring:
   main:
     allow-circular-references: true
   datasource:
-    url: jdbc:mysql://localhost:3306/invoice
+    url: jdbc:mysql://localhost:3306/invoice_prod
     username: root
     password: Path@2014
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -30,7 +30,7 @@ spring:
         format_sql: true
 es:
   esHost: localhost
-  esPort: 9200
+  esPort: 9502
 # Swagger API Documentation
 springdoc:
   api-docs:

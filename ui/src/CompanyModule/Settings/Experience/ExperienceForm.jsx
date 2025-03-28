@@ -12,6 +12,8 @@ import {
 } from "../../../Utils/Axios";
 import { useAuth } from "../../../Context/AuthContext";
 import ExperiencePreview from "./ExperiencePreview";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../../Redux/EmployeeSlice";
 
 const ExperienceForm = () => {
   const {
@@ -25,7 +27,7 @@ const ExperienceForm = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { user, companyData } = useAuth();
+  const { authUser, companyData } = useAuth();
   const [emp, setEmp] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [noticePeriod, setNoticePeriod] = useState(0);
@@ -33,11 +35,20 @@ const ExperienceForm = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [error, setError] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null); // New state to store the selected employee
   const [templateAvailable, setTemplateAvailable] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees, status, error } = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const validateExperienceDate = (value) => {
     const dateOfHiring = new Date(watch("dateOfHiring"));
@@ -53,24 +64,9 @@ const ExperienceForm = () => {
   };
 
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter((employee) => employee.firstName !== null)
-        .map(({ referenceId, ...rest }) => rest);
-      setEmp(
-        filteredData.map((employee) => ({
-          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
-          value: employee.id,
-          employeeName: `${employee.firstName} ${employee.lastName}`,
-          employeeId: employee.employeeId,
-          designationName: employee.designationName,
-          departmentName: employee.departmentName,
-          dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
+    fetchTemplate();
   }, []);
-
+  
   const fetchTemplate = async (companyId) => {
     try {
       const res = await TemplateGetAPI(companyId);
@@ -82,9 +78,24 @@ const ExperienceForm = () => {
       setTemplateAvailable(false);
     }
   };
+
   useEffect(() => {
-    fetchTemplate();
-  }, []);
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
+          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+          value: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          employeeId: employee.employeeId,
+          designationName: employee.designationName,
+          departmentName: employee.departmentName,
+          dateOfHiring: employee.dateOfHiring,
+        }));
+
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   // Helper function to format date as dd-mm-yyyy
   const formatDate = (date) => {
@@ -98,16 +109,69 @@ const ExperienceForm = () => {
     return `${day}-${month}-${year}`;
   };
 
+  const handleEmailChange = (e) => {
+    // Get the current value of the input field
+    const value = e.target.value;
+    // Check if the value is empty
+    if (value.trim() !== "") {
+      return; // Allow space button
+    }
+    // Prevent space character entry if the value is empty
+    if (e.keyCode === 32) {
+      e.preventDefault();
+    }
+  };
+
+  const toInputAddressCase = (e) => {
+    const input = e.target;
+    let value = input.value;
+    const cursorPosition = input.selectionStart; // Save the cursor position
+    // Remove leading spaces
+    value = value.replace(/^\s+/g, "");
+    // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
+    const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
+
+    // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
+    const words = value.split(" ");
+    const capitalizedWords = words.map((word) => {
+      if (word.length > 0) {
+        // Capitalize the first letter, but leave the middle of the word intact
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return "";
+    });
+
+    // Join the words back into a string
+    let formattedValue = capitalizedWords.join(" ");
+
+    // Remove spaces not allowed (before the first two characters)
+    if (formattedValue.length > 2) {
+      formattedValue =
+        formattedValue.slice(0, 2) +
+        formattedValue.slice(2).replace(/\s+/g, " ");
+    }
+
+    // Update input value
+    input.value = formattedValue;
+
+    // Restore the cursor position
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  };
+
   const onSubmit = (data) => {
     console.log(data);
     const submissionData = {
       employeeId: data.employeeId,
-      companyName: user.company,
+      companyName: authUser.company,
       date: data.experienceDate,
     };
     // Format the date fields to dd-mm-yyyy format
     const formattedLastWorkingDate = formatDate(data.relievingDate);
-    const formattedResignationDate = formatDate(data.resignationDate);
+    const formattedExperinceDate = formatDate(data.experienceDate);
     const formattedHiringDate = formatDate(data.dateOfHiring);
     const preview = {
       employeeName: selectedEmployee
@@ -119,13 +183,14 @@ const ExperienceForm = () => {
       designationName: data.designationName || "",
       departmentName: data.departmentName || "",
       joiningDate: formattedHiringDate || "",
-      experienceDate: formattedResignationDate || "", // Resignation date formatted
+      aboutEmployee:data.aboutEmployee || "",
+      experienceDate: formattedExperinceDate || "", // Resignation date formatted
       date: formattedLastWorkingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName: authUser.company,
       companyData: companyData,
     };
-
+   console.log("previewData",preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);
@@ -256,6 +321,10 @@ const ExperienceForm = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  // Step 2: Display loading or error messages
+  if (status === "loading") return <p>Loading employees...</p>;
+  if (status === "failed") return <p>Error: {error}</p>;
+
   // Render loading message or template not available message
   if (!templateAvailable) {
     return (
@@ -354,7 +423,7 @@ const ExperienceForm = () => {
                       readOnly
                       {...register("employeeId")}
                     />
-
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Designation</label>
                       <input
@@ -383,6 +452,7 @@ const ExperienceForm = () => {
                         <p className="errorMsg">Department Required</p>
                       )} */}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Date of Hired</label>
                       <input
@@ -398,13 +468,13 @@ const ExperienceForm = () => {
                       )} */}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Date of Experience</label>
+                      <label className="form-label">Last Working Day</label>
                       <Controller
                         name="experienceDate"
                         control={control}
                         // max={sixMonthsFromNow}
                         rules={{
-                          required: "Experience Date is required",
+                          required: "Last Working Date is required",
                           validate: validateExperienceDate,
                         }}
                         render={({ field }) => (
@@ -421,6 +491,42 @@ const ExperienceForm = () => {
                       {errors.experienceDate && (
                         <p className="errorMsg">
                           {errors.experienceDate.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-6 mb-3">
+                      <label className="form-label">About Employee</label>
+                      <textarea
+                        type="text"
+                        className="form-control"
+                        placeholder="Enter few lines about Employee"
+                        autoComplete="off"
+                        minLength={2}
+                        onKeyDown={handleEmailChange}
+                        onInput={toInputAddressCase}
+                        {...register("aboutEmployee", {
+                          required: "Few lines about Employee Required",
+                          pattern: {
+                            value:
+                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.()^\-/]*$/,
+                            message: "Please enter valid Address",
+                          },
+                          minLength: {
+                            value: 3,
+                            message: "Minimum 3 Characters allowed",
+                          },
+                          maxLength: {
+                            value: 200,
+                            message: "Maximum 200 Characters allowed",
+                          },
+                          validate: (value) =>
+                            value.trim().length === value.length ||
+                            "Spaces at the end are not allowed.",
+                        })}
+                      />
+                      {errors.employeeAddress && (
+                        <p className="errorMsg">
+                          {errors.employeeAddress.message}
                         </p>
                       )}
                     </div>

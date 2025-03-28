@@ -1,22 +1,26 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { AuthProvider } from './Context/AuthContext';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { BrowserRouter as Router } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { AuthProvider } from "./Context/AuthContext";
+import { Provider } from "react-redux";
+import store from './Redux/Store'
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-    <Router>
-    <App />
-    <ToastContainer/>
-    </Router>
-    </AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <Router>
+          <App />
+          <ToastContainer />
+        </Router>
+      </AuthProvider>
+    </Provider>
   </React.StrictMode>
 );
 

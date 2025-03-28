@@ -33,7 +33,7 @@ public class CustomerUpdateRequest {
     private String status;
 
     @Nullable
-    private String gstNo;
+    private String customerGstNo;
 
     @Nullable
     private String stateCode;

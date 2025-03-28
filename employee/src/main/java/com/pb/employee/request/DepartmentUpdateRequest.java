@@ -20,7 +20,7 @@ public class DepartmentUpdateRequest {
     private String companyName;
 
     @Schema(example = "department")
-    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{department.format}")
+    @Pattern(regexp ="^(?:[A-Z][a-z]*|[A-Z]+)(?: [A-Z][a-z]*| [A-Z]+)*$", message = "{department.format}")
     @Size(min = 1, max = 40, message = "{department.size.message}")
     private String name;
 }

@@ -26,7 +26,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const watchPassword = watch('password', '');
   const navigate = useNavigate();
-  const { companyName } = useParams();
+  const company = localStorage.getItem("companyName");
 
   useEffect(() => {
     if (otpTimeLimit > 0) {
@@ -38,6 +38,9 @@ const ForgotPassword = () => {
       setOtpExpired(true);  // OTP expired
       setOtpShown(false);  // Hide OTP input
       setStep(1); // Move to Step 1 (Email Step) if OTP expired
+      toast.error("Your OTP has expired. Please re-enter your email to get a new one.", {
+        autoClose: 5000 // Set the duration to 5 seconds
+      });
       reset({ otp: '' });
     }
   }, [otpTimeLimit]);

@@ -11,9 +11,9 @@ public interface InvoiceService {
 
     ResponseEntity<?> generateInvoice(String companyId,String customerId,InvoiceRequest request) throws InvoiceException, IOException;
 
-    ResponseEntity<?> getInvoiceById(String companyId,String customerId,String invoiceId)throws InvoiceException, IOException;
+    ResponseEntity<?> getCompanyAllInvoices(String companyId,String customerId,HttpServletRequest request) throws InvoiceException;
 
-    ResponseEntity<?> getCustomerAllInvoices(String companyId,String customerId) throws InvoiceException, IOException;
+    ResponseEntity<?> getInvoiceById(String companyId,String customerId,String invoiceId,HttpServletRequest request)throws InvoiceException, IOException;
 
-    ResponseEntity<?> getCompanyAllInvoices(String companyId) throws InvoiceException, IOException;
+    ResponseEntity<?> downloadInvoice(String companyId, String customerId,String invoiceId,HttpServletRequest request) throws Exception;
 }
