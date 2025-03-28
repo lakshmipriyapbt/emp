@@ -169,11 +169,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                 if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
                     employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
-                    String grossAmounts = String.valueOf(employeeSalaryEntity.stream()
+                    String grossAmounts = employeeSalaryEntity.stream()
                             .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
                             .map(EmployeeSalaryEntity::getGrossAmount)
-                            .findFirst());
-                    employee.setGrossAmount(grossAmounts);
+                            .findFirst()
+                            .map(String::valueOf) // Convert the value inside the Optional to a String
+                            .orElse("0");
+
+                    employee.setCurrentGross(grossAmounts);
                 }
                 RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
                 // Set status only if relieving details are found

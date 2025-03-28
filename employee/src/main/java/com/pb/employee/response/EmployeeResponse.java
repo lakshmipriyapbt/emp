@@ -31,7 +31,7 @@ public class EmployeeResponse {
     private String dateOfHiring;
     private String department;
     private String departmentName;
-    private String grossAmount;
+    private String currentGross;
     private String location;
     private String tempAddress;
     private String permanentAddress;
