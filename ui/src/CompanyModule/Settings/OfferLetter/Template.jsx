@@ -706,6 +706,12 @@ const Template = () => {
                                 null}
                     </p>
                     <hr />
+                    <div className='text-end'>
+                    <img 
+                            src={companyDetails?.stampImage}
+                            alt="Stamp"
+                            style={{ height: "100px", width: "160px" }}/>
+                    </div>
                     <div style={{ padding: "2px", textAlign: "center" }}>
                         <h6>{companyDetails?.companyName}</h6>
                         <h6>{companyDetails?.companyAddress}</h6>
