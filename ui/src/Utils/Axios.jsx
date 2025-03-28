@@ -331,7 +331,7 @@ export const downloadAttendanceFileAPI = async (format, year, month, employeeId,
   try {
     showToast("Downloading file...", "info");
 
-    const response = await axiosInstance.get(`${company}/employee/download`, {
+    const response = await axiosInstance.get(`${company}/employee/attendance/download`, {
       params: {
         format, 
         month: month || "", 
