@@ -26,7 +26,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const watchPassword = watch('password', '');
   const navigate = useNavigate();
-  const company = localStorage.getItem("companyName");
+  const companyName = localStorage.getItem("companyName");
 
   useEffect(() => {
     if (otpTimeLimit > 0) {

@@ -16,13 +16,8 @@ const EmployeeSalaryById = () => {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (user.userId) {
-      EmployeeSalaryGetApi(user.userId).then((response) => {
-=======
     if (authUser.userId) {
       EmployeeSalaryGetApi(authUser.userId).then((response) => {
->>>>>>> main
         setEmployeeSalaryView(response.data.data);
       });
     }
@@ -54,40 +49,10 @@ const EmployeeSalaryById = () => {
     }
   };
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case "Active":
-        return {
-          backgroundColor: "green",
-          color: "white",
-          padding: "2px 8px",
-          borderRadius: "4px",
-        };
-      case "InActive":
-        return {
-          backgroundColor: "red",
-          color: "white",
-          padding: "2px 8px",
-          borderRadius: "4px",
-        };
-      default:
-        return {
-          backgroundColor: "gray",
-          color: "white",
-          padding: "2px 8px",
-          borderRadius: "4px",
-        };
-    }
-  };
-
   const handleEditClick = (salaryId, event) => {
     event.stopPropagation(); // Prevent the card from toggling when editing
     navigate(
-<<<<<<< HEAD
-      `/employeeSalaryView?salaryId=${salaryId}&employeeId=${user.userId}`
-=======
       `/employeeSalaryView?salaryId=${salaryId}&employeeId=${authUser.userId}`
->>>>>>> main
     ); // Navigate with both parameters
   };
 

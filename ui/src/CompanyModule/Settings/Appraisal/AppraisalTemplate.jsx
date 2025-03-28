@@ -68,6 +68,25 @@ const AppraisalTemplate = () => {
       handleApiErrors(error);
     }
   };
+    const handleApiErrors = (error) => {
+      // if (error.response && error.response.data && error.response.data.message) {
+      //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
+      //   alert(alertMessage);
+      // }
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error &&
+        error.response.data.error.message
+      ) {
+        const errorMessage = error.response.data.error.message;
+        setErrorMessage(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        // toast.error("Network Error !");
+      }
+      console.error(error.response);
+    };
 
   useEffect(() => {
       fetchTemplate();
