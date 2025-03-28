@@ -154,7 +154,7 @@ public class CompanyServiceImpl implements CompanyService {
         }
         CompletableFuture.runAsync(() -> {
             try {
-                String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.CREATE_PASSWORD ;
+                String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
                 emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,defaultPassword);
             } catch (Exception e) {
@@ -239,7 +239,7 @@ public class CompanyServiceImpl implements CompanyService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
     @Override
-    public ResponseEntity<?> updateCompanyImageById(String companyId,  CompanyImageUpdate companyImageUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
         List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
         try {
@@ -254,7 +254,6 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        CompanyEntity entity = CompanyUtils.maskCompanyImageUpdateProperties(user, companyImageUpdate, companyId);
         if (!multipartFile.isEmpty()){
             // Validate file type
             String contentType = multipartFile.getContentType();
@@ -263,14 +262,15 @@ public class CompanyServiceImpl implements CompanyService {
                 // Return an error response if file type is invalid
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
             }
-            multiPartFileStore(multipartFile, entity);
+            multiPartFileStore(multipartFile, user);
         }
-        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        openSearchOperations.saveEntity(user, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
     @Override
-    public ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyStampImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
         try {
             user = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
@@ -284,11 +284,10 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        CompanyEntity entity = CompanyUtils.maskCompanyStampImageUpdateProperties(user, companyStampUpdate);
         if (!multipartFile.isEmpty()){
-            multiPartFileStoreForStamp(multipartFile, entity);
+            multiPartFileStoreForStamp(multipartFile, user);
         }
-        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        openSearchOperations.saveEntity(user, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }

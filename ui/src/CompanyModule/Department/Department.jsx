@@ -32,7 +32,7 @@ const Department = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredDepartments, setFilteredDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { authUser } = useAuth();
 
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
@@ -68,7 +68,7 @@ const Department = () => {
     setLoading(true);
     try {
       const formData = {
-        companyName: user.company,
+        companyName: authUser.company,
         name: data.name,
       };
 

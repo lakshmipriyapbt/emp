@@ -14,7 +14,8 @@ const SideNav = () => {
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isLettresOpen, setIsLettersOpen] = useState(false);
   const location = useLocation();
-  const { user = {}, logoFileName, loading } = useAuth();
+  const { authUser = {}, company={} } = useAuth();
+  console.log("authUser",authUser);
 
   useEffect(() => {
     if (
@@ -328,49 +329,35 @@ const SideNav = () => {
     <nav id="sidebar" className="sidebar js-sidebar">
       <div className="sidebar-content js-simplebar">
         <a className="sidebar-brand" href="/main">
-          {loading ? (
-            <span>Loading...</span>
-          ) : (
-            <span>
-              {logoFileName ? (
-                // If logoFileName exists, display the company logo
-                <img
-                  className="align-middle text-center"
-                  src={`${logoFileName}`}
-                  alt="Company Logo"
-                  style={{ height: "55px", width: "160px" }}
-                />
-              ) : // If logoFileName doesn't exist, display "Add Logo"
-              user &&
-                user.userRole &&
-                user.userRole.includes("company_admin") ? (
-                // Only show "Add Logo" if the user is a company admin
-                <a href="/profile">
-                  <span
-                    className="text-warning fs-6"
-                    style={{ marginLeft: "40px" }}
-                  >
-                    <Image /> Add Logo
-                  </span>
-                </a>
-              ) : null}
-              {user &&
-                user.userRole &&
-                user.userRole.includes("ems_admin") &&
-                !logoFileName && (
-                  // Display the EMS Admin Logo if the user is an EMS admin and logoFileName is not present
-                  <img
-                    className="align-middle"
-                    src="assets/img/pathbreaker_logo.png"
-                    alt="EMS Admin Logo"
-                    style={{ height: "55px", width: "160px" }}
-                  />
-                )}
-            </span>
-          )}
+        <span>
+        {company?.imageFile ? (
+      // Display the company logo if imageFile exists
+      <img
+        className="align-middle text-center"
+        src={company.imageFile}
+        alt="Company Logo"
+        style={{ height: "55px", width: "160px" }}
+      />
+    ) : authUser?.userRole?.includes("company_admin") ? (
+      // If no logo, allow company admin to add one
+      <a href="/profile">
+        <span className="text-warning fs-6" style={{ marginLeft: "40px" }}>
+          <Image /> Add Logo
+        </span>
+      </a>
+    ) : authUser?.userRole?.includes("ems_admin") ? (
+      // Display EMS Admin Logo if the user is an EMS admin
+      <img
+        className="align-middle"
+        src="assets/img/pathbreaker_logo.png"
+        alt="EMS Admin Logo"
+        style={{ height: "55px", width: "160px" }}
+      />
+    ) : null}
+  </span>
         </a>
         <ul className="sidebar-nav mt-2">
-          {user && user.userRole && user.userRole.includes("ems_admin") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("ems_admin") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -437,7 +424,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("company_admin") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("company_admin") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -961,7 +948,7 @@ const SideNav = () => {
               </li>
             </>
           )}
-          {user && user.userRole && user.userRole.includes("employee") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("employee") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -996,7 +983,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("HR") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("HR") && (
             <>
               <li
                 className={`sidebar-item ${
@@ -1362,7 +1349,7 @@ const SideNav = () => {
             </>
           )}
 
-          {user && user.userRole && user.userRole.includes("Accountant") && (
+          {authUser && authUser.userRole && authUser.userRole.includes("Accountant") && (
             <>
               <li className="sidebar-item has-dropdown">
                 <a

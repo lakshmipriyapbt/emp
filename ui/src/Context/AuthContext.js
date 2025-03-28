@@ -1,107 +1,63 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { EmployeeGetApiById,companyViewByIdApi } from '../Utils/Axios'; // Import your API functions
+import React, { createContext, useState, useEffect, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
+import { companyViewByIdApi, EmployeeGetApiById } from "../Utils/Axios";
 
-// Create a context for authentication
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
-// AuthProvider component
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    userId: null,
-    userRole: null,
-    companyName: null,
-    employeeId: null,
-  });
-  const [companyData,setCompanyData]=useState(null);
-  const [logoFileName, setLogoFileName] = useState(null);
-  const [stamp,setStamp]=useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        setUser({
-          userId: decodedToken.sub,
-          userRole: decodedToken.roles,
-          company: decodedToken.company,
-          employeeId: decodedToken.employeeId,
-          companyId:decodedToken.companyId
+        const userId = decodedToken.sub;
+        const userRole = decodedToken.roles;
+        const company = decodedToken.company;
+        const employeeId = decodedToken.employeeId;
+        const companyId = decodedToken.companyId;
 
-        });
+        setAuthUser({ userId, userRole, company, employeeId, companyId });
 
+        // Fetch Employee Data
+        const fetchEmployeeAndCompany = async () => {
+          try {
+            const empResponse = await EmployeeGetApiById(userId);
+            setEmployee(empResponse.data.data);
+
+            const companyIdFromEmp = empResponse.data.data?.companyId || companyId;
+            if (companyIdFromEmp) {
+              const companyResponse = await companyViewByIdApi(companyIdFromEmp);
+              console.log("CompanyResponse",companyResponse.data.data)
+              setCompany(companyResponse.data.data);
+            }
+          } catch (error) {
+            console.error("Error fetching employee or company data:", error);
+          }
+        };
+
+        fetchEmployeeAndCompany();
       } catch (error) {
-        console.error('Failed to decode token:', error);
-        localStorage.removeItem('token');
-        setUser(null);
+        console.error("Failed to decode token:", error);
+        localStorage.removeItem("token");
+        setAuthUser(null);
       }
     }
   }, []);
 
-  const setAuthUser = (userData) => {
-    setUser(userData);
-  };
-  
-  useEffect(() => {
-    if (!user.userId) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        console.log("Fetching employee data for userId:", user.userId);
-        const response = await EmployeeGetApiById(user.userId);
-        const companyId = response.data.companyId;
-        setUser(prevUser => ({ ...prevUser, companyId }));
-        await fetchCompanyLogo(companyId);
-      } catch (error) {
-        setError("Failed to fetch data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchCompanyLogo = async (companyId) => {
-      try {
-        const logoResponse = await companyViewByIdApi(companyId);
-        const companyData = logoResponse?.data;
-
-        if (companyData) {
-          setCompanyData(companyData); // Set company data to state
-          const logoPath = companyData?.imageFile;
-          const stampImage=companyData?.stampImage;
-          if (logoPath && stampImage) {
-            setLogoFileName(logoPath);
-            setStamp(stampImage);
-          } else {
-            setError("Logo not found in company data");
-          }
-        } else {
-          setError("Company data not found");
-        }
-      } catch (err) {
-        setError("Error fetching logo");
-      }
-    };
-
-    fetchData();
-  }, [user.userId]); // Re-run when user.userId changes
-  console.log("companyData",companyData)
-
-  useEffect(() => {
-    console.log("Current user:", user);
-  }, [user]); 
+  console.log("employee",employee);
+  console.log("Company",company);
+  console.log("authUser",authUser)
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logoFileName,stamp,setLogoFileName,companyData, loading, error,setAuthUser }}>
+    <AuthContext.Provider value={{ authUser,setAuthUser, employee, company }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook to use the AuthContext
 export const  useAuth = () => useContext(AuthContext);
+

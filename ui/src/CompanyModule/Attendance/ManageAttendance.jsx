@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import LayOut from "../../LayOut/LayOut";
-import { AttendanceManagementApi, EmployeeGetApi, EmployeeNoAttendanceGetAPI } from "../../Utils/Axios";
+import { AttendanceManagementApi, EmployeeNoAttendanceGetAPI } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
 import * as XLSX from "xlsx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ManageAttendance = () => {
   const {
@@ -20,7 +18,6 @@ const ManageAttendance = () => {
   const [employees, setEmployees] = useState([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [emp, setEmp] = useState([]);
 
   // Function to Fetch Data
   const fetchEmployeeData = async () => {
@@ -30,13 +27,27 @@ const ManageAttendance = () => {
     }
     try {
       const response = await EmployeeNoAttendanceGetAPI(selectedMonth, selectedYear);
-      setEmployees(response.data.data); // Assuming API returns employee list
+      const allEmployees = response.data.data || [];  // Ensure it's an array
+  
+      // Filter out "CompanyAdmin" employees
+      const filteredEmployees = allEmployees.filter(emp => emp.employeeType !== "CompanyAdmin");
+  
+      if (filteredEmployees.length === 0) {
+        alert("No Attendance Pending");  // Show message if no valid employees remain
+        setEmployees([]);  // Clear employee list
+        setIsDataFetched(false);
+        return;
+      }
+      setEmployees(filteredEmployees);
+      console.log("Filtered Employee Attendance", filteredEmployees);
       setIsDataFetched(true);
+  
     } catch (error) {
       console.error("Error fetching employee data:", error);
       setIsDataFetched(false);
     }
   };
+  
 
   const onSubmit = async (data) => {
     const formData = new FormData();
@@ -85,11 +96,10 @@ const ManageAttendance = () => {
  }
     // Formatting employee data for Excel
     const updatedEmployees = filteredEmployees.map((employee) => ({
-      EmployeeId: employee.employeeId,
-      EmployeeName: `${employee.firstName || ""} ${employee.lastName || ""}`.trim(),
+       EmployeeId: employee.employeeId,
+      "First Name": `${employee.firstName || ""}`.trim(),
+      "Last Name" :`${employee.lastName || ""}`.trim(),
       "Email Id": employee.emailId || "", // Ensure default value
-      Department: employee.departmentName,
-      Designation: employee.designationName,
       Month: selectedMonth,
       Year: selectedYear,
       "Working Days": "", // Placeholder
@@ -104,6 +114,7 @@ const ManageAttendance = () => {
 
     // Generate and Download Excel File
     XLSX.writeFile(workbook, `Attendance_${selectedMonth}_${selectedYear}.xlsx`);
+    setIsDataFetched(false);
   };
 
   const clearForm = () => {
@@ -147,7 +158,7 @@ const ManageAttendance = () => {
     <label className="card-title text-white">
       Select Month <span className="text-danger fw-100">*</span>
     </label>
-    <select className="form-control" onChange={(e) => setSelectedMonth(e.target.value)}>
+    <select className="form-select" onChange={(e) => setSelectedMonth(e.target.value)}>
       <option value="">Select Month</option>
       {Array.from({ length: 12 }, (_, i) => {
         const monthName = new Date(2000, i).toLocaleString("default", { month: "long" });
@@ -165,9 +176,9 @@ const ManageAttendance = () => {
     <label className="card-title text-white">
       Select Year <span className="text-danger fw-100">*</span>
     </label>
-    <select className="form-control" onChange={(e) => setSelectedYear(e.target.value)}>
+    <select className="form-select" onChange={(e) => setSelectedYear(e.target.value)}>
       <option value="">Select Year</option>
-      {Array.from({ length: 5 }, (_, i) => {
+      {Array.from({ length: 30 }, (_, i) => {
         const year = new Date().getFullYear() - i;
         return <option key={year} value={year}>{year}</option>;
       })}

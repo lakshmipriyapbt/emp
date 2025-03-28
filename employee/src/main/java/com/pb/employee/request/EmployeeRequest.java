@@ -107,7 +107,7 @@ public class EmployeeRequest {
     private String maritalStatus;
 
     @Schema(example = "Active")
-    @Pattern(regexp = "^(Active|InActive|Relieved)$", message = "{status.format}")
+    @Pattern(regexp = "^(Active|InActive|Onboarding)$", message = "{status.format}")
     @NotBlank(message = "{status.notnull.message}")
     private String status;
 
@@ -134,7 +134,7 @@ public class EmployeeRequest {
     private String ifscCode;
 
     @Schema(example = "bankName")
-    @Pattern(regexp =  "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{bankName.format}")
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{bankName.format}")
     @Size(min = 2, max = 100, message = "{bankName.size.message}")
     private String bankName;
 

@@ -1,6 +1,6 @@
 package com.pb.employee.serviceImpl;
 
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
@@ -130,7 +130,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         CompletableFuture.runAsync(() -> {
             try {
                 String defaultPassword = PasswordUtils.generateStrongPassword();
-                String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.CREATE_PASSWORD;
+                String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
                 emailUtils.sendRegistrationEmail(employeeRequest.getEmailId(), companyUrl,Constants.EMPLOYEE,defaultPassword);
             } catch (Exception e) {
@@ -149,6 +149,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         List<EmployeeEntity> employeeEntities = null;
         List<EmployeeResponse> employeeResponses = new ArrayList<>();
+        EmployeePersonnelEntity employeePersonnelEntity = null;
 
         try {
             LocalDate currentDate = LocalDate.now();
@@ -197,15 +198,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                     }
                 }
                 if (!isCompanyAdmin(employee)) {
-                    EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
-                    if (employeePersonnelEntity == null) {
-                        log.error("Employee personnel details are not exist for the employee {}", employee.getFirstName());
-                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
-                    }
-                    EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
-                    employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
-                    employeeResponses.add(employeeResponse);
+                    employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
+
                 }
+                EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
+                employeeResponse.setPersonnelEntity(employeePersonnelEntity);
+                employeeResponses.add(employeeResponse);
             }
         } catch (Exception ex) {
             log.error("Exception while fetching employees for company {}: {}", companyName, ex.getMessage());
@@ -227,6 +225,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         EmployeeEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         EmployeeResponse employeeResponse;
+        EmployeePersonnelEntity employeePersonnelEntity = null;
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
             DepartmentEntity departmentEntity =null;
@@ -237,13 +236,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(entity, departmentEntity, designationEntity);
 
             }
-            EmployeePersonnelEntity employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
-            if (employeePersonnelEntity == null){
-                log.error("Employee personnel details are not exist for the employee {}", entity.getFirstName());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEE_PERSONNEL_DETAILS), HttpStatus.NOT_FOUND);
+            if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
+                employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
             }
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
-            employeeResponse.setEmployeePersonnelEntity(employeePersonnelEntity);
+            employeeResponse.setPersonnelEntity(employeePersonnelEntity);
+
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
@@ -351,7 +349,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             );
         }
         try {
-            openSearchOperations.deleteEntity(entity.getEmployeePersonnelEntity().getId(), index);
+            openSearchOperations.deleteEntity(entity.getPersonnelEntity().getId(), index);
             openSearchOperations.deleteEntity(employeeId, index);
 
         } catch (Exception ex) {
@@ -366,8 +364,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 HttpStatus.OK
         );
     }
-
-
 
     @Override
     public ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, HttpServletRequest request) throws Exception {
@@ -446,41 +442,19 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<?> getEmployeeWithoutAttendance(String companyName,String month,String year) throws IOException, EmployeeException {
+    public ResponseEntity<?> getEmployeeWithoutAttendance(String companyName, String month, String year) throws IOException, EmployeeException {
         try {
-            ResponseEntity<?> employeeResponse = getEmployees(companyName);
 
-            ResponseObject responseObject = (ResponseObject) employeeResponse.getBody();
-
-            List<EmployeeResponse> employees = (List<EmployeeResponse>) responseObject.getData();
-
-            if (employees == null || employees.isEmpty()) {
-                log.error("Employees Not Found {}", companyName);
+            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
+            if (employeeEntities == null || employeeEntities.isEmpty()) {
+                log.error("Employees not found for company: {}", companyName);
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
-            ResponseEntity<?> responseEntity = attendanceService.getAllEmployeeAttendance(companyName, null, month, year);
+            List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName,null,month,year);
 
-            ResponseObject object = (ResponseObject) responseEntity.getBody();
-
-            List<AttendanceEntity> attendanceRecords = (List<AttendanceEntity>) object.getData();
-
-            if (attendanceRecords == null || attendanceRecords.isEmpty()) {
-                log.error("Attendance not found");
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.NO_ATTENDANCE_FOUND), HttpStatus.NOT_FOUND);
-            }
-
-                // Filter employees who do have attendance records
-            Set<String> employeesWithAttendance = attendanceRecords.stream()
-                    .map(AttendanceEntity::getEmployeeId)
-                    .collect(Collectors.toSet());
-
-            List<EmployeeResponse> employeesWithoutAttendance = employees.stream()
-                    .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
-                            !employeesWithAttendance.contains(employee.getEmployeeId()))
-                    .collect(Collectors.toList());
+            List<EmployeeEntity> employeesWithoutAttendance = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities);
 
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createSuccessResponse(employeesWithoutAttendance), HttpStatus.OK);
@@ -489,7 +463,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             log.error("An unexpected error occurred: {}", e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
     private List<EmployeeEntity> validateEmployee(CompanyEntity companyEntity) throws EmployeeException {

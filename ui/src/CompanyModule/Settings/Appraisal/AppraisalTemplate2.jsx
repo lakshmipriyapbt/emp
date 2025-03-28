@@ -14,7 +14,6 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
 }) => {
-    const { logoFileName } = useAuth();
   return (
     <div
       className="watermarked"
@@ -26,10 +25,10 @@ const AppraisalTemplate2 = ({
       }}
     >
       <div style={{ textAlign: "left" }}>
-        {logoFileName ? (
+        {companyData ? (
           <img
             className="align-middle"
-            src={companyLogo}
+            src={companyData?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "150px" }}
           />
@@ -193,6 +192,10 @@ const AppraisalTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
+            <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
             <h4>{companyData.companyName},</h4>
             <p>
               {companyData.mobileNo} | {companyData.emailId},

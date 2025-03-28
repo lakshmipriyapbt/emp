@@ -10,10 +10,10 @@ const ExperienceTemplate2 = ({
     designation,
     department,
     joiningDate,
-    experienceDate
-
+    experienceDate,
+    aboutEmployee
 }) => {
-  const {logoFileName} = useAuth();
+  const {company} = useAuth();
 
     return (
             <div
@@ -48,7 +48,7 @@ const ExperienceTemplate2 = ({
         right: '30%',
         width: '50%',
         height: '50%',
-        backgroundImage: `url(${logoFileName})`, // Use the logo or another image
+        backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
         transform: 'rotate(340deg)',
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
@@ -67,7 +67,7 @@ const ExperienceTemplate2 = ({
             }}
           >
             <p>
-              This letter certifies that <strong>{employeeName}</strong>with and ID <strong>{employeeId}</strong> was a valued member of our team at <strong>{companyData.companyName}</strong> as a <strong>{designation}</strong> in the <strong>{department} </strong> Department from {joiningDate} to {experienceDate}.
+              This letter certifies that <strong>{employeeName}</strong>with and ID <strong>{employeeId}</strong> was a valued member of our team at <strong>{companyData?.companyName}</strong> as a <strong>{designation}</strong> in the <strong>{department} </strong> Department from {joiningDate} to {experienceDate}.
             </p>
             <p>
               During <strong>{employeeName}</strong>’s employment, he/she exhibited exceptional
@@ -84,10 +84,11 @@ const ExperienceTemplate2 = ({
               and proactive approach were instrumental in overcoming challenges
               and achieving project objectives.
             </p>
+            <p>About Emoployee :{aboutEmployee}</p>
             <p>
               We commend <strong>{employeeName}</strong> for his outstanding performance and
               professionalism throughout his/her tenure with{" "}
-              {companyData.companyName}. His/Her contributions have been invaluable
+              {companyData?.companyName}. His/Her contributions have been invaluable
               to our team, and we have no doubt that he/she will continue to excel
               in his/her future endeavors.
             </p>
@@ -96,9 +97,13 @@ const ExperienceTemplate2 = ({
               <p className='mb-5'>Sincerely,</p>
               <div className='mt-5 pt-5'>
               <p>Authorized Signature</p>
-              <p>{companyData.companyName}</p>
-              <p>{companyData.mobileNo},{companyData.emailId}</p>
-              <p>{companyData.companyAddress}</p>
+              <img 
+              src={companyData?.stampImage}
+              alt="Stamp"
+              style={{ height: "100px", width: "160px" }}/>
+              <p>{companyData?.companyName}</p>
+              <p>{companyData?.mobileNo},{companyData?.emailId}</p>
+              <p>{companyData?.companyAddress}</p>
               </div>
             </div>
           </div>

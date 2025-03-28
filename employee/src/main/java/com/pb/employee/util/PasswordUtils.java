@@ -11,9 +11,10 @@ public class PasswordUtils {
     public static String generateStrongPassword() {
         SecureRandom random = new SecureRandom();
         StringBuilder password = new StringBuilder();
-        password.append((char) (random.nextInt(26) + 97));
-        password.append((char) (random.nextInt(10) + 48));  // Digits: 0-9
-        String remainingChars = random.ints(6, 33, 127) // Generate 7 random ASCII characters (33 to 126)
+        password.append((char) (random.nextInt(26) + 97));//a-z
+        password.append((char) (random.nextInt(10) + 48));//0-9
+        password.append((char) (random.nextInt(26) + 65));//A-Z
+        String remainingChars = random.ints(5, 33, 127) // Generate 7 random ASCII characters (33 to 126)
                 .mapToObj(i -> String.valueOf((char) i))
                 .collect(Collectors.joining());
         password.append(remainingChars);

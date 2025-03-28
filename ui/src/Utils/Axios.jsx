@@ -7,14 +7,25 @@ const hostname = window.location.hostname;
 const BASE_URL = `${protocol}//${hostname}:8012/ems`;
 const Login_URL = `${protocol}//${hostname}:9002/ems`;
 
-const token = localStorage.getItem("token");
+// ✅ Create Axios Instance (Without Token)
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  },
 });
+
+// ✅ Attach Token Dynamically Using Axios Interceptors
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export const loginApi = (data) => {
   return axios
@@ -87,13 +98,6 @@ export const companyViewApi = async () => {
 
 export const companyViewByIdApi = (companyId) => {
   return axiosInstance.get(`/company/${companyId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
 };
 
 export const companyDetailsByIdApi = async (companyId) => {
@@ -208,13 +212,6 @@ export const EmployeePostApi = (data) => {
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
 }
 
 export const BankNamesGetApi = () => {
@@ -289,7 +286,7 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employees/download?format=${format}`, {
+    const response = await axiosInstance.get(`${company}/employees/bank?format=${format}`, {
       responseType: "blob",
     });
 
