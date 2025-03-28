@@ -102,4 +102,10 @@ public class InternshipOfferLetterRequest {
     @NotNull(message = "{hr.mobileNo.notnull.message}")
     @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "{hr.invalid.mobileNo}")
     private String hrMobileNo;
+
+    @Schema(example = "companyBranch")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{companyBranch.pattern.message}")
+    @Size(max = 100, min = 2, message = "{companyBranch.notnull.message}")
+    private String companyBranch;
+
 }

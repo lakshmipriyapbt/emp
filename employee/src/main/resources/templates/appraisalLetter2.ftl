@@ -138,8 +138,12 @@
     We appreciate your initiative and expect you to take many more such responsibilities in future
      assignments to ensure company’s growth.
     </p>
-    <p>With Best Wishes,</p>
-    <p style = "margin-top: 10px;">Authorized Signature</p>
+    <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
+              <b>Authorized Signature</b>
+                     <br/>
+             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+
+    </div>
     </div>
 
 </body>
