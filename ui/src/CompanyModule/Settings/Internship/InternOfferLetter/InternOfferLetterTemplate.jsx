@@ -49,7 +49,7 @@ const InternOfferTemplate = ({
       <p>
         <b>Compensation & Benefits</b>
         <br />
-        We are pleased to offer you a <b>₹{stipend}/-</b> internship stipend.
+        We are pleased to offer you a <b>₹{stipend}/-</b> per <b>Month</b> internship stipend.
       </p>
       <p>
         <b>Acceptance</b>
