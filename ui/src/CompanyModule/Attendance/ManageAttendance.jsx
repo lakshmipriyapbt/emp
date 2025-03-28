@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import LayOut from "../../LayOut/LayOut";
-import { AttendanceManagementApi, EmployeeGetApi, EmployeeNoAttendanceGetAPI } from "../../Utils/Axios";
+import { AttendanceManagementApi, EmployeeNoAttendanceGetAPI } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
 import * as XLSX from "xlsx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ManageAttendance = () => {
   const {
@@ -20,7 +18,6 @@ const ManageAttendance = () => {
   const [employees, setEmployees] = useState([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [emp, setEmp] = useState([]);
 
   // Function to Fetch Data
   const fetchEmployeeData = async () => {
@@ -30,13 +27,27 @@ const ManageAttendance = () => {
     }
     try {
       const response = await EmployeeNoAttendanceGetAPI(selectedMonth, selectedYear);
-      setEmployees(response.data.data); // Assuming API returns employee list
+      const allEmployees = response.data.data || [];  // Ensure it's an array
+  
+      // Filter out "CompanyAdmin" employees
+      const filteredEmployees = allEmployees.filter(emp => emp.employeeType !== "CompanyAdmin");
+  
+      if (filteredEmployees.length === 0) {
+        alert("No Attendance Pending");  // Show message if no valid employees remain
+        setEmployees([]);  // Clear employee list
+        setIsDataFetched(false);
+        return;
+      }
+      setEmployees(filteredEmployees);
+      console.log("Filtered Employee Attendance", filteredEmployees);
       setIsDataFetched(true);
+  
     } catch (error) {
       console.error("Error fetching employee data:", error);
       setIsDataFetched(false);
     }
   };
+  
 
   const onSubmit = async (data) => {
     const formData = new FormData();
@@ -103,6 +114,7 @@ const ManageAttendance = () => {
 
     // Generate and Download Excel File
     XLSX.writeFile(workbook, `Attendance_${selectedMonth}_${selectedYear}.xlsx`);
+    setIsDataFetched(false);
   };
 
   const clearForm = () => {
