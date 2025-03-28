@@ -84,10 +84,13 @@ const AppraisalTemplate = () => {
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
           employeeName="John Doe"
+          hike="45"
+          salaryIncrease="600000"
           employeeId="E123456"
           jobTitle="Software Engineer"
           joiningDate="January 1, 2020"
           lastWorkingDate="October 27, 2024"
+          effectiveDate="November,2024"
         />
       ),
     },
@@ -101,7 +104,9 @@ const AppraisalTemplate = () => {
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
           employeeName="John Doe"
+          salaryIncrease="500000"
           employeeId="E123456"
+          hike="40"
           jobTitle="Software Engineer"
           effectiveDate="November,2024"
         />

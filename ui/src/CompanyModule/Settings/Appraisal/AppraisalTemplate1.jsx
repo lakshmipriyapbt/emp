@@ -8,7 +8,7 @@ const AppraisalTemplate1 = ({
   employeeName,
   designation,
   employeeId, // Ensure employeeId is passed as a prop
-  period,
+  hike,
   effectiveDate,
   salaryIncrease,
   basicSalary,
@@ -99,7 +99,7 @@ const AppraisalTemplate1 = ({
         <p>
           We are pleased to inform you that based on your performance and
           contribution to the company, our management has revised your
-          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, which
+          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum,This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication. Which
           is cost to company with effect from <strong>{effectiveDate}</strong>.
         </p>
         <p>

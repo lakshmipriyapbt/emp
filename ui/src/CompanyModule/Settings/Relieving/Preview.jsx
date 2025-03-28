@@ -51,7 +51,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
       content: () => (
         <RelievingTemplate1
           companyLogo={company?.imageFile}
-          companyData={companyData}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
@@ -68,7 +68,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
       content: () => (
         <RelievingTemplate2
           companyLogo={company?.imageFile}
-          companyData={companyData}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
