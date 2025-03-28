@@ -7,6 +7,7 @@ import { DepartmentGetApi, DesignationGetApi, ExperienceFormPostApi, InternOffer
 import { fetchEmployees } from "../../../../Redux/EmployeeSlice";
 import LayOut from "../../../../LayOut/LayOut";
 import InternOfferPrev from "./InternOfferPrev";
+import { useAuth } from "../../../../Context/AuthContext";
 
 const InternOfferForm = () => {
   const {
@@ -17,6 +18,7 @@ const InternOfferForm = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
+  
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,7 @@ const InternOfferForm = () => {
     hrName: "",
     hrEmail: "",
   });
+    const { company } = useAuth();
     const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -57,28 +60,21 @@ const InternOfferForm = () => {
   const handleHRChange = (event) => {
     const selectedId = event.target.value;
   
-    if (selectedId) {
-      // Ensure the selectedId is valid and exists in employees array
+    if (selectedId === "Company Admin") {
+      setSelectedHR({
+        hrName: "Company Admin",
+        hrEmail: company?.mailId || "N/A", // Fallback if company email is missing
+      });
+    } else {
       const selectedHRPerson = employees.find((emp) => emp.id === selectedId);
-  
       if (selectedHRPerson) {
-        // Safely set the selected HR details
         setSelectedHR({
           hrName: `${selectedHRPerson.firstName} ${selectedHRPerson.lastName}`,
           hrEmail: selectedHRPerson.emailId,
         });
-      } else {
-        // If no HR is found (though unlikely), handle the case
-        console.error('HR person not found in employees array.');
       }
-    } else {
-      // If no HR is selected, reset the selected HR data
-      setSelectedHR({
-        hrName: "",
-        hrEmail: "",
-      });
     }
-  };  
+  }; 
   const joiningDate = watch("startDate");
 
   const validateEndDate = (endDate) => {
@@ -134,10 +130,9 @@ const InternOfferForm = () => {
         emp.designationName
       })`.trim(),
     }));
-
-    // Set all employees in both managerOptions and hrEmployees
+  
     setEmployeeOptions(allEmployeeOptions);
-    // Filter employees where department name starts or ends with "HR" or "Human Resources"
+  
     const hrDepartmentsEmployees = employees.filter(
       (emp) =>
         emp.departmentName &&
@@ -145,15 +140,23 @@ const InternOfferForm = () => {
           emp.departmentName.toLowerCase().endsWith("hr") ||
           emp.departmentName.toLowerCase().startsWith("human resources"))
     );
-
+  
     const hrEmployeeOptions = hrDepartmentsEmployees.map((emp) => ({
       id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${
-        emp.designationName
-      })`.trim(),
+      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
     }));
+  
     setHrEmployees(hrEmployeeOptions);
-  }, [employees]);
+  
+    // If no HR employees exist, default to Company Admin
+    if (hrEmployeeOptions.length === 0) {
+      setSelectedHR({
+        hrName: "Company Admin",
+        hrEmail: company?.mailId || "N/A",
+      });
+    }
+  }, [employees, company]);
+  
 
   const fetchDepartments = async () => {
     try {
@@ -187,8 +190,8 @@ const InternOfferForm = () => {
         ...data,
         associateName: selectedAssignee ? selectedAssignee.associateName : '',
         associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
-        hrName: selectedHR ? selectedHR.hrName : '',
-        hrEmail: selectedHR ? selectedHR.hrEmail : '',
+        hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
+        hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
       };
     setPreviewData(formData);
     console.log("preview:", previewData);
@@ -434,7 +437,7 @@ const InternOfferForm = () => {
         <div className="row d-flex align-items-center justify-content-between mt-1">
           <div className="col">
             <h1 className="h3">
-              <strong>Offer Letter Form</strong>
+              <strong>Intern Offer Letter Form</strong>
             </h1>
           </div>
           <div className="col-auto">
@@ -785,26 +788,19 @@ const InternOfferForm = () => {
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">HR</label>
-                      <select
-                        className="form-select"
-                        onChange={handleHRChange}
-                         value={selectedHR.hrName ? selectedHR.hrName : ""}
-                        >
-                        <option value="" disabled>
-                            Select HR
-                        </option>
-                        {hrEmployees.length > 0 ? (
-                            hrEmployees.map((emp) => (
-                            <option key={emp.id} value={emp.id}>
-                                {emp.name}
-                            </option>
-                            ))
-                        ) : (
-                            <option value="" disabled>
-                            No HR Available
-                            </option>
-                        )}
-                       </select>
+                      <select className="form-select" onChange={handleHRChange} value={selectedHR.hrName || ""}>
+  <option value="">Select HR</option>
+  {hrEmployees.length > 0 ? (
+    hrEmployees.map((emp) => (
+      <option key={emp.id} value={emp.id}>
+        {emp.name}
+      </option>
+    ))
+  ) : (
+    <option value="Company Admin">Company Admin</option>
+  )}
+</select>
+
                       {errors.hrName && (
                         <p className="errorMsg">{errors.hrName.message}</p>
                       )}

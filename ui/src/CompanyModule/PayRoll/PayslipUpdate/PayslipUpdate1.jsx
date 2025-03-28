@@ -21,7 +21,6 @@ const PayslipUpdate1 = () => {
     reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const [companyData, setCompanyData] = useState({});
   const [allowanceFields, setAllowanceFields] = useState([]);
   const [deductionFields, setDeductionFields] = useState([]);
   const [taxFields, setTaxFields] = useState([{ label: "New Tax", value: 0 }]);
@@ -53,7 +52,7 @@ const PayslipUpdate1 = () => {
   const salaryId = queryParams.get("salaryId");
   const month = queryParams.get("month");
   const year = queryParams.get("year");
-  const { user, logoFileName } = useAuth();
+  const { authUser, company} = useAuth();
 
   const numberToWords = (num) => {
     const units = [
@@ -147,23 +146,11 @@ const PayslipUpdate1 = () => {
     return result.trim();
   };
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
+ 
   const fetchEmployeeDetails = async (employeeId) => {
     try {
       const response = await EmployeeGetApiById(employeeId);
       setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        await fetchCompanyData(response.data.companyId);
-      }
     } catch (err) {
       console.error("Error fetching employee details:", err);
       toast.error("Failed to fetch employee details");
@@ -173,7 +160,7 @@ const PayslipUpdate1 = () => {
     if (!month || !year) return;
     try {
       const payload = {
-        companyName: user.company,
+        companyName: authUser.company,
         month,
         year,
       };
@@ -258,7 +245,7 @@ const PayslipUpdate1 = () => {
         // Ensure the "Other Allowances" is always updated correctly
         allowances["Other Allowances"] = updatedOtherAllowance.toString();
 
-        // Handle new deductions (from user input) and include them in the payload
+        // Handle new deductions (from authUser input) and include them in the payload
         const updatedDeductions = deductionFields.reduce((acc, field) => {
           acc[field.label] = field.value;
           return acc;
@@ -276,7 +263,7 @@ const PayslipUpdate1 = () => {
 
         // Create the payload to send to the server
         const payload = {
-          companyName: user.company || "", // Default to empty string if undefined
+          companyName: authUser.company || "", // Default to empty string if undefined
           salary: {
             ...payslipData.salary,
             salaryId: payslipData.salary.salaryId ?? 0, // Default to 0 if missing
@@ -319,13 +306,13 @@ const PayslipUpdate1 = () => {
       if (employeeId) {
         await fetchEmployeeDetails(employeeId);
       }
-      if (month && year && user.company) {
+      if (month && year && authUser.company) {
         await fetchPayslipData();
       }
       setLoading(false);
     };
     fetchData();
-  }, [employeeId, month, year, user.company]);
+  }, [employeeId, month, year, authUser.company]);
 
   const [validationError, setValidationError] = useState("");
 
@@ -564,7 +551,7 @@ const PayslipUpdate1 = () => {
       .split("")
       .filter((char) => allowedCharsRegex.test(char))
       .join("");
-    // Capitalize first letter of each word & keep others as user typed
+    // Capitalize first letter of each word & keep others as authUser typed
     const words = value.split(" ");
     const formattedValue = words
       .map((word) =>
@@ -650,10 +637,10 @@ const PayslipUpdate1 = () => {
               }}
             >
               <div style={{ paddingTop: "20px" }}>
-                {logoFileName ? (
+                {company?.imageFile ? (
                   <img
                     className="align-middle"
-                    src={logoFileName}
+                    src={company?.imageFile}
                     alt="Logo"
                     style={{ height: "80px", width: "180px" }}
                   />
@@ -665,9 +652,9 @@ const PayslipUpdate1 = () => {
                 className="company-details text-center"
                 style={{ padding: "2px" }}
               >
-                <h6>{companyData.companyAddress}.</h6>
-                <h6>{companyData.mobileNo}</h6>
-                <h6>{companyData.emailId}</h6>
+                <h6>{company?.companyAddress}.</h6>
+                <h6>{company?.mobileNo}</h6>
+                <h6>{company?.emailId}</h6>
               </div>
             </div>
             <div

@@ -42,7 +42,7 @@ const AddIncrement = () => {
       status: "Active",
     },
   });
-  const { user, companyData } = useAuth();
+  const { authUser, company,employee } = useAuth();
   const date = new Date().toLocaleDateString();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -704,7 +704,7 @@ const AddIncrement = () => {
     });
 
     const dataToSubmit = {
-      companyName: user.company,
+      companyName: authUser.company,
       fixedAmount: fixedAmount.toFixed(2),
       variableAmount: variableAmount.toFixed(2),
       grossAmount: grossAmountValue.toFixed(2),
@@ -736,7 +736,7 @@ const AddIncrement = () => {
     const salaryStructureId =
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
-      companyId: user.companyId,
+      companyId: company.id,
       employeeId: employeeId,
       date: new Date().toISOString().split("T")[0],
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
@@ -818,7 +818,7 @@ const AddIncrement = () => {
     setEmployeeId(employeeId);
     const submissionData = {
       employeeId: data.employeeId,
-      companyId: user.companyId,
+      companyId: company.id,
       allowances: allowances,
       totalAllowances: totalAllowances,
     };
@@ -828,8 +828,8 @@ const AddIncrement = () => {
       designationName: data.designationName || "",
       departmentName: data.departmentName || "",
       dateOfSalaryIncrement: data.dateOfSalaryIncrement || "",
-      companyId: user.companyId,
-      companyData: companyData,
+      companyId: company.id,
+      companyData: company,
       timePeriod: `${selectedMonth} ${selectedYear}`,
       grossCompensation: grossAmount || "",
       allowances: allowances,
