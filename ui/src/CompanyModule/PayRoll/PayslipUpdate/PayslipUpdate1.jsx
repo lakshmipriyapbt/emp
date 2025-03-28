@@ -150,7 +150,7 @@ const PayslipUpdate1 = () => {
   const fetchEmployeeDetails = async (employeeId) => {
     try {
       const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
+      setEmployeeDetails(response.data.data);
     } catch (err) {
       console.error("Error fetching employee details:", err);
       toast.error("Failed to fetch employee details");

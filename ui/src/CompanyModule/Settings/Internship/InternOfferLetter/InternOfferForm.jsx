@@ -152,7 +152,7 @@ const InternOfferForm = () => {
     if (hrEmployeeOptions.length === 0) {
       setSelectedHR({
         hrName: "Company Admin",
-        hrEmail: company?.mailId || "N/A",
+        hrEmail: company?.emailId || "N/A",
       });
     }
   }, [employees, company]);
