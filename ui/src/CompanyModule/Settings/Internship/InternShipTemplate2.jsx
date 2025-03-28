@@ -104,6 +104,10 @@ const InternShipTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
+            <img 
+              src={companyData?.stampImage}
+              alt="Stamp"
+              style={{ height: "100px", width: "160px" }}/>
           </div>
         </div>
       </div>

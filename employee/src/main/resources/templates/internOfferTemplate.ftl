@@ -62,7 +62,7 @@
                 <p>Dear ${offerLetter.employeeName},</p>
 
                 <p>
-                    We are thrilled to offer you an internship in our <b>${offerLetter.department}</b> department at <b>${company.companyName}</b>,<b>${company.companyBranch}</b>. We were highly impressed with your skills during the selection process, and we are excited to welcome you to our team.
+                    We are thrilled to offer you an internship in our <b>${offerLetter.department}</b> department at <b>${company.companyName}</b>,<b>${offerLetter.companyBranch}</b>. We were highly impressed with your skills during the selection process, and we are excited to welcome you to our team.
                 </p>
 
                 <p>
@@ -86,7 +86,7 @@
                 <b>${offerLetter.hrName}</b><br/>
                 Email: ${offerLetter.hrEmail}<br/>
                 Mobile: ${offerLetter.hrMobileNo}<br/>
-                Branch: ${company.companyBranch}<br/>
+                Branch: ${offerLetter.companyBranch}<br/>
 
             </div>
             <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">

@@ -167,10 +167,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
 
                 List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId());
-                if (employeeSalaryEntity != null && employeeSalaryEntity.isEmpty()){
+
+                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
+                    employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
                     String grossAmounts = String.valueOf(employeeSalaryEntity.stream()
-                            .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus())) // Filter for active salaries
-                            .map(EmployeeSalaryEntity::getGrossAmount) // Extract gross amounts
+                            .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
+                            .map(EmployeeSalaryEntity::getGrossAmount)
                             .findFirst());
                     employee.setGrossAmount(grossAmounts);
                 }

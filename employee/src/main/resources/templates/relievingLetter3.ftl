@@ -93,7 +93,12 @@
 
         <div class="footer">
             <p>Best Regards,</p>
-            <p>Authorized Signature,</p>
+            <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
+                      <b>Authorized Signature</b>
+                             <br/>
+                     <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+
+            </div>
             <h5>${company[0].companyName}</h5>
             <p>${company[0].address}</p>
         </div>
