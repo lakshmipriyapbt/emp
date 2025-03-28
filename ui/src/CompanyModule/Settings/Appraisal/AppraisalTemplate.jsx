@@ -80,7 +80,6 @@ const AppraisalTemplate = () => {
         error.response.data.error.message
       ) {
         const errorMessage = error.response.data.error.message;
-        setErrorMessage(errorMessage);
         toast.error(errorMessage);
       } else {
         // toast.error("Network Error !");
