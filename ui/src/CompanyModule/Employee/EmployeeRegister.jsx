@@ -58,7 +58,6 @@ export default function EmployeeRegister() {
      
       },
     });
-
   const { authUser} = useAuth();
   const [step, setStep] = useState(1);
   const [departments, setDepartments] = useState([]);
@@ -309,6 +308,12 @@ const dropdownOptions = [
     fetchBankNames();
   }, []);
 
+  const validateDates = (value, index) => {
+    const startDate = getValues(`employeeExperience.${index}.startDate`);
+    if (!startDate || !value) return true; // Allow empty values (if optional)
+    return new Date(value) >= new Date(startDate) || "End Date cannot be before Start Date";
+  };
+
   const calculateTenure = (index, startDate, endDate) => {
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -333,6 +338,14 @@ const dropdownOptions = [
   // Watch DOB & Hiring Date to validate them dynamically
 const dob = watch("dateOfBirth");
 const hiringDate = watch("dateOfHiring");
+
+const experienceValidation = {
+  required: "This field is required",
+  pattern: {
+    value: /^(?!\s)(?!.*\s$)[A-Za-z0-9\s\-_.]+$/,
+    message: "No leading or trailing spaces allowed. Allowed characters: letters, numbers, space, -, _, .",
+  },
+};
 
 // Custom Validation Function
 const validateDOB = (value) => {
@@ -750,7 +763,7 @@ const validateHiringDate = (value) => {
                           <label>Company Name</label>
                           <input type="text" className="form-control"
                             {...register(`employeeExperience.${index}.companyName`, {
-                              validate:validateFirstName
+                              validate:experienceValidation
                             })}
                           />
                           <small className="text-danger">{errors.employeeExperience?.[index]?.companyName?.message}</small>
@@ -760,7 +773,7 @@ const validateHiringDate = (value) => {
                           <label>Position/Title</label>
                           <input type="text" className="form-control"
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
-                              validate:validateFirstName
+                              validate:experienceValidation
                             })}
                           />
                           <small className="text-danger">{errors.employeeExperience?.[index]?.positionOrTitle?.message}</small>
@@ -780,6 +793,7 @@ const validateHiringDate = (value) => {
                           <label>End Date</label>
                           <input type="date" className="form-control"
                             {...register(`employeeExperience.${index}.endDate`, {
+                              validate: (value) => validateDates(value, index), // Custom validation
                             })}
                             onChange={(e) => calculateTenure(0, getValues(`employeeExperience.0.startDate`), e.target.value)}
                             />
