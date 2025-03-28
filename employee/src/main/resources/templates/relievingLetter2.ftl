@@ -71,8 +71,14 @@
             <p>We kindly request you to return your company ID and any other company-owned items that you have been using during your tenure with our firm.</p>
             <div class="para">
                 <p>Sincerely,</p>
+
                 <h4>${company[0].companyName}</h4>
-                 <div style="margin-top: 140px;">Authorized Signature</div>
+            <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
+                   <b>Authorized Signature</b>
+                          <br/>
+                  <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+
+            </div>
                 <p>${company[0].companyAddress}</p>
 
             </div>
