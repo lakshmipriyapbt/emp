@@ -7,7 +7,7 @@ import { CompanyImageGetApi, EmployeeGetApiById } from "../Utils/Axios";
 
 const LayOut = ({ children }) => {
   const name = localStorage.getItem("name");
-  const { authData, isInitialized } = useAuth();
+  const { authUser, isInitialized } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
@@ -18,15 +18,14 @@ const LayOut = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!isInitialized) return; // Wait until initialization is complete
-    if (!authData) return;
+    if (!authUser) return;
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        console.log("userId:", authData.userId);
-        const response = await EmployeeGetApiById(authData.userId);
-        console.log("userId@:", authData.userId);
+        console.log("userId:", authUser.userId);
+        const response = await EmployeeGetApiById(authUser.userId);
+        console.log("userId@:", authUser.userId);
         const companyId = response.data.companyId;
         await fetchCompanyLogo(companyId);
       } catch (error) {
@@ -56,7 +55,7 @@ const LayOut = ({ children }) => {
     };
 
     fetchData();
-  }, [authData, isInitialized]);
+  }, [authUser]);
 
   return (
     <div className="wrapper">
