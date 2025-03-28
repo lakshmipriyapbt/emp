@@ -141,12 +141,13 @@ const EmployeeSalaryStructureView = () => {
     },
     {
       name: <h5><b>Actions</b></h5>,
+      selector: row => row.id || "Undefined",
       cell: row => (
         <div>
           <button
             className="btn btn-sm"
             style={{ backgroundColor: "transparent", border: "none", padding: "0", marginRight: "10px" }}
-            onClick={() => handleSalary(row.id)}
+            onClick={() => handleSalary(row.employeeId)}
             title="View Salary"
           >
             <PencilSquare size={22} color='#d116dd' />

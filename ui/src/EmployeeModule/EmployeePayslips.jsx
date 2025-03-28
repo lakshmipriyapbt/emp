@@ -21,10 +21,10 @@ const EmployeePayslips = () => {
   const [refreshData, setRefreshData] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
-  const { user} = useAuth();
+  const { authUser} = useAuth();
   const navigate = useNavigate();
-  console.log("userId:", user.userId);
-  const id = user.userId;
+  console.log("userId:", authUser.userId);
+  const id = authUser.userId;
   console.log(id);
 
   const fetchTemplate = async () => {

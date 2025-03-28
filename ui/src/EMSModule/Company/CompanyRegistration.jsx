@@ -139,8 +139,8 @@ const CompanyRegistration = () => {
         try {
           const response = await companyViewByIdApi(location.state.id);
           console.log(response.data);
-          reset(response.data);
-          setCompanyType(response.data.companyType);
+          reset(response.data.data);
+          setCompanyType(response.data.data.companyType);
           setEditMode(true);
         } catch (error) {
           handleApiErrors(error);
