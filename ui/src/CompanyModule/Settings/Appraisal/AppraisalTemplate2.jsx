@@ -8,6 +8,7 @@ const AppraisalTemplate2 = ({
   employeeName,
   designation,
   employeeId,
+  hike,
   effectiveDate,
   salaryIncrease,
   allowances,
@@ -94,10 +95,10 @@ const AppraisalTemplate2 = ({
         <p>
           We are pleased to inform you that based on your performance and
           contribution to the company, our management has revised your
-          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, which
-          is cost to company with effect from <strong>{effectiveDate}</strong>
-          .All other T&C are same as per the original offer letter.
+          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.Which
+          is cost to company with effect from <strong>{effectiveDate}</strong>.
         </p>
+        <p>All other T&C are same as per the original offer letter.</p>
         <table className="table border-collapse mb-5">
           <thead>
             <tr className="text-center">
