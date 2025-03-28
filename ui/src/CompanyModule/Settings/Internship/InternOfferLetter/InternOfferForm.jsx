@@ -184,17 +184,20 @@ const InternOfferForm = () => {
     fetchDepartments();
     fetchDesignations();
   }, []);
+  const currentDate = new Date().toISOString().split('T')[0]; // Formats date as 'YYYY-MM-DD'
 
   const onSubmit = (data) => {
     const formData = {
         ...data,
+        date:currentDate,
+        companyId:company.id,
         associateName: selectedAssignee ? selectedAssignee.associateName : '',
         associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
         hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
         hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
       };
     setPreviewData(formData);
-    console.log("preview:", previewData);
+    console.log("preview:", formData);
     setShowPreview(true);
   };
     const handleConfirmSubmission = async () => {

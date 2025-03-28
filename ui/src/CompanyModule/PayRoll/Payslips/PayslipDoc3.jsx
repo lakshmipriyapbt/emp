@@ -809,12 +809,6 @@ const PayslipDoc3 = () => {
                   authentication
                 </em>
               </span>
-              <div className="text-end">
-            <img 
-              src={company?.stampImage}
-              alt="Stamp"
-              style={{ height: "100px", width: "160px" }}/>
-            </div>
               <div
                 className="bottom"
                 style={{
