@@ -86,8 +86,14 @@ const { fields: experienceFields, append: addExperience, remove: removeExperienc
 });
 
 const onNext = async () => {
-  const isValid = await trigger(); // Validate current step fields
-  if (isValid) setStep(step + 1);
+  if (step === 4) {
+    setStep(5); // Skip validation and move to Step 5
+  } else {
+    const isValid = await trigger(); // Validate other steps
+    if (isValid && step < 5) {
+      setStep(step + 1); // Move to the next step
+    }
+  }
 };
 
 useEffect(() => {
@@ -170,50 +176,57 @@ const onPrevious = () => {
 
     // Constructing the payload with all required fields
     let payload = {
-        companyName: authUser.company,
-        employeeType: data.employeeType,
-        employeeId: data.employeeId,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        emailId: data.emailId,
-        designation: data.designation,
-        dateOfHiring: data.dateOfHiring, // Format: yyyy-mm-dd
-        dateOfBirth: data.dateOfBirth,   // Format: yyyy-mm-dd
-        department: data.department,
-        location: data.location,
-        tempAddress: data.tempAddress,
-        permanentAddress: data.permanentAddress,
-        manager: data.manager,
-        mobileNo: data.mobileNo,
-        alternateNo: data.alternateNo,
-        maritalStatus: data.maritalStatus,
-        status: data.status,
-        panNo: data.panNo,
-        uanNo: data.uanNo,
-        aadhaarId: data.aadhaarId,
-        accountNo: data.accountNo,
-        ifscCode: data.ifscCode,
-        bankName: data.bankName,
-        bankBranch: data.bankBranch,
-        pfNo: data.pfNo, // Default value if empty
-              // Correcting personnelEntity
-              personnelEntity: {
-                employeeEducation: data.employeeEducation?.map((edu) => ({
-                    educationLevel: edu.educationLevel || "",
-                    instituteName: edu.instituteName || "",
-                    boardOfStudy: edu.boardOfStudy || "",
-                    branch: edu.branch || "",
-                    year: edu.year || "",
-                    percentage: edu.percentage || ""
-                })) || [],
-    
-                employeeExperience: data.employeeExperience?.map((exp) => ({
-                    companyName: exp.companyName || "",
-                    positionOrTitle: exp.positionOrTitle || "",
-                    startDate: exp.startDate || "",
-                    endDate: exp.endDate || ""
-                })) || [],
-    }
+      companyName: authUser.company,
+      employeeType: data.employeeType,
+      employeeId: data.employeeId,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      emailId: data.emailId,
+      designation: data.designation,
+      dateOfHiring: data.dateOfHiring, // Format: yyyy-mm-dd
+      dateOfBirth: data.dateOfBirth,   // Format: yyyy-mm-dd
+      department: data.department,
+      location: data.location,
+      tempAddress: data.tempAddress,
+      permanentAddress: data.permanentAddress,
+      manager: data.manager,
+      mobileNo: data.mobileNo,
+      alternateNo: data.alternateNo,
+      maritalStatus: data.maritalStatus,
+      status: data.status,
+      panNo: data.panNo,
+      uanNo: data.uanNo,
+      aadhaarId: data.aadhaarId,
+      accountNo: data.accountNo,
+      ifscCode: data.ifscCode,
+      bankName: data.bankName,
+      bankBranch: data.bankBranch,
+      pfNo: data.pfNo, // Default value if empty
+      
+      // Constructing personnelEntity
+      personnelEntity: {
+          employeeEducation: data.employeeEducation?.map((edu) => ({
+              educationLevel: edu.educationLevel || "",
+              instituteName: edu.instituteName || "",
+              boardOfStudy: edu.boardOfStudy || "",
+              branch: edu.branch || "",
+              year: edu.year || "",
+              percentage: edu.percentage || ""
+          })) || []
+      }
+  };
+
+  // Check if `employeeExperience` has any valid entries
+  const validExperience = data.employeeExperience?.filter(exp => 
+      exp.companyName.trim() || 
+      exp.positionOrTitle.trim() || 
+      exp.startDate.trim() || 
+      exp.endDate.trim()
+  );
+
+  // Only add `employeeExperience` if it contains valid values
+  if (validExperience?.length > 0) {
+      payload.personnelEntity.employeeExperience = validExperience;
   }
 
     try {
@@ -256,7 +269,7 @@ const managerEmployees = employees.filter(
 
 // Map manager employees to dropdown format
 const managerOptions = managerEmployees.map((emp) => ({
-  id: emp.id,
+  id: `${emp.firstName || ""} ${emp.lastName || ""}`,
   name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
 }));
 
@@ -339,12 +352,44 @@ const dropdownOptions = [
 const dob = watch("dateOfBirth");
 const hiringDate = watch("dateOfHiring");
 
-const experienceValidation = {
-  required: "This field is required",
-  pattern: {
-    value: /^(?!\s)(?!.*\s$)[A-Za-z0-9\s\-_.]+$/,
-    message: "No leading or trailing spaces allowed. Allowed characters: letters, numbers, space, -, _, .",
-  },
+const validateCompanyName = (value) => {
+  // Trim leading and trailing spaces before further validation
+  const trimmedValue = value.trim();
+
+  // Check for trailing spaces first
+  if (/\s$/.test(value)) {
+    return "Spaces e at the end are not allowed.";
+  } else if (/^\s/.test(value)) {
+    return "No Leading Space Allowed.";
+  }
+
+  // Ensure only alphabetic characters and spaces
+  else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
+    return "Only Alphabetic Characters are Allowed.";
+  }
+
+  // Check for minimum and maximum word length
+  else {
+    const words = trimmedValue.split(" ");
+    for (const word of words) {
+      if (word.length < 1) {
+        return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
+      } else if (word.length > 100) {
+        return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
+      }
+    }
+    // Check if there are multiple spaces between words
+    if (/\s{2,}/.test(trimmedValue)) {
+      return "No Multiple Spaces Between Words Allowed.";
+    }
+
+    // Check minimum character length after other validations
+    if (trimmedValue.length < 3) {
+      return "Minimum 3 Characters Required.";
+    }
+  }
+
+  return true; // Return true if all conditions are satisfied
 };
 
 // Custom Validation Function
@@ -755,25 +800,23 @@ const validateHiringDate = (value) => {
                 <div>
                   <h3 className="mb-3">Step 4: Experience Details</h3>
                   {experienceFields.map((exp, index) => {
-                    const startDate = watch(`employeeExperience.${index}.startDate`);
-                    const endDate = watch(`employeeExperience.${index}.endDate`);
                     return (
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
                           <input type="text" className="form-control"
                             {...register(`employeeExperience.${index}.companyName`, {
-                              validate:experienceValidation
+                              validate:validateCompanyName
                             })}
                           />
                           <small className="text-danger">{errors.employeeExperience?.[index]?.companyName?.message}</small>
                         </div>
 
                         <div className="col-md-3">
-                          <label>Position/Title</label>
+                          <label>Designation/Role</label>
                           <input type="text" className="form-control"
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
-                              validate:experienceValidation
+                              validate:validateCompanyName
                             })}
                           />
                           <small className="text-danger">{errors.employeeExperience?.[index]?.positionOrTitle?.message}</small>
@@ -892,7 +935,7 @@ const validateHiringDate = (value) => {
             Next
           </button>
         ) : (
-          <button type="submit" className="btn btn-success">
+          <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()} >
             Submit
           </button>
         )}
