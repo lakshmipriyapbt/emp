@@ -85,6 +85,8 @@ function Profile() {
         setLogoMessage("Logo uploaded successfully!");
         reset();
         setLogoPreview(null);
+        window.location.reload();
+
       }
     } catch (error) {
       setLogoMessage("Failed to upload logo.");
