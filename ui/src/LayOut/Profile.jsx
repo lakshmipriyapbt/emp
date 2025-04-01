@@ -1,362 +1,296 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Modal,
-  Button,
-  ModalHeader,
-  ModalTitle,
-  ModalBody,
-  ModalFooter,
-} from "react-bootstrap";
 import LayOut from "./LayOut";
-import { CameraFill, Upload } from "react-bootstrap-icons";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import {
-  CompanyImagePatchApi,
-  CompanyStampPatchApi,
-  companyUpdateByIdApi,
-  companyViewByIdApi,
-} from "../Utils/Axios";
+import { CompanyImagePatchApi, CompanyStampPatchApi, companyUpdateByIdApi } from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
+import { validateLocation } from "../Utils/Validate";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
+  const {company, employee } = useAuth();
   const {
     register,
     handleSubmit,
-    setValue,
+    reset,getValues,setValue,
     formState: { errors },
-  } = useForm({ mode: "onChange" });
-  const [companyData, setCompanyData] = useState({});
-  const [postImage, setPostImage] = useState(null);
-  const [stampImage, setStampImage] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  } = useForm({
+     mode: "onChange",
+     defaultValues:company
+   });
+
+   const [logoPreview, setLogoPreview] = useState(company?.imageFile || "");
+   const [stampPreview, setStampPreview] = useState(company?.stampImage || "");
+  const [logoMessage, setLogoMessage] = useState("");
+  const [stampMessage, setStampMessage] = useState("");
+  const [companyField, setCompanyField] = useState(""); // CIN or Registration No.
+  const [loadingLogo, setLoadingLogo] = useState(false);
+  const [loadingStamp, setLoadingStamp] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [error, setError] = useState(null);
-  const [imgError, setImgError] = useState(null);
-  const [stampError, setStampError] = useState("");
-  const [showStampModal, setShowStampModal] = useState(false);
-  const { user = {}, logoFileName,stamp } = useAuth();
-  const navigate = useNavigate();
-  const [response, setResponse] = useState({ data: {} });
-  const [hasCinNo, setHasCinNo] = useState(false);
-  const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
+  const navigate=useNavigate()
+  let companyId = employee?.companyId;
 
+ // Set default values and determine field type
+ useEffect(() => {
+  if (company) {
+    Object.keys(company).forEach((key) => setValue(key, company[key]));
+
+    // Determine whether to show CIN or Registration Number
+    if (company.cinNo) {
+      setCompanyField("cinNo");
+    } else if (company.regNo) {
+      setCompanyField("regNo");
+    }
+  }
+}, [company, setValue]);
+
+  // Update previews when company data changes
   useEffect(() => {
-    const fetchCompanyData = async () => {
-      if (!user.companyId) return;
+    if (company) {
+      setLogoPreview(company.imageFile);
+      setStampPreview(company.stampImage);
+    }
+  }, [company]);
 
+  // Handle file change (Independent)
+  const handleLogoChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("Selected Logo File:", file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleStampChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      console.log("Selected Stamp File:", file);
+      setStampPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Upload Logo (Independent)
+  const uploadLogo = async (data) => {
+    setLoadingLogo(true);
+    setLogoMessage("");
+
+    try {
+      if (data.logo?.[0]) {
+        console.log("Uploading Logo Payload:", data.logo[0]); // Log payload
+        const formData = new FormData();
+        formData.append("file", data.logo[0]);
+        await CompanyImagePatchApi(companyId, formData);
+        setLogoMessage("Logo uploaded successfully!");
+        reset();
+        setLogoPreview(null);
+        window.location.reload();
+
+      }
+    } catch (error) {
+      setLogoMessage("Failed to upload logo.");
+    } finally {
+      setLoadingLogo(false);
+    }
+  };
+
+    // Upload Stamp (Fixed)
+    const uploadStamp = async () => {
+      setLoadingStamp(true);
+      setStampMessage("");
+  
       try {
-        const response = await companyViewByIdApi(user.companyId);
-        const data = response.data;
-        setCompanyData(data);
-
-        // Set form values
-        Object.keys(data).forEach((key) => setValue(key, data[key]));
-
-        // Determine CIN and Registration number presence
-        setHasCinNo(!!data.cinNo);
-        setHasCompanyRegNo(!!data.companyRegNo);
-      } catch (err) {
-        setError(err);
+        if (!companyId) {
+          console.error("companyId is missing!");
+          return;
+        }
+  
+        // Get the file from react-hook-form
+        const stampFile = getValues("stamp")[0];
+  
+        if (!stampFile) {
+          console.error("No file selected!");
+          setStampMessage("Please select a file before uploading.");
+          return;
+        }
+  
+        console.log("Uploading Stamp Payload:", stampFile);
+  
+        const formData = new FormData();
+        formData.append("stamp", stampFile); // Ensure correct key
+  
+        // Debugging - Log FormData
+        for (const pair of formData.entries()) {
+          console.log(`${pair[0]}:`, pair[1]);
+        }
+        await CompanyStampPatchApi(companyId, formData);
+        setStampMessage("Stamp uploaded successfully!");
+        reset();
+        setStampPreview(null);
+      } catch (error) {
+        setStampMessage("Failed to upload stamp.");
+        console.error("Upload error:", error);
+      } finally {
+        setLoadingStamp(false);
       }
     };
 
-    fetchCompanyData();
-  }, [user.companyId, setValue, setError]);
+      const handleDetailsSubmit = async (data) => {
+        if (!company.id) return;
+        const updateData = {
+          companyAddress: data.companyAddress,
+          mobileNo: data.mobileNo,
+          alternateNo: data.alternateNo,
+          name: data.name,
+          personalMailId: data.personalMailId,
+          personalMobileNo: data.personalMobileNo,
+          address: data.address,
+        };
+        try {
+          // Attempt to update company details
+          await companyUpdateByIdApi(company.id, updateData);
+          // Clear any previous error message
+          setErrorMessage("");
+          setError(null);
+          // If the update is successful, show success message
+          setSuccessMessage("Profile Updated Successfully.");
+          toast.success("Company Details Updated Successfully");
+          // Redirect to main page
+          navigate("/main");
+        } catch (err) {
+          // Log the error to the console
+          console.error("Details update error:", err);
+          // Clear any previous success message
+          setSuccessMessage("");
+          // Set the error message and display error notification
+          setErrorMessage("Failed To Update Profile Details.");
+          setError(err);
+          const errorMessage = err?.response?.data?.message || "An error occurred";
+          // Show error notification with the error message from the API
+          toast.error(errorMessage);
+        }
+      };
 
-  const handleDetailsSubmit = async (data) => {
-    if (!user.companyId) return;
-    const updateData = {
-      companyAddress: data.companyAddress,
-      mobileNo: data.mobileNo,
-      alternateNo: data.alternateNo,
-      name: data.name,
-      personalMailId: data.personalMailId,
-      personalMobileNo: data.personalMobileNo,
-      address: data.address,
+    const toInputTitleCase = (e) => {
+      const input = e.target;
+      let value = input.value;
+      const cursorPosition = input.selectionStart; // Save the cursor position
+      // Remove leading spaces
+      value = value.replace(/^\s+/g, "");
+      // Ensure only alphabets and spaces are allowed
+      const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
+      value = value
+        .split("")
+        .filter((char) => allowedCharsRegex.test(char))
+        .join("");
+      // Capitalize the first letter of each word
+      const words = value.split(" ");
+      // Capitalize the first letter of each word and lowercase the rest
+      const capitalizedWords = words.map((word) => {
+        if (word.length > 0) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+        return "";
+      });
+      // Join the words back into a string
+      let formattedValue = capitalizedWords.join(" ");
+      // Remove spaces not allowed (before the first two characters)
+      if (formattedValue.length > 2) {
+        formattedValue =
+          formattedValue.slice(0, 2) +
+          formattedValue.slice(2).replace(/\s+/g, " ");
+      }
+      // Update input value
+      input.value = formattedValue;
+      // Restore the cursor position
+      input.setSelectionRange(cursorPosition, cursorPosition);
     };
-    try {
-      // Attempt to update company details
-      await companyUpdateByIdApi(user.companyId, updateData);
-      // Clear any previous error message
-      setErrorMessage("");
-      setError(null);
-      // If the update is successful, show success message
-      setSuccessMessage("Profile Updated Successfully.");
-      toast.success("Company Details Updated Successfully");
-      // Redirect to main page
-      navigate("/main");
-    } catch (err) {
-      // Log the error to the console
-      console.error("Details update error:", err);
-      // Clear any previous success message
-      setSuccessMessage("");
-      // Set the error message and display error notification
-      setErrorMessage("Failed To Update Profile Details.");
-      setError(err);
-      const errorMessage = err?.response?.data?.message || "An error occurred";
-      // Show error notification with the error message from the API
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleLogoSubmit = async (e) => {
-    e.preventDefault(); // Prevent form default action
-    if (!user.companyId) return;
-    if (!postImage) {
-      setErrorMessage("Logo is Required");
-      setImgError("Logo is Required")
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append("image", "string");
-      formData.append("file", postImage);
-      await CompanyImagePatchApi(user.companyId, formData);
-      setPostImage(null);
-      setSuccessMessage("Logo updated successfully.");
-      toast.success("Company Logo Updated Successfully");
-      setErrorMessage("");
-      setImgError(""); // Clear image error if everything goes fine
-      closeModal();
-      setTimeout(() => {
-        window.location.href = "/main";
-      }, 2000);
-    } catch (err) {
-      console.error("Logo update error:", err);
-      setSuccessMessage("");
-      toast.error("Failed To Update Logo");
-      setError(err);
-    }
-  };
-
-  const handleStampSubmit = async (e) => {
-    e.preventDefault();
-    if (!user.companyId) return;
-    if (!stampImage) {
-      setStampError("Stamp is Required");
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append("image", "string");
-      formData.append("file", stampImage);
-      await CompanyStampPatchApi(user.companyId, formData); // API call
-
-      setStampImage(null);
-      setSuccessMessage("Stamp updated successfully.");
-      toast.success("Company Stamp Updated Successfully");
-      setStampError("");
-      closeStampModal();
-      setTimeout(() => {
-        window.location.href = "/main";
-      }, 2000);
-    } catch (err) {
-      console.error("Stamp update error:", err);
-      setSuccessMessage("");
-      toast.error("Failed To Update Stamp");
-      setStampError("Error uploading stamp");
-    }
-  };
-
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    if (value.trim() !== "") {
-      return;
-    }
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
-  };
- // Validate Logo Upload
- const onChangePicture = (e) => {
-  validateFile(e, setPostImage, setImgError);
-};
-
-// Validate Stamp Upload
-const onChangeStampPicture = (e) => {
-  validateFile(e, setStampImage, setStampError);
-};
-
-const validateFile = (e, setFile, setError) => {
-  const file = e.target.files[0];
-  if (!file) {
-    setError("No file selected.");
-    return;
-  }
-  if (file.size > 200 * 1024) {
-    setError("File size must be less than 200KB.");
-    return;
-  }
-  const validTypes = ["image/png", "image/jpeg", "image/svg+xml"];
-  if (!validTypes.includes(file.type)) {
-    setError("Only .png, .jpg, .jpeg, .svg files are allowed.");
-    return;
-  }
-  setError("");
-  setFile(file);
-};
-
-const openModal = () => setShowModal(true);
-const closeModal = () => setShowModal(false);
-const openStampModal = () => setShowStampModal(true);
-const closeStampModal = () => setShowStampModal(false);
-
-  const handleCloseUploadImageModal = () => {
-    setPostImage(null);
-    setShowModal(false);
-    setErrorMessage("");
-  };
-  const handleStampCloseModal=()=>{
-    setStampImage(null);
-    setShowStampModal(false);
-    setErrorMessage("");
-    setStampError("");
-  }
-
-  const toInputTitleCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-    // Ensure only alphabets and spaces are allowed
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
-    value = value
-      .split("")
-      .filter((char) => allowedCharsRegex.test(char))
-      .join("");
-    // Capitalize the first letter of each word
-    const words = value.split(" ");
-    // Capitalize the first letter of each word and lowercase the rest
-    const capitalizedWords = words.map((word) => {
-      if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  
+    function handlePhoneNumberChange(event) {
+      let value = event.target.value;
+      // Ensure only one space is allowed after +91
+      if (value.startsWith("+91 ") && value.charAt(3) !== " ") {
+        value = "+91 " + value.slice(3); // Ensure one space after +91
       }
-      return "";
-    });
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(" ");
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 2) {
-      formattedValue =
-        formattedValue.slice(0, 2) +
-        formattedValue.slice(2).replace(/\s+/g, " ");
+      // Update the value in the input
+      event.target.value = value;
     }
-    // Update input value
-    input.value = formattedValue;
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-  function handlePhoneNumberChange(event) {
-    let value = event.target.value;
-    // Ensure only one space is allowed after +91
-    if (value.startsWith("+91 ") && value.charAt(3) !== " ") {
-      value = "+91 " + value.slice(3); // Ensure one space after +91
-    }
-    // Update the value in the input
-    event.target.value = value;
-  }
-
-  // Function to handle keydown for specific actions (e.g., prevent multiple spaces)
-  function handlePhoneNumberKeyDown(event) {
-    let value = event.target.value;
-    // Prevent backspace if the cursor is before the "+91 "
-    if (
-      event.key === "Backspace" &&
-      value.startsWith("+91 ") &&
-      event.target.selectionStart <= 4
-    ) {
-      event.preventDefault(); // Prevent the backspace if it's before the "+91 "
-    }
-    // Prevent multiple spaces after +91
-    if (event.key === " " && value.charAt(3) === " ") {
-      event.preventDefault();
-    }
-  }
-
-  const toInputEmailCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-
-    // Remove all spaces from the input
-    value = value.replace(/\s+/g, "");
-
-    // If the first character is not lowercase, make it lowercase
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    // Update the input value
-    input.value = value;
-  };
-
-
-  const toInputAddressCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-    // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
-    value = value
-      .split("")
-      .filter((char) => allowedCharsRegex.test(char))
-      .join("");
-
-    // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
-    const words = value.split(" ");
-    const capitalizedWords = words.map((word) => {
-      if (word.length > 0) {
-        // Capitalize the first letter, but leave the middle of the word intact
-        return word.charAt(0).toUpperCase() + word.slice(1);
+  
+    // Function to handle keydown for specific actions (e.g., prevent multiple spaces)
+    function handlePhoneNumberKeyDown(event) {
+      let value = event.target.value;
+      // Prevent backspace if the cursor is before the "+91 "
+      if (
+        event.key === "Backspace" &&
+        value.startsWith("+91 ") &&
+        event.target.selectionStart <= 4
+      ) {
+        event.preventDefault(); // Prevent the backspace if it's before the "+91 "
       }
-      return "";
-    });
-
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(" ");
-
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 2) {
-      formattedValue =
-        formattedValue.slice(0, 2) +
-        formattedValue.slice(2).replace(/\s+/g, " ");
+      // Prevent multiple spaces after +91
+      if (event.key === " " && value.charAt(3) === " ") {
+        event.preventDefault();
+      }
     }
-
-    // Update input value
-    input.value = formattedValue;
-
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
-  };
-
-  const validateAddress = (value) => {
-    // Check for leading or trailing spaces
-    if (/^\s/.test(value)) {
-      return "Leading space not allowed."; // Leading space error
-    } else if (/\s$/.test(value)) {
-      return "Spaces at the end are not allowed."; // Trailing space error
-    }
-
-    // Check for multiple spaces between words
-    if (/\s{2,}/.test(value)) {
-      return "No multiple spaces between words allowed."; // Multiple spaces error
-    }
-
-    // Validate special characters and alphanumeric characters
-    const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!:]*$/;
-    if (!validCharsRegex.test(value)) {
-      return "Invalid characters used. Only alphabets, numbers, and special characters (, . ' - / & @ # $ ( ) * + :) are allowed.";
-    }
-
-    return true; // Return true if all conditions are satisfied
-  };
+  
+    const toInputEmailCase = (e) => {
+      const input = e.target;
+      let value = input.value;
+  
+      // Remove all spaces from the input
+      value = value.replace(/\s+/g, "");
+  
+      // If the first character is not lowercase, make it lowercase
+      if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
+        value = value.charAt(0).toLowerCase() + value.slice(1);
+      }
+  
+      // Update the input value
+      input.value = value;
+    };
+  
+  
+    const toInputAddressCase = (e) => {
+      const input = e.target;
+      let value = input.value;
+      const cursorPosition = input.selectionStart; // Save the cursor position
+      // Remove leading spaces
+      value = value.replace(/^\s+/g, "");
+      // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
+      const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
+      value = value
+        .split("")
+        .filter((char) => allowedCharsRegex.test(char))
+        .join("");
+  
+      // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
+      const words = value.split(" ");
+      const capitalizedWords = words.map((word) => {
+        if (word.length > 0) {
+          // Capitalize the first letter, but leave the middle of the word intact
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+        return "";
+      });
+  
+      // Join the words back into a string
+      let formattedValue = capitalizedWords.join(" ");
+  
+      // Remove spaces not allowed (before the first two characters)
+      if (formattedValue.length > 2) {
+        formattedValue =
+          formattedValue.slice(0, 2) +
+          formattedValue.slice(2).replace(/\s+/g, " ");
+      }
+  
+      // Update input value
+      input.value = formattedValue;
+  
+      // Restore the cursor position
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    };
+  
 
   return (
     <LayOut>
@@ -366,94 +300,58 @@ const closeStampModal = () => setShowStampModal(false);
         </h1>
         <div className="row">
           <div className="col-12">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                  Add Company Logo
-                </h5>
+            <h2 className="text-center">Upload Company Logo & Stamp</h2>
+            <div className="row">
+              {/* LOGO Upload (Independent) */}
+              <div className="col-md-6 mb-4">
+                <form onSubmit={handleSubmit(uploadLogo)} className="card p-3 shadow-sm">
+                  <label className="form-label fw-bold">Upload Logo</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    {...register("logo")}
+                    onChange={handleLogoChange}
+                  />
+                  {logoPreview && (
+                    <img
+                      src={logoPreview||"Logo Stamp"}
+                      alt="Logo Preview"
+                      className="img-fluid mt-2 rounded shadow"
+                      style={{ maxHeight: "150px" }}
+                    />
+                  )}
+                  <button type="submit" className="btn btn-primary w-100 mt-2" disabled={loadingLogo}>
+                    {loadingLogo ? "Uploading..." : "Upload Logo"}
+                  </button>
+                  {logoMessage && <div className="mt-2 alert alert-warning text-center">{logoMessage}</div>}
+                </form>
               </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-12 col-md-6 mb-3">
-                  <div
-                      style={{
-                        position: "relative",
-                        fontSize: "50px",
-                        cursor: "pointer",
-                        marginRight: "80%",
-                      }}
-                      onClick={openModal}
-                    >
-                      <div
-                        style={{
-                          position: "relative",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <CameraFill />
-                      </div>
-                    </div>
-                    <span className="text-info align-start">
-                      Max-Size=200 KB{" "}
-                    </span>
-                  </div>
-                  <div className="col-12 col-md-6 mb-3">
-                    {logoFileName && (
-                      <img
-                        className="align-middle"
-                        src={`${logoFileName}`}
-                        accept=".png, .jpg. ,svg ,.jpeg,"
-                        alt="Company Logo"
-                        style={{ height: "80px", width: "200px" }}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-header">
-                <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                  Add Company Stamp
-                </h5>
-              </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-12 col-md-6 mb-3">
-                  <div
-                      style={{
-                        position: "relative",
-                        fontSize: "50px",
-                        cursor: "pointer",
-                        marginRight: "80%",
-                      }}
-                      onClick={openStampModal}
-                    >
-                      <div
-                        style={{
-                          position: "relative",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <CameraFill />
-                      </div>
-                    </div>
-                    <span className="text-info align-start">
-                      Max-Size=200 KB{" "}
-                    </span>
-                  </div>
-                  <div className="col-12 col-md-6 mb-3">
-                    {stamp && (
-                      <img
-                        className="align-middle"
-                        src={`${stamp}`}
-                        accept=".png, .jpg. ,svg ,.jpeg,"
-                        alt="Company Logo"
-                        style={{ height: "80px", width: "200px" }}
-                      />
-                    )}
-                  </div>
-                </div>
+
+              {/* STAMP Upload (Independent) */}
+              <div className="col-md-6 mb-4">
+                <form onSubmit={handleSubmit(uploadStamp)} className="card p-3 shadow-sm">
+                  <label className="form-label fw-bold">Upload Stamp</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    {...register("stamp")}
+                    onChange={handleStampChange}
+                  />
+                  {stampPreview && (
+                    <img
+                      src={stampPreview}
+                      alt="Stamp Preview"
+                      className="img-fluid mt-2 rounded shadow"
+                      style={{ maxHeight: "150px" }}
+                    />
+                  )}
+                  <button type="submit" className="btn btn-primary w-100 mt-2" disabled={loadingStamp}>
+                    {loadingStamp ? "Uploading..." : "Upload Stamp"}
+                  </button>
+                  {stampMessage && <div className="mt-2 alert alert-warning text-center">{stampMessage}</div>}
+                </form>
               </div>
             </div>
           </div>
@@ -496,52 +394,6 @@ const closeStampModal = () => setShowStampModal(false);
                         readOnly
                       />
                     </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label">
-                        Alternate Number <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Enter Alternate Number"
-                        autoComplete="off"
-                        maxLength={14}
-                        defaultValue="+91 " // Set the initial value to +91 with a space
-                        onInput={handlePhoneNumberChange} // Handle input changes
-                        onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
-                        {...register("alternateNo", {
-                          validate: {
-                            startsWithPlus91: (value) => {
-                              if (!value.startsWith("+91 ")) {
-                                return "Alternate Number must start with +91 and a space.";
-                              }
-                              return true;
-                            },
-                            correctLength: (value) => {
-                              if (value.length !== 14) {
-                                return "Alternate Number must be exactly 10 digits (including +91).";
-                              }
-                              return true;
-                            },
-                            notRepeatingDigits: (value) => {
-                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return (
-                                !isRepeating ||
-                                "Alternate Number cannot consist of the same digit repeated."
-                              );
-                            },
-                          },
-                          pattern: {
-                            value: /^\+91\s\d{10}$/, // Ensure it starts with +91, followed by a space and exactly 10 digits
-                            message: "Alternate Number is Required",
-                          },
-                        })}
-                      />
-                      {errors.alternateNo && (
-                        <p className="errorMsg">{errors.alternateNo.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Contact Number <span style={{ color: "red" }}>*</span>
@@ -588,6 +440,52 @@ const closeStampModal = () => setShowStampModal(false);
                         <p className="errorMsg">{errors.mobileNo.message}</p>
                       )}
                     </div>
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-2">
+                      <label className="form-label">
+                        Alternate Number <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="Enter Alternate Number"
+                        autoComplete="off"
+                        maxLength={14}
+                        defaultValue="+91 " // Set the initial value to +91 with a space
+                        onInput={handlePhoneNumberChange} // Handle input changes
+                        onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
+                        {...register("alternateNo", {
+                          validate: {
+                            startsWithPlus91: (value) => {
+                              if (!value.startsWith("+91 ")) {
+                                return "Alternate Number must start with +91 and a space.";
+                              }
+                              return true;
+                            },
+                            correctLength: (value) => {
+                              if (value.length !== 14) {
+                                return "Alternate Number must be exactly 10 digits (including +91).";
+                              }
+                              return true;
+                            },
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
+                              return (
+                                !isRepeating ||
+                                "Alternate Number cannot consist of the same digit repeated."
+                              );
+                            },
+                          },
+                          pattern: {
+                            value: /^\+91\s\d{10}$/, // Ensure it starts with +91, followed by a space and exactly 10 digits
+                            message: "Alternate Number is Required",
+                          },
+                        })}
+                      />
+                      {errors.alternateNo && (
+                        <p className="errorMsg">{errors.alternateNo.message}</p>
+                      )}
+                    </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label htmlFor="emailId" className="form-label">
                         {" "}
@@ -598,7 +496,6 @@ const closeStampModal = () => setShowStampModal(false);
                         className="form-control"
                         placeholder="Enter Company Email Id"
                         autoComplete="off"
-                        onKeyDown={handleEmailChange}
                         {...register("emailId", {
                           required: "Company Email Id is Required",
                           pattern: {
@@ -622,7 +519,6 @@ const closeStampModal = () => setShowStampModal(false);
                         type="text"
                         className="form-control"
                         placeholder="Enter Company Address"
-                        onInput={toInputAddressCase}
                         autoComplete="off"
                         {...register("companyAddress", {
                           required: "Company Address is Required",
@@ -639,7 +535,7 @@ const closeStampModal = () => setShowStampModal(false);
                             value: 200,
                             message: "Maximum 200 Characters allowed",
                           },
-                          validate: validateAddress,
+                          validate: validateLocation,
                         })}
                       />
                       {errors.companyAddress && (
@@ -667,35 +563,12 @@ const closeStampModal = () => setShowStampModal(false);
                   <div className="card-body">
                     <div className="row">
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
-                        {hasCinNo ? (
+                        {companyField && (
                           <>
-                            <label className="form-label">
-                              Company CIN Number
-                            </label>
-                            <input
-                              type="text"
-                              id="cinNo"
-                              className="form-control"
-                              value={response.data.cinNo}
-                              {...register("cinNo")}
-                              readOnly
-                            />
+                            <label className="form-label">{companyField === "cinNo" ? "CIN Number" : "Registration Number"}</label>
+                            <input type="text" className="form-control" {...register(companyField)} />
                           </>
-                        ) : hasCompanyRegNo ? (
-                          <>
-                            <label className="form-label">
-                              Company Registration Number
-                            </label>
-                            <input
-                              type="text"
-                              id="companyRegNo"
-                              className="form-control"
-                              value={response.data.companyRegNo}
-                              {...register("companyRegNo")}
-                              readOnly
-                            />
-                          </>
-                        ) : null}
+                        )}
                       </div>
                       <div className="col-lg-1"></div>
                       <div className="col-12 col-md-6 col-lg-5 mb-3">
@@ -746,7 +619,6 @@ const closeStampModal = () => setShowStampModal(false);
                           type="text"
                           className="form-control"
                           placeholder="Enter Name"
-                          onKeyDown={handleEmailChange} // Prevent space key
                           onInput={toInputTitleCase} // Handle case conversion and trim spaces
                           maxLength={100}
                           autoComplete="off"
@@ -791,7 +663,6 @@ const closeStampModal = () => setShowStampModal(false);
                           placeholder="Enter Personal Email Id"
                           autoComplete="off"
                           onInput={toInputEmailCase}
-                          onKeyDown={handleEmailChange}
                           {...register("personalMailId", {
                             required: "Personal Email Id is Required",
                             pattern: {
@@ -820,7 +691,6 @@ const closeStampModal = () => setShowStampModal(false);
                           maxLength={14}
                           defaultValue="+91 " // Set the initial value to +91 with a space
                           onInput={handlePhoneNumberChange} // Handle input changes
-                          onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
                           {...register("personalMobileNo", {
                             required: "Personal Mobile Number is Required",
                             validate: {
@@ -867,7 +737,6 @@ const closeStampModal = () => setShowStampModal(false);
                           placeholder="Enter Address"
                           autoComplete="off"
                           onInput={toInputAddressCase}
-                          onKeyDown={handleEmailChange}
                           maxLength={200}
                           {...register("address", {
                             required: "Address is Required",
@@ -884,7 +753,7 @@ const closeStampModal = () => setShowStampModal(false);
                               value: 200,
                               message: "Maximum 200 Characters allowed",
                             },
-                            validate: validateAddress,
+                            validate: validateLocation,
                           })}
                         />
                         {errors.address && (
@@ -904,66 +773,6 @@ const closeStampModal = () => setShowStampModal(false);
             </div>
           </div>
         </form>
-        {/* Modal for Logo Upload */}
-        {showModal && (
-        <Modal
-          show={showModal}
-          onHide={handleCloseUploadImageModal}
-          style={{ zIndex: "1050" }}
-          centered
-        >
-          <ModalHeader closeButton>
-            <ModalTitle>Upload Logo</ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <input
-              type="file"
-              className="form-control"
-              accept=".png, .jpg, .svg, .jpeg,"
-              onChange={onChangePicture}
-            />
-           {imgError && <p className="text-danger">{imgError}</p>}
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="secondary" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleLogoSubmit}>
-              Upload Logo
-            </Button>
-          </ModalFooter>
-        </Modal>
-        )}
-
-         {showStampModal && (
-           <Modal
-           show={showStampModal}
-           onHide={handleStampCloseModal}
-           style={{ zIndex: "1050" }}
-           centered
-         >
-           <ModalHeader closeButton>
-             <ModalTitle>Upload Stamp</ModalTitle>
-           </ModalHeader>
-           <ModalBody>
-             <input
-               type="file"
-               className="form-control"
-               accept=".png, .jpg, .svg, .jpeg,"
-               onChange={onChangeStampPicture}
-             />
-              {stampError && <p className="text-danger">{stampError}</p>}
-           </ModalBody>
-           <ModalFooter>
-             <Button variant="secondary" onClick={closeStampModal}>
-               Cancel
-             </Button>
-             <Button variant="primary" onClick={handleStampSubmit}>
-               Upload Stamp
-             </Button>
-           </ModalFooter>
-         </Modal>
-         )}
       </div>
     </LayOut>
   );

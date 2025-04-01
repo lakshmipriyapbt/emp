@@ -36,7 +36,7 @@ const CompanySalaryStructure = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState("");
   const [selected, setSelected]=useState(false);
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const [fieldCheckboxes, setFieldCheckboxes] = useState({
     allowances: {},
     deductions: {},
@@ -160,7 +160,7 @@ const CompanySalaryStructure = () => {
         updatedErrors = {
           ...updatedErrors,
           totalAllowancePercentage:
-            "The total percentage for allowances cannot exceed 100%",
+            "The total percentage for Earnings cannot exceed 100%",
         };
       } else {
         // Clear the error message for allowances if the total is valid
@@ -302,7 +302,7 @@ const CompanySalaryStructure = () => {
 
   const onSubmit = async () => {
     const jsonData = {
-      companyName: user.company,
+      companyName: authUser.company,
       status: "Active",
       allowances: {},
       deductions: {
@@ -354,7 +354,7 @@ const CompanySalaryStructure = () => {
 
     if (totalAllowancePercentage > 100) {
       errors.totalAllowancePercentage =
-        "The total percentage for allowances cannot exceed 100%. Please Adjust";
+        "The total percentage for Earnings cannot exceed 100%. Please Adjust";
     }
 
     // Validation: Check if the total percentage for deductions exceeds 100%
@@ -450,7 +450,7 @@ const CompanySalaryStructure = () => {
       .split("")
       .filter((char) => allowedCharsRegex.test(char))
       .join("");
-    // Capitalize first letter of each word & keep others as user typed
+    // Capitalize first letter of each word & keep others as authUser typed
   const words = value.split(" ");
   const formattedValue = words.map((word) =>
     word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ""
@@ -521,7 +521,7 @@ const CompanySalaryStructure = () => {
         Object.values(fieldCheckboxes.allowances).every((checkbox) => !checkbox)
       ) {
         setSelected(true);
-        setAllowanceError("Please select Allowances.");
+        setAllowanceError("Please select Earnings.");
         return; // Prevent changing the tab if no allowances are selected
       }
       // Clear the allowance error if everything is valid
@@ -625,7 +625,7 @@ const CompanySalaryStructure = () => {
                       }`}
                       onClick={() => handleTabChange("nav-home")}
                     >
-                      Allowances
+                      Earnings
                     </button>
                     <button
                       type="button"

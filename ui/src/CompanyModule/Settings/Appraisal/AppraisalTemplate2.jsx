@@ -8,13 +8,13 @@ const AppraisalTemplate2 = ({
   employeeName,
   designation,
   employeeId,
+  hike,
   effectiveDate,
   salaryIncrease,
   allowances,
   date,
   basicSalary,
 }) => {
-    const { logoFileName } = useAuth();
   return (
     <div
       className="watermarked"
@@ -26,10 +26,10 @@ const AppraisalTemplate2 = ({
       }}
     >
       <div style={{ textAlign: "left" }}>
-        {logoFileName ? (
+        {companyData ? (
           <img
             className="align-middle"
-            src={companyLogo}
+            src={companyData?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "150px" }}
           />
@@ -95,10 +95,10 @@ const AppraisalTemplate2 = ({
         <p>
           We are pleased to inform you that based on your performance and
           contribution to the company, our management has revised your
-          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, which
-          is cost to company with effect from <strong>{effectiveDate}</strong>
-          .All other T&C are same as per the original offer letter.
+          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.Which
+          is cost to company with effect from <strong>{effectiveDate}</strong>.
         </p>
+        <p>All other T&C are same as per the original offer letter.</p>
         <table className="table border-collapse mb-5">
           <thead>
             <tr className="text-center">
@@ -193,6 +193,10 @@ const AppraisalTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
+            <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
             <h4>{companyData.companyName},</h4>
             <p>
               {companyData.mobileNo} | {companyData.emailId},

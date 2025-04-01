@@ -9,7 +9,10 @@ import com.pb.employee.request.DepartmentUpdateRequest;
 import com.pb.employee.service.BankService;
 import com.pb.employee.service.DepartmentService;
 import com.pb.employee.util.Constants;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +34,7 @@ public class BankController {
 
     @RequestMapping(value = "company/{companyId}/bank", method = RequestMethod.POST,consumes = MediaType.APPLICATION_JSON_VALUE)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
-            summary = "${api.registerDepartment.tag}", description = "${api.registerDepartment.description}")
+            summary = "${api.registerBank.tag}", description = "${api.registerBank.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
     public ResponseEntity<?> bankDetailsToCompany(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
@@ -87,5 +90,12 @@ public class BankController {
                                               @PathVariable String bankId) throws EmployeeException,IOException {
         return bankService.deleteBankById(companyId, bankId);
     }
-    
+
+    @RequestMapping(value = "/bank/list", method = RequestMethod.GET)
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) }, summary = "${api.getBankList.tag}", description = "${api.getBankList.description}")
+    @ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> getBankList(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                 @RequestHeader(Constants.AUTH_KEY) String authToken) throws EmployeeException, IOException {
+        return bankService.getBankList();
+    }
 }

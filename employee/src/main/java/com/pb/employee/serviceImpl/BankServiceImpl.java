@@ -1,6 +1,7 @@
 package com.pb.employee.serviceImpl;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
@@ -15,11 +16,18 @@ import com.pb.employee.util.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -225,6 +233,27 @@ public class BankServiceImpl implements BankService {
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.DELETED), HttpStatus.OK);
+    }
 
+    @Override
+    public ResponseEntity<?> getBankList() throws EmployeeException {
+        log.info("Fetching bank details");
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Resource resource = new ClassPathResource(Constants.BANK_JSON);
+            InputStream inputStream = resource.getInputStream();
+
+            Map<String, String> bankMap = mapper.readValue(inputStream, new TypeReference<>() {});
+            List<BankListAPIEntity> banks = new ArrayList<>();
+            bankMap.forEach((code, name) -> banks.add(new BankListAPIEntity(code, name)));
+
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(banks), HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("Exception while reading bank list: {}", e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_BANK_DETAILS),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

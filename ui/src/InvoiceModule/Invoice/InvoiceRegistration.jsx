@@ -44,8 +44,8 @@ const InvoiceRegistration = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [deleteType, setDeleteType] = useState(null);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee.companyId;
   const [showPreview, setShowPreview] = useState(false);
   const [invoiceId, setInvoiceId] = useState(null); // to handle edit case
   const [load, setLoad] = useState(false); // to manage loading state for API calls
@@ -404,7 +404,7 @@ const InvoiceRegistration = () => {
     setProductColumns(updatedColumns);
   };
   const updateColumnTitle = (key, title) => {
-    // Allow temporary clearing while the user is typing
+    // Allow temporary clearing while the employee is typing
     if (title === "") {
       setProductColumns(
         productColumns.map((col) =>
@@ -417,7 +417,7 @@ const InvoiceRegistration = () => {
     // Trim the title to avoid issues with spaces
     const trimmedTitle = title.trim();
   
-    // Prevent invalid titles when the user confirms the change
+    // Prevent invalid titles when the employee confirms the change
     if (trimmedTitle === "New Field") {
       toast.error("Column title cannot be 'New Field'. Please enter a valid title.");
       return;

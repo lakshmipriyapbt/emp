@@ -9,7 +9,7 @@ import RelievingTemplate3 from "./RelievingTemplate3";
 const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as a prop
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user, logoFileName } = useAuth();
+  const { user, company } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   const fetchCompanyData = async (companyId) => {
@@ -50,8 +50,8 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
       name: "1",
       content: () => (
         <RelievingTemplate1
-          companyLogo={logoFileName}
-          companyData={companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
@@ -67,8 +67,8 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
       name: "2",
       content: () => (
         <RelievingTemplate2
-          companyLogo={logoFileName}
-          companyData={companyData}
+          companyLogo={company?.imageFile}
+          companyData={company}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
           designation={previewData.designationName}
@@ -84,7 +84,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
       name: "3",
       content: () => (
         <RelievingTemplate3
-          companyLogo={logoFileName}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
@@ -96,7 +96,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
         />
       ),
     },
-  ], [companyData, logoFileName, previewData]);
+  ], [companyData, company?.imageFile, previewData]);
 
   const selectedTemplateContent = useMemo(() => {
     const template = templates.find(t => t.name === selectedTemplate);

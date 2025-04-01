@@ -8,6 +8,8 @@ import Loader from "../../Utils/Loader";
 import { EmployeeGetApi, RelievingFormPostApi, RelievingGetApiById, RelievingLetterDownload, RelievingPatchApiById, TemplateGetAPI } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import Preview from "../Settings/Relieving/Preview";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ExistsEmployesView = () => {
   const {
@@ -19,7 +21,7 @@ const ExistsEmployesView = () => {
     formState: { errors },
     reset,
   } = useForm();
-  const { user } = useAuth();
+  const { authUser,company } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -31,7 +33,15 @@ const ExistsEmployesView = () => {
   const [templateAvailable,setTemplateAvailable]=useState(false);
   const [loading,setLoading]=useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const calculateNoticePeriod = (resignationDate, relievingDate,dateOfHiring) => {
     if (resignationDate && relievingDate) {
@@ -66,25 +76,22 @@ const ExistsEmployesView = () => {
   }, [watch]);
 
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter((employee) => employee.firstName !== null && employee.status !== "Active")  // Filter for non-active employees
-        .map(({ referenceId, ...rest }) => rest);
-  
-      setEmp(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const filteredEmployees = employees
+        .filter((employee) => !["Active", "OnBoard", "InActive"].includes(employee.status))
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
-          id: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
           employeeId: employee.employeeId,
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []);
+        }));
+  
+      setEmp(filteredEmployees);
+    }
+  }, [employees]);
   
 
   const fetchRelievingData = async (employeeId) => {
@@ -135,7 +142,7 @@ const onSubmit = (data) => {
     resignationDate: data.resignationDate || "",
     lastWorkingDate: data.relievingDate || "",
     noticePeriod,
-    companyName: user.company,
+    companyName: authUser.company,
   };
   setPreviewData(preview);
   setShowPreview(true);

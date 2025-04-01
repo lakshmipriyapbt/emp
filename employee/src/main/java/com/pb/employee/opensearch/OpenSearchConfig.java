@@ -70,6 +70,7 @@ public class OpenSearchConfig {
             .properties(Constants.NAME, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
             .properties(Constants.DESIGNATION, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
             .properties(Constants.DEPARTMENT, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
+            .properties(Constants.TYPE, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
             .properties("allowances", new Property.Builder()
                     .object(new ObjectProperty.Builder()
                             .properties(allowancesProperties)

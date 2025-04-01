@@ -12,7 +12,6 @@ import LayOut from "../../../LayOut/LayOut";
 import { useAuth } from "../../../Context/AuthContext";
 
 const PayslipDoc4 = () => {
-  const [companyData, setCompanyData] = useState({});
   const [payslipData, setPayslipData] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,25 +19,13 @@ const PayslipDoc4 = () => {
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
   const payslipId = queryParams.get("payslipId");
-  const { user, logoFileName } = useAuth();
+  const { authUser, company} = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
 
   const fetchEmployeeDetails = async (employeeId) => {
     try {
       const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
+      setEmployeeDetails(response.data.data);
     } catch (err) {
       console.error("Error fetching employee details:", err);
       toast.error("Failed to fetch employee details");
@@ -89,7 +76,7 @@ const PayslipDoc4 = () => {
       fetchPayslipData();
     }
     setLoading(false);
-  }, [employeeId, payslipId, user]);
+  }, [employeeId, payslipId, authUser]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -143,10 +130,10 @@ const PayslipDoc4 = () => {
               }}
             >
               <div>
-                {logoFileName ? (
+                {company?.imageFile ? (
                   <img
                     className="align-middle"
-                    src={logoFileName}
+                    src={company?.imageFile}
                     alt="Logo"
                     style={{ height: "80px", width: "180px" }}
                   />
@@ -177,7 +164,7 @@ const PayslipDoc4 = () => {
                           border: "1px solid black",
                         }}
                       >
-                        <b>{companyData.companyName}</b>
+                        <b>{company?.companyName}</b>
                       </th>
                     </tr>
                     <tr>
@@ -921,10 +908,10 @@ const PayslipDoc4 = () => {
                   className="company-details text-center"
                   style={{ padding: "2px" }}
                 >
-                  <h5>{companyData.companyName}</h5>
-                  <h6>Company Address: {companyData.companyAddress}.</h6>
-                  {/* <h6>Mobile No: {companyData.mobileNo}</h6>
-                  <h6>Email ID: {companyData.emailId}</h6> */}
+                  <h5>{company?.companyName}</h5>
+                  <h6>Company Address: {company?.companyAddress}.</h6>
+                  {/* <h6>Mobile No: {company?.mobileNo}</h6>
+                  <h6>Email ID: {company?.emailId}</h6> */}
                 </div>
               </div>
             </div>

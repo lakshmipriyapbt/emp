@@ -14,51 +14,17 @@ import RelievingTemplate3 from "./RelievingTemplate3";
 
 const RelievingLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user, logoFileName } = useAuth();
-  const logo = "/assets/img/adapt_adapt_logo.png";
+  const { company } = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
+
+  const fetchTemplate = async () => {
     try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
-
-  const fetchTemplate = async (companyId) => {
-    try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(company.id);
       const templateNo = res.data.data.relievingTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -76,10 +42,8 @@ const RelievingLetter = () => {
   };
 
   useEffect(() => {
-    if (companyData) {
-      fetchTemplate(companyData.id);
-    }
-  }, [companyData]);
+      fetchTemplate();
+  }, []);
 
   const templates = useMemo(
     () => [
@@ -88,8 +52,8 @@ const RelievingLetter = () => {
         name: "1",
         content: (data) => (
           <RelievingTemplate1
-            companyLogo={logoFileName}
-            companyData={companyData}
+            companyLogo={company?.imageFile}
+            companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
             employeeId="E123456"
@@ -106,8 +70,8 @@ const RelievingLetter = () => {
         name: "2",
         content: (data) => (
           <RelievingTemplate2
-            companyLogo={logoFileName}
-            companyData={companyData}
+            companyLogo={company?.imageFile}
+            companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
             employeeId="E123456"
@@ -124,8 +88,8 @@ const RelievingLetter = () => {
         name: "3",
         content: (data) => (
           <RelievingTemplate3
-            companyLogo={logoFileName}
-            companyData={companyData}
+            companyLogo={company?.imageFile}
+            companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
             employeeId="E123456"
@@ -138,7 +102,7 @@ const RelievingLetter = () => {
         ),
       },
     ],
-    [companyData, logo]
+    [company]
   );
 
   useEffect(() => {
@@ -155,7 +119,7 @@ const RelievingLetter = () => {
 
   const handleSubmitTemplate = async () => {
     const dataToSubmit = {
-      companyId: companyData.id, // Ensure this is correct
+      companyId: company.id, // Ensure this is correct
       relievingTemplateNo: selectedTemplate.name,
       // Add other necessary fields if required
     };

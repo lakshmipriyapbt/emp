@@ -12,7 +12,6 @@ import LayOut from "../../../LayOut/LayOut";
 import { useAuth } from "../../../Context/AuthContext";
 
 const PayslipDoc3 = () => {
-  const [companyData, setCompanyData] = useState({});
   const [payslipData, setPayslipData] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,31 +19,17 @@ const PayslipDoc3 = () => {
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
   const payslipId = queryParams.get("payslipId");
-  const { user, logoFileName } = useAuth();
+  const { authUser, company} = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
+    const fetchEmployeeDetails = async (employeeId) => {
+      try {
+        const response = await EmployeeGetApiById(employeeId);
+        setEmployeeDetails(response.data.data);
+      } catch (err) {
+        console.error("Error fetching employee details:", err);
+        toast.error("Failed to fetch employee details");
       }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
+    };
   const fetchPayslipData = async () => {
     if (!employeeId || !payslipId) return;
     try {
@@ -55,6 +40,17 @@ const PayslipDoc3 = () => {
       toast.error("Failed to fetch payslip data");
     }
   };
+
+    useEffect(() => {
+      setLoading(true);
+      if (employeeId) {
+        fetchEmployeeDetails(employeeId);
+      }
+      if (employeeId && payslipId) {
+        fetchPayslipData();
+      }
+      setLoading(false);
+    }, [employeeId, payslipId, authUser]);
 
   const handleDownload = async () => {
     if (employeeId && payslipId) {
@@ -80,16 +76,6 @@ const PayslipDoc3 = () => {
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
-    if (employeeId) {
-      fetchEmployeeDetails(employeeId);
-    }
-    if (employeeId && payslipId) {
-      fetchPayslipData();
-    }
-    setLoading(false);
-  }, [employeeId, payslipId, user]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -175,10 +161,10 @@ const PayslipDoc3 = () => {
                 </p>
               </div>
               <div>
-                {logoFileName ? (
+                {company?.imageFile ? (
                   <img
                     className="align-middle"
-                    src={logoFileName}
+                    src={company?.imageFile}
                     alt="Logo"
                     style={{ height: "80px", width: "180px" }}
                   />
@@ -858,10 +844,10 @@ const PayslipDoc3 = () => {
                   className="company-details text-center"
                   style={{ padding: "2px" }}
                 >
-                  <h5>{companyData.companyName}</h5>
-                  <h6>{companyData.companyAddress}.</h6>
-                  {/* <h6>Contact No: {companyData.mobileNo}</h6>
-                  <h6>Mail Id: {companyData.emailId}</h6> */}
+                  <h5>{company?.companyName}</h5>
+                  <h6>{company?.companyAddress}.</h6>
+                  {/* <h6>Contact No: {company?.mobileNo}</h6>
+                  <h6>Mail Id: {company?.emailId}</h6> */}
                 </div>
               </div>
             </div>
