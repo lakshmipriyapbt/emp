@@ -31,7 +31,6 @@ spring:
 es:
   esHost: localhost
   esPort: 9201
-
 # Swagger API Documentation
 springdoc:
   api-docs:
