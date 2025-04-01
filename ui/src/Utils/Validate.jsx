@@ -1,3 +1,48 @@
+// onInput field for the 
+export const toInputTitleCase = (e) => {
+  const input = e.target;
+  let value = input.value;
+  const cursorPosition = input.selectionStart; // Save the cursor position
+
+  // Remove leading spaces
+  value = value.replace(/^\s+/g, "");
+
+  // Ensure only allowed characters (alphabets and spaces)
+  const allowedCharsRegex = /^[a-zA-Z\s]+$/;
+  value = value
+    .split("")
+    .filter((char) => allowedCharsRegex.test(char))
+    .join("");
+
+  // Capitalize the first letter of each word
+  const words = value.split(" ");
+
+  // Capitalize the first letter of each word and leave the rest of the characters as they are
+  const capitalizedWords = words.map((word) => {
+    if (word.length > 0) {
+      // Capitalize the first letter, keep the rest as is
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+    return "";
+  });
+
+  // Join the words back into a string
+  let formattedValue = capitalizedWords.join(" ");
+
+  // Remove spaces not allowed (before the first two characters)
+  if (formattedValue.length > 1) {
+    formattedValue =
+      formattedValue.slice(0, 1) +
+      formattedValue.slice(1).replace(/\s+/g, " ");
+  }
+
+  // Update input value
+  input.value = formattedValue;
+
+  // Restore the cursor position
+  input.setSelectionRange(cursorPosition, cursorPosition);
+};
+
 export const validateFirstName = (value) => {
     // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
@@ -18,6 +63,11 @@ export const validateFirstName = (value) => {
     else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters are Allowed.";
     }
+
+     // Ensure the first letter and every letter after a space is uppercase
+     if (!/^[A-Z][A-Za-z]*([ ][A-Z][A-Za-z]*)*$/.test(trimmedValue)) {
+      return "Each Word Should Start With an Uppercase Letter.";
+  }
 
     // Check for minimum and maximum word length
     else {
@@ -64,6 +114,10 @@ export const validateFirstName = (value) => {
     else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters are Allowed.";
     }
+     // Ensure the first letter and every letter after a space is uppercase
+     if (!/^[A-Z][a-z]*([ ][A-Z][a-z]*)*$/.test(trimmedValue)) {
+      return "Each Word Should Start With an Uppercase Letter.";
+  }
 
     // Check for minimum and maximum word length
     else {
@@ -153,6 +207,11 @@ export const validateFirstName = (value) => {
     if (trimmedValue.length === 0) {
       return "Location is Required.";
     }
+
+     // Ensure the first letter and every letter after a space is uppercase
+     if (!/^[A-Z][a-z]*([ ][A-Z][a-z]*)*$/.test(trimmedValue)) {
+      return "Each Word Should Start With an Uppercase Letter.";
+  }
 
     // Check for trailing spaces first
     if (/\s$/.test(value)) {

@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { toInputTitleCase, validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -96,49 +96,7 @@ const onNext = async () => {
   }
 };
 
-useEffect(() => {
-  if (location && location.state && location.state.id) {
-    const fetchData = async () => {
-      try {
-        const response = await EmployeeGetApiById(location.state.id);
-        console.log(response.data.data);
-        
-        // Reset the entire form data
-        reset(response.data.data);
 
-        // Set status manually
-        const status = response.data.data.status;
-        setValue("status", status.toString());
-
-        // Conditionally show "Notice Period" option based on status
-        if (status === "NoticePeriod") {
-          setShowNoticePeriodOption(true);
-        }
-
-        // Set employeeEducation data
-        if (response.data.data.personnelEntity?.employeeEducation?.length) {
-          reset((prev) => ({
-            ...prev,
-            employeeEducation: response.data.data.personnelEntity.employeeEducation
-          }));
-        }
-
-        // Set employeeExperience data
-        if (response.data.data.personnelEntity?.employeeExperience?.length) {
-          reset((prev) => ({
-            ...prev,
-            employeeExperience: response.data.data.personnelEntity.employeeExperience
-          }));
-        }
-
-      } catch (error) {
-        handleApiErrors(error);
-      }
-    };
-
-    fetchData();
-  }
-}, [location.state, reset, setValue]);
 
     const handleApiErrors = (error) => {
       // if (error.response && error.response.data && error.response.data.message) {
@@ -321,6 +279,47 @@ const dropdownOptions = [
     fetchBankNames();
   }, []);
 
+  useEffect(() => {
+    if (location && location.state && location.state.id) {
+      const fetchData = async () => {
+        try {
+          const response = await EmployeeGetApiById(location.state.id);          
+          // Reset the entire form data
+          reset(response.data.data);
+          // Set status manually
+          const status = response.data.data.status;
+          setValue("status", status.toString());
+          setLoading(true);
+          // Conditionally show "Notice Period" option based on status
+          if (status === "NoticePeriod") {
+            setShowNoticePeriodOption(true);
+          }
+  
+          // Set employeeEducation data
+          if (response.data.data.personnelEntity?.employeeEducation?.length) {
+            reset((prev) => ({
+              ...prev,
+              employeeEducation: response.data.data.personnelEntity.employeeEducation
+            }));
+          }
+  
+          // Set employeeExperience data
+          if (response.data.data.personnelEntity?.employeeExperience?.length) {
+            reset((prev) => ({
+              ...prev,
+              employeeExperience: response.data.data.personnelEntity.employeeExperience
+            }));
+          }
+  
+        } catch (error) {
+          handleApiErrors(error);
+        }
+      };
+  
+      fetchData();
+    }
+  }, [location,location.state, reset, setValue]);
+
   const validateDates = (value, index) => {
     const startDate = getValues(`employeeExperience.${index}.startDate`);
     if (!startDate || !value) return true; // Allow empty values (if optional)
@@ -441,11 +440,11 @@ const validateHiringDate = (value) => {
           <form onSubmit={handleSubmit(onSubmit)}>
             {step === 1 && (
               <div>    
-                <h3 className="mb-3">Step 1: Employee Details</h3>
+                <h3 className="mb-3">Step 1: Employee Details <span className='text-danger'>*</span></h3>
                 <div className="row">
                   <div className="col-md-6 mb-2">
                     <label>Employee First Name</label>
-                    <input type="text" className="form-control" name='firstName'
+                    <input type="text" className="form-control" name='firstName' onInput={toInputTitleCase}
                       {...register("firstName", { required: "First Name is required",
                         validate:validateFirstName
                        })}
@@ -454,7 +453,7 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2">
                     <label>Employee Last Name</label>
-                    <input type="text" className="form-control" name='lastName'
+                    <input type="text" className="form-control" name='lastName' onInput={toInputTitleCase}
                       {...register("lastName", { required: "Last Name is required",
                        validate:validateLastName
                       })}
@@ -463,7 +462,7 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Employee ID</label> (last ID:{lastEmployeeId})
-                    <input type="text" className="form-control" name='employeeId'
+                    <input type="text" className="form-control" name='employeeId' 
                      {...register("employeeId", {
                       required: "Employee ID is required",
                       pattern: { value: /^[A-Za-z0-9_-]+$/, message: "Invalid Employee ID format" },
@@ -527,6 +526,7 @@ const validateHiringDate = (value) => {
                         <option key={mgr.id} value={mgr.id}>{mgr.name}</option>
                       ))}
                     </select>
+                    <small className="text-danger">{errors.manager?.message}</small>
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Date of Hiring</label>
@@ -540,7 +540,7 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Branch Location</label>
-                    <input type="text" className="form-control"
+                    <input type="text" className="form-control" onInput={toInputTitleCase}
                      {...register("location", {
                       required: "Branch Location is required",
                       validate:validateLocation
@@ -568,7 +568,7 @@ const validateHiringDate = (value) => {
             )}
             {step === 2 && (
               <div>
-              <h3 className="mb-3">Step 2: Personal Details</h3>
+              <h3 className="mb-3">Step 2: Personal Details<span className='text-danger'>*</span></h3>
               <h5>Personal Details</h5>
               <div className="row mb-3">
                 <div className="col-md-4">
@@ -715,8 +715,7 @@ const validateHiringDate = (value) => {
             )}
             {step === 3 && (
               <div>
-                <h3 className="mb-3">Step 3: Educational Details</h3>
-
+                <h3 className="mb-3">Step 3: Educational Details<span className='text-danger'>*</span></h3>
                 {educationFields.map((edu, index) => (
                   <div key={edu.id} className="row mb-2">
                     <div className="col-md-4">
@@ -798,7 +797,7 @@ const validateHiringDate = (value) => {
              {/* Step 4: Experience Details */}
             {step === 4 && (
                 <div>
-                  <h3 className="mb-3">Step 4: Experience Details</h3>
+                  <h3 className="mb-3">Step 4: Experience Details(<span className='text-small'>Optional</span>)</h3>
                   {experienceFields.map((exp, index) => {
                     return (
                       <div key={exp.id} className="row mb-2">
@@ -863,7 +862,7 @@ const validateHiringDate = (value) => {
             )}
             {step === 5 && (
               <div>
-                <h3 className="mb-3">Step 5: Personal & Bank Details</h3>
+                <h3 className="mb-3">Step 5: Personal & Bank Details <span className='text-danger'>*</span></h3>
                 <div className="row">
                  <div className="col-md-6">
                    <label>Bank Name</label>
