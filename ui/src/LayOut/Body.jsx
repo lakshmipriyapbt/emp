@@ -51,6 +51,11 @@ useEffect(() => {
 
   const isAdmin = authUser?.userRole?.includes("ems_admin");
   const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
+  
+    // Step 2: Display loading or error messages
+    if (!isAdmin && status === "loading") return <Loader/>;
+    if (!isAdmin && status === "failed") return <Loader/>;
+
 
   const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
