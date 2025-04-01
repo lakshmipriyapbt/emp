@@ -132,10 +132,7 @@
                 <td>Gross Salary</td>
                 <td>${appraisal.grossCompensation}</td>
             </tr>
-            <tr class="gross-salary">
-               <td>Hike Persentage</td>
-               <td>${appraisal.salaryHikePersentage}</td>
-            </tr>
+
     </table>
     </div>
     <div>

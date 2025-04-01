@@ -149,7 +149,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         List<EmployeeEntity> employeeEntities = null;
         List<EmployeeResponse> employeeResponses = new ArrayList<>();
-        EmployeePersonnelEntity employeePersonnelEntity = null;
+        EmployeePersonnelEntity employeePersonnelEntity= null;
+
 
         try {
             LocalDate currentDate = LocalDate.now();
@@ -169,11 +170,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                 if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
                     employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
-                    String grossAmounts = String.valueOf(employeeSalaryEntity.stream()
+                    String grossAmounts = employeeSalaryEntity.stream()
                             .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
                             .map(EmployeeSalaryEntity::getGrossAmount)
-                            .findFirst());
-                    employee.setGrossAmount(grossAmounts);
+                            .findFirst()
+                            .map(String::valueOf) // Convert the value inside the Optional to a String
+                            .orElse("0");
+
+                    employee.setCurrentGross(grossAmounts);
                 }
                 RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
                 // Set status only if relieving details are found
@@ -201,7 +205,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
                 if (!isCompanyAdmin(employee)) {
                     employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
-
                 }
                 EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
                 employeeResponse.setPersonnelEntity(employeePersonnelEntity);

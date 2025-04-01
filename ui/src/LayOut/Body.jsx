@@ -83,8 +83,8 @@ useEffect(() => {
           ) : (
             <>
               {loading ? (
-                <p>Loading...</p>
-              ) : (
+<Loader/>
+) : (
                 <div className="row">
                   <div className="col-xl-4 col-12 mb-3">
                     <div className="card mt-3">

@@ -126,13 +126,9 @@ const AddIncrement = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-          grossAmount:"360000"
+          currentGross:employee.currentGross
         }));
       setEmployes(activeEmployees);
-      // Store the previous grossAmount before setting the new one
-      if (activeEmployees.length > 0) {
-        setPreviousGrossAmount(grossAmount); // Store old gross amount
-      }
     }
   }, [employees]);
 
@@ -167,15 +163,13 @@ const AddIncrement = () => {
   }, [id, salaryId, setValue]);
 
   const validateAppraisalDate = (value) => {
-    const dateOfHiring = new Date(watch("dateOfHiring")); // Access the dateOfHiring value
-    const appraisalDate = new Date(value);
-
-    // If the Appraisal Date is before the Date of Hiring, return an error message
-    if (appraisalDate < dateOfHiring) {
-      return "Appraisal Date must be after the Date of Hiring.";
+    const hikeDate = watch("dateOfHiring"); // Ensure this field contains the correct hike date
+    if (!hikeDate) return "Hike Date is required to validate the Appraisal Date.";
+    
+    if (new Date(value) < new Date(hikeDate)) {
+      return "Appraisal Date cannot be before the Hike Date.";
     }
-
-    return true; // If valid, return true
+    return true;
   };
 
   const fetchTemplate = async (companyId) => {
@@ -572,7 +566,6 @@ const AddIncrement = () => {
 
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
-    setPreviousGrossAmount(grossAmount); // Store previous before updating
     setGrossAmount(newGrossSalary);
     }, [variableAmount, fixedAmount]);
 
@@ -704,6 +697,7 @@ const AddIncrement = () => {
     });
 
     const dataToSubmit = {
+      salaryHikePersentage:hikePercentage,
       companyName: authUser.company,
       fixedAmount: fixedAmount.toFixed(2),
       variableAmount: variableAmount.toFixed(2),
@@ -736,6 +730,7 @@ const AddIncrement = () => {
     const salaryStructureId =
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
+      salaryHikePersentage:hikePercentage,
       companyId: company.id,
       employeeId: employeeId,
       date: new Date().toISOString().split("T")[0],
@@ -786,10 +781,15 @@ const AddIncrement = () => {
     // Calculate total deductions
     const totalDeductions = calculateTotalDeductions();
 
+    let calculatedHike = 0;
+    if (previousGrossAmount > 0) {
+      calculatedHike = ((grossAmount - previousGrossAmount) / previousGrossAmount) * 100;
+    }
     // Calculate net salary
     const netSalary = grossAmount + finalAllowances - totalDeductions;
 
     // Set the calculated values to state
+    setHikePercentage(calculatedHike.toFixed(2));  
     setFinalAllowances(finalAllowances);
     setTotalDeductions(totalDeductions);
     setNetSalary(netSalary);
@@ -817,12 +817,14 @@ const AddIncrement = () => {
       : data.employeeId;
     setEmployeeId(employeeId);
     const submissionData = {
+      salaryHikePersentage:hikePercentage,
       employeeId: data.employeeId,
       companyId: company.id,
       allowances: allowances,
       totalAllowances: totalAllowances,
     };
     const preview = {
+      salaryHikePersentage:hikePercentage,
       employeeId: data.id,
       employeeName: data.employeeName || "",
       designationName: data.designationName || "",
@@ -847,14 +849,7 @@ const AddIncrement = () => {
     reset();
     setShowFields(false);
   };
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
-    const dd = today.getDate().toString().padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  
 
   if (!templateAvailable) {
     return (
@@ -980,8 +975,7 @@ const AddIncrement = () => {
                         </div>
                         <div className="col-md-5 mb-3">
                           <label className="form-label">
-                            Gross Amount<span style={{ color: "red" }}>*</span> Hike Percentage: {hikePercentage}%
-
+                            Gross Amount<span style={{ color: "red" }}>*</span> ({hikePercentage !== null && (<span className="text-success">{hikePercentage}% </span>)})
                           </label>
                           <input
                             type="text"
@@ -1392,13 +1386,14 @@ const AddIncrement = () => {
                                             selectedEmp.dateOfHiring
                                           );
                                           setValue(
-                                            "grossAmount",
-                                            selectedEmp.grossAmount
+                                            "currentGross",
+                                            selectedEmp.currentGross
                                           );
                                           setValue(
                                             "id",
                                             selectedEmp.employeeId
                                           );
+                                          setPreviousGrossAmount(Number(selectedEmp.currentGross) || 0);
                                         }
                                       }}
                                       placeholder="Select Employee Name"
@@ -1495,13 +1490,13 @@ const AddIncrement = () => {
                                   type="text"
                                   className="form-control"
                                   placeholder="Current Gross Salary"
-                                  name="grossAmount"
+                                  name="currentGross"
                                   readOnly
-                                  {...register("grossAmount", {
+                                  {...register("currentGross", {
                                     required: true,
                                   })}
                                 />
-                                {errors.grossAmount && (
+                                {errors.currentGross && (
                                   <p className="errorMsg">
                                     Current Gross Amount Required
                                   </p>

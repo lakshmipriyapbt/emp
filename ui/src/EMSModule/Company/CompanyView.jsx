@@ -18,6 +18,7 @@ const CompanyView = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
 
+   
   const getUser = async () => {
     try {
       const response = await companyViewApi();
@@ -26,6 +27,10 @@ const CompanyView = () => {
       handleApiErrors(error);
     }
   };
+  
+  useEffect(() => {
+  getUser();
+  }, []);
 
   const getData = (id) => {
     console.log(id);
@@ -75,9 +80,7 @@ const CompanyView = () => {
     }
   };
 
-  useEffect(() => {
-    getUser();
-  }, []);
+
 
   useEffect(() => {
     setCurrentPage(1);
