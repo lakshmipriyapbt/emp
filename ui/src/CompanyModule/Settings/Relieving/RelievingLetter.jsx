@@ -152,6 +152,7 @@ const RelievingLetter = () => {
       }
     }
   };
+
   const handleApiErrors = (error) => {
     if (
       error.response &&
@@ -164,7 +165,6 @@ const RelievingLetter = () => {
     } else {
       // toast.error("Network Error !");
     }
-    console.error(error.response);
   };
 
   return (

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../../../Context/AuthContext";
+import { toast } from "react-toastify";
 
 const PayslipTemplate1 = () => {
     const { company } = useAuth();

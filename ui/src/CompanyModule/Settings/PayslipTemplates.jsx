@@ -29,7 +29,6 @@ const PayslipTemplates = () => {
             toast.error("Please select a Payslip Template first.");
             return;
         }
-
         setLoading(true);
         const data = {
             companyId: employee.companyId,
@@ -47,15 +46,12 @@ const PayslipTemplates = () => {
         }
     };
 
-    const handleApiErrors = (error) => {
-        if (error.response && error.response.data) {
-            const errorMessage = error.response.data.error?.message || "An unknown error occurred.";
-            toast.error(errorMessage);
-        } else {
-            toast.error("Network Error! Please try again.");
-        }
-        console.error(error.response || error.message);
-    };
+     const handleApiErrors = (error) => {
+          if (error.response && error.response.data && error.response.data.error) {
+            const errorMessage = error.response.data.error?.message || "An error occurred";
+            toast.error(`Error: ${errorMessage}`);
+          }
+        };
 
     const fetchTemplate = async () => {
         try {

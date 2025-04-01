@@ -15,6 +15,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
 }) => {
+    const { logoFileName } = useAuth();
   return (
     <div
       className="watermarked"

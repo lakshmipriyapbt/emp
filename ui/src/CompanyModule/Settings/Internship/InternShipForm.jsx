@@ -10,7 +10,6 @@ import {
   EmployeeGetApi,
   EmployeeGetApiById,
   InternshipCertificateDownload,
-  InternShipFormPostApi,
   TemplateGetAPI,
 } from "../../../Utils/Axios";
 import { useAuth } from "../../../Context/AuthContext";

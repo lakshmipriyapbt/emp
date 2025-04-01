@@ -14,6 +14,7 @@ import ExperienceTemplate2 from "./ExperienceTemplate2";
 const ExperienceLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [activeCardIndex, setActiveCardIndex] = useState(null);
+    const [companyData, setCompanyData] = useState({});
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
   const [isFetched, setIsFetched] = useState(false);
 

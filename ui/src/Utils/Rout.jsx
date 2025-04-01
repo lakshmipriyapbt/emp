@@ -130,7 +130,7 @@ const Rout = () => {
     <Routes>
       <Route path='/' element={<Message />}></Route>
       <Route path='/login' element={<EmsLogin />}></Route>
-      <Route path='/:company/login' element={<CompanyLogin />}></Route>
+      <Route path='/:companyName/login' element={<CompanyLogin />}></Route>
       <Route path='/resetPassword' element={<Reset />}></Route>
       <Route path='/profile' element={<Profile />}></Route>
       <Route path='/main' element={<Body />}></Route>
@@ -174,7 +174,7 @@ const Rout = () => {
       <Route path='/experienceForm' element={<ExperienceForm/>}></Route>
       <Route path='/offerLetterForm' element={<OfferLetterForm/>}></Route>
       <Route path='/offerLetterPreview' element={<OfferLetterPreview/>}></Route>
-      <Route path='/forgotPassword' element={<ForgotPassword />}></Route>
+      <Route path='/:companyName/forgotPassword' element={<ForgotPassword />}></Route>
       <Route path='/relievingTemplates' element={<RelievingLetter/>}></Route>
       <Route path='/relivingReview' element={<Preview/>}></Route>
       <Route path='/internsLetter' element={<InternShipForm/>}></Route>

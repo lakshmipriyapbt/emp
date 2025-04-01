@@ -137,6 +137,7 @@ public class CompanyUtils {
         if (companyEntity.getStampImage() != null){
             String baseUrl = getBaseUrl(request);
             String image = baseUrl + "var/www/ems-testing/assets/img/" + companyEntity.getStampImage();
+
             companyEntity.setStampImage(image);
         }
         companyEntity.setPassword("**********");

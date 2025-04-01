@@ -25,7 +25,7 @@ const CompanyLogin = () => {
   });
 
   const { setAuthUser } = useAuth();
-    const { company } = useParams();
+    const { companyName } = useParams();
   const navigate = useNavigate();
   const [passwordShown, setPasswordShown] = useState(false);
   const [otpSent, setOtpSent] = useState(false); 
@@ -37,8 +37,8 @@ const CompanyLogin = () => {
   const [otpExpired, setOtpExpired] = useState(false); 
 
   useEffect(() => {
-    localStorage.setItem("companyName", company);
-  }, [company]);
+    localStorage.setItem("companyName", companyName);
+  }, [companyName]);
 
   useEffect(() => {
     if (otpTimeLimit > 0) {
@@ -60,7 +60,7 @@ const CompanyLogin = () => {
     const payload = {
       username: data.username,
       password: data.password,
-      company: company,
+      company: companyName,
     };
   
     setLoading(true);
@@ -103,7 +103,7 @@ const CompanyLogin = () => {
     const payload = {
       username: data.username,
       otp: data.otp,
-      company: company,
+      company: companyName,
     };
     setLoading(true);
     ValidateOtp(payload)
@@ -284,7 +284,7 @@ const CompanyLogin = () => {
                                     </p>
                                   )}
                                   <small>
-                                    <a href="/forgotPassword">Forgot Password?</a>
+                                    <a href={`/${companyName}/forgotPassword`}>Forgot Password?</a>
                                   </small>
                                 </div>
 

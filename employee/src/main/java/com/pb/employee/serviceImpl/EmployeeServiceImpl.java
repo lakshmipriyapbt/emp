@@ -129,6 +129,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // Send the email with company details
         CompletableFuture.runAsync(() -> {
             try {
+
                 String defaultPassword = PasswordUtils.generateStrongPassword();
                 String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL

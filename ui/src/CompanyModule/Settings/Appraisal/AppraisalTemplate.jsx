@@ -68,6 +68,24 @@ const AppraisalTemplate = () => {
       handleApiErrors(error);
     }
   };
+    const handleApiErrors = (error) => {
+      // if (error.response && error.response.data && error.response.data.message) {
+      //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
+      //   alert(alertMessage);
+      // }
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error &&
+        error.response.data.error.message
+      ) {
+        const errorMessage = error.response.data.error.message;
+        toast.error(errorMessage);
+      } else {
+        // toast.error("Network Error !");
+      }
+      console.error(error.response);
+    };
 
   useEffect(() => {
       fetchTemplate();
@@ -156,19 +174,8 @@ const AppraisalTemplate = () => {
       } else {
         toast.error("An unexpected error occurred");
       }
-    }
-  };
-
-  const handleApiErrors = (error) => {
-    if (error.response && error.response.data && error.response.data.error && error.response.data.error.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      // toast.error("Network Error !");
-    }
-    console.error(error.response);
-  };
-
+    };
+  }
   return (
     <LayOut>
       <div className="container-fluid p-0">
