@@ -44,10 +44,6 @@ useEffect(() => {
     useEffect(() => {
       dispatch(fetchEmployees());
     }, [dispatch]);
-  
-    // Step 2: Display loading or error messages
-    if (status === "loading") return <Loader/>;
-    if (status === "failed") return <Loader/>;
 
   const isAdmin = authUser?.userRole?.includes("ems_admin");
   const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
