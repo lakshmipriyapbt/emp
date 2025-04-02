@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { toInputTitleCase, validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { toInputAddressCase, toInputTitleCase, validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -540,7 +540,7 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Branch Location</label>
-                    <input type="text" className="form-control" onInput={toInputTitleCase}
+                    <input type="text" className="form-control" onInput={toInputAddressCase}
                      {...register("location", {
                       required: "Branch Location is required",
                       validate:validateLocation
@@ -655,7 +655,7 @@ const validateHiringDate = (value) => {
               <div className="row mb-3">
                 <div className="col-md-6">
                   <label htmlFor="permanentAddress" className="form-label">Permanent Address</label>
-                  <textarea type="text" className="form-control"
+                  <textarea type="text" className="form-control" onInput={toInputAddressCase}
                    {...register("permanentAddress", {
                     required: "Permanent Address is required",
                    validate:validateLocation
@@ -665,7 +665,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="tempAddress" className="form-label">Temporary Address</label>
-                  <textarea type="text" className="form-control"
+                  <textarea type="text" className="form-control" onInput={toInputAddressCase}
                    {...register("tempAddress", {
                     required: "Temporary Address is required",
                   validate:validateLocation
@@ -720,7 +720,7 @@ const validateHiringDate = (value) => {
                   <div key={edu.id} className="row mb-2">
                     <div className="col-md-4">
                       <label>Education Level</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.educationLevel`, {
                           required: "Education Level is required",
                           pattern: { value: /^[A-Za-z0-9\s]+$/, message: "Only letters allowed" }
@@ -731,7 +731,7 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Name of Institution/University</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.instituteName`, {
                           required: "Institution is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
@@ -742,7 +742,7 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Board of Study</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.boardOfStudy`, {
                           required: "Board of Study is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
@@ -753,7 +753,7 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Branch/Specialization</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.branch`, {
                           required: "Branch is required",
                           pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
@@ -803,7 +803,7 @@ const validateHiringDate = (value) => {
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
-                          <input type="text" className="form-control"
+                          <input type="text" className="form-control" onInput={toInputTitleCase}
                             {...register(`employeeExperience.${index}.companyName`, {
                               validate:validateCompanyName
                             })}
@@ -813,7 +813,7 @@ const validateHiringDate = (value) => {
 
                         <div className="col-md-3">
                           <label>Designation/Role</label>
-                          <input type="text" className="form-control"
+                          <input type="text" className="form-control" onInput={toInputTitleCase}
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
                               validate:validateCompanyName
                             })}
@@ -904,7 +904,7 @@ const validateHiringDate = (value) => {
                  </div>
                  <div className="col-md-6 mt-2">
                    <label>Branch</label>
-                   <input type="text" className="form-control" 
+                   <input type="text" className="form-control" onInput={toInputAddressCase}
                     {...register("bankBranch", {
                       required: "Branch Name is required",
                       pattern: {

@@ -42,6 +42,46 @@ export const toInputTitleCase = (e) => {
   // Restore the cursor position
   input.setSelectionRange(cursorPosition, cursorPosition);
 };
+//On Input Validation for Address/Location 
+export   const toInputAddressCase = (e) => {
+  const input = e.target;
+  let value = input.value;
+  const cursorPosition = input.selectionStart; // Save the cursor position
+  // Remove leading spaces
+  value = value.replace(/^\s+/g, "");
+  // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
+  const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
+  value = value
+    .split("")
+    .filter((char) => allowedCharsRegex.test(char))
+    .join("");
+
+  // Capitalize the first letter of each word, but allow uppercase letters in the middle of the word
+  const words = value.split(" ");
+  const capitalizedWords = words.map((word) => {
+    if (word.length > 0) {
+      // Capitalize the first letter, but leave the middle of the word intact
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+    return "";
+  });
+
+  // Join the words back into a string
+  let formattedValue = capitalizedWords.join(" ");
+
+  // Remove spaces not allowed (before the first two characters)
+  if (formattedValue.length > 1) {
+    formattedValue =
+      formattedValue.slice(0, 1) +
+      formattedValue.slice(1).replace(/\s+/g, " ");
+  }
+
+  // Update input value
+  input.value = formattedValue;
+
+  // Restore the cursor position
+  input.setSelectionRange(cursorPosition, cursorPosition);
+};
 
 export const validateFirstName = (value) => {
     // Trim leading and trailing spaces before further validation
