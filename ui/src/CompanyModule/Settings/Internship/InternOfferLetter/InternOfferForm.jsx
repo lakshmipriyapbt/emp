@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { DepartmentGetApi, DesignationGetApi, ExperienceFormPostApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
+import { DepartmentGetApi, DesignationGetApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
 import { fetchEmployees } from "../../../../Redux/EmployeeSlice";
 import LayOut from "../../../../LayOut/LayOut";
 import InternOfferPrev from "./InternOfferPrev";
@@ -28,7 +28,8 @@ const InternOfferForm = () => {
   const [selectedAssignee, setSelectedAssignee] = useState({
     associateName: "",
     associateDesignation: "",
-  });  const [selectedHR, setSelectedHR] = useState({
+  }); 
+  const [selectedHR, setSelectedHR] = useState({
     hrName: "",
     hrEmail: "",
   });
