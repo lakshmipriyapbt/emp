@@ -10,8 +10,6 @@ const OfferLetterForm = () => {
     register,
     handleSubmit,
     control,
-    setValue,
-    watch,
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
@@ -377,8 +375,7 @@ const OfferLetterForm = () => {
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("employeeFatherName", {
-                          required: "Father Name is Required",
-                          required: "Employee Name is Required",
+                          required: "Employees Father Name is Required",
                           minLength: {
                             value: 3,
                             message: "Minimum 3 Characters Required",
@@ -476,14 +473,6 @@ const OfferLetterForm = () => {
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
-                            notInFuture: (value) => {
-                              const today = new Date();
-                              const joiningDate = new Date(value);
-                              return (
-                                joiningDate >= today ||
-                                "Joining Date cannot be in the past"
-                              );
-                            },
                             notMoreThanThreeMonths: (value) => {
                               const threeMonthsFromNow = new Date();
                               threeMonthsFromNow.setMonth(

@@ -23,8 +23,6 @@ const OfferLetterPreview = () => {
   const date = formatDate(new Date());
   const {
     setValue,
-    register,
-    formState: { errors },
   } = useForm({ mode: "onChange" });
 
   const [error, setError] = useState(false);
@@ -46,7 +44,7 @@ const OfferLetterPreview = () => {
   const [hasCinNo, setHasCinNo] = useState(false);
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
 
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
 
@@ -69,9 +67,9 @@ const OfferLetterPreview = () => {
 
   useEffect(() => {
     const fetchCompanyData = async () => {
-      if (!user.companyId) return;
+      if (!authUser.companyId) return;
       try {
-        const response = await companyViewByIdApi(user.companyId);
+        const response = await companyViewByIdApi(authUser.companyId);
         const data = response.data;
         setCompanyDetails(data);
         setCompanyName(data?.companyName || "[Company Name]");
@@ -84,7 +82,7 @@ const OfferLetterPreview = () => {
       }
     };
     fetchCompanyData();
-  }, [user.companyId, setValue]);
+  }, [authUser.companyId, setValue]);
 
   const fetchSalary = async () => {
     try {
@@ -265,7 +263,7 @@ const OfferLetterPreview = () => {
       jobLocation: jobLocation,
       salaryConfigurationId: salaryConfigurationId,
       grossCompensation: grossAmount,
-      companyId: user.companyId,
+      companyId: authUser.companyId,
       employeePosition: role,
     };
 
@@ -306,7 +304,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -327,10 +325,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -491,7 +489,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -512,10 +510,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -648,7 +646,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -669,10 +667,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -951,7 +949,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -972,10 +970,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />

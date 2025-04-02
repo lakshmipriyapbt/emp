@@ -17,13 +17,19 @@ const EmployeeSalaryList = () => {
   const id = queryParams.get("id");
 
   useEffect(() => {
-    if (id) {
-      EmployeeSalaryGetApi(id).then(response => {
-        setEmployeeSalaryView(response.data.data);
-        // Reset the expanded state to ensure no item is expanded by default
-        setExpandedSalaryId(null);
-      });
-    }
+    const fetchEmployeeSalary = async () => {
+      if (id) {
+        try {
+          const response = await EmployeeSalaryGetApi(id);
+          setEmployeeSalaryView(response.data.data);
+          // Reset the expanded state to ensure no item is expanded by default
+          setExpandedSalaryId(null);
+        } catch (error) {
+          console.error('Error fetching employee salary:', error);
+        }
+      }
+    };
+    fetchEmployeeSalary();
   }, [id]);
 
   const companyName = localStorage.getItem("company");

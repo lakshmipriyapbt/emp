@@ -38,7 +38,7 @@ export default function EmployeeRegister() {
         contactNumber: "",
         alternateNumber: "",
         personalEmail: "",
-        aadhar: "",
+        aadhaarId: "",
         uan: "",
         pan: "",
         permanentAddress: "",
@@ -95,8 +95,6 @@ const onNext = async () => {
     }
   }
 };
-
-
 
     const handleApiErrors = (error) => {
       // if (error.response && error.response.data && error.response.data.message) {
@@ -417,9 +415,35 @@ const validateHiringDate = (value) => {
   return true;
 };
 
+const handleClear = () => {
+  reset(); // Reset form fields
+  setStep(1); // Move to Step 1
+};
+
+
   return (
     <LayOut>
-      <div className="container d-flex justify-content-center align-items-center min-vh-100">
+      <div className=" row container d-flex justify-content-center align-items-center min-vh-100">
+      <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+          <div className="col">
+            <h1 className="h3 mb-3">
+              <strong>Employee Registration</strong>{" "}
+            </h1>
+          </div>
+          <div className="col-auto">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb mb-0">
+                <li className="breadcrumb-item">
+                  <a href="/main">Home</a>
+                </li>
+                <li className="breadcrumb-item">
+                  <a href="/employeeView">Employees</a>
+                </li>
+                <li className="breadcrumb-item active">Registration</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
       <div className="card shadow-lg p-4 w-100">
         <div className="card-body">
         <h2 className="text-start text-dark">
@@ -923,22 +947,25 @@ const validateHiringDate = (value) => {
                         {errorMessage}
                       </div>
                     )}
-             <div className="mt-3 d-flex justify-content-between">
-        {step > 1 && (
-          <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>
-            Previous
-          </button>
-        )}
-        {step < 5 ? (
-          <button type="button" className="btn btn-primary" onClick={onNext}>
-            Next
-          </button>
-        ) : (
-          <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()} >
-            Submit
-          </button>
-        )}
-      </div>
+                  <div className="mt-3 d-flex justify-content-between">
+                    {step > 1 && (
+                      <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>
+                        Previous
+                      </button>
+                    )}
+                    <button type="button" className="btn btn-warning me-2" onClick={handleClear}>
+                      Clear
+                    </button>
+                    {step < 5 ? (
+                      <button type="button" className="btn btn-primary" onClick={onNext}>
+                        Next
+                      </button>
+                    ) : (
+                      <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()}>
+                        Submit
+                      </button>
+                    )}
+                  </div>
           </form>
         </div>
       </div>
