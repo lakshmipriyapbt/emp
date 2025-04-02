@@ -14,8 +14,8 @@ const ProductRegistration = () => {
   const [productData, setProductData] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [update, setUpdate] = useState([]);
-  const {user} = useAuth();
-  const companyId=user.companyId
+  const {company} = useAuth();
+  const companyId=company?.id
   console.log(companyId);
   const navigate = useNavigate();
   const location = useLocation();

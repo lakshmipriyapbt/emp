@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { toInputAddressCase, toInputTitleCase, validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -39,8 +39,8 @@ export default function EmployeeRegister() {
         alternateNumber: "",
         personalEmail: "",
         aadhaarId: "",
-        uan: "",
-        pan: "",
+        uanNo: "",
+        panNo: "",
         permanentAddress: "",
         tempAddress: "",
   
@@ -86,12 +86,11 @@ const { fields: experienceFields, append: addExperience, remove: removeExperienc
 });
 
 const onNext = async () => {
-  if (step === 4) {
-    setStep(5); // Skip validation and move to Step 5
-  } else {
-    const isValid = await trigger(); // Validate other steps
-    if (isValid && step < 5) {
-      setStep(step + 1); // Move to the next step
+  const isValid = await trigger(); // Validate current step fields
+  
+  if (isValid) {
+    if (step < 5) {
+      setStep(step + 1); // Move to the next step, but DO NOT submit
     }
   }
 };
@@ -205,6 +204,7 @@ const onPrevious = () => {
     } catch (error) {
         console.error("Error submitting data:", error);
         toast.error("Error submitting employee details");
+        handleApiErrors(error)
     }
 };
 
@@ -315,6 +315,9 @@ const dropdownOptions = [
       };
   
       fetchData();
+    }else{
+      reset();
+      setValue("employeeId", "");
     }
   }, [location,location.state, reset, setValue]);
 
@@ -349,45 +352,6 @@ const dropdownOptions = [
 const dob = watch("dateOfBirth");
 const hiringDate = watch("dateOfHiring");
 
-const validateCompanyName = (value) => {
-  // Trim leading and trailing spaces before further validation
-  const trimmedValue = value.trim();
-
-  // Check for trailing spaces first
-  if (/\s$/.test(value)) {
-    return "Spaces e at the end are not allowed.";
-  } else if (/^\s/.test(value)) {
-    return "No Leading Space Allowed.";
-  }
-
-  // Ensure only alphabetic characters and spaces
-  else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
-    return "Only Alphabetic Characters are Allowed.";
-  }
-
-  // Check for minimum and maximum word length
-  else {
-    const words = trimmedValue.split(" ");
-    for (const word of words) {
-      if (word.length < 1) {
-        return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
-      } else if (word.length > 100) {
-        return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
-      }
-    }
-    // Check if there are multiple spaces between words
-    if (/\s{2,}/.test(trimmedValue)) {
-      return "No Multiple Spaces Between Words Allowed.";
-    }
-
-    // Check minimum character length after other validations
-    if (trimmedValue.length < 3) {
-      return "Minimum 3 Characters Required.";
-    }
-  }
-
-  return true; // Return true if all conditions are satisfied
-};
 
 // Custom Validation Function
 const validateDOB = (value) => {
@@ -418,6 +382,42 @@ const validateHiringDate = (value) => {
 const handleClear = () => {
   reset(); // Reset form fields
   setStep(1); // Move to Step 1
+};
+
+const handleClearNewEmployee = () => {
+  reset({
+    employeeId: "",
+    employeeType: "",
+    firstName: "",
+    lastName: "",
+    emailId: "",
+    designation: "",
+    dateOfHiring: "",
+    dateOfBirth: "",
+    department: "",
+    location: "",
+    tempAddress: "",
+    permanentAddress: "",
+    manager: "",
+    mobileNo: "",
+    alternateNo: "",
+    maritalStatus: "",
+    status: "",
+    panNo: "",
+    uanNo: "",
+    aadhaarId: "",
+    accountNo: "",
+    ifscCode: "",
+    bankName: "",
+    bankBranch: "",
+    pfNo: "",
+    personnelEntity: {
+      employeeEducation: [],
+      employeeExperience: [],
+    },
+  });
+
+  setStep(1); // Move back to Step 1
 };
 
 
@@ -469,6 +469,7 @@ const handleClear = () => {
                   <div className="col-md-6 mb-2">
                     <label>Employee First Name</label>
                     <input type="text" className="form-control" name='firstName' onInput={toInputTitleCase}
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                       {...register("firstName", { required: "First Name is required",
                         validate:validateFirstName
                        })}
@@ -477,7 +478,8 @@ const handleClear = () => {
                   </div>
                   <div className="col-md-6 mb-2">
                     <label>Employee Last Name</label>
-                    <input type="text" className="form-control" name='lastName' onInput={toInputTitleCase}
+                    <input type="text" className="form-control" name='lastName' onInput={toInputTitleCase}  
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                       {...register("lastName", { required: "Last Name is required",
                        validate:validateLastName
                       })}
@@ -487,6 +489,7 @@ const handleClear = () => {
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Employee ID</label> (last ID:{lastEmployeeId})
                     <input type="text" className="form-control" name='employeeId' 
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                      {...register("employeeId", {
                       required: "Employee ID is required",
                       pattern: { value: /^[A-Za-z0-9_-]+$/, message: "Invalid Employee ID format" },
@@ -533,6 +536,7 @@ const handleClear = () => {
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Employee Mail ID</label>
                     <input type="email" className="form-control"
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                      {...register("emailId", {
                       required: "Email is required",
                       validate:validateEmail
@@ -555,6 +559,8 @@ const handleClear = () => {
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Date of Hiring</label>
                     <input type="date" className="form-control"
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
+                      onFocus={(e) => e.target.showPicker()} 
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
                       validate:validateHiringDate
@@ -581,9 +587,8 @@ const handleClear = () => {
                       <option value='Active'>Active</option>
                       <option value='InActive'>In Active</option>
                       <option value='OnBoard'>OnBoard</option>
-                      <option value='NoticePeriod'>Notice Period</option>
-                      <option value='Relieved'>Relieved</option>
-                    </select>
+                      {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>}
+                      </select>
                     <small className="text-danger">{errors.status?.message}</small>
                   </div>
 
@@ -598,6 +603,8 @@ const handleClear = () => {
                 <div className="col-md-4">
                   <label htmlFor="dob" className="form-label">Date of Birth</label>
                   <input type="date" className="form-control" id="dob" 
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
+                    onFocus={(e) => e.target.showPicker()} 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
                     validate:validateDOB
@@ -607,7 +614,7 @@ const handleClear = () => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
-                  <input type="tel" className="form-control" id="mobileNumber"
+                  <input type="tel" className="form-control" id="mobileNumber" defaultValue="+91 "
                   {...register("mobileNo", {
                     required: "Mobile Number is required",
                    validate:validatePhoneNumber
@@ -617,7 +624,7 @@ const handleClear = () => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="alternateNumber" className="form-label">Alternate Number</label>
-                  <input type="tel" className="form-control" 
+                  <input type="tel" className="form-control" defaultValue="+91 "
                     {...register("alternateNo", {
                       required: "Alternate Number is required",
                      validate:validatePhoneNumber,
@@ -645,6 +652,7 @@ const handleClear = () => {
                 <div className="col-md-6">
                   <label htmlFor="aadharNumber" className="form-label">Aadhar Number</label>
                   <input type="text" className="form-control" id="aadhaarId"
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                     {...register("aadhaarId", {
                       required: "Aadhar Number is required",
                       validate:validateAadhar
@@ -658,6 +666,7 @@ const handleClear = () => {
                 <div className="col-md-6">
                   <label htmlFor="panNumber" className="form-label">PAN Number</label>
                   <input type="text" className="form-control" id="panNo" 
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                   {...register("panNo", {
                     required: "PAN Number is required",
                    validate:validatePAN
@@ -669,14 +678,23 @@ const handleClear = () => {
                   <label htmlFor="uanNumber" className="form-label">UAN Number (Optional)</label>
                   <input type="text" className="form-control" id="uanNumber" 
                   {...register("uanNo", {
-                    required: "UAN Number is required",
                     validate:validateUAN
                   })}
                   />
                   <small className="text-danger">{errors.uanNo?.message}</small>
                 </div>
+            
               </div>
               <div className="row mb-3">
+              <div className="col-md-6">
+                  <label htmlFor="pfNo" className="form-label">PF Number (Optional)</label>
+                  <input type="text" className="form-control" id="pfNo" 
+                  {...register("pfNo", {
+                    validate:validatePFNumber
+                  })}
+                  />
+                  <small className="text-danger">{errors.pfNo?.message}</small>
+                </div>
                 <div className="col-md-6">
                   <label htmlFor="permanentAddress" className="form-label">Permanent Address</label>
                   <textarea type="text" className="form-control" onInput={toInputAddressCase}
@@ -848,6 +866,7 @@ const handleClear = () => {
                         <div className="col-md-2">
                           <label>Start Date</label>
                           <input type="date" className="form-control"
+                           onFocus={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.startDate`, {
                             })}
                             onChange={(e) => calculateTenure(0, e.target.value, getValues(`employeeExperience.0.endDate`))}
@@ -858,6 +877,7 @@ const handleClear = () => {
                         <div className="col-md-2">
                           <label>End Date</label>
                           <input type="date" className="form-control"
+                           onFocus={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.endDate`, {
                               validate: (value) => validateDates(value, index), // Custom validation
                             })}
@@ -931,10 +951,7 @@ const handleClear = () => {
                    <input type="text" className="form-control" onInput={toInputAddressCase}
                     {...register("bankBranch", {
                       required: "Branch Name is required",
-                      pattern: {
-                        value: /^[A-Za-z\s]+$/,
-                        message: "Only letters and spaces allowed",
-                      },
+                     validate:validateLocation
                     })}
                   />
                   <small className="text-danger">{errors.bankBranch?.message}</small>
@@ -953,9 +970,15 @@ const handleClear = () => {
                         Previous
                       </button>
                     )}
-                    <button type="button" className="btn btn-warning me-2" onClick={handleClear}>
+                    {location.state && location.state.id ?(
+                      <button type="button" className="btn btn-warning me-2" onClick={handleClearNewEmployee}>
+                        Clear
+                      </button>
+                    ):(
+                      <button type="button" className="btn btn-warning me-2" onClick={handleClear}>
                       Clear
                     </button>
+                    )}
                     {step < 5 ? (
                       <button type="button" className="btn btn-primary" onClick={onNext}>
                         Next
@@ -967,6 +990,11 @@ const handleClear = () => {
                     )}
                   </div>
           </form>
+          {errorMessage && (
+                      <div className="alert alert-danger mt-4 text-center">
+                        {errorMessage}
+                      </div>
+                    )}
         </div>
       </div>
     </div>

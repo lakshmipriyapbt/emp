@@ -83,6 +83,57 @@ export   const toInputAddressCase = (e) => {
   input.setSelectionRange(cursorPosition, cursorPosition);
 };
 
+// validate companyName
+export const validateCompanyName = (value) => {
+  // Trim leading and trailing spaces
+  const trimmedValue = value.trim();
+
+  // Check for leading or trailing spaces
+  if (/^\s/.test(value)) {
+    return "Leading space not allowed."; // Leading space error
+  } else if (/\s$/.test(value)) {
+    return "Spaces at the end are not allowed."; // Trailing space error
+  }
+
+  // Check for multiple spaces between words
+  if (/\s{2,}/.test(value)) {
+    return "No Multiple Spaces Between Words Allowed.";
+  }
+
+  // Validate special characters and alphabets (including @, $, &, ())
+  const validCharsRegex = /^[A-Za-z\s,.'\-/&@$()]*$/;
+  if (!validCharsRegex.test(value)) {
+    return "Field accepts only alphabets and special characters: ( , ' - . / & @ $ ( ) )";
+  }
+
+  // Check word lengths (min 2 characters for alphabetic words)
+  const words = trimmedValue.split(" ");
+
+  for (const word of words) {
+    // Allow words that are only special characters (e.g., "-")
+    if (/^[\W]+$/.test(word)) {
+      continue; // Skip special characters only words
+    }
+
+    // If the word contains special characters (e.g., "dsad-@dsad"), it is valid
+    // Ensure at least 2 alphabetic characters before any special characters in a word
+    if (/^[A-Za-z]+[\W]*[A-Za-z]*$/.test(word)) {
+      continue; // Word contains at least 2 alphabetic characters with or without special characters
+    }
+
+    // If the word is alphabetic and has less than 2 characters, show error
+    if (/^[A-Za-z]+$/.test(word) && word.length < 2) {
+      return "Minimum Length 2 Characters Required."; // If any alphabetic word is shorter than 2 characters
+    }
+
+    // If the word exceeds 100 characters, show error
+    if (word.length > 100) {
+      return "Max Length 100 Characters Exceed."; // If any word is longer than 100 characters
+    }
+  }
+
+  return true; // Return true if all conditions are satisfied
+};
 export const validateFirstName = (value) => {
     // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
@@ -364,6 +415,8 @@ export const validatePAN = (pan) => {
 
 // validate UAN Number
 export const validateUAN = (uan) => {
+  if (!uan || uan.trim() === "") return true; // ✅ Allows empty values (optional field)
+
     if (uan !== uan.trim()) {
         return "UAN should not have leading or trailing spaces.";
     }
@@ -378,6 +431,28 @@ export const validateUAN = (uan) => {
 
     return true;
 };
+
+// Validate PF Number
+export const validatePFNumber = (pfNo) => {
+  if (!pfNo || pfNo.trim() === "") return true; // ✅ Allows empty values (Optional Field)
+
+  if (pfNo !== pfNo.trim()) {
+      return "PF Number should not have leading or trailing spaces.";
+  }
+  if (/\s/.test(pfNo)) {
+      return "PF Number should not contain any spaces.";
+  }
+
+  // ✅ PF Number Format: XX/XXX/1234567/000/1234567
+  const pfRegex = /^[A-Z]{2}\/[A-Z]{3}\/\d{7}\/\d{3}\/\d{7}$/;
+
+  if (!pfRegex.test(pfNo)) {
+      return "Invalid PF Number format. Expected format: XX/XXX/1234567/000/1234567";
+  }
+
+  return true; // ✅ Passes validation
+};
+
 
 //Bank Account Number
 export const validateBankAccount = (accountNumber) => {

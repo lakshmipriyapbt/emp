@@ -21,7 +21,7 @@ const AppraisalTemplate = () => {
   const [allowances, setAllowances] = useState({});
   const [error, setError] = useState("");
 
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   // Fetching Salary Structures
@@ -78,13 +78,13 @@ const AppraisalTemplate = () => {
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -115,7 +115,7 @@ const AppraisalTemplate = () => {
       name: "1",
       content: () => (
         <AppraisalTemplate1
-          companyLogo={logoFileName}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
@@ -132,7 +132,7 @@ const AppraisalTemplate = () => {
       name: "2",
       content: () => (
         <AppraisalTemplate2
-          companyLogo={logoFileName}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           allowances={allowances}   // Passing allowances dynamically
           date="October 28, 2024"
@@ -143,7 +143,7 @@ const AppraisalTemplate = () => {
         />
       ),
     },
-  ], [companyData, allowances, logoFileName]);
+  ], [companyData, allowances, company?.imageFile]);
 
   useEffect(() => {
     // Set default template as Template 1

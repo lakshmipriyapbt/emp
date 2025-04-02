@@ -90,13 +90,14 @@ const ExistsEmployesView = () => {
         }));
   
       setEmp(filteredEmployees);
+      console.log("filetered Employees",filteredEmployees)
     }
   }, [employees]);
   
 
-  const fetchRelievingData = async (employeeId) => {
+  const fetchRelievingData = async (selectedEmp) => {
     try {
-      const response = await RelievingGetApiById(employeeId);
+      const response = await RelievingGetApiById(selectedEmp.value);
       if (response.data.data) {
         const { resignationDate, relievingDate, noticePeriod ,id} = response.data.data;
         // Log the data to check the response
@@ -320,7 +321,7 @@ const handleConfirmSubmission = async () => {
                                   setSelectedEmployee(selectedEmp);  // Update the selected employee state
                                   
                                   // Call the fetchRelievingData with only the employeeId
-                                  fetchRelievingData(selectedEmp.id);  // Pass only the employeeId
+                                  fetchRelievingData(selectedEmp);  // Pass only the employeeId
                                   // Set form fields with the selected employee data
                                   setValue("designationName", selectedEmp.designationName);
                                   setValue("departmentName", selectedEmp.departmentName);

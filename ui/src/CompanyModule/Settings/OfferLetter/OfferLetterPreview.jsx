@@ -10,6 +10,7 @@ import {
   OfferLetterDownload,
 } from "../../../Utils/Axios";
 import LayOut from "../../../LayOut/LayOut";
+import { prepareAutoBatched } from "@reduxjs/toolkit";
 
 const OfferLetterPreview = () => {
   const formatDate = (date) => {
@@ -30,7 +31,7 @@ const OfferLetterPreview = () => {
   const [salaryStructures, setSalaryStructures] = useState([]);
   const [salaryConfigurationId, setSalaryConfigurationId] = useState(null);
   const [basic, setBasic] = useState(0);
-  const [refNo, setRefNo] = useState("OFLTR-09");
+  const [refNo, setRefNo] = useState("");
   const [companyDetails, setCompanyDetails] = useState(null);
   const [recipientName, setRecipientName] = useState("Recipient's Name");
   const [fatherName, setFatherName] = useState("Recipient's Father's Name");
@@ -43,8 +44,9 @@ const OfferLetterPreview = () => {
   const [companyName, setCompanyName] = useState("Company Name");
   const [hasCinNo, setHasCinNo] = useState(false);
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
-
-  const { authUser, company } = useAuth();
+  const [department,setDepartment] =useState("");
+  const [designation,setDesignation]=useState("");
+  const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
 
@@ -59,17 +61,19 @@ const OfferLetterPreview = () => {
       setRole(previewData.employeePosition || "[Role]");
       setJoiningDate(previewData.joiningDate || "Joining date");
       setJobLocation(previewData.jobLocation || "Location");
-      setGrossAmount(previewData.grossCompensation || 0);
+      setGrossAmount(previewData.salaryPackage || 0);
       setCompanyName(previewData.companyName || "Company Name");
-      setRefNo(previewData.referenceNo || "OFLTR-09");
+      setRefNo(previewData.referenceNo || " ");
+      setDepartment(previewData.department || " ");
+      setDesignation(previewData.designation|| "")
     }
   }, [previewData]);
 
   useEffect(() => {
     const fetchCompanyData = async () => {
-      if (!authUser.companyId) return;
+      if (!company?.id) return;
       try {
-        const response = await companyViewByIdApi(authUser.companyId);
+        const response = await companyViewByIdApi(company?.id);
         const data = response.data;
         setCompanyDetails(data);
         setCompanyName(data?.companyName || "[Company Name]");
@@ -82,7 +86,7 @@ const OfferLetterPreview = () => {
       }
     };
     fetchCompanyData();
-  }, [authUser.companyId, setValue]);
+  }, [company?.id, setValue]);
 
   const fetchSalary = async () => {
     try {
@@ -262,9 +266,10 @@ const OfferLetterPreview = () => {
       joiningDate: joiningDate,
       jobLocation: jobLocation,
       salaryConfigurationId: salaryConfigurationId,
-      grossCompensation: grossAmount,
-      companyId: authUser.companyId,
-      employeePosition: role,
+      salaryPackage: grossAmount,
+      companyId: company?.id,
+      department:department,
+      designation:designation
     };
 
     try {
@@ -283,8 +288,9 @@ const OfferLetterPreview = () => {
   };
 
   const generateRefNo = () => {
-    const randomNumber = Math.floor(Math.random() * 1000);
-    return `OFLTR - ${randomNumber}`;
+    const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
+    const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
+    return `OFLTR-${randomNumber}${timestamp}`;
   };
   useEffect(() => {
     const newRefNo = generateRefNo();

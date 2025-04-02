@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Bounce, toast } from "react-toastify";
 import LayOut from "../../../LayOut/LayOut";
 import { DepartmentGetApi, DesignationGetApi } from "../../../Utils/Axios";
 
@@ -51,6 +50,7 @@ const OfferLetterForm = () => {
   }, []);
 
   const onSubmit = (data) => {
+    console.log("offerLetter",data)
     const previewData = {
       offerDate: data.offerDate,
       referenceNo: data.referenceNo,
@@ -60,9 +60,10 @@ const OfferLetterForm = () => {
       employeeContactNo: data.employeeContactNo,
       joiningDate: data.joiningDate,
       jobLocation: data.jobLocation,
-      grossCompensation: data.grossCompensation,
+      salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
-      employeePosition: data.employeePosition,
+      department:data.department,
+      designation:data.designation
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
@@ -80,7 +81,7 @@ const OfferLetterForm = () => {
       employeeContactNo: "",
       joiningDate: "",
       jobLocation: "",
-      grossCompensation: "",
+      salaryPackage: "",
       salaryConfigurationId: "",
       employeePosition: "",
     });
@@ -470,6 +471,7 @@ const OfferLetterForm = () => {
                         className="form-control"
                         autoComplete="off"
                         max={threeMonthsFromNow}
+                        onFocus={(e) => e.target.showPicker()} 
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
@@ -542,8 +544,8 @@ const OfferLetterForm = () => {
                         className="form-control"
                         maxLength={10}
                         placeholder="Enter Salary Package"
-                        name="grossCompensation"
-                        {...register("grossCompensation", {
+                        name="salaryPackage"
+                        {...register("salaryPackage", {
                           required: "Gross Compensation is required",
                           min: {
                             value: 5,
@@ -555,9 +557,9 @@ const OfferLetterForm = () => {
                           },
                         })}
                       />
-                      {errors.grossCompensation && (
+                      {errors.salaryPackage && (
                         <p className="errorMsg">
-                          {errors.grossCompensation.message}
+                          {errors.salaryPackage.message}
                         </p>
                       )}
                     </div>
@@ -574,7 +576,7 @@ const OfferLetterForm = () => {
                               Select Department
                             </option>
                             {departments.map((department) => (
-                              <option key={department.id} value={department.id}>
+                              <option key={department.id} value={department.name}>
                                 {department.name}
                               </option>
                             ))}
@@ -601,7 +603,7 @@ const OfferLetterForm = () => {
                             {designations.map((designation) => (
                               <option
                                 key={designation.id}
-                                value={designation.id}
+                                value={designation.name}
                               >
                                 {designation.name}
                               </option>
