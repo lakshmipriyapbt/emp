@@ -21,7 +21,7 @@ const AppraisalTemplate2 = ({
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [companyDetails, setCompanyDetails] = useState(null);
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const idFromQuery = queryParams.get('employeeId'); // Extract employeeId from URL query params if needed
@@ -55,20 +55,20 @@ const AppraisalTemplate2 = ({
   };
 
   useEffect(() => {
-    const idToUse = employeeId || idFromQuery || user.userId; // Fallback to employeeId, query param, or userId
+    const idToUse = employeeId || idFromQuery || authUser.userId; // Fallback to employeeId, query param, or userId
     setLoading(true);
     if (idToUse) {
       fetchEmployeeDetails(idToUse); // Fetch employee details using employeeId
     }
     setLoading(false);
-  }, [employeeId, idFromQuery, user.userId]);
+  }, [employeeId, idFromQuery, authUser.userId]);
 
 
   return (
     <div className="watermarked" style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
       <div style={{ textAlign: "right" }}>
-        {logoFileName ? (
-          <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+        {company?.imageFile ? (
+          <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
         ) : (
           <p>Logo</p>
         )}
@@ -82,7 +82,7 @@ const AppraisalTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
-          backgroundImage: `url(${logoFileName})`,
+          backgroundImage: `url(${company?.imageFile})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
