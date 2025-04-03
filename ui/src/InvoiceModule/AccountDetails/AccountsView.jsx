@@ -23,7 +23,7 @@ const AccountsView = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
 
   useEffect(() => {
     if (companyId) {

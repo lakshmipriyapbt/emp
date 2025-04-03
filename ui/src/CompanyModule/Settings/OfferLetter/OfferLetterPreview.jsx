@@ -6,11 +6,9 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 import {
   CompanySalaryStructureGetApi,
-  companyViewByIdApi,
   OfferLetterDownload,
 } from "../../../Utils/Axios";
 import LayOut from "../../../LayOut/LayOut";
-import { prepareAutoBatched } from "@reduxjs/toolkit";
 
 const OfferLetterPreview = () => {
   const formatDate = (date) => {
@@ -22,9 +20,6 @@ const OfferLetterPreview = () => {
   };
 
   const date = formatDate(new Date());
-  const {
-    setValue,
-  } = useForm({ mode: "onChange" });
 
   const [error, setError] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
@@ -32,7 +27,6 @@ const OfferLetterPreview = () => {
   const [salaryConfigurationId, setSalaryConfigurationId] = useState(null);
   const [basic, setBasic] = useState(0);
   const [refNo, setRefNo] = useState("");
-  const [companyDetails, setCompanyDetails] = useState(null);
   const [recipientName, setRecipientName] = useState("Recipient's Name");
   const [fatherName, setFatherName] = useState("Recipient's Father's Name");
   const [address, setAddress] = useState("Recipient's Address");
@@ -62,31 +56,14 @@ const OfferLetterPreview = () => {
       setJoiningDate(previewData.joiningDate || "Joining date");
       setJobLocation(previewData.jobLocation || "Location");
       setGrossAmount(previewData.salaryPackage || 0);
-      setCompanyName(previewData.companyName || "Company Name");
       setRefNo(previewData.referenceNo || " ");
       setDepartment(previewData.department || " ");
       setDesignation(previewData.designation|| "")
     }
   }, [previewData]);
 
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      if (!company?.id) return;
-      try {
-        const response = await companyViewByIdApi(company?.id);
-        const data = response.data;
-        setCompanyDetails(data);
-        setCompanyName(data?.companyName || "[Company Name]");
-        Object.keys(data).forEach((key) => setValue(key, data[key]));
-        setHasCinNo(!!data.cinNo);
-        setHasCompanyRegNo(!!data.companyRegNo);
-      } catch (err) {
-        setError(err);
-        toast.error("Failed to fetch company details.");
-      }
-    };
-    fetchCompanyData();
-  }, [company?.id, setValue]);
+  console.log("preview Data",previewData)
+
 
   const fetchSalary = async () => {
     try {
@@ -382,15 +359,15 @@ const OfferLetterPreview = () => {
               <p>
                 We welcome you to our pursuit of excellence and we feel proud to
                 have a professional of your stature as a member of the{" "}
-                <strong>{companyName}</strong> family and wish you a long,
+                <strong>{company?.companyName}</strong> family and wish you a long,
                 rewarding and satisfying career with us.
               </p>
 
               <p>
-                On behalf of <strong>{companyName}</strong>, hereinafter
+                On behalf of <strong>{company?.companyName}</strong>, hereinafter
                 referred to as ‘the Company’, we are pleased to extend an offer
                 for the position of{" "}
-                <strong>{previewData?.employeePosition}</strong> in our
+                <strong>{previewData?.designation}</strong> in our
                 organization with the following mentioned details:
               </p>
 
@@ -410,7 +387,7 @@ const OfferLetterPreview = () => {
                 {/* Gross Compensation */}
                 <li>
                   &rarr; Your gross compensation per annum is&nbsp;
-                  <strong>{previewData?.grossCompensation}</strong>
+                  <strong>{previewData?.salaryPackage}</strong>
                 </li>
               </ul>
               <ul>
@@ -465,19 +442,19 @@ const OfferLetterPreview = () => {
               </p>
               <p style={{ textAlign: "center" }}>
                 {hasCinNo
-                  ? `CIN:- ${companyDetails?.cinNo} `
+                  ? `CIN:- ${company?.cinNo} `
                   : hasCompanyRegNo
-                  ? `Registration:- ${companyDetails?.companyRegNo}`
+                  ? `Registration:- ${company?.companyRegNo}`
                   : null}
               </p>
               <hr />
               <div style={{ padding: "2px", textAlign: "center" }}>
-                <h6>{companyDetails?.companyName}</h6>
-                <h6>{companyDetails?.companyAddress}</h6>
+                <h6>{company?.companyName}</h6>
+                <h6>{company?.companyAddress}</h6>
                 <h6>
-                  PH: {companyDetails?.mobileNo}, Email:{" "}
-                  {companyDetails?.emailId} | Web: https://
-                  {companyDetails?.shortName}.com{" "}
+                  PH: {company?.mobileNo}, Email:{" "}
+                  {company?.emailId} | Web: https://
+                  {company?.shortName}.com{" "}
                 </h6>
               </div>
             </div>
@@ -554,7 +531,7 @@ const OfferLetterPreview = () => {
               rata basis) i.e. you would be eligible for the leaves of 1.75 days
               per month for every calendar (January to December) year. However,
               you can utilize the same only after completion of probation period
-              with <strong>{companyName}</strong> . These leaves of six months
+              with <strong>{company?.companyName}</strong> . These leaves of six months
               will get credited to your leave balance account.
             </p>
             <p>
@@ -579,7 +556,7 @@ const OfferLetterPreview = () => {
               If you wish to leave the services of the Company you may do so
               under the following conditions: You need to share formal
               resignation email during working hours to{" "}
-              <strong>{companyName}</strong> HR Team after formal discussion
+              <strong>{company?.companyName}</strong> HR Team after formal discussion
               with your reporting manager. Resignation sent on weekly / public
               holidays, after working hours will be considered with effect from
               next business day. Resignation will not be considered if you have
@@ -608,7 +585,7 @@ const OfferLetterPreview = () => {
               confidential.
             </p>
             <p style={{ marginTop: "-15px" }}>
-              We look forward to your joining <strong> {companyName}</strong>{" "}
+              We look forward to your joining <strong> {company?.companyName}</strong>{" "}
               soon.
             </p>
             <p>
@@ -624,18 +601,18 @@ const OfferLetterPreview = () => {
             </p>
             <p style={{ textAlign: "center" }}>
               {hasCinNo
-                ? `CIN:- ${companyDetails?.cinNo}`
+                ? `CIN:- ${company?.cinNo}`
                 : hasCompanyRegNo
-                ? ` Registration:- ${companyDetails?.companyRegNo}`
+                ? ` Registration:- ${company?.companyRegNo}`
                 : null}
             </p>
             <hr />
             <div style={{ padding: "2px", textAlign: "center" }}>
-              <h6>{companyDetails?.companyName}</h6>
-              <h6>{companyDetails?.companyAddress}</h6>
+              <h6>{company?.companyName}</h6>
+              <h6>{company?.companyAddress}</h6>
               <h6>
-                PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId}{" "}
-                | Web: https://{companyDetails?.shortName}.com{" "}
+                PH: {company?.mobileNo}, Email: {company?.emailId}{" "}
+                | Web: https://{company?.shortName}.com{" "}
               </h6>
             </div>
           </div>
@@ -928,18 +905,18 @@ const OfferLetterPreview = () => {
           </p>
           <p style={{ textAlign: "center" }}>
             {hasCinNo
-              ? ` CIN:- ${companyDetails?.cinNo} `
+              ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${companyDetails?.companyRegNo}`
+              ? `Registration:- ${company?.companyRegNo}`
               : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
-            <h6>{companyDetails?.companyName}</h6>
-            <h6>{companyDetails?.companyAddress}</h6>
+            <h6>{company?.companyName}</h6>
+            <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} |
-              Web: https://{companyDetails?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} |
+              Web: https://{company?.shortName}.com{" "}
             </h6>
           </div>
         </div>
@@ -1124,18 +1101,18 @@ const OfferLetterPreview = () => {
           </ul>
           <p style={{ textAlign: "center" }}>
             {hasCinNo
-              ? ` CIN:- ${companyDetails?.cinNo} `
+              ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${companyDetails?.companyRegNo}`
+              ? `Registration:- ${company?.companyRegNo}`
               : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
-            <h6>{companyDetails?.companyName}</h6>
-            <h6>{companyDetails?.companyAddress}</h6>
+            <h6>{company?.companyName}</h6>
+            <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} |
-              Web: https://{companyDetails?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} |
+              Web: https://{company?.shortName}.com{" "}
             </h6>
           </div>
         </div>

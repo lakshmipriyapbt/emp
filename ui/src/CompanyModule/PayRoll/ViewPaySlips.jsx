@@ -116,7 +116,7 @@ const ViewPaySlips = () => {
     } catch (error) {
       console.error("Error fetching payslip data:", error);
       setNoRecords(true);
-      toast.error("Error fetching payslip data.");
+      toast.error(error.response.data.error.message);
     }
   };
 

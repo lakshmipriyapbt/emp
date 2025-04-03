@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
 import Select from "react-select";
-import { BankGetApiById, BankPostApi, BankPutApiById } from "../../Utils/Axios";
+import { BankGetApiById, BankNamesGetApi, BankPostApi, BankPutApiById } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 
 const AccountRegistartion = () => {
@@ -20,17 +20,34 @@ const AccountRegistartion = () => {
 
   const [isUpdating, setIsUpdating] = useState(false);
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
   console.log("companyId from accounts registartion", companyId);
   const [passwordShown, setPasswordShown] = useState(false);
   const [update, setUpdate] = useState([]);
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [accountDetails, setAccountDetails] = useState(null);
+  const [bank,setBank]=useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const existingAccountTypeValue = isUpdating
     ? accountDetails?.accountType
     : "";
+
+     const fetchBankNames = async () => {
+     try {
+          const res = await BankNamesGetApi();
+          setBank(res.data);
+          console.log("bank",res.data);
+        } catch (error) {
+          // handleApiErrors(error)
+        } finally {
+          setLoading(false);
+        }
+      };
+    useEffect(()=>{
+      fetchBankNames()
+    },[])
 
   const onSubmit = (data) => {
     if (location && location.state && location.state.bankId) {
@@ -326,25 +343,14 @@ const AccountRegistartion = () => {
                       <label className="form-label">
                         Bank Name <span style={{ color: "red" }}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Bank Name"
-                        name="bankName"
-                        autoComplete="off"
-                        {...register("bankName", {
-                          required: "Bank Name is Required",
-                          validate: (value) =>
-                            noTrailingSpaces(value, "bankName"),
-                          maxLength: {
-                            value: 60,
-                            message: "Bank Name must not exceed 60 characters.",
-                          },
-                        })}
-                        onChange={(e) => handleInputChange(e, "bankName")}
-                        onKeyPress={(e) => preventInvalidInput(e, "alpha")}
-                        readOnly={isUpdating}
-                      />
+                      <select className="form-select"  {...register("bankName", { required: "Bank Name is required" })}>
+                     <option value="">Select Bank</option>
+                     {bank.map((bank,index) => (
+                    <option key={index} value={bank.bankName}>
+                      {bank.bankName}
+                    </option>
+                  ))}
+                   </select>
                       {errors.bankName && (
                         <p className="errorMsg">{errors.bankName.message}</p>
                       )}
