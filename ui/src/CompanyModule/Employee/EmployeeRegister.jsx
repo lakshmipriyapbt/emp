@@ -531,6 +531,7 @@ const validateHiringDate = (value) => {
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Date of Hiring</label>
                     <input type="date" className="form-control"
+                      onFocus={(e) => e.target.showPicker()} 
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
                       validate:validateHiringDate
@@ -557,9 +558,8 @@ const validateHiringDate = (value) => {
                       <option value='Active'>Active</option>
                       <option value='InActive'>In Active</option>
                       <option value='OnBoard'>OnBoard</option>
-                      <option value='NoticePeriod'>Notice Period</option>
-                      <option value='Relieved'>Relieved</option>
-                    </select>
+                      {showNoticePeriodOption && <option value="NoticePeriod">Notice Period</option>}
+                      </select>
                     <small className="text-danger">{errors.status?.message}</small>
                   </div>
 
@@ -574,6 +574,7 @@ const validateHiringDate = (value) => {
                 <div className="col-md-4">
                   <label htmlFor="dob" className="form-label">Date of Birth</label>
                   <input type="date" className="form-control" id="dob" 
+                    onFocus={(e) => e.target.showPicker()} 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
                     validate:validateDOB
@@ -583,7 +584,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
-                  <input type="tel" className="form-control" id="mobileNumber"
+                  <input type="tel" className="form-control" id="mobileNumber" defaultValue="+91 "
                   {...register("mobileNo", {
                     required: "Mobile Number is required",
                    validate:validatePhoneNumber
@@ -593,7 +594,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="alternateNumber" className="form-label">Alternate Number</label>
-                  <input type="tel" className="form-control" 
+                  <input type="tel" className="form-control" defaultValue="+91 "
                     {...register("alternateNo", {
                       required: "Alternate Number is required",
                      validate:validatePhoneNumber,
@@ -825,6 +826,7 @@ const validateHiringDate = (value) => {
                         <div className="col-md-2">
                           <label>Start Date</label>
                           <input type="date" className="form-control"
+                              onFocus={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.startDate`, {
                             })}
                             onChange={(e) => calculateTenure(0, e.target.value, getValues(`employeeExperience.0.endDate`))}
@@ -835,6 +837,7 @@ const validateHiringDate = (value) => {
                         <div className="col-md-2">
                           <label>End Date</label>
                           <input type="date" className="form-control"
+                             onFocus={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.endDate`, {
                               validate: (value) => validateDates(value, index), // Custom validation
                             })}

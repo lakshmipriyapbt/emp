@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import LayOut from "../../../LayOut/LayOut";
-import { companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, PayslipTemplate, TemplateGetAPI } from "../../../Utils/Axios";
+import { companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, PayslipTemplate} from "../../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import InternshipTemplate1 from "./InternshipTemplate1";
