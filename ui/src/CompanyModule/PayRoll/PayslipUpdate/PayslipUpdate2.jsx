@@ -52,7 +52,7 @@ const PayslipUpdate2 = () => {
   const salaryId = queryParams.get("salaryId");
   const month = queryParams.get("month");
   const year = queryParams.get("year");
-  const { user, company} = useAuth();
+  const { authUser, company} = useAuth();
 
   const numberToWords = (num) => {
     const units = [
@@ -159,7 +159,7 @@ const PayslipUpdate2 = () => {
     if (!month || !year) return;
     try {
       const payload = {
-        companyName: user.company,
+        companyName: authUser.company,
         month,
         year,
       };
@@ -244,7 +244,7 @@ const PayslipUpdate2 = () => {
         // Ensure the "Other Allowances" is always updated correctly
         allowances["Other Allowances"] = updatedOtherAllowance.toString();
 
-        // Handle new deductions (from user input) and include them in the payload
+        // Handle new deductions (from authUser input) and include them in the payload
         const updatedDeductions = deductionFields.reduce((acc, field) => {
           acc[field.label] = field.value;
           return acc;
@@ -262,7 +262,7 @@ const PayslipUpdate2 = () => {
 
         // Create the payload to send to the server
         const payload = {
-          companyName: user.company || "", // Default to empty string if undefined
+          companyName: authUser.company || "", // Default to empty string if undefined
           salary: {
             ...payslipData.salary,
             salaryId: payslipData.salary.salaryId ?? 0, // Default to 0 if missing
@@ -305,13 +305,13 @@ const PayslipUpdate2 = () => {
       if (employeeId) {
         await fetchEmployeeDetails(employeeId);
       }
-      if (month && year && user.company) {
+      if (month && year && authUser.company) {
         await fetchPayslipData();
       }
       setLoading(false);
     };
     fetchData();
-  }, [employeeId, month, year, user.company]);
+  }, [employeeId, month, year, authUser.company]);
 
   const [validationError, setValidationError] = useState("");
 
@@ -418,11 +418,7 @@ const PayslipUpdate2 = () => {
 
   if (loading) {
     return (
-      <Loader>
-        <div className="text-center">
-          <Loader />
-        </div>
-      </Loader>
+      <Loader />
     );
   }
 
@@ -550,7 +546,7 @@ const PayslipUpdate2 = () => {
       .split("")
       .filter((char) => allowedCharsRegex.test(char))
       .join("");
-    // Capitalize first letter of each word & keep others as user typed
+    // Capitalize first letter of each word & keep others as authUser typed
     const words = value.split(" ");
     const formattedValue = words
       .map((word) =>

@@ -417,11 +417,7 @@ const PayslipUpdate3 = () => {
 
   if (loading) {
     return (
-      <Loader>
-        <div className="text-center">
-          <Loader />
-        </div>
-      </Loader>
+      <Loader />
     );
   }
 

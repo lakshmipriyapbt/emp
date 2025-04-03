@@ -24,7 +24,9 @@ const InternOfferTemplate = ({
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
       <div className="logo text-end me-5">
-        <img src={companyLogo} alt="Company Logo" />
+        <img src={companyLogo} alt="Company Logo" 
+          style={{ height: "100px", width: "160px" }}
+        />
       </div>
       <p>Date: {date}</p>
       <p>
@@ -69,7 +71,9 @@ const InternOfferTemplate = ({
       </div>
 
       <div className="logo text-end me-5">
-        <img src={companyLogo} alt="stamp" />
+        <img src={companyLogo} alt="stamp" className="logo"          
+        style={{ height: "100px", width: "160px" }}
+        />
         <p>Authorized Signature</p>
       </div>
       </div>

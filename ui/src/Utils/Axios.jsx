@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -274,7 +275,7 @@ export const downloadEmployeesFileAPI = async (format, showToast) => {
 
     // Extract API-provided error message if available
     const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+      error.response?.data?.error.message || error.message || "Download failed. Please try again.";
 
     showToast(errorMessage, "error"); // Show error toast with API message
   }
@@ -314,7 +315,7 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
 
     // Extract API-provided error message if available
     const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+      error.response?.data?.error.message || "Download failed. Please try again.";
 
     showToast(errorMessage, "error"); // Show error toast with API message
   }
@@ -360,7 +361,7 @@ export const downloadAttendanceFileAPI = async (format, year, month, employeeId,
     showToast("Download successful!", "success");
   } catch (error) {
     console.error("Error downloading file:", error);
-    showToast(error.response?.data?.message || "Download failed. Please try again.", "error");
+    showToast(error.response?.data?.error.message || "Download failed. Please try again.", "error");
   }
 };
 
@@ -398,24 +399,35 @@ export const EmployeeSalaryDeleteApiById = (employeeId, salaryId) => {
 }
 
 export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
-  const company = localStorage.getItem("companyName")
+  const company = localStorage.getItem("companyName");
 
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employee/salaries/download?format=${format}`, {
-      responseType: "blob",
-    });
+    const response = await axiosInstance.get(
+      `${company}/employee/salaries/download?format=${format}`,
+      { responseType: "blob" }
+    );
 
-    // Check if the response contains an error message
-    if (response.data && response.data.error) {
-      throw new Error(response.data.error); // If API returns an error message, throw it
+    // Handle cases where API returns JSON with an error instead of a file
+    const contentType = response.headers["content-type"];
+    if (contentType && contentType.includes("application/json")) {
+      const reader = new FileReader();
+      reader.readAsText(response.data);
+      reader.onloadend = () => {
+        try {
+          const errorResponse = JSON.parse(reader.result);
+          throw new Error(errorResponse?.error?.message || "Unknown error occurred.");
+        } catch (err) {
+          showToast("Failed to parse error message.", "error");
+        }
+      };
+      return;
     }
 
-    // If the response is valid, proceed with the download
+    // Proceed with file download if the response is valid
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = `Employees_Salaries_Data.${format === "excel" ? "xlsx" : "pdf"}`;
@@ -429,13 +441,21 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
   } catch (error) {
     console.error("Error downloading file:", error);
 
-    // Extract API-provided error message if available
-    const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+    // Extract API error message if available
+    let errorMessage = "Download failed. Please try again.";
 
-    showToast(errorMessage, "error"); // Show error toast with API message
+    if (error.response) {
+      // Check if API returned a structured error message
+      errorMessage = error.response.data?.error?.message || `Error ${error.response.status}: DownLoad Failed Please Try Again`;
+    } else if (error.message) {
+      // Use Axios error message as a fallback
+      errorMessage = error.message;
+    }
+
+    showToast(errorMessage, "error"); // Show API error message in toast
   }
 };
+
 
   export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
     return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);

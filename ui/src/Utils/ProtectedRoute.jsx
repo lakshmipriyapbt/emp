@@ -5,8 +5,7 @@ import { useAuth } from '../Context/AuthContext';
 
 
 const Protected = () => {
-  const {userId}=useAuth();
-let auth={userId}
-return auth.userId?<Outlet/>:<Navigate to={'/'}/>
+  const {authUser}=useAuth();
+return authUser.userId?<Outlet/>:<Navigate to={'/'}/>
 }
 export default Protected;

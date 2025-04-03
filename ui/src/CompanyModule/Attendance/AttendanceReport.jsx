@@ -27,7 +27,6 @@ const AttendanceReport = () => {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
-  const [selectedEmployeeDetails, setSelectedEmployeeDetails] = useState({});
   const [editAttendance, setEditAttendance] = useState(false);
   const [attendanceData, setAttendanceData] = useState([]);
   const [refreshData, setRefreshData] = useState("");
@@ -173,11 +172,11 @@ const AttendanceReport = () => {
     let message = `You are about to download the employee attendance data in ${format.toUpperCase()} format.\n\n`;
   
     if (selectedYear && selectedMonth && employeeId) {
-      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
     } else if (selectedYear && selectedMonth) {
       message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}`;
     } else if (employeeId) {
-      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
     }
   
     // Show confirmation popup

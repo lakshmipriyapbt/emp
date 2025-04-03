@@ -6,7 +6,6 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 import {
   CompanySalaryStructureGetApi,
-  companyViewByIdApi,
   OfferLetterDownload,
 } from "../../../Utils/Axios";
 import LayOut from "../../../LayOut/LayOut";
@@ -21,19 +20,13 @@ const OfferLetterPreview = () => {
   };
 
   const date = formatDate(new Date());
-  const {
-    setValue,
-    register,
-    formState: { errors },
-  } = useForm({ mode: "onChange" });
 
   const [error, setError] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
   const [salaryStructures, setSalaryStructures] = useState([]);
   const [salaryConfigurationId, setSalaryConfigurationId] = useState(null);
   const [basic, setBasic] = useState(0);
-  const [refNo, setRefNo] = useState("OFLTR-09");
-  const [companyDetails, setCompanyDetails] = useState(null);
+  const [refNo, setRefNo] = useState("");
   const [recipientName, setRecipientName] = useState("Recipient's Name");
   const [fatherName, setFatherName] = useState("Recipient's Father's Name");
   const [address, setAddress] = useState("Recipient's Address");
@@ -45,8 +38,9 @@ const OfferLetterPreview = () => {
   const [companyName, setCompanyName] = useState("Company Name");
   const [hasCinNo, setHasCinNo] = useState(false);
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
-
-  const { user, logoFileName } = useAuth();
+  const [department,setDepartment] =useState("");
+  const [designation,setDesignation]=useState("");
+  const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
 
@@ -61,30 +55,15 @@ const OfferLetterPreview = () => {
       setRole(previewData.employeePosition || "[Role]");
       setJoiningDate(previewData.joiningDate || "Joining date");
       setJobLocation(previewData.jobLocation || "Location");
-      setGrossAmount(previewData.grossCompensation || 0);
-      setCompanyName(previewData.companyName || "Company Name");
-      setRefNo(previewData.referenceNo || "OFLTR-09");
+      setGrossAmount(previewData.salaryPackage || 0);
+      setRefNo(previewData.referenceNo || " ");
+      setDepartment(previewData.department || " ");
+      setDesignation(previewData.designation|| "")
     }
   }, [previewData]);
 
-  useEffect(() => {
-    const fetchCompanyData = async () => {
-      if (!user.companyId) return;
-      try {
-        const response = await companyViewByIdApi(user.companyId);
-        const data = response.data;
-        setCompanyDetails(data);
-        setCompanyName(data?.companyName || "[Company Name]");
-        Object.keys(data).forEach((key) => setValue(key, data[key]));
-        setHasCinNo(!!data.cinNo);
-        setHasCompanyRegNo(!!data.companyRegNo);
-      } catch (err) {
-        setError(err);
-        toast.error("Failed to fetch company details.");
-      }
-    };
-    fetchCompanyData();
-  }, [user.companyId, setValue]);
+  console.log("preview Data",previewData)
+
 
   const fetchSalary = async () => {
     try {
@@ -264,9 +243,10 @@ const OfferLetterPreview = () => {
       joiningDate: joiningDate,
       jobLocation: jobLocation,
       salaryConfigurationId: salaryConfigurationId,
-      grossCompensation: grossAmount,
-      companyId: user.companyId,
-      employeePosition: role,
+      salaryPackage: grossAmount,
+      companyId: company?.id,
+      department:department,
+      designation:designation
     };
 
     try {
@@ -285,8 +265,9 @@ const OfferLetterPreview = () => {
   };
 
   const generateRefNo = () => {
-    const randomNumber = Math.floor(Math.random() * 1000);
-    return `OFLTR - ${randomNumber}`;
+    const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
+    const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
+    return `OFLTR-${randomNumber}${timestamp}`;
   };
   useEffect(() => {
     const newRefNo = generateRefNo();
@@ -306,7 +287,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -327,10 +308,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -378,15 +359,15 @@ const OfferLetterPreview = () => {
               <p>
                 We welcome you to our pursuit of excellence and we feel proud to
                 have a professional of your stature as a member of the{" "}
-                <strong>{companyName}</strong> family and wish you a long,
+                <strong>{company?.companyName}</strong> family and wish you a long,
                 rewarding and satisfying career with us.
               </p>
 
               <p>
-                On behalf of <strong>{companyName}</strong>, hereinafter
+                On behalf of <strong>{company?.companyName}</strong>, hereinafter
                 referred to as ‘the Company’, we are pleased to extend an offer
                 for the position of{" "}
-                <strong>{previewData?.employeePosition}</strong> in our
+                <strong>{previewData?.designation}</strong> in our
                 organization with the following mentioned details:
               </p>
 
@@ -406,7 +387,7 @@ const OfferLetterPreview = () => {
                 {/* Gross Compensation */}
                 <li>
                   &rarr; Your gross compensation per annum is&nbsp;
-                  <strong>{previewData?.grossCompensation}</strong>
+                  <strong>{previewData?.salaryPackage}</strong>
                 </li>
               </ul>
               <ul>
@@ -461,19 +442,19 @@ const OfferLetterPreview = () => {
               </p>
               <p style={{ textAlign: "center" }}>
                 {hasCinNo
-                  ? `CIN:- ${companyDetails?.cinNo} `
+                  ? `CIN:- ${company?.cinNo} `
                   : hasCompanyRegNo
-                  ? `Registration:- ${companyDetails?.companyRegNo}`
+                  ? `Registration:- ${company?.companyRegNo}`
                   : null}
               </p>
               <hr />
               <div style={{ padding: "2px", textAlign: "center" }}>
-                <h6>{companyDetails?.companyName}</h6>
-                <h6>{companyDetails?.companyAddress}</h6>
+                <h6>{company?.companyName}</h6>
+                <h6>{company?.companyAddress}</h6>
                 <h6>
-                  PH: {companyDetails?.mobileNo}, Email:{" "}
-                  {companyDetails?.emailId} | Web: https://
-                  {companyDetails?.shortName}.com{" "}
+                  PH: {company?.mobileNo}, Email:{" "}
+                  {company?.emailId} | Web: https://
+                  {company?.shortName}.com{" "}
                 </h6>
               </div>
             </div>
@@ -491,7 +472,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -512,10 +493,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -550,7 +531,7 @@ const OfferLetterPreview = () => {
               rata basis) i.e. you would be eligible for the leaves of 1.75 days
               per month for every calendar (January to December) year. However,
               you can utilize the same only after completion of probation period
-              with <strong>{companyName}</strong> . These leaves of six months
+              with <strong>{company?.companyName}</strong> . These leaves of six months
               will get credited to your leave balance account.
             </p>
             <p>
@@ -575,7 +556,7 @@ const OfferLetterPreview = () => {
               If you wish to leave the services of the Company you may do so
               under the following conditions: You need to share formal
               resignation email during working hours to{" "}
-              <strong>{companyName}</strong> HR Team after formal discussion
+              <strong>{company?.companyName}</strong> HR Team after formal discussion
               with your reporting manager. Resignation sent on weekly / public
               holidays, after working hours will be considered with effect from
               next business day. Resignation will not be considered if you have
@@ -604,7 +585,7 @@ const OfferLetterPreview = () => {
               confidential.
             </p>
             <p style={{ marginTop: "-15px" }}>
-              We look forward to your joining <strong> {companyName}</strong>{" "}
+              We look forward to your joining <strong> {company?.companyName}</strong>{" "}
               soon.
             </p>
             <p>
@@ -620,18 +601,18 @@ const OfferLetterPreview = () => {
             </p>
             <p style={{ textAlign: "center" }}>
               {hasCinNo
-                ? `CIN:- ${companyDetails?.cinNo}`
+                ? `CIN:- ${company?.cinNo}`
                 : hasCompanyRegNo
-                ? ` Registration:- ${companyDetails?.companyRegNo}`
+                ? ` Registration:- ${company?.companyRegNo}`
                 : null}
             </p>
             <hr />
             <div style={{ padding: "2px", textAlign: "center" }}>
-              <h6>{companyDetails?.companyName}</h6>
-              <h6>{companyDetails?.companyAddress}</h6>
+              <h6>{company?.companyName}</h6>
+              <h6>{company?.companyAddress}</h6>
               <h6>
-                PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId}{" "}
-                | Web: https://{companyDetails?.shortName}.com{" "}
+                PH: {company?.mobileNo}, Email: {company?.emailId}{" "}
+                | Web: https://{company?.shortName}.com{" "}
               </h6>
             </div>
           </div>
@@ -648,7 +629,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -669,10 +650,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -924,18 +905,18 @@ const OfferLetterPreview = () => {
           </p>
           <p style={{ textAlign: "center" }}>
             {hasCinNo
-              ? ` CIN:- ${companyDetails?.cinNo} `
+              ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${companyDetails?.companyRegNo}`
+              ? `Registration:- ${company?.companyRegNo}`
               : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
-            <h6>{companyDetails?.companyName}</h6>
-            <h6>{companyDetails?.companyAddress}</h6>
+            <h6>{company?.companyName}</h6>
+            <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} |
-              Web: https://{companyDetails?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} |
+              Web: https://{company?.shortName}.com{" "}
             </h6>
           </div>
         </div>
@@ -951,7 +932,7 @@ const OfferLetterPreview = () => {
             left: "20%",
             width: "50%",
             height: "50%",
-            backgroundImage: `url(${logoFileName})`,
+            backgroundImage: `url(${company?.imageFile})`,
             transform: "rotate(340deg)",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
@@ -972,10 +953,10 @@ const OfferLetterPreview = () => {
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <div style={{ textAlign: "right" }}>
-              {logoFileName ? (
+              {company?.imageFile ? (
                 <img
                   className="align-middle"
-                  src={logoFileName}
+                  src={company?.imageFile}
                   alt="Logo"
                   style={{ height: "80px", width: "180px" }}
                 />
@@ -1120,18 +1101,18 @@ const OfferLetterPreview = () => {
           </ul>
           <p style={{ textAlign: "center" }}>
             {hasCinNo
-              ? ` CIN:- ${companyDetails?.cinNo} `
+              ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${companyDetails?.companyRegNo}`
+              ? `Registration:- ${company?.companyRegNo}`
               : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
-            <h6>{companyDetails?.companyName}</h6>
-            <h6>{companyDetails?.companyAddress}</h6>
+            <h6>{company?.companyName}</h6>
+            <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} |
-              Web: https://{companyDetails?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} |
+              Web: https://{company?.shortName}.com{" "}
             </h6>
           </div>
         </div>

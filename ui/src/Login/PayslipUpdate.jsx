@@ -39,7 +39,7 @@ const PayslipUpdate = () => {
   const payslipId = queryParams.get("payslipId");
   const month = queryParams.get("month");
   const year = queryParams.get("year");
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -68,7 +68,7 @@ const PayslipUpdate = () => {
     if (!month || !year) return;
     try {
       const payload = {
-        companyName: user.company,
+        companyName: authUser.company,
         month,
         year,
       };
@@ -118,7 +118,7 @@ const PayslipUpdate = () => {
         
         setErrorMessages({ deductions: '' });
         const payload = {
-          companyName: user.company,
+          companyName: authUser.company,
           salary: {
             ...payslipData.salary,
             salaryConfigurationEntity: {
@@ -155,13 +155,13 @@ const PayslipUpdate = () => {
       if (employeeId) {
         await fetchEmployeeDetails(employeeId);
       }
-      if (month && year && user.company) {
+      if (month && year && authUser.company) {
         await fetchPayslipData();
       }
       setLoading(false);
     };
     fetchData();
-  }, [employeeId, month, year, user.company]);
+  }, [employeeId, month, year, authUser.company]);
 
   const [validationError, setValidationError] = useState('');
 
@@ -382,8 +382,8 @@ const PayslipUpdate = () => {
                 <p><b>Name: {payslipData.attendance.firstName} {payslipData.attendance.lastName}</b></p>
               </div>
               <div>
-                {logoFileName ? (
-                  <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                {company?.imageFile ? (
+                  <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                 ) : (
                   <p>Logo</p>
                 )}

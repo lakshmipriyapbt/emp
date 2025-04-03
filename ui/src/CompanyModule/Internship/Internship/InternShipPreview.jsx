@@ -9,7 +9,7 @@ import InternshipTemplate1 from "./InternshipTemplate1";
 const InternShipPreview = ({ previewData, selectedTemplate }) => { 
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user,companyLogo } = useAuth();
+  const { authUser,company} = useAuth();
   const navigate=useNavigate();
 
   const fetchCompanyData = async (companyId) => {
@@ -35,13 +35,13 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => {
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
   const handleApiErrors = (errors) => {
     if (errors.response) {
@@ -91,7 +91,7 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => {
       name: "1",
       content: () => (
         <InternshipTemplate1
-          companyLogo={companyLogo}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
@@ -107,7 +107,7 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => {
       name: "2",
       content: () => (
         <InternShipTemplate2
-          companyLogo={companyLogo}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           employeeName={previewData.employeeName}
           employeeId={previewData.employeeId}
@@ -118,7 +118,7 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => {
         />
       ),
     },
-  ], [companyData, companyLogo, previewData]);
+  ], [companyData, company?.imageFile, previewData]);
 
   const selectedTemplateContent = useMemo(() => {
     const template = templates.find(t => t.name === selectedTemplate);

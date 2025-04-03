@@ -97,7 +97,7 @@ const InternShipForm = () => {
 
   const fetchTemplate = async () => {
     try {
-      const res = await TemplateGetAPI(company.id);
+      const res = await TemplateGetAPI(company?.id);
       const templateNumber = res.data.data.internshipTemplateNo;
       setSelectedTemplate(templateNumber);
       setTemplateAvailable(!!templateNumber);
@@ -112,7 +112,7 @@ const InternShipForm = () => {
 
   const onSubmit = (data) => {
     const currentDate = new Date().toISOString().split("T")[0]; // "2024-11-15"
-    const id = company.id;
+    const id = company?.id;
     const lastWorkingDate = data.lastWorkingDate;
     const dateOfHiring = data.dateOfHiring;
     // Call the validateDatePeriod function to check for errors
@@ -125,7 +125,7 @@ const InternShipForm = () => {
     }
 
     const submissionData = {
-      companyId: company.id,
+      companyId: company?.id,
       employeeName: data.employeeName,
       department: data.departmentName,
       designation: data.designationName,
@@ -483,6 +483,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Date of Joining"
                         name="dateOfHiring"
+                        onClick={(e) => e.target.showPicker()} 
                         max={getCurrentDate()} // This restricts the date to today
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
@@ -499,6 +500,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Last Working Date"
                         name="lastWorkingDate"
+                        onClick={(e) => e.target.showPicker()} 
                         max={getCurrentDate()}
                         {...register("lastWorkingDate", { required: true })}
                         onBlur={(e) =>

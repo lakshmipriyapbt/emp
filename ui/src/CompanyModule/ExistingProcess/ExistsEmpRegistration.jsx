@@ -347,18 +347,6 @@ const ExistsEmpRegistration = () => {
 
   if (loading) return <Loader />;
 
-  const nextSixMonths = new Date();
-  nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
-  const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
-    const dd = today.getDate().toString().padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
   // Render loading message or template not available message
   if (!templateAvailable) {
     return (
@@ -515,7 +503,6 @@ const ExistsEmpRegistration = () => {
                             type="date"
                             className="form-control"
                             placeholder="Resignation Date"
-                            max={getCurrentDate()}
                           />
                         )}
                       />
@@ -542,7 +529,6 @@ const ExistsEmpRegistration = () => {
                             type="date"
                             className="form-control"
                             placeholder="Last Working Date"
-                            max={getCurrentDate()}
                           />
                         )}
                       />

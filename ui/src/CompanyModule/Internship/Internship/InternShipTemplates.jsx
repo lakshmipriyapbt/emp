@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import LayOut from "../../../LayOut/LayOut";
-import { companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, PayslipTemplate} from "../../../Utils/Axios";
+import { companyViewByIdApi, EmployeeGetApiById, TemplateGetAPI, PayslipTemplate } from "../../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import InternshipTemplate1 from "./InternshipTemplate1";
@@ -15,7 +15,7 @@ const InternShipTemplates = () => {
   const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user,logoFileName } = useAuth();
+  const { authUser,logoFileName } = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -41,13 +41,13 @@ const InternShipTemplates = () => {
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -112,7 +112,7 @@ const InternShipTemplates = () => {
       ),
     },
 
-  ], [user, logoFileName]);
+  ], [authUser, logoFileName]);
 
   useEffect(() => {
     // Set default template as Template 1

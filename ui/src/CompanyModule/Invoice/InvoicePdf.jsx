@@ -11,14 +11,14 @@ const InvoicePdf = () => {
   const [invoiceData, setInvoiceData] = useState({});
   const location = useLocation();
   const [companyDetails, setCompanyDetails] = useState({});
-  const { user } = useAuth();
+  const { company } = useAuth();
 
   useEffect(() => {
-    if (user.companyId) {
+    if (company?.id) {
       const fetchCompanyDetails = async () => {
         try {
-          const response = await companyViewByIdApi(user.companyId);
-          console.log("Fetched company details for companyId:", user.companyId);
+          const response = await companyViewByIdApi(company?.id);
+          console.log("Fetched company details for companyId:", company?.id);
           setCompanyDetails(response.data);
           const companyData = response.data;
           setValue('userName', companyData.userName);
@@ -48,7 +48,7 @@ const InvoicePdf = () => {
 
       fetchCompanyDetails();
     }
-  }, [user.companyId, setValue]);
+  }, [company?.id, setValue]);
 
   useEffect(() => {
     const fetchData = async () => {

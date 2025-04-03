@@ -12,21 +12,24 @@ import { fetchCustomers, removeCustomerFromState } from '../Redux/CustomerSlice'
 const CustomersView = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { customers, loading, error } = useSelector(state => state.customers); 
+    const { customers} = useSelector(state => state.customers); 
     const [search, setSearch] = useState("");
     const [filteredData, setFilteredData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const { employee } = useAuth();
-    const companyId = employee.companyId;
+    const { company } = useAuth();
+    console.log("Company Data:", company); // Debugging
 
     // Fetch all customers on component mount
     useEffect(() => {
-        if (companyId) {
-            dispatch(fetchCustomers(companyId));
-        }
-    }, [dispatch, companyId]);
+        console.log("Company Data:", company); // Debugging
 
+        if (company && company?.id) {
+            dispatch(fetchCustomers(company?.id));
+        }
+    }, [dispatch, company]);  // Watch `company` instead of `company?.id`    
+
+    
     useEffect(() => {
         console.log('Customers from Redux store:', customers);
     }, [customers]);
@@ -43,6 +46,10 @@ const CustomersView = () => {
         }
     }, [search, customers]);
 
+    if (!company) {
+        return <p>Loading...</p>; // Prevent rendering until company is ready
+    }
+
     const handleEdit = (customerId) => {
         navigate(`/customerRegistration`, { state: { customerId } });
         console.log("customerId from CustomerView", customerId);
@@ -50,9 +57,9 @@ const CustomersView = () => {
 
     const handleDelete = async (customerId) => {
         try {
-            console.log('Deleting customer with companyId:', companyId, 'and customerId:', customerId);
+            console.log('Deleting customer with company?.id:', company?.id, 'and customerId:', customerId);
             // Make a DELETE request to the API with the given ID
-            const response = await CustomerDeleteApiById(companyId, customerId);
+            const response = await CustomerDeleteApiById(company?.id, customerId);
             console.log('Delete response:', response);
             dispatch(removeCustomerFromState(customerId)) // Refetch customers from the Redux store
             toast.error('Customer deleted successfully', {
