@@ -9,7 +9,7 @@ import RelievingTemplate3 from "./RelievingTemplate3";
 const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as a prop
   const [companyData, setCompanyData] = useState({});
   const [loading, setLoading] = useState(false);
-  const { user, company } = useAuth();
+  const { authUser, company } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png";
 
   const fetchCompanyData = async (companyId) => {
@@ -35,13 +35,13 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
 
   const templates = useMemo(() => [

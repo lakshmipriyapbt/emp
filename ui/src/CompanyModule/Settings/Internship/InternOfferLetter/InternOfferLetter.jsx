@@ -10,7 +10,7 @@ const InternOfferLetter = () => {
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   
-  const { user, logoFileName } = useAuth();
+  const { authUser, company } = useAuth();
   const logo = "/assets/img/adapt_adapt_logo.png"; // Fallback logo path
 
   // Fetch company data
@@ -39,13 +39,13 @@ const InternOfferLetter = () => {
   };
 
   useEffect(() => {
-    const userId = user.userId;
+    const userId = authUser.userId;
     setLoading(true);
     if (userId) {
       fetchEmployeeDetails(userId);
     }
     setLoading(false);
-  }, [user.userId]);
+  }, [authUser.userId]);
 
   return (
     <LayOut>
@@ -73,7 +73,7 @@ const InternOfferLetter = () => {
         {/* Intern Offer Letter Template */}
         {employeeDetails && companyData && (
           <InternOfferLetterTemplate
-            companyLogo={logoFileName}
+            companyLogo={company?.imageFile}
             companyData={companyData}
             date="March 20, 2025"
             employeeName={employeeDetails.name || "John Doe"}
