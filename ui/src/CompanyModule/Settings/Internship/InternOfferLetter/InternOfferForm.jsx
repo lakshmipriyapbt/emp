@@ -745,10 +745,10 @@ const InternOfferForm = () => {
                         type="text"
                         className="form-control"
                         maxLength={10}
-                        placeholder="Enter Salary Package"
+                        placeholder="Enter Stipend Amount"
                         name="stipend"
                         {...register("stipend", {
-                          required: "Gross Compensation is required",
+                          // required: "Stipend is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",
