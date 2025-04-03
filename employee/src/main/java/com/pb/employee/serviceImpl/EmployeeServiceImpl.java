@@ -473,7 +473,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private List<EmployeeEntity> validateEmployee(CompanyEntity companyEntity) throws EmployeeException {
         try {
             List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(companyEntity.getShortName());
-            if (employees == null || employees.isEmpty()) {
+            if (employees == null && employees.isEmpty()) {
                 log.error("Employees do not exist in the company");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.NOT_FOUND);
             }
