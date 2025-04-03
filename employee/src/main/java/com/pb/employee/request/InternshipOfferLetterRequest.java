@@ -74,7 +74,7 @@ public class InternshipOfferLetterRequest {
     private String acceptDate;
 
     @Nullable // Spring annotation to mark it as nullable
-    @Pattern(regexp = "^\\d+(\\.\\d{1,2})?$", message = "{stipend.format}")
+    @Pattern(regexp = "^(\\d+(\\.\\d{1,2})?|)$", message = "{stipend.format}")
     private String stipend;
 
     @Schema(example = "employeeName")
