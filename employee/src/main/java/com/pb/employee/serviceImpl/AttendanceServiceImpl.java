@@ -573,7 +573,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                if (employeeId != null) {
+                if (employeeId == null) {
                     fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
                     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                     headers.setContentDisposition(ContentDisposition.builder("attachment")
@@ -685,7 +685,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads = new ArrayList<>();
             List<AttendanceEntity> attendanceEntities = null;
             if (employeeId != null) {
-                attendanceEntities = openSearchOperations.getAttendanceByYear(companyName, employeeId, null);
+                attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, employeeId, null, null);
             }else if (month != null && year != null){
                 attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
             }

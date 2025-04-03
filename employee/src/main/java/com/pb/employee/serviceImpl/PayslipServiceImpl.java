@@ -722,16 +722,11 @@ public class PayslipServiceImpl implements PayslipService {
 
                 // Generate payslip ID based on month, year, and employee ID
                 String paySlipId = ResourceIdUtils.generatePayslipId(payslipRequest.getMonth(), payslipRequest.getYear(), employee.getId());
-
                 // Check if payslip already exists for this employee
                 PayslipEntity payslipEntity = openSearchOperations.getPayslipById(paySlipId, null, index);
                 if (payslipEntity != null) {
                     log.info("Payslip already exists for employee with ID {}", employee.getEmployeeId());
-                    return ResponseEntity
-                            .status(HttpStatus.CONFLICT)
-                            .body(ResponseBuilder.builder()
-                                    .build()
-                                    .createFailureResponse(EmployeeErrorMessageKey.GENERATED_PAY_SLIP_EXISTED));
+                    continue;
                 }
 
 
@@ -756,15 +751,17 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
+            if (employeesWithoutAttendance.size() +1 == employeeEntities.size()){
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
+                        HttpStatus.NOT_FOUND);
+            }
                  // If no payslips were generated but there are employees without attendance, return a success response with only that information
                 if (generatedPayslips.isEmpty()) {
-                    Map<String, Object> responseBody = new HashMap<>();
-                    responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
-                    return ResponseEntity
-                            .status(HttpStatus.CONFLICT)
-                            .body(ResponseBuilder.builder()
-                                    .build()
-                                    .createFailureResponse(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED));
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().
+                                    createFailureResponse(ErrorMessageHandler
+                                            .getMessage(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED)),
+                            HttpStatus.FORBIDDEN);
                 }
             Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
@@ -774,7 +771,7 @@ public class PayslipServiceImpl implements PayslipService {
 
             } catch (EmployeeException ex) {
                 log.error("Unexpected error generating payslips: {}", ex.getMessage());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE),
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_GENERATE_PAYSLIP),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
