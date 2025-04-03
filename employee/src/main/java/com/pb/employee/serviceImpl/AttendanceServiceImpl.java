@@ -684,7 +684,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         try {
             List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads = new ArrayList<>();
             List<AttendanceEntity> attendanceEntities = null;
-            if (employeeId != null) {
+            if (employeeId != null && !employeeId.isEmpty()) {
                 attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, employeeId, null, null);
             }else if (month != null && year != null){
                 attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
