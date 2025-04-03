@@ -8,7 +8,7 @@ import { useAuth } from "../../Context/AuthContext";
 
 const AppraisalPreview = ({ previewData, selectedTemplate }) => {
   const [companyData, setCompanyData] = useState({});
-  const { user, companyLogo } = useAuth();
+  const { company } = useAuth();
   const navigate = useNavigate();
 
   // Destructure previewData to get all the necessary fields
@@ -65,7 +65,6 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => {
       name: "1",
       content: () => {
         console.log("Preview Data for Template 1:", {
-          companyLogo,
           companyData,
           employeeName,
           employeeId,
@@ -80,7 +79,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => {
         });
         return (
           <AppraisalTemplate1
-            companyLogo={companyLogo}
+            companyLogo={company?.imageFile}
             companyData={companyData}
             employeeName={employeeName}
             employeeId={employeeId}  
@@ -101,7 +100,6 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => {
       name: "2",
       content: () => {
         console.log("Preview Data for Template 2:", {
-          companyLogo,
           companyData,
           employeeName,
           employeeId,
@@ -114,7 +112,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => {
         });
         return (
           <AppraisalTemplate2
-          companyLogo={companyLogo}
+          companyLogo={company?.imageFile}
           companyData={companyData}
           employeeName={employeeName}
           employeeId={employeeId}  
@@ -130,7 +128,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => {
         );
       },
     },
-  ], [companyLogo, companyData, previewData]); // Recalculate when companyLogo, companyData, or previewData change
+  ], [company?.imageFile, companyData, previewData]); // Recalculate when companyLogo, companyData, or previewData change
 
   // Select the template based on the `selectedTemplate`
   const selectedTemplateContent = useMemo(() => {
