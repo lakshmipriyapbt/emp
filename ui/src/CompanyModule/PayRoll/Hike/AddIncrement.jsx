@@ -1557,7 +1557,7 @@ const AddIncrement = () => {
                                     maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
                                     return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
                                   })()}
-                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
+                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of on
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation

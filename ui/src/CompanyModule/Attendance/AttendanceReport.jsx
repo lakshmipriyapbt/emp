@@ -181,7 +181,7 @@ const AttendanceReport = () => {
   
     // Show confirmation popup
     if (window.confirm(message)) {
-      downloadAttendanceFileAPI(format, selectedYear || "null", selectedMonth || "null", employeeId || "null", showToast);
+      downloadAttendanceFileAPI(format, selectedYear || null, selectedMonth || null, employeeId || null, showToast);
     }
   };  
 

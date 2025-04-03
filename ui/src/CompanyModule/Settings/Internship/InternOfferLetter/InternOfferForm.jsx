@@ -596,7 +596,17 @@ const InternOfferForm = () => {
                     required: "Address is required",
                     pattern: { value: /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/,
                       message: "Enter a valid Address",
+                    }, minLength: {
+                      value: 3,
+                      message: "Minimum 3 Characters allowed",
                     },
+                    maxLength: {
+                      value: 200,
+                      message: "Maximum 200 Characters allowed",
+                    },
+                    validate: (value) =>
+                      value.trim().length === value.length ||
+                      "Spaces at the end are not allowed.",
                   })}
                   />
                       {errors.address && (
