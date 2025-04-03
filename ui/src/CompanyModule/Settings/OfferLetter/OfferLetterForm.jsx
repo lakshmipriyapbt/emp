@@ -471,7 +471,7 @@ const OfferLetterForm = () => {
                         className="form-control"
                         autoComplete="off"
                         max={threeMonthsFromNow}
-                        onFocus={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
@@ -546,7 +546,7 @@ const OfferLetterForm = () => {
                         placeholder="Enter Salary Package"
                         name="salaryPackage"
                         {...register("salaryPackage", {
-                          required: "Gross Compensation is required",
+                          required: "Saalry Package is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",

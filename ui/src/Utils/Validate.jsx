@@ -8,7 +8,7 @@ export const toInputTitleCase = (e) => {
   value = value.replace(/^\s+/g, "");
 
   // Ensure only allowed characters (alphabets and spaces)
-  const allowedCharsRegex = /^[a-zA-Z\s]+$/;
+  const allowedCharsRegex = /^[a-zA-Z0-9\s]+$/;
   value = value
     .split("")
     .filter((char) => allowedCharsRegex.test(char))
@@ -42,6 +42,7 @@ export const toInputTitleCase = (e) => {
   // Restore the cursor position
   input.setSelectionRange(cursorPosition, cursorPosition);
 };
+
 //On Input Validation for Address/Location 
 export   const toInputAddressCase = (e) => {
   const input = e.target;
@@ -205,10 +206,6 @@ export const validateFirstName = (value) => {
     else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
       return "Only Alphabetic Characters are Allowed.";
     }
-     // Ensure the first letter and every letter after a space is uppercase
-     if (!/^[A-Z][a-z]*([ ][A-Z][a-z]*)*$/.test(trimmedValue)) {
-      return "Each Word Should Start With an Uppercase Letter.";
-  }
 
     // Check for minimum and maximum word length
     else {
@@ -298,12 +295,6 @@ export const validateFirstName = (value) => {
     if (trimmedValue.length === 0) {
       return "Location is Required.";
     }
-
-     // Ensure the first letter and every letter after a space is uppercase
-     if (!/^[A-Z][a-z]*([ ][A-Z][a-z]*)*$/.test(trimmedValue)) {
-      return "Each Word Should Start With an Uppercase Letter.";
-  }
-
     // Check for trailing spaces first
     if (/\s$/.test(value)) {
       return "Spaces at the end are not allowed."; // Trailing space error

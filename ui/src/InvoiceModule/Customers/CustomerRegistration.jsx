@@ -14,7 +14,7 @@ import { useAuth } from "../../Context/AuthContext";
 const CustomersRegistration = () => {
   const navigate = useNavigate();
   const { employee } = useAuth();
-  const companyId = employee.companyId
+  const companyId = employee?.companyId
   console.log("company Id from Customer registration", companyId);
   const location = useLocation();
   const [isUpdating, setIsUpdating] = useState(false);

@@ -45,9 +45,8 @@ const InvoiceRegistration = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [deleteType, setDeleteType] = useState(null);
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
   const [showPreview, setShowPreview] = useState(false);
-  const [invoiceId, setInvoiceId] = useState(null); // to handle edit case
   const [load, setLoad] = useState(false); // to manage loading state for API calls
   const [customer, setCustomer] = useState(customers); // List of customers for the dropdown
   const [product, setProduct] = useState(products);
@@ -661,7 +660,7 @@ const InvoiceRegistration = () => {
                         id="invoiceDate"
                         autoComplete="off"
                         max={new Date().toISOString().split("T")[0]} // Restricts future dates
-                        onFocus={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
                           onChange: handleInvoiceDateChange, // Set due date when invoice date changes

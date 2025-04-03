@@ -15,7 +15,9 @@ const InternOfferPrev = ({
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
       <div className="logo text-end me-5">
-        <img src={company?.imageFile} alt="Company Logo" />
+        <img src={company?.imageFile} alt="Company Logo" 
+                   style={{ height: "100px", width: "160px" }}
+         />
       </div>
       <p>Date: {previewData.date}</p>
       <p>
@@ -60,7 +62,9 @@ const InternOfferPrev = ({
       </div>
 
       <div className="logo text-end me-5">
-        <img src={company?.stampImage} alt="stamp" />
+        <img src={company?.stampImage} alt="stamp"  
+           style={{ height: "100px", width: "160px" }}
+        />
         <p>Authorized Signature</p>
       </div>
       </div>

@@ -75,25 +75,32 @@ function Profile() {
   const uploadLogo = async (data) => {
     setLoadingLogo(true);
     setLogoMessage("");
-
+    
     try {
-      if (data.logo?.[0]) {
-        console.log("Uploading Logo Payload:", data.logo[0]); // Log payload
-        const formData = new FormData();
-        formData.append("file", data.logo[0]);
-        await CompanyImagePatchApi(companyId, formData);
-        setLogoMessage("Logo uploaded successfully!");
-        reset();
-        setLogoPreview(null);
-        window.location.reload();
-
+      // Check if no logo is selected
+      if (!data.logo || data.logo.length === 0) {
+        setLogoMessage("Please select a logo before uploading.");
+        setLoadingLogo(false);
+        return; // ⛔ Prevent API call
       }
+  
+      console.log("Uploading Logo Payload:", data.logo[0]); // Log payload
+      const formData = new FormData();
+      formData.append("file", data.logo[0]);
+  
+      await CompanyImagePatchApi(companyId, formData);
+      
+      setLogoMessage("Logo uploaded successfully!");
+      reset();
+      setLogoPreview(null);
+      window.location.reload();
     } catch (error) {
       setLogoMessage("Failed to upload logo.");
     } finally {
       setLoadingLogo(false);
     }
   };
+  
 
     // Upload Stamp (Fixed)
     const uploadStamp = async () => {
@@ -114,9 +121,7 @@ function Profile() {
           setStampMessage("Please select a file before uploading.");
           return;
         }
-  
-        console.log("Uploading Stamp Payload:", stampFile);
-  
+    
         const formData = new FormData();
         formData.append("stamp", stampFile); // Ensure correct key
   
@@ -535,7 +540,7 @@ function Profile() {
                             value: 200,
                             message: "Maximum 200 Characters allowed",
                           },
-                          validate: validateLocation,
+                          
                         })}
                       />
                       {errors.companyAddress && (
@@ -753,7 +758,7 @@ function Profile() {
                               value: 200,
                               message: "Maximum 200 Characters allowed",
                             },
-                            validate: validateLocation,
+                            
                           })}
                         />
                         {errors.address && (

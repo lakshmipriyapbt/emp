@@ -483,6 +483,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Date of Joining"
                         name="dateOfHiring"
+                        onClick={(e) => e.target.showPicker()} 
                         max={getCurrentDate()} // This restricts the date to today
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
@@ -499,6 +500,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Last Working Date"
                         name="lastWorkingDate"
+                        onClick={(e) => e.target.showPicker()} 
                         max={getCurrentDate()}
                         {...register("lastWorkingDate", { required: true })}
                         onBlur={(e) =>

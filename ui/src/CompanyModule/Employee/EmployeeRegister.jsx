@@ -487,7 +487,7 @@ const handleClearNewEmployee = () => {
                       <small className="text-danger">{errors.lastName?.message}</small>
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
-                    <label>Employee ID</label> (last ID:{lastEmployeeId})
+                    <label>Employee ID</label> {!location.state?.id && `Last ID: ${lastEmployeeId}`}
                     <input type="text" className="form-control" name='employeeId' 
                       readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                      {...register("employeeId", {
@@ -560,7 +560,7 @@ const handleClearNewEmployee = () => {
                     <label>Date of Hiring</label>
                     <input type="date" className="form-control"
                       readOnly={!!location.state?.id} // Set readOnly if employee ID exists
-                      onFocus={(e) => e.target.showPicker()} 
+                      onClick={(e) => e.target.showPicker()} 
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
                       validate:validateHiringDate
@@ -604,7 +604,7 @@ const handleClearNewEmployee = () => {
                   <label htmlFor="dob" className="form-label">Date of Birth</label>
                   <input type="date" className="form-control" id="dob" 
                     readOnly={!!location.state?.id} // Set readOnly if employee ID exists
-                    onFocus={(e) => e.target.showPicker()} 
+                    onClick={(e) => e.target.showPicker()} 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
                     validate:validateDOB
@@ -866,7 +866,7 @@ const handleClearNewEmployee = () => {
                         <div className="col-md-2">
                           <label>Start Date</label>
                           <input type="date" className="form-control"
-                           onFocus={(e) => e.target.showPicker()} 
+                           onClick={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.startDate`, {
                             })}
                             onChange={(e) => calculateTenure(0, e.target.value, getValues(`employeeExperience.0.endDate`))}
@@ -877,7 +877,7 @@ const handleClearNewEmployee = () => {
                         <div className="col-md-2">
                           <label>End Date</label>
                           <input type="date" className="form-control"
-                           onFocus={(e) => e.target.showPicker()} 
+                           onClick={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.endDate`, {
                               validate: (value) => validateDates(value, index), // Custom validation
                             })}
@@ -910,7 +910,7 @@ const handleClearNewEmployee = () => {
                 <div className="row">
                  <div className="col-md-6">
                    <label>Bank Name</label>
-                   <select className="form-control"  {...register("bankName", { required: "Bank Name is required" })}>
+                   <select className="form-select"  {...register("bankName", { required: "Bank Name is required" })}>
                      <option value="">Select Bank</option>
                      {bank.map((bank,index) => (
                     <option key={index} value={bank.bankName}>
@@ -959,11 +959,6 @@ const handleClearNewEmployee = () => {
                </div>
               </div>
             )}
-              {errorMessage && (
-                      <div className="alert alert-danger mt-4 text-center">
-                        {errorMessage}
-                      </div>
-                    )}
                   <div className="mt-3 d-flex justify-content-between">
                     {step > 1 && (
                       <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>
@@ -972,7 +967,7 @@ const handleClearNewEmployee = () => {
                     )}
                     {location.state && location.state.id ?(
                       <button type="button" className="btn btn-warning me-2" onClick={handleClearNewEmployee}>
-                        Clear
+                        Add New Employee
                       </button>
                     ):(
                       <button type="button" className="btn btn-warning me-2" onClick={handleClear}>

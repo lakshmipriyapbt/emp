@@ -30,6 +30,7 @@ const InternOfferForm = () => {
     associateDesignation: "",
   }); 
   const [selectedHR, setSelectedHR] = useState({
+    hrId:"",
     hrName: "",
     hrEmail: "",
   });
@@ -63,6 +64,7 @@ const InternOfferForm = () => {
   
     if (selectedId === "Company Admin") {
       setSelectedHR({
+        hrId: "Company Admin",
         hrName: "Company Admin",
         hrEmail: company?.mailId || "N/A", // Fallback if company email is missing
       });
@@ -70,12 +72,14 @@ const InternOfferForm = () => {
       const selectedHRPerson = employees.find((emp) => emp.id === selectedId);
       if (selectedHRPerson) {
         setSelectedHR({
+          hrId: selectedId,  // ✅ Fix: Update hrId correctly
           hrName: `${selectedHRPerson.firstName} ${selectedHRPerson.lastName}`,
           hrEmail: selectedHRPerson.emailId,
         });
       }
     }
-  }; 
+  };
+  
   const joiningDate = watch("startDate");
 
   const validateEndDate = (endDate) => {
@@ -160,6 +164,7 @@ const InternOfferForm = () => {
     // If no HR employees exist, default to Company Admin
     if (hrEmployeeOptions.length === 0) {
       setSelectedHR({
+        hrId: "Company Admin",
         hrName: "Company Admin",
         hrEmail: company?.emailId || "N/A",
       });
@@ -215,6 +220,7 @@ const InternOfferForm = () => {
         if (success) {
           setShowPreview(true);
           reset();
+          setShowPreview(false)
         }
       } catch (error) {
         console.error("Error downloading the PDF:", error);
@@ -607,6 +613,7 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         max={threeMonthsFromNow}
                         {...register("startDate", {
                             required: "Joining Date is required",
@@ -625,6 +632,7 @@ const InternOfferForm = () => {
                         placeholder="Enter End Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("endDate", {
                         required: "End Date is required",
                         validate:validateEndDate,
@@ -765,6 +773,7 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("acceptDate", {
                           required: "Accept Date is required",
                           validate: validateAssigneeDate,
@@ -800,19 +809,18 @@ const InternOfferForm = () => {
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">HR</label>
-                      <select className="form-select" onChange={handleHRChange} value={selectedHR.hrName || ""}>
-  <option value="">Select HR</option>
-  {hrEmployees.length > 0 ? (
-    hrEmployees.map((emp) => (
-      <option key={emp.id} value={emp.id}>
-        {emp.name}
-      </option>
-    ))
-  ) : (
-    <option value="Company Admin">Company Admin</option>
-  )}
-</select>
-
+                      <select className="form-select" onChange={handleHRChange} value={selectedHR.hrId || ""}>
+                        <option value="">Select HR</option>
+                        {hrEmployees.length > 0 ? (
+                          hrEmployees.map((emp) => (
+                            <option key={emp.id} value={emp.id}>
+                              {emp.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="Company Admin">Company Admin</option>
+                        )}
+                      </select>
                       {errors.hrName && (
                         <p className="errorMsg">{errors.hrName.message}</p>
                       )}
