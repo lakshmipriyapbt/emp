@@ -65,12 +65,13 @@ public class OfferLetterRequest {
     private String salaryConfigurationId;
 
     @Schema(example = "designation")
-    @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$",
             message = "{invalid.position.format}")
     private String designation;
 
     @Schema(example = "department")
-    @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$"
+            ,
             message = "{department.format}")
     private String department;
 
