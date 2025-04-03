@@ -42,6 +42,7 @@ const Designation = () => {
   const handleCloseAddDesignationModal = () => {
     setAddDesignation(false);
     reset();
+    setEditingUserId(null);
   };
 
   const fetchDesignation = async () => {

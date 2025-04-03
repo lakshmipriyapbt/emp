@@ -4,8 +4,13 @@ const protocol = window.location.protocol;
 const hostname = window.location.hostname;
 
 
+<<<<<<< HEAD
 const BASE_URL = `${protocol}//${hostname}:8012/ems`;
 const Login_URL = `${protocol}//${hostname}:9002/ems`;
+=======
+const BASE_URL = `${protocol}//${hostname}:8092/ems`;
+const Login_URL = `${protocol}//${hostname}:9090/ems`;
+>>>>>>> main
 
 // ✅ Create Axios Instance (Without Token)
 const axiosInstance = axios.create({

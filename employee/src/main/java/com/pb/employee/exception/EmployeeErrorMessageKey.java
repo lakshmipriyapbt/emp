@@ -63,7 +63,7 @@ public enum EmployeeErrorMessageKey {
     INVALID_EMPLOYEE_DETAILS("invalid.employee.details"),
     INVALID_ATTENDANCE_DATA("invalid.attendance.data"),
     INVALID_YEAR("invalid.year"),
-    NO_ATTENDANCE_FOUND("attendance.not.found"),
+    NO_ATTENDANCE_FOUND("no.attendance.found"),
     DEPARTMENT_IS_EXIST_EMPLOYEE("department.exist.in.employee"),
     DESIGNATION_IS_EXIST_EMPLOYEE("designation.exist.in.employee"),
     EMPLOYEE_DATA_EXIST("employee.date.exist"),
@@ -114,7 +114,8 @@ public enum EmployeeErrorMessageKey {
     GENERATED_PAY_SLIP_EXISTED("generated.pay.slip.exited"),
     NO_PAY_SLIP_GENERATED("no.payslip.generated"),
     MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
-    EMAIL_ID_MISS_MATCH("email.id.miss.match");
+    EMAIL_ID_MISS_MATCH("email.id.miss.match"),
+    EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist");
 
     private final String key;
 

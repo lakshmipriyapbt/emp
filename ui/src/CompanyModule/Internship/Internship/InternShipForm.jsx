@@ -18,7 +18,7 @@ const InternShipForm = () => {
     formState: { errors },
     reset,
   } = useForm();
-  const { user } = useAuth();
+  const { company } = useAuth();
   const date = new Date().toLocaleDateString();
   const [emp, setEmp] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -70,15 +70,15 @@ const InternShipForm = () => {
   };
 
   useEffect(() => {
-    if (user?.companyId) {
-      fetchTemplate(user?.companyId);
+    if (company?.id) {
+      fetchTemplate(company?.id);
     }
-  }, [user?.companyId]);
+  }, [company?.id]);
 
   const onSubmit = (data) => {
     const submissionData = {
       employeeId: data.employeeId,
-      companyName: user.company,
+      companyName: company?.shortName,
       date: data.lastWorkingDate,
     };
     const preview = {
@@ -89,7 +89,7 @@ const InternShipForm = () => {
       resignationDate: data.resignationDate || "",
       lastWorkingDate: data.lastWorkingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName:company?.shortName,
     };
 
     console.log("submissionData", submissionData);
@@ -119,7 +119,7 @@ const InternShipForm = () => {
       startDate: selectedEmployee ? selectedEmployee.dateOfHiring : '',
       endDate: submissionData?.lastWorkingDate || new Date().toISOString().split('T')[0],
       designation: submissionData?.designationName || selectedEmployee?.designationName, 
-      companyId: user?.companyId, 
+      companyId: company?.id, 
       projectTitle: "EMS",
       internshipTemplateNo: selectedTemplate, // Pass the internshipTemplateNo (ID)
     };

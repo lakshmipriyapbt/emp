@@ -21,7 +21,7 @@ public class EmployeeExperience {
     private String companyName;
 
     @Schema(example = "positionOrTitle")
-    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{positionOrTitle.pattern.message}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&/\\s-]+(?! )$", message = "{positionOrTitle.pattern.message}")
     @Size(max = 50, min = 2, message = "{positionOrTitle.notnull.message}")
     private String positionOrTitle;
 

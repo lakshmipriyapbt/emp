@@ -138,11 +138,16 @@
     We appreciate your initiative and expect you to take many more such responsibilities in future
      assignments to ensure company’s growth.
     </p>
-    <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
-              <b>Authorized Signature</b>
-                     <br/>
-             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
 
+    <p>With Best Wishes</p>
+    <br/>
+   <div>
+              <b>Authorized Signature</b>
+             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+             <br/>
+             <b>${company.companyName}</b>
+              <p>${company.mobileNo}|${company.emailId}</p>
+              <p>${company.address}</p>
     </div>
     </div>
 
