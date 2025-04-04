@@ -18,12 +18,12 @@ public class EmployeePasswordReset {
     private String companyName;
 
     @Schema(example = "password")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{password.format}")
+    @Pattern(regexp =  "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^\\w\\s])(?!.* ).{6,16}$", message = "{password.format}")
     @NotBlank(message = "{password.notnull.message}")
     private String password;
 
     @Schema(example = "newPassword")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{password.format}")
+    @Pattern(regexp =  "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^\\w\\s])(?!.* ).{6,16}$", message = "{password.format}")
     @NotBlank(message = "{newPassword.notnull.message}")
     private String newPassword;
 }
