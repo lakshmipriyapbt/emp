@@ -573,7 +573,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                if (employeeId == null) {
+                if (employeeId == null && employeeId.isEmpty()) {
                     fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
                     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                     headers.setContentDisposition(ContentDisposition.builder("attachment")
@@ -736,7 +736,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
             }
             Template template = null;
-            if (employeeId == null) {
+            if (employeeId == null && employeeId.isEmpty()) {
               template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
             } else {
                template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
