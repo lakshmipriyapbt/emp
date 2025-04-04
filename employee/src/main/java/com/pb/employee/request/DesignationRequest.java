@@ -20,7 +20,7 @@ public class DesignationRequest {
     private String companyName;
 
     @Schema(example = "designation")
-    @Pattern(regexp = "^(?:[A-Z][a-z]*|[A-Z]+)(?: [A-Z][a-z]*| [A-Z]+)*$", message = "{designation.format}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&/\\s-]+(?! )$", message = "{designation.format}")
     @Size(min = 1, max = 40, message = "{designation.size.message}")
     private String name;
 }

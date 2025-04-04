@@ -292,7 +292,8 @@ const ExperienceForm = () => {
       designationName: "",
       departmentName: "",
       dateOfHiring: "",
-      lastWorkingDate: "",
+      experienceDate: "",
+      aboutEmployee:"",
     });
   };
 
@@ -524,9 +525,9 @@ const ExperienceForm = () => {
                             "Spaces at the end are not allowed.",
                         })}
                       />
-                      {errors.employeeAddress && (
+                      {errors.aboutEmployee && (
                         <p className="errorMsg">
-                          {errors.employeeAddress.message}
+                          {errors.aboutEmployee.message}
                         </p>
                       )}
                     </div>
@@ -547,7 +548,7 @@ const ExperienceForm = () => {
                           type="button"
                           onClick={clearForm}
                         >
-                          Close
+                          Clear
                         </button>
                         <button
                           className={

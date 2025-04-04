@@ -21,7 +21,7 @@ public class DepartmentRequest {
     private String companyName;
 
     @Schema(example = "department")
-    @Pattern(regexp = "^(?:[A-Z][a-z]*|[A-Z]+)(?: [A-Z][a-z]*| [A-Z]+)*$",
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&/\\s-]+(?! )$",
             message = "{department.format}")
     @Size(min = 1, max = 40, message = "{department.size.message}")
     private String name;

@@ -46,7 +46,7 @@ public enum EmployeeErrorMessageKey {
     EMPLOYEE_NOT_MATCHING("employee.not.matching"),
     UNABLE_GET_EMPLOYEES_PAYSLIP("unable.get.employee.payslip"),
     UNABLE_TO_GET_ATTENDANCE("unable.get.attendance"),
-    UNABLE_GET_EMPLOYEES_ATTENDANCE("unable.employee.attendance"),
+    UNABLE_GET_EMPLOYEES_ATTENDANCE("unable.get.employee.attendance"),
     UNABLE_TO_GENERATE_PAYSLIP("unable.to.generate.payslip"),
     UNABLE_SAVE_EMPLOYEE_ATTENDANCE("unable.to.save.attendance"),
     FAILED_TO_CREATE("failed.create"),
