@@ -35,7 +35,7 @@ public class InternshipOfferLetterRequest {
     private String address;
 
     @Schema(example = "department")
-    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$",
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&/\\s-]+(?! )$",
             message = "{department.format}")
     @Size(min = 1, max = 40, message = "{department.size.message}")
     private String department;
