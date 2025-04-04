@@ -313,8 +313,8 @@ export const validateFirstName = (value) => {
       for (const word of words) {
         if (word.length < 1) {
           return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
-        } else if (word.length > 100) {
-          return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
+        } else if (word.length > 255) {
+          return "Max Length 255 Characters Required."; // If any word is longer than 100 characters
         }
       }
 
