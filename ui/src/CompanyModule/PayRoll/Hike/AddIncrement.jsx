@@ -93,6 +93,8 @@ const AddIncrement = () => {
   const [loading, setLoading] = useState(false);
   const [previousGrossAmount, setPreviousGrossAmount] = useState(0);
   const [hikePercentage, setHikePercentage] = useState(0);
+  const [hikeErrorMessage,setHikeErrorMessage]=useState("")
+  const [download, setDownload]=useState(false);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
   const dispatch = useDispatch();
@@ -590,9 +592,15 @@ const AddIncrement = () => {
         const hike = ((newSalary - prevSalary) / prevSalary) * 100;
         console.log("hike",hike);
         setHikePercentage(hike.toFixed(2));
-      } else {
-        setHikePercentage(0); // No hike if the salary is the same or lower
-      }
+        if (hike < 0) {
+          setHikeErrorMessage("Warning: Hike percentage is negative.");
+        } else if (hike > 100) {
+          setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        } else {
+          setHikeErrorMessage(""); // No error
+        }
+        setHikePercentage(hike.toFixed(2)); // Store actual hike, even if negative
+      } 
     }
   }, [grossAmount, previousGrossAmount]); // Ensure previousGrossAmount is included
   
@@ -785,6 +793,16 @@ const AddIncrement = () => {
     let calculatedHike = 0;
     if (previousGrossAmount > 0) {
       calculatedHike = ((grossAmount - previousGrossAmount) / previousGrossAmount) * 100;
+      
+      if (calculatedHike < 0) {
+        setHikeErrorMessage ("Hike percentage cannot be negative.")
+        setShowCards(false);
+        setShowPfModal(false)
+      } else if (calculatedHike > 100) {
+        setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        setShowCards(false);
+        setShowPfModal(false)
+      }
     }
     // Calculate net salary
     const netSalary = grossAmount + finalAllowances - totalDeductions;
@@ -1001,6 +1019,7 @@ const AddIncrement = () => {
                             readOnly
                           />
                         </div>
+                        {hikeErrorMessage&& (<span className="text-center text-danger">{hikeErrorMessage}</span>)}
                         <div className="col-12 text-end mt-2">
                           <button
                             type="button"
@@ -1300,9 +1319,9 @@ const AddIncrement = () => {
                               type="submit"
                               className="btn btn-primary"
                               disabled={!!errorMessage}
-                            >
+                             >
                               Submit
-                            </button>
+                            </button>                         
                           </div>
                         </div>
                       </div>
@@ -1662,7 +1681,7 @@ const AddIncrement = () => {
                       onClick={() => setShowPreview(false)}
                     >
                       Close
-                    </button>
+                    </button>                   
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -1741,7 +1760,12 @@ const AddIncrement = () => {
             >
               Confirm
             </Button>
-            <Button variant="secondary" onClick={() => setShowPfModal(false)}>
+            <Button variant="secondary" 
+                onClick={() => {
+                  setShowPfModal(false);
+                  setShowCards(false);
+                }}            
+            >
               Cancel
             </Button>
           </div>

@@ -16,12 +16,12 @@ const EmployeeSalaryById = () => {
   };
 
   useEffect(() => {
-    if (authUser.userId) {
-      EmployeeSalaryGetApi(authUser.userId).then((response) => {
+    if (authUser?.userId) {
+      EmployeeSalaryGetApi(authUser?.userId).then((response) => {
         setEmployeeSalaryView(response.data.data);
       });
     }
-  }, [authUser.userId]);
+  }, [authUser?.userId]);
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -52,7 +52,7 @@ const EmployeeSalaryById = () => {
   const handleEditClick = (salaryId, event) => {
     event.stopPropagation(); // Prevent the card from toggling when editing
     navigate(
-      `/employeeSalaryView?salaryId=${salaryId}&employeeId=${authUser.userId}`
+      `/employeeSalaryView?salaryId=${salaryId}&employeeId=${authUser?.userId}`
     ); // Navigate with both parameters
   };
 

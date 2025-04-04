@@ -14,7 +14,7 @@ const PayslipTemplates = () => {
     const [loading, setLoading] = useState(false);
     const { employee } = useAuth();
 
-    console.log("companyId:",employee.companyId);
+    console.log("companyId:",employee?.companyId);
     
 
     const templates = [
@@ -31,7 +31,7 @@ const PayslipTemplates = () => {
         }
         setLoading(true);
         const data = {
-            companyId: employee.companyId,
+            companyId: employee?.companyId,
             payslipTemplateNo,
         };
 

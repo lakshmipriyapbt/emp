@@ -11,18 +11,11 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const {authUser, company,employee} = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {company,employee} = useAuth();
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
-
-   console.log("company in Header",company)
-   console.log("employee in Header",employee)
 
   const token = localStorage.getItem("token");
   const companyName=localStorage.getItem("companyName")
@@ -136,7 +129,7 @@ const Header = ({ toggleSidebar }) => {
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">{companyName}</span>
+                <span className="text-dark p-2 mb-3">{company?.companyName}</span>
                 <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
@@ -167,7 +160,7 @@ const Header = ({ toggleSidebar }) => {
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">{firstName} {lastName}</span> 
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
                 <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
