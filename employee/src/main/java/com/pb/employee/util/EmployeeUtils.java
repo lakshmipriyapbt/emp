@@ -513,9 +513,7 @@ public class EmployeeUtils {
 
         return employees.stream()
                 .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
-                        !employeesWithAttendance.contains(employee.getEmployeeId())&&
-                !Constants.INACTIVE.equalsIgnoreCase(employee.getStatus()) &&
-                !Constants.ON_BOARDING.equalsIgnoreCase(employee.getStatus()))
+                        !employeesWithAttendance.contains(employee.getEmployeeId())&& Constants.ACTIVE.equalsIgnoreCase(employee.getStatus()))
                 .collect(Collectors.toList());
     }
 }
