@@ -418,6 +418,7 @@ const handleClearNewEmployee = () => {
   });
 
   setStep(1); // Move back to Step 1
+  navigate(".", { replace: true, state: {} });
 };
 
 
