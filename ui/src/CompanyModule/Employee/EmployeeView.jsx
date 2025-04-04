@@ -100,7 +100,7 @@ const EmployeeView = () => {
         </b>
       ),
     },
-    onBoard: {
+    OnBoard: {
       label: (
         <b
           style={{
