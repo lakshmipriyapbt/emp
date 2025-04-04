@@ -25,9 +25,9 @@ public class InternshipOfferLetterRequest {
     private String date;
 
     @Schema(example = "employeeName")
-    @Pattern(regexp = "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$",
-            message = "{firstname.format}")
-    @Size(min = 3, max = 20, message = "{firstName.size.message}")
+    @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$",
+            message = "{employeeName.format}")
+    @Size(min = 3, max = 20, message = "{employeeName.size.message}")
     private String employeeName;
 
     @NotBlank(message = "{address.notnull.message}")
@@ -57,7 +57,7 @@ public class InternshipOfferLetterRequest {
     private String designation;
 
     @Schema(example = "associateName")
-    @Pattern(regexp = "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$",
+    @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$",
             message = "{name.format}")
     @Size(min = 3, max = 20, message = "{Name.size.message}")
     private String associateName;
