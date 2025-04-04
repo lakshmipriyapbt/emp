@@ -573,18 +573,19 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                if (employeeId == null && employeeId.isEmpty()) {
-                    fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
-                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
-                    headers.setContentDisposition(ContentDisposition.builder("attachment")
-                            .filename("employeeAttendanceDetails.xlsx")
-                            .build());
-                }else {
+                if (employeeId != null && !employeeId.isEmpty()) {
                     fileBytes = generateExcelFromSingleEmployeesAttendance(employeeAttendanceResPayloads);
                     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                     headers.setContentDisposition(ContentDisposition.builder("attachment")
                             .filename(employeeAttendanceResPayloads.getFirst().getFirstName()+"_"+employeeAttendanceResPayloads.getFirst().getLastName()+"_"+"AttendanceDetails.xlsx")
                             .build());
+                }else {
+                    fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
+                    headers.setContentDisposition(ContentDisposition.builder("attachment")
+                            .filename("employeeAttendanceDetails.xlsx")
+                            .build());
+
                 }
 
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
@@ -736,10 +737,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                 throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
             }
             Template template = null;
-            if (employeeId == null && employeeId.isEmpty()) {
-              template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
+            if (employeeId != null && !employeeId.isEmpty()) {
+                template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
             } else {
-               template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
+                template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
             }
 
             Map<String, Object> dataModel = new HashMap<>();

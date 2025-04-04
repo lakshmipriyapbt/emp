@@ -41,13 +41,13 @@ public class InternshipOfferLetterRequest {
     private String department;
 
     @Schema(example = "yyyy-mm-dd")
-    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{date.format}")
-    @NotBlank(message = "{date.notnull.message}")
+    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{startDate.format}")
+    @NotBlank(message = "{startDate.notnull.message}")
     private String startDate;
 
     @Schema(example = "yyyy-mm-dd")
-    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{date.format}")
-    @NotBlank(message = "{date.notnull.message}")
+    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{endDate.format}")
+    @NotBlank(message = "{endDate.notnull.message}")
     private String endDate;
 
     @Schema(example = "designation")
@@ -77,10 +77,10 @@ public class InternshipOfferLetterRequest {
     @Pattern(regexp = "^(\\d+(\\.\\d{1,2})?|)$", message = "{stipend.format}")
     private String stipend;
 
-    @Schema(example = "employeeName")
-    @Pattern(regexp = "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$",
-            message = "{firstname.format}")
-    @Size(min = 3, max = 20, message = "{firstName.size.message}")
+    @Schema(example = "hrName")
+    @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$",
+            message = "{hrName.format}")
+    @Size(min = 3, max = 20, message = "{hrName.size.message}")
     private String hrName;
 
     @Schema(example = "emailId")
