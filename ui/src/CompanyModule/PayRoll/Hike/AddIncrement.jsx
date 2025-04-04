@@ -533,12 +533,12 @@ const AddIncrement = () => {
       !departmentName ||
       !dateOfHiring ||
       !months ||
-      !years||grossAmount
+      !years||!grossAmount
     ) {
       setMessage("Please fill all the required fields.");
-      setShowFields(true); // Optionally hide or show some fields based on conditions
+      setShowFields(false); // Optionally hide or show some fields based on conditions
     } else {
-      setShowFields(false); // Show fields or proceed with form submission
+      setShowFields(true); // Show fields or proceed with form submission
       setErrorMessage(""); // Clear any existing error messages
     }
   };
@@ -1557,7 +1557,7 @@ const AddIncrement = () => {
                                     maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
                                     return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
                                   })()}
-                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of on
+                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation
@@ -1571,6 +1571,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
                             </div>
+                            {message && <p className="text-danger text-center">{message}</p>}
                             <div
                               className="col-12  d-flex justify-content-end mt-5 "
                               style={{ background: "none" }}
