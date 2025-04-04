@@ -16,11 +16,11 @@
         }
         .logo {
         position: absolute;
-        top: 8px;
+        top: 6px;
         right: 20px;
         }
         .logo img {
-        max-width: 100px;
+        max-width: 80px;
         height: auto;
         }
         .content {
