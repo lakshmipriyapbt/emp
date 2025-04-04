@@ -101,6 +101,21 @@ const EmployeeView = () => {
         </b>
       ),
     },
+    onBoard: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+            background:"orange",
+          }}
+          // className="bg-danger"
+        >
+          On Board
+        </b>
+      ),
+    },
   };
 
   const columns = [
