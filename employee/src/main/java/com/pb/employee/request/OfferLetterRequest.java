@@ -26,14 +26,14 @@ public class OfferLetterRequest {
     private String referenceNo;
 
     @Schema(example = "employeeName")
-    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{firstname.format}")
-    @Size(min = 1, max = 100, message = "{firstName.size.message}")
+    @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$", message = "{employeeName.format}")
+    @Size(min = 2, max = 100, message = "{employeeName.size.message}")
     private String employeeName;
 
     @Schema(example = "employeeFatherName")
     @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$",
-            message = "{fathername.format}")
-    @Size(min = 1, max = 100, message = "{firstName.size.message}")
+            message = "{employeeFatherName.format}")
+    @Size(min = 2, max = 100, message = "{employeeFatherName.size.message}")
     private String employeeFatherName;
 
     @Schema(example = "address")
@@ -70,9 +70,7 @@ public class OfferLetterRequest {
     private String designation;
 
     @Schema(example = "department")
-    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$"
-            ,
-            message = "{department.format}")
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$", message = "{department.format}")
     private String department;
 
 }
