@@ -236,7 +236,7 @@ public class CompanyUtils {
 
     public static Entity maskEmployeeUpdateProperties(EmployeeEntity user, EmployeeUpdateRequest employeeUpdateRequest) {
 
-        String accountNo=null,ifscCode=null, mobileNo=null, alterNo =null;
+        String accountNo=null,ifscCode=null, mobileNo=null;
         if (employeeUpdateRequest.getEmployeeType() != null){
             user.setEmployeeType(employeeUpdateRequest.getEmployeeType());
         }
@@ -257,21 +257,6 @@ public class CompanyUtils {
         }
         if (employeeUpdateRequest.getBankName() != null){
             user.setBankName(employeeUpdateRequest.getBankName());
-        }if (employeeUpdateRequest.getAlternateNo() != null){
-            alterNo = Base64.getEncoder().encodeToString(employeeUpdateRequest.getAlternateNo().getBytes());
-            user.setAlternateNo(alterNo);
-        }
-        if (employeeUpdateRequest.getBankBranch() != null){
-            user.setBankBranch(employeeUpdateRequest.getBankBranch());
-        }
-        if (employeeUpdateRequest.getTempAddress() != null){
-            user.setTempAddress(employeeUpdateRequest.getTempAddress());
-        }
-        if (employeeUpdateRequest.getPersonnelEntity() != null){
-            user.setPermanentAddress(employeeUpdateRequest.getPermanentAddress());
-        }
-        if (employeeUpdateRequest.getMaritalStatus() != null){
-            user.setMaritalStatus(employeeUpdateRequest.getMaritalStatus());
         }
         if (employeeUpdateRequest.getStatus() != null){
             user.setStatus(employeeUpdateRequest.getStatus());
