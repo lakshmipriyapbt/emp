@@ -22,7 +22,7 @@ public class LoginRequest {
 
     @NotEmpty(message = "{user.password.message}")
     @Schema(required = true,  description = "${login.password.description}", example = "password")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[_\\W])(?!.* ).{6,16}$", message = "{invalid.password}")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{invalid.password}")
     @JsonProperty("password")
     private String password;
 }

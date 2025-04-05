@@ -712,8 +712,9 @@ public class PayslipServiceImpl implements PayslipService {
 
                 // Fetch attendance for the given month and year
                 AttendanceEntity attendanceEntity = openSearchOperations.getAttendanceById(attendanceId, null, index);
+
                 // If attendance is missing for the specific month and year, add to `employeesWithoutAttendance`
-                if (attendanceEntity == null) {
+                if (attendanceEntity == null && Constants.ACTIVE.equals(employee.getStatus())) {
                     log.error("Employee Attendance is not found for employee {} for {}/{}", employee.getId(), payslipRequest.getMonth(), payslipRequest.getYear());
                     employeesWithoutAttendance.add(employee.getEmployeeId() + "  " + employee.getFirstName() + " " + employee.getLastName());
                     continue; // Skip to the next employee
