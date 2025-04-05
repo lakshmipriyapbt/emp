@@ -173,12 +173,43 @@ public class EmployeeUtils {
             noOfChanges +=1;
         }if (!user.getManager().equals(employeeUpdateRequest.getManager())){
             noOfChanges +=1;
-        }if (!user.getMobileNo().isEmpty()) {
+        }if (user.getMobileNo() != null && !user.getMobileNo().isEmpty()) {
             String mobile = new String(Base64.getDecoder().decode(user.getMobileNo().getBytes()));
             if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
                 noOfChanges += 1;
             }
-        }if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
+        }else if (user.getMobileNo() == null){
+            noOfChanges +=1;
+        }if (user.getAlternateNo() != null && !user.getAlternateNo().isEmpty()){
+            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
+            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
+                noOfChanges += 1;
+            }
+        }else if (user.getAlternateNo() == null){
+            noOfChanges +=1;
+        }
+        if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
+            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getAlternateNo())){
+                noOfChanges += 1;
+            }
+        }else if (user.getPermanentAddress() == null){
+            noOfChanges +=1;
+        }
+        if (user.getTempAddress() != null && !user.getTempAddress().isEmpty()){
+            if (!user.getTempAddress().equals(employeeUpdateRequest.getTempAddress())){
+                noOfChanges += 1;
+            }
+        }else if (user.getTempAddress() == null){
+            noOfChanges +=1;
+        }
+        if (user.getMaritalStatus() != null && !user.getMaritalStatus().isEmpty()){
+            if (!user.getMaritalStatus().equals(employeeUpdateRequest.getMaritalStatus())){
+                noOfChanges += 1;
+            }
+        }else if (user.getMaritalStatus() == null){
+            noOfChanges +=1;
+        }
+        if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
             noOfChanges +=1;
         }if (!user.getIfscCode().isEmpty()) {
            String ifsc = new String((Base64.getDecoder().decode(user.getIfscCode().toString().getBytes())));
@@ -194,6 +225,7 @@ public class EmployeeUtils {
         }if (!user.getBankName().equals(employeeUpdateRequest.getBankName())){
             noOfChanges +=1;
         }
+
         if (employeePersonnel != null) {
             noOfChanges += compareEmployeeExperience(
                     employeePersonnel.getEmployeeExperience(),
