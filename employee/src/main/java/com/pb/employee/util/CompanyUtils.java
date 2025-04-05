@@ -273,6 +273,9 @@ public class CompanyUtils {
         if (employeeUpdateRequest.getMaritalStatus() != null){
             user.setMaritalStatus(employeeUpdateRequest.getMaritalStatus());
         }
+        if (employeeUpdateRequest.getStatus() != null){
+            user.setStatus(employeeUpdateRequest.getStatus());
+        }
         if (employeeUpdateRequest.getAccountNo() != null) {
             accountNo = Base64.getEncoder().encodeToString(employeeUpdateRequest.getAccountNo().getBytes());
             user.setAccountNo(accountNo);
