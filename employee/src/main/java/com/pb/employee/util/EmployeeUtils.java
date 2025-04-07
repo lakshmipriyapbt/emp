@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class EmployeeUtils {
 
     public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
-        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null;
+        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null, altNo= null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
         }
@@ -60,13 +60,14 @@ public class EmployeeUtils {
         entity.setIfscCode(ifscCode);
         entity.setAccountNo(accountNo);
         entity.setMobileNo(mobileNo);
+        entity.setAlternateNo(altNo);
         entity.setType(Constants.EMPLOYEE);
         return entity;
     }
 
 
     public static Entity unmaskEmployeeProperties(EmployeeEntity employeeEntity, DepartmentEntity entity, DesignationEntity designationEntity) {
-        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null;
+        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null, alterNo=null;
         if(employeeEntity.getPanNo() != null) {
             pan = new String((Base64.getDecoder().decode(employeeEntity.getPanNo().toString().getBytes())));
         }
@@ -85,6 +86,9 @@ public class EmployeeUtils {
         if(employeeEntity.getMobileNo() != null) {
             mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
         }
+        if(employeeEntity.getAlternateNo() != null) {
+            alterNo = new String((Base64.getDecoder().decode(employeeEntity.getAlternateNo().toString().getBytes())));
+        }
         if (entity != null && employeeEntity.getDepartment() != null) {
             employeeEntity.setDepartmentName(entity.getName());
         }else {
@@ -101,6 +105,7 @@ public class EmployeeUtils {
         employeeEntity.setUanNo(uanNo);
         employeeEntity.setPassword("**********");
         employeeEntity.setPanNo(pan);
+        employeeEntity.setAlternateNo(alterNo);
         employeeEntity.setMobileNo(mobileNo);
         return employeeEntity;
     }
@@ -180,7 +185,7 @@ public class EmployeeUtils {
             }
         }else if (user.getMobileNo() == null){
             noOfChanges +=1;
-        }if (user.getAlternateNo() != null && !user.getAlternateNo().isEmpty()){
+        }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
             String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
             if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
                 noOfChanges += 1;
