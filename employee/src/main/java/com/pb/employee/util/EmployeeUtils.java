@@ -434,6 +434,8 @@ public class EmployeeUtils {
            if (!alternate.equals(companyUpdateRequest.getAlternateNo())){
                 noOfChanges +=1;
            }
+        }else if (companyUpdateRequest.getAlternateNo()!= null){
+            noOfChanges+=1;
         }
 
         if(!user.getName().equals(companyUpdateRequest.getName())){
