@@ -83,10 +83,10 @@ public class InternshipOfferLetterRequest {
     @Size(min = 3, max = 100, message = "{hrName.size.message}")
     private String hrName;
 
-//    @Schema(example = "emailId")
-//    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{hr.invalid.emailId}")
-//    @NotBlank(message = "{hr.emailId.notnull.message}")
-//    private String hrEmail;
+    @Schema(example = "emailId")
+    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{hr.invalid.emailId}")
+    @NotBlank(message = "{hr.emailId.notnull.message}")
+    private String hrEmail;
 
     @Schema(example = "emailId")
     @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
