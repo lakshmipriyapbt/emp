@@ -231,7 +231,7 @@ const CompanyRegistration = () => {
     if (!/(?=.*[A-Z])/.test(value)) {
       errors.push("at least one uppercase letter");
     }
-    if (!/(?=.*\W)/.test(value)) {
+    if (!/(?=.*[\W_])/.test(value)) {
       errors.push("at least one special character");
     }
     if (value.includes(" ")) {

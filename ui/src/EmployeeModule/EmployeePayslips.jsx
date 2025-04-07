@@ -23,8 +23,8 @@ const EmployeePayslips = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const { authUser} = useAuth();
   const navigate = useNavigate();
-  console.log("userId:", authUser.userId);
-  const id = authUser.userId;
+  console.log("userId:", authUser?.userId);
+  const id = authUser?.userId;
   console.log(id);
 
   const fetchTemplate = async () => {
