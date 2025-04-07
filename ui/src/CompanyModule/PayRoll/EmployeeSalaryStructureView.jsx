@@ -9,15 +9,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeSalaryStructureView = () => {
-    const [filteredSalaries, setFilteredSalaries] = useState([]); // Stores filtered salaries
     // Single Search Field
-    const [searchQuery, setSearchQuery] = useState(""); 
-    // Salary Range
-    const [minSalary, setMinSalary] = useState("");
-    const [maxSalary, setMaxSalary] = useState("");
-    const [salaries,setSalaries]=useState([]);
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [salaries,setSalaries]=useState([]);
+  const [filteredSalaries, setFilteredSalaries] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
@@ -28,36 +23,32 @@ const EmployeeSalaryStructureView = () => {
             const res = await EmployeesSalariesGetApi();
             const formattedData = res.data.data
             setSalaries(formattedData);
-            console.log("salaries",res.data.data)
+            setFilteredSalaries(formattedData);
             } catch (error) {
             console.error("Error fetching employees:", error);
             }
         };
             fetchEmployeesSalaries(); // Fetch all attendance data initially
         }, []);
-
-  const getMonthNames = () => {
-    return Array.from({ length: 12 }, (_, i) =>
-      new Date(0, i).toLocaleString("en-US", { month: "long" })
-    );
-  };
-
-  const getRecentYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 10; i--) {
-      years.push(i.toString());
-    }
-    return years;
-  };
+        useEffect(() => {
+          const results = salaries.filter((salary) => {
+              const searchLower = searchQuery.toLowerCase();
+              const grossAmount = parseFloat(salary.grossAmount); // Convert grossAmount to number
+              const netSalary=parseFloat(salary.netSalary);
+              return (
+                  salary.employeeName.toLowerCase().includes(searchLower) ||
+                  salary.employeeCreatedId.toLowerCase().includes(searchLower) ||
+                  (!isNaN(searchQuery) && grossAmount >= parseFloat(searchQuery))|| // Numeric search
+                  (!isNaN(searchQuery)&& netSalary>=parseFloat(searchQuery))
+              );
+          });
+      
+          setFilteredSalaries(results);
+      }, [searchQuery, salaries]);
+      
 
   const handleSalary = (id) => {
     Navigate(`/employeeSalaryList?id=${id}`);
-  };
-
-
-  const handleEdit = (id) => {
-    Navigate(`/employeeRegister`, { state: { id } });
   };
 
   const statusMappings = {
@@ -157,68 +148,6 @@ const EmployeeSalaryStructureView = () => {
     }
   ];  
 
-  useEffect(() => {
-    let updatedSalaries = salaries;
-    // Apply search filter (Name, ID, Status)
-    if (searchQuery) {
-      updatedSalaries = updatedSalaries.filter((salary) =>
-        salary.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        salary.employeeCreatedId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        salary.status.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-  
-    // Apply Gross Amount filter
-    if (minSalary) {
-      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.grossAmount) >= parseFloat(minSalary));
-    }
-  
-    if (maxSalary) {
-      updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.grossAmount) <= parseFloat(maxSalary));
-    }
-  
-    // // Apply Net Salary filter
-    // if (minNetSalary) {
-    //   updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) >= parseFloat(minNetSalary));
-    // }
-  
-    // if (maxNetSalary) {
-    //   updatedSalaries = updatedSalaries.filter((salary) => parseFloat(salary.netSalary) <= parseFloat(maxNetSalary));
-    // }
-  
-    setFilteredSalaries(updatedSalaries);
-  }, [searchQuery, minSalary, maxSalary,salaries]);
-  
-  const toInputTitleCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, '');
-    // Ensure only alphabets and spaces are allowed
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
-    value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
-    // Capitalize the first letter of each word
-    const words = value.split(' ');
-    // Capitalize the first letter of each word and lowercase the rest
-    const capitalizedWords = words.map(word => {
-      if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-      }
-      return '';
-    });
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(' ');
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 2) {
-      formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
-    }
-    // Update input value
-    input.value = formattedValue;
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
-  };
-
   const showToast = (message, type) => {
     toast[type](message);
   };
@@ -265,52 +194,17 @@ const EmployeeSalaryStructureView = () => {
                       <option value="pdf">PDF (.pdf)</option>
                     </select>
                   </div>
-                </div>
-                  <div className="row col-12 mb-2">
-
-                    <div className="col-md-4 mt-2 ">
-                      <input
-                        type="search"
-                        className="form-control"
-                        placeholder="Search...."
-                        value={searchQuery}
-                        onInput={toInputTitleCase}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                  <div className="col-md-4 align-items-end">
+                    <input
+                          type="search"
+                          className="form-control"
+                          placeholder="Search by ID, Name, Gross Amount, or Net Salary"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          style={{ marginBottom: "10px", padding: "5px", width: "300px" }}
                       />
-                    </div>
-                    <div className="col-md-4 mt-2">
-                      <select
-                        className="form-select"
-                        style={{ paddingBottom: '6px' }}
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(e.target.value)}
-
-                      >
-                        <option value="">Select Year</option>
-                        {getRecentYears().map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="col-md-4 mt-2">
-                      <select
-                        className="form-select"
-                        style={{ paddingBottom: '6px' }}
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                      >
-                        <option value="">Select Month</option>
-                        {getMonthNames().map((month, index) => (
-                          <option key={index} value={(index + 1).toString()}>
-                            {month}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
-
+                </div>
                   <div
                     className="dropdown-divider"
                     style={{ borderTopColor: "#d7d9dd" }}
@@ -319,10 +213,11 @@ const EmployeeSalaryStructureView = () => {
               </div>
               <DataTable
                 columns={columns}
-                data={salaries}
+                data={filteredSalaries.length > 0 ? filteredSalaries : ""}
                 pagination
                 onChangePage={page => setCurrentPage(page)}
                 onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
+                responsive
               />
             </div>
           </div>

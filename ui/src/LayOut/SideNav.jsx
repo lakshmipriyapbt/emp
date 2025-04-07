@@ -15,7 +15,6 @@ const SideNav = () => {
   const [isLettresOpen, setIsLettersOpen] = useState(false);
   const location = useLocation();
   const { authUser = {}, company={} } = useAuth();
-  console.log("authUser",authUser);
 
   useEffect(() => {
     if (
@@ -1450,6 +1449,16 @@ const SideNav = () => {
                     </Link>
                   </li>
                 </ul>
+              </li>
+              <li
+                className={`sidebar-item ${
+                  location.pathname === "/employeePayslip" ? "active" : ""
+                }`}
+              >
+                <Link className="sidebar-link" to="/employeePayslip">
+                  <i className="bi bi-file-earmark-medical-fill"></i>
+                  <span className="align-middle">Payslips</span>
+                </Link>
               </li>
             </>
           )}

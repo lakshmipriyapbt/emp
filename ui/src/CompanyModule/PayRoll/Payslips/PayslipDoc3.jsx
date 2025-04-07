@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Download } from "react-bootstrap-icons";
 import {
-  companyViewByIdApi,
   EmployeeGetApiById,
   EmployeePaySlipDownloadById,
   EmployeePayslipGetById,
@@ -16,6 +15,7 @@ const PayslipDoc3 = () => {
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate=useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
   const payslipId = queryParams.get("payslipId");
@@ -111,9 +111,17 @@ const PayslipDoc3 = () => {
     <LayOut>
       <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
         <div className="col">
-          <h1 className="h3 mb-3">
-            <strong>PaySlip</strong>
-          </h1>
+          <div className="d-flex align-items-center mb-3">
+            {/* Back Button */}
+            <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+              ← Back
+            </button>
+
+            {/* Payslip Heading */}
+            <h1 className="h3 m-0">
+              <strong>PaySlip</strong>
+            </h1>
+          </div>
         </div>
         <div className="col-auto" style={{ paddingBottom: "20px" }}>
           <nav aria-label="breadcrumb">
@@ -121,8 +129,13 @@ const PayslipDoc3 = () => {
               <li className="breadcrumb-item">
                 <a href="/main">Home</a>
               </li>
-              <li className="breadcrumb-item">
-                <a href="/payslipsList">Payslip View</a>
+              <li className="breadcrumb-item active">
+                <span 
+                  onClick={() => navigate(-1)} 
+                  style={{ cursor: "pointer", color: "#3b7ddd" }}
+                >
+                  Payslip View
+                </span>
               </li>
               <li className="breadcrumb-item active">PaySlipForm</li>
             </ol>
@@ -855,6 +868,9 @@ const PayslipDoc3 = () => {
         </div>
       </div>
       <div className="d-flex justify-content-end align-items-center me-4">
+        <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+              ← Back
+            </button>
         <button
           type="button"
           className="btn btn-outline-primary"

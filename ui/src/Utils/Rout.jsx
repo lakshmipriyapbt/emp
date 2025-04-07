@@ -152,6 +152,7 @@ const Rout = () => {
       <Route path='/employeeSalaryStructure' element={<EmployeeSalaryStructure />}></Route>
       <Route path='/employeeSalaryUpdate' element={<EmployeeSalaryUpdate />}></Route>
       <Route path='/employeeSalaryList' element={<EmployeeSalaryList />}></Route>
+      <Route path='/employeeSalaryView' element={<EmployeeSalaryView/>}></Route>
       <Route path='/payslipGeneration' element={<GeneratePaySlip />}></Route>
       <Route path='/payslipsList' element={<ViewPaySlips />}></Route>
       <Route path='/appraisal' element={<AddIncrement />}></Route>
