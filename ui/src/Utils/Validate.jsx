@@ -435,7 +435,7 @@ export const validatePFNumber = (pfNo) => {
   }
 
   // ✅ PF Number Format: XX/XXX/1234567/000/1234567
-  const pfRegex = /^[A-Z]{2}\/[A-Z]{3}\/\d{7}\/\d{3}\/\d{7}$/;
+  const pfRegex = /^[A-Z]{2}[A-Z]{3}\d{7}\d{3}\d{7}$/  ;
 
   if (!pfRegex.test(pfNo)) {
       return "Invalid PF Number format. Expected format: XX/XXX/1234567/000/1234567";

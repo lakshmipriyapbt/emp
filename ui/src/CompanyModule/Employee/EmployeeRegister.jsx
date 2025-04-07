@@ -289,9 +289,9 @@ const dropdownOptions = [
           setValue("status", status.toString());
           setLoading(true);
           // Conditionally show "Notice Period" option based on status
-          if (status === "NoticePeriod") {
-            setShowNoticePeriodOption(true);
-          }
+          // if (status === "NoticePeriod") {
+          //   setShowNoticePeriodOption(true);
+          // }
   
           // Set employeeEducation data
           if (response.data.data.personnelEntity?.employeeEducation?.length) {
@@ -588,7 +588,7 @@ const handleClearNewEmployee = () => {
                       <option value='Active'>Active</option>
                       <option value='InActive'>In Active</option>
                       <option value='OnBoard'>OnBoard</option>
-                      {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>}
+                      {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
                       </select>
                     <small className="text-danger">{errors.status?.message}</small>
                   </div>
@@ -980,7 +980,7 @@ const handleClearNewEmployee = () => {
                         Next
                       </button>
                     ) : (
-                      <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()}>
+                      <button type="submit" className="btn btn-success">
                         Submit
                       </button>
                     )}
