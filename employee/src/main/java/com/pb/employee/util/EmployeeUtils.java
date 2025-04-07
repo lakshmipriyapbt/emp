@@ -45,6 +45,9 @@ public class EmployeeUtils {
         if(employeeRequest.getMobileNo() != null) {
             mobileNo = Base64.getEncoder().encodeToString(employeeRequest.getMobileNo().getBytes());
         }
+        if(employeeRequest.getAlternateNo() != null) {
+            altNo = Base64.getEncoder().encodeToString(employeeRequest.getAlternateNo().getBytes());
+        }
         // Encode default password
         password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
 
