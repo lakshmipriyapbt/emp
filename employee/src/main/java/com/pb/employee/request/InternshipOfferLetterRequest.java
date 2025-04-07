@@ -80,7 +80,7 @@ public class InternshipOfferLetterRequest {
     @Schema(example = "hrName")
     @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$",
             message = "{hrName.format}")
-    @Size(min = 3, max = 100, message = "{hrName.size.message}")
+    @Size(min = 2, max = 100, message = "{hrName.size.message}")
     private String hrName;
 
     @Schema(example = "emailId")
