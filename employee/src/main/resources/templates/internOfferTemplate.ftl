@@ -84,6 +84,7 @@
             <div>
                 Regards,<br/>
                 <b>${offerLetter.hrName}</b><br/>
+                Email: ${offerLetter.hrEmail}<br/>
                 Mobile: ${offerLetter.hrMobileNo}<br/>
                 Branch: ${offerLetter.companyBranch}<br/>
 
