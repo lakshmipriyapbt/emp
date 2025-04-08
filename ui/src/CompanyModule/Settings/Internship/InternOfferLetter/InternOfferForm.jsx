@@ -70,14 +70,13 @@ const InternOfferForm = () => {
         hrEmail: company?.mailId || "N/A",
       });
     } else {
-      // Ensure IDs are compared correctly
       const selectedHRPerson = hrEmployees.find((emp) => String(emp.id) === selectedId);
   
       if (selectedHRPerson) {
         setSelectedHR({
-          hrId: String(selectedHRPerson.id),  // Store as string
-          hrName: `${selectedHRPerson.name}`, // Assuming `name` is a field in `hrEmployees`
-          hrEmail: selectedHRPerson.emailId,  // Ensure emailId is correct
+          hrId: String(selectedHRPerson.id),
+          hrName: `${selectedHRPerson.firstName || ""} ${selectedHRPerson.lastName || ""}`,
+          hrEmail: selectedHRPerson.emailId,
         });
       }
     }
@@ -142,9 +141,7 @@ const InternOfferForm = () => {
   useEffect(() => {
     const allEmployeeOptions = employees.map((emp) => ({
       id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${
-        emp.designationName
-      })`.trim(),
+      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
     }));
   
     setEmployeeOptions(allEmployeeOptions);
@@ -157,24 +154,19 @@ const InternOfferForm = () => {
           emp.departmentName.toLowerCase().startsWith("human resources"))
     );
   
-    const hrEmployeeOptions = hrDepartmentsEmployees.map((emp) => ({
-      id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
-    }));
-  
-    setHrEmployees(hrEmployeeOptions);
+    // ✅ Save full employee objects here
+    setHrEmployees(hrDepartmentsEmployees);
   
     // If no HR employees exist, default to Company Admin
-    if (hrEmployeeOptions.length === 0) {
+    if (hrDepartmentsEmployees.length === 0) {
       setSelectedHR({
         hrId: "Company Admin",
         hrName: "Company Admin",
         hrEmail: company?.emailId || "N/A",
       });
     }
-  }, [employees, company]);
+  }, [employees, company]);  
   
-
   const fetchDepartments = async () => {
     try {
       const data = await DepartmentGetApi();
@@ -823,23 +815,26 @@ const InternOfferForm = () => {
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">HR</label>
-                      <select 
-                        className="form-select" 
-                        onChange={handleHRChange} 
-                        value={selectedHR.hrId || ""}
-                      >
-                        <option value="">Select HR</option>
-                        {hrEmployees.length > 0 ? (
-                          hrEmployees.map((emp) => (
-                            <option key={emp.id} value={String(emp.id)}> {/* Ensure value is a string */}
-                              {emp.name}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="Company Admin">Company Admin</option>
-                        )}
-                      </select>
-
+                      <select
+        id="hrSelect"
+        className="form-select"
+        onChange={handleHRChange}
+        value={selectedHR?.hrId || ""}
+      >
+        <option value="">Select HR</option>
+        {hrEmployees.length > 0 ? (
+          <>
+            {hrEmployees.map((emp) => (
+              <option key={emp.id} value={String(emp.id)}>
+                {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
+              </option>
+            ))}
+            <option value="Company Admin">Company Admin</option>
+          </>
+        ) : (
+          <option value="Company Admin">Company Admin</option>
+        )}
+      </select>
                       {errors.hrName && (
                         <p className="errorMsg">{errors.hrName.message}</p>
                       )}

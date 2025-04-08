@@ -17,7 +17,7 @@ const InvoiceRegistration = () => {
     handleSubmit,
     control,
     setValue,
-    reset,
+    reset,watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   // Select data from Redux store
@@ -366,6 +366,37 @@ const InvoiceRegistration = () => {
     setValue("dueDate", dueDate.toISOString().split("T")[0]);
   };
 
+  const joiningDate = watch("invoiceDate");
+
+  const validateDueDate = (dueDate) => {
+    if (!joiningDate) return "Invoice Date is required before selecting End Date";
+  
+    const joinDateObj = new Date(joiningDate);
+    const endDateObj = new Date(dueDate);
+    const maxEndDate = new Date(joinDateObj);
+    maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
+  
+    if (endDateObj < joinDateObj) {
+      return "Due Date cannot be before Invoice Date";
+    }
+    if (endDateObj > maxEndDate) {
+      return "Due Date cannot exceed 1 month from Invoice Date";
+    }
+    return true;
+  };
+
+    useEffect(() => {
+      // Dynamically update the max End Date and Accept Date based on the joiningDate
+      if (joiningDate) {
+        const joiningDateObj = new Date(joiningDate);
+        
+        // Set max End Date to 12 months after the joiningDate
+        const maxEndDate = new Date(joiningDateObj);
+        maxEndDate.setMonth(maxEndDate.getMonth() + 1);
+        setValue("dueDate", maxEndDate.toISOString().split("T")[0]);
+      }
+    }, [joiningDate, setValue]);
+
   useEffect(() => {
     const invoiceDate = document.getElementById("invoiceDate").value;
     if (invoiceDate) {
@@ -663,7 +694,6 @@ const InvoiceRegistration = () => {
                         onClick={(e) => e.target.showPicker()} 
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
-                          onChange: handleInvoiceDateChange, // Set due date when invoice date changes
                         })}
                       />
                       {errors.invoiceDate && (
@@ -690,17 +720,18 @@ const InvoiceRegistration = () => {
                         name="dueDate"
                         id="dueDate"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("dueDate", {
                           required: "Due Date is required",
+                         validate:validateDueDate
                         })}
-                        disabled
                       />
-                    </div>
-                    {/* {errors.dueDate && (
+                       {errors.dueDate && (
                       <p className="errorMsg" style={{ marginLeft: "6px" }}>
                         {errors.dueDate.message}
                       </p>
-                    )} */}
+                    )}
+                    </div>    
                   </div>
                   <div className="mt-4">
                     <button

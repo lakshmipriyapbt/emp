@@ -205,7 +205,7 @@ const InvoicePdf = () => {
                         <td>{invoiceData.grandTotal}</td>
                       </tr>
                       <tr>
-                        <td colSpan="12" style={{ textAlign: 'center', fontWeight: 'bold' }}>In Words : {invoiceData.grandTotalInWords} </td>
+                        <td colSpan="12" style={{ textAlign: 'center', fontWeight: 'bold' }}>In Words : {invoiceData.grandTotalInWords} Rupees Only/- </td>
                       </tr>
                       <tr>
                         <td colSpan="12" style={{ textAlign: 'center', fontWeight: 'bold' }}>The payment should be made favouring {companyDetails.companyName} or Direct deposite information below</td>

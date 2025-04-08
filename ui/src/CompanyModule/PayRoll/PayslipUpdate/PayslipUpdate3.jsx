@@ -1513,8 +1513,8 @@ const PayslipUpdate3 = () => {
                                 message: "Minimum 2 characters required",
                               },
                               maxLength: {
-                                value: 40,
-                                message: "Maximum 20 characters required",
+                                value: 60,
+                                message: "Maximum 60 characters required",
                               },
                             })}
                           />

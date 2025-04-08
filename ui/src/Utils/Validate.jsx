@@ -44,7 +44,7 @@ export const toInputTitleCase = (e) => {
 };
 
 //On Input Validation for Address/Location 
-export   const toInputAddressCase = (e) => {
+export    const toInputAddressCase = (e) => {
   const input = e.target;
   let value = input.value;
   const cursorPosition = input.selectionStart; // Save the cursor position
@@ -71,10 +71,10 @@ export   const toInputAddressCase = (e) => {
   let formattedValue = capitalizedWords.join(" ");
 
   // Remove spaces not allowed (before the first two characters)
-  if (formattedValue.length > 1) {
+  if (formattedValue.length > 2) {
     formattedValue =
-      formattedValue.slice(0, 1) +
-      formattedValue.slice(1).replace(/\s+/g, " ");
+      formattedValue.slice(0, 2) +
+      formattedValue.slice(2).replace(/\s+/g, " ");
   }
 
   // Update input value
@@ -286,47 +286,52 @@ export const validateFirstName = (value) => {
 
     return true; // Return true if all validations pass
   };
-
- export  const validateLocation = (value) => {
+  export const validateLocation = (value) => {
     // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
-
+  
     // Check if value is empty after trimming (meaning it only had spaces)
     if (trimmedValue.length === 0) {
       return "Location is Required.";
     }
-    // Check for trailing spaces first
+    
+    // Check for trailing spaces
     if (/\s$/.test(value)) {
-      return "Spaces at the end are not allowed."; // Trailing space error
+      return "Spaces at the end are not allowed.";
     } else if (/^\s/.test(value)) {
-      return "No Leading Space Allowed."; // Leading space error
+      return "No Leading Space Allowed.";
     }
-
+  
+    // Check if the value contains only special characters
+    const specialCharsOnly = /^[!-_@#&()*/,.\\-{}]+$/;
+    const hasAlphanumeric = /[a-zA-Z0-9]/;
+    if (specialCharsOnly.test(trimmedValue) && !hasAlphanumeric.test(trimmedValue)) {
+      return "Location cannot contain only special characters.";
+    }
+  
     // Ensure only allowed characters (alphabets, numbers, spaces, and some special chars)
-    else if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(trimmedValue)) {
+    if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(trimmedValue)) {
       return "Invalid Format of Location.";
     }
-
+  
     // Check for minimum and maximum word length
-    else {
-      const words = trimmedValue.split(" ");
-      for (const word of words) {
-        if (word.length < 1) {
-          return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
-        } else if (word.length > 255) {
-          return "Max Length 255 Characters Required."; // If any word is longer than 100 characters
-        }
-      }
-
-      // Check if there are multiple spaces between words
-      if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
-      }
-       if (trimmedValue.length < 3) {
-        return "Minimum 3 Characters Required.";
+    const words = trimmedValue.split(" ");
+    for (const word of words) {
+      if (word.length < 1) {
+        return "Minimum Length 1 Character Required.";
+      } else if (word.length > 255) {
+        return "Max Length 255 Characters Required.";
       }
     }
-
+  
+    // Check if there are multiple spaces between words
+    if (/\s{2,}/.test(trimmedValue)) {
+      return "No Multiple Spaces Between Words Allowed.";
+    }
+    if (trimmedValue.length < 3) {
+      return "Minimum 3 Characters Required.";
+    }
+  
     return true; // Return true if all conditions are satisfied
   };
 
