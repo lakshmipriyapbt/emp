@@ -64,6 +64,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public ResponseEntity<?> registerEmployee(EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException{
         // Check if a company with the same short or company name already exists
+        String defaultPassword;
         log.debug("validating name {} employee Id {} exsited ", employeeRequest.getLastName(), employeeRequest.getEmployeeId());
         String resourceId = ResourceIdUtils.generateEmployeeResourceId(employeeRequest.getEmailId());
         String employeeExperienceId = ResourceIdUtils.generateEmployeePersonnelId(resourceId);
@@ -112,7 +113,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
-            String defaultPassword = PasswordUtils.generateStrongPassword();
+            defaultPassword = PasswordUtils.generateStrongPassword();
             Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword);
             EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(employeeRequest.getPersonnelEntity(), EmployeePersonnelEntity.class);
             employeePersonnelEntity.setEmployeeId(resourceId);
@@ -129,7 +130,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         // Send the email with company details
         CompletableFuture.runAsync(() -> {
             try {
-                String defaultPassword = PasswordUtils.generateStrongPassword();
                 String companyUrl = EmailUtils.getBaseUrl(request)+employeeRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
                 emailUtils.sendRegistrationEmail(employeeRequest.getEmailId(), companyUrl,Constants.EMPLOYEE,defaultPassword);

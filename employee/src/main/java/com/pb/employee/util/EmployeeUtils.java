@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class EmployeeUtils {
 
     public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
-        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null;
+        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null, altNo= null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
         }
@@ -45,6 +45,9 @@ public class EmployeeUtils {
         if(employeeRequest.getMobileNo() != null) {
             mobileNo = Base64.getEncoder().encodeToString(employeeRequest.getMobileNo().getBytes());
         }
+        if(employeeRequest.getAlternateNo() != null) {
+            altNo = Base64.getEncoder().encodeToString(employeeRequest.getAlternateNo().getBytes());
+        }
         // Encode default password
         password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
 
@@ -60,13 +63,14 @@ public class EmployeeUtils {
         entity.setIfscCode(ifscCode);
         entity.setAccountNo(accountNo);
         entity.setMobileNo(mobileNo);
+        entity.setAlternateNo(altNo);
         entity.setType(Constants.EMPLOYEE);
         return entity;
     }
 
 
     public static Entity unmaskEmployeeProperties(EmployeeEntity employeeEntity, DepartmentEntity entity, DesignationEntity designationEntity) {
-        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null;
+        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null, alterNo=null;
         if(employeeEntity.getPanNo() != null) {
             pan = new String((Base64.getDecoder().decode(employeeEntity.getPanNo().toString().getBytes())));
         }
@@ -85,6 +89,9 @@ public class EmployeeUtils {
         if(employeeEntity.getMobileNo() != null) {
             mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
         }
+        if(employeeEntity.getAlternateNo() != null) {
+            alterNo = new String((Base64.getDecoder().decode(employeeEntity.getAlternateNo().toString().getBytes())));
+        }
         if (entity != null && employeeEntity.getDepartment() != null) {
             employeeEntity.setDepartmentName(entity.getName());
         }else {
@@ -101,6 +108,7 @@ public class EmployeeUtils {
         employeeEntity.setUanNo(uanNo);
         employeeEntity.setPassword("**********");
         employeeEntity.setPanNo(pan);
+        employeeEntity.setAlternateNo(alterNo);
         employeeEntity.setMobileNo(mobileNo);
         return employeeEntity;
     }
@@ -173,12 +181,43 @@ public class EmployeeUtils {
             noOfChanges +=1;
         }if (!user.getManager().equals(employeeUpdateRequest.getManager())){
             noOfChanges +=1;
-        }if (!user.getMobileNo().isEmpty()) {
+        }if (user.getMobileNo() != null && !user.getMobileNo().isEmpty()) {
             String mobile = new String(Base64.getDecoder().decode(user.getMobileNo().getBytes()));
             if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
                 noOfChanges += 1;
             }
-        }if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
+        }else if (user.getMobileNo() == null){
+            noOfChanges +=1;
+        }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
+            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
+            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
+                noOfChanges += 1;
+            }
+        }else if (user.getAlternateNo() == null){
+            noOfChanges +=1;
+        }
+        if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
+            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getAlternateNo())){
+                noOfChanges += 1;
+            }
+        }else if (user.getPermanentAddress() == null){
+            noOfChanges +=1;
+        }
+        if (user.getTempAddress() != null && !user.getTempAddress().isEmpty()){
+            if (!user.getTempAddress().equals(employeeUpdateRequest.getTempAddress())){
+                noOfChanges += 1;
+            }
+        }else if (user.getTempAddress() == null){
+            noOfChanges +=1;
+        }
+        if (user.getMaritalStatus() != null && !user.getMaritalStatus().isEmpty()){
+            if (!user.getMaritalStatus().equals(employeeUpdateRequest.getMaritalStatus())){
+                noOfChanges += 1;
+            }
+        }else if (user.getMaritalStatus() == null){
+            noOfChanges +=1;
+        }
+        if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
             noOfChanges +=1;
         }if (!user.getIfscCode().isEmpty()) {
            String ifsc = new String((Base64.getDecoder().decode(user.getIfscCode().toString().getBytes())));
@@ -194,6 +233,7 @@ public class EmployeeUtils {
         }if (!user.getBankName().equals(employeeUpdateRequest.getBankName())){
             noOfChanges +=1;
         }
+
         if (employeePersonnel != null) {
             noOfChanges += compareEmployeeExperience(
                     employeePersonnel.getEmployeeExperience(),
@@ -394,6 +434,8 @@ public class EmployeeUtils {
            if (!alternate.equals(companyUpdateRequest.getAlternateNo())){
                 noOfChanges +=1;
            }
+        }else if (companyUpdateRequest.getAlternateNo()!= null){
+            noOfChanges+=1;
         }
 
         if(!user.getName().equals(companyUpdateRequest.getName())){
