@@ -312,7 +312,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Total Amount
+                                  Total Amount(Rs)
                                 </td>
                                 <td>
                                   {(
@@ -382,7 +382,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Grand Total
+                                  Grand Total (Rs)
                                 </td>
                                 <td>
                                   {(
