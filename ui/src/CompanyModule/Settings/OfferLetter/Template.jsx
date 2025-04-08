@@ -332,7 +332,7 @@ const Template = () => {
                             <div style={{ padding: "2px", textAlign: "center" }}>
                                 <h6>{companyDetails?.companyName}</h6>
                                 <h6>{companyDetails?.companyAddress}</h6>
-                                <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                                <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                             </div>
                         </div>
                     </div>
@@ -424,7 +424,7 @@ const Template = () => {
                         <div style={{ padding: "2px", textAlign: "center" }}>
                             <h6>{companyDetails?.companyName}</h6>
                             <h6>{companyDetails?.companyAddress}</h6>
-                            <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                            <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                         </div>
                     </div>
                 </div>
@@ -575,7 +575,7 @@ const Template = () => {
                     <div style={{ padding: "2px", textAlign: "center" }}>
                         <h6>{companyDetails?.companyName}</h6>
                         <h6>{companyDetails?.companyAddress}</h6>
-                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                     </div>
                 </div>
             </div>
@@ -711,7 +711,7 @@ const Template = () => {
                     <div style={{ padding: "2px", textAlign: "center" }}>
                         <h6>{companyDetails?.companyName}</h6>
                         <h6>{companyDetails?.companyAddress}</h6>
-                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                     </div>
                 </div>
             </div>

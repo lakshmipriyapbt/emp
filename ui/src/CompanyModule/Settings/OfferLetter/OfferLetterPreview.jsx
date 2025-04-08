@@ -453,8 +453,8 @@ const OfferLetterPreview = () => {
                 <h6>{company?.companyAddress}</h6>
                 <h6>
                   PH: {company?.mobileNo}, Email:{" "}
-                  {company?.emailId} | Web: https://
-                  {company?.shortName}.com{" "}
+                  {company?.emailId}
+                  
                 </h6>
               </div>
             </div>
@@ -612,7 +612,7 @@ const OfferLetterPreview = () => {
               <h6>{company?.companyAddress}</h6>
               <h6>
                 PH: {company?.mobileNo}, Email: {company?.emailId}{" "}
-                | Web: https://{company?.shortName}.com{" "}
+                
               </h6>
             </div>
           </div>
@@ -915,8 +915,8 @@ const OfferLetterPreview = () => {
             <h6>{company?.companyName}</h6>
             <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {company?.mobileNo}, Email: {company?.emailId} |
-              Web: https://{company?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} 
+             
             </h6>
           </div>
         </div>
@@ -1111,8 +1111,8 @@ const OfferLetterPreview = () => {
             <h6>{company?.companyName}</h6>
             <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {company?.mobileNo}, Email: {company?.emailId} |
-              Web: https://{company?.shortName}.com{" "}
+              PH: {company?.mobileNo}, Email: {company?.emailId} 
+             
             </h6>
           </div>
         </div>

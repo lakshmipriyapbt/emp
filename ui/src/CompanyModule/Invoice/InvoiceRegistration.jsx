@@ -426,7 +426,6 @@ const InvoiceRegistration = () => {
                         {...register("purchaseOrder", {
                           required: "Enter Purchase Order",
                         })}
-                        onKeyPress={allowNumbersOnly}
                       />
                     </div>
                     {errors.purchaseOrder && (
