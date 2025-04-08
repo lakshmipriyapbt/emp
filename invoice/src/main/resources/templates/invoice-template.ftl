@@ -205,7 +205,7 @@
                                     <#list invoice.productColumns as column>
                                         <#if product[column.key]??>
                                             <#if column.key == "totalCost">
-                                                <td style="text-align: right;">${product[column.key]!'-'}</td>  <!-- Right-aligned for total cost -->
+                                                <td style="text-align: right;">${product[column.title]!'-'}</td>  <!-- Right-aligned for total cost -->
                                             <#elseif column.key == "service">
                                                 <td style="text-align: left;">${product[column.key]!'-'}</td>  <!-- Left-aligned for service -->
                                             <#else>
