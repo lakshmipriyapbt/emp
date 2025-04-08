@@ -365,11 +365,11 @@ const OfferLetterForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Father Name</label>
+                      <label className="form-label">Father Name/Husband Name</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Employee Father Name"
+                        placeholder="Enter Father Name/Husband Name"
                         name="firstName"
                         onInput={toInputTitleCase}
                         minLength={2}
@@ -498,7 +498,7 @@ const OfferLetterForm = () => {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Address"
+                        placeholder="Enter Location"
                         autoComplete="off"
                         minLength={2}
                         onKeyDown={handleEmailChange}

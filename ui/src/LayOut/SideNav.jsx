@@ -817,7 +817,7 @@ const SideNav = () => {
                     }`}
                   >
                     <Link className="sidebar-link" to="/invoiceRegistartion">
-                      Invoice Registartion
+                      Invoice Registration
                     </Link>
                   </li>
                 </ul>
@@ -1445,7 +1445,7 @@ const SideNav = () => {
                     }`}
                   >
                     <Link className="sidebar-link" to="/invoiceRegistartion">
-                      Invoice Registartion
+                      Invoice Registration
                     </Link>
                   </li>
                 </ul>

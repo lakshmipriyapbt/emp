@@ -95,26 +95,6 @@ const onNext = async () => {
   }
 };
 
-    const handleApiErrors = (error) => {
-      // if (error.response && error.response.data && error.response.data.message) {
-      //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
-      //   alert(alertMessage);
-      // }
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.error &&
-        error.response.data.error.message
-      ) {
-        const errorMessage = error.response.data.error.message;
-        setErrorMessage(errorMessage);
-        toast.error(errorMessage);
-      } else {
-        // toast.error("Network Error !");
-      }
-      console.error(error.response);
-    };
-
 const onPrevious = () => {
   setStep(step - 1);
 };
@@ -201,11 +181,48 @@ const onPrevious = () => {
             navigate("/employeeView");
         }, 1000); // Adjust delay time if needed
 
-    } catch (error) {
-        console.error("Error submitting data:", error);
-        toast.error("Error submitting employee details");
-        handleApiErrors(error)
-    }
+    }catch (error) {
+      console.error("Error submitting data:", error);
+    
+      const message = error.response?.data?.message || "Error submitting employee details";
+      const duplicateFields = error.response?.data?.data;
+    
+      // Create a readable string from the duplicate fields
+      let fieldDetails = "";
+      if (duplicateFields && typeof duplicateFields === "object") {
+        fieldDetails = Object.entries(duplicateFields)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(", ");
+      }
+    
+      const fullMessage = fieldDetails
+        ? `${message} - Duplicate Fields: ${fieldDetails}`
+        : message;
+    
+      setErrorMessage(fullMessage);     // 👈 set full message
+      toast.error(message);         // Optional: show in toast
+      handleApiErrors(error);           // Existing error handler
+    }    
+};
+
+const handleApiErrors = (error) => {
+  // if (error.response && error.response.data && error.response.data.message) {
+  //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
+  //   alert(alertMessage);
+  // }
+  if (
+    error.response &&
+    error.response.data &&
+    error.response.data.error &&
+    error.response.data.error.message
+  ) {
+    const errorMessage = error.response.data.error.message ;
+    setErrorMessage(errorMessage);
+    toast.error(errorMessage);
+  } else {
+    // toast.error("Network Error !");
+  }
+  console.error(error.response);
 };
 
   // eslint-disable-next-line no-undef
@@ -289,9 +306,9 @@ const dropdownOptions = [
           setValue("status", status.toString());
           setLoading(true);
           // Conditionally show "Notice Period" option based on status
-          if (status === "NoticePeriod") {
-            setShowNoticePeriodOption(true);
-          }
+          // if (status === "NoticePeriod") {
+          //   setShowNoticePeriodOption(true);
+          // }
   
           // Set employeeEducation data
           if (response.data.data.personnelEntity?.employeeEducation?.length) {
@@ -588,7 +605,7 @@ const handleClearNewEmployee = () => {
                       <option value='Active'>Active</option>
                       <option value='InActive'>In Active</option>
                       <option value='OnBoard'>OnBoard</option>
-                      {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>}
+                      {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
                       </select>
                     <small className="text-danger">{errors.status?.message}</small>
                   </div>
@@ -777,7 +794,7 @@ const handleClearNewEmployee = () => {
                       <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.instituteName`, {
                           required: "Institution is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.instituteName?.message}</small>
@@ -788,7 +805,7 @@ const handleClearNewEmployee = () => {
                       <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.boardOfStudy`, {
                           required: "Board of Study is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.boardOfStudy?.message}</small>
@@ -799,7 +816,7 @@ const handleClearNewEmployee = () => {
                       <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.branch`, {
                           required: "Branch is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.branch?.message}</small>
@@ -980,7 +997,7 @@ const handleClearNewEmployee = () => {
                         Next
                       </button>
                     ) : (
-                      <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()}>
+                      <button type="submit" className="btn btn-success">
                         Submit
                       </button>
                     )}
