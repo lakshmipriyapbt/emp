@@ -398,7 +398,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  In Words: {invoiceData.grandTotalInWords}
+                                  In Words: {invoiceData.grandTotalInWords} Rupees Only/-
                                 </td>
                               </tr>
                               <tr>
