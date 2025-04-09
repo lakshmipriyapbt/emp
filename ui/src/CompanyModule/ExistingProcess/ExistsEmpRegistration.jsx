@@ -245,9 +245,9 @@ const ExistsEmpRegistration = () => {
         }
 
         // Reset and navigate after success
-        setShowPreview(true);
-        reset();
+        setShowPreview(false);
         navigate("/relievingSummary");
+        clearForm()
       }
     } catch (error) {
       console.error("Error submitting relieving letter:", error);
