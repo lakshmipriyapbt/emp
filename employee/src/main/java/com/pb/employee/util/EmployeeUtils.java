@@ -186,35 +186,35 @@ public class EmployeeUtils {
             if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
                 noOfChanges += 1;
             }
-        }else if (user.getMobileNo() == null){
+    }else if (user.getMobileNo() == null && employeeUpdateRequest.getMobileNo() != null){
             noOfChanges +=1;
         }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
             String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
             if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
                 noOfChanges += 1;
             }
-        }else if (user.getAlternateNo() == null){
+        }else if (user.getAlternateNo() == null && employeeUpdateRequest.getAlternateNo() != null){
             noOfChanges +=1;
         }
         if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
             if (!user.getPermanentAddress().equals(employeeUpdateRequest.getAlternateNo())){
                 noOfChanges += 1;
             }
-        }else if (user.getPermanentAddress() == null){
+        }else if (user.getPermanentAddress() == null && employeeUpdateRequest.getPermanentAddress() != null){
             noOfChanges +=1;
         }
         if (user.getTempAddress() != null && !user.getTempAddress().isEmpty()){
             if (!user.getTempAddress().equals(employeeUpdateRequest.getTempAddress())){
                 noOfChanges += 1;
             }
-        }else if (user.getTempAddress() == null){
+        }else if (user.getTempAddress() == null && employeeUpdateRequest.getTempAddress() != null){
             noOfChanges +=1;
         }
         if (user.getMaritalStatus() != null && !user.getMaritalStatus().isEmpty()){
             if (!user.getMaritalStatus().equals(employeeUpdateRequest.getMaritalStatus())){
                 noOfChanges += 1;
             }
-        }else if (user.getMaritalStatus() == null){
+        }else if (user.getMaritalStatus() == null && employeeUpdateRequest.getMaritalStatus() != null){
             noOfChanges +=1;
         }
         if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
