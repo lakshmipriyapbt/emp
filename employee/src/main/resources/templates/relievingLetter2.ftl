@@ -76,7 +76,7 @@
             <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
                    <b>Authorized Signature</b>
                           <br/>
-                  <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+                  <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
 
             </div>
                 <p>${company[0].companyAddress}</p>
