@@ -191,7 +191,7 @@ public class InvoiceUtils {
                 invoiceEntity.getCompany().setStampImage(stampImage);
             }
             // Convert subTotal to a numeric value
-            double subTotal = parseAmount((invoiceEntity.getSubTotal()));
+            double subTotal = parseAmount(invoiceEntity.getSubTotal());
             double cGst = 0.0, sGst = 0.0, iGst = 0.0, grandTotal = subTotal;
 
             // Get GST numbers

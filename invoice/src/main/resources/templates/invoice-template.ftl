@@ -190,7 +190,7 @@
 
                      <#if invoice.productColumns?? && invoice.productColumns?size gt 0>
                          <#list invoice.productColumns as column>
-                             <th class="text-start" style="font-size: 12px;">${column.title}</th>  <!-- Extract only 'title' -->
+                             <th class="text-center" style="font-size: 12px;">${column.title}</th>  <!-- Extract only 'title' -->
                          </#list>
                      </#if>
                  </tr>
