@@ -688,6 +688,10 @@ public class PayslipServiceImpl implements PayslipService {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
+                if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
+                    log.info("Employee is inactive " + employee.getFirstName());
+                    continue;
+                }
 
                 List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
                 if (salaryEntities == null) {
