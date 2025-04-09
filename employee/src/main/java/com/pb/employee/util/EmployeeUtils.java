@@ -182,22 +182,22 @@ public class EmployeeUtils {
         }if (!user.getManager().equals(employeeUpdateRequest.getManager())){
             noOfChanges +=1;
         }if (user.getMobileNo() != null && !user.getMobileNo().isEmpty()) {
-            String mobile = new String(Base64.getDecoder().decode(user.getMobileNo().getBytes()));
-            if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
+            String mobile =  new String(Base64.getDecoder().decode(user.getMobileNo().getBytes())).trim();
+            if (!mobile.equals(employeeUpdateRequest.getMobileNo().trim())) {
                 noOfChanges += 1;
             }
     }else if (user.getMobileNo() == null && employeeUpdateRequest.getMobileNo() != null){
             noOfChanges +=1;
         }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
-            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
-            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
+            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes())).trim();
+            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo().trim())){
                 noOfChanges += 1;
             }
         }else if (user.getAlternateNo() == null && employeeUpdateRequest.getAlternateNo() != null){
             noOfChanges +=1;
         }
         if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
-            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getAlternateNo())){
+            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getPermanentAddress())){
                 noOfChanges += 1;
             }
         }else if (user.getPermanentAddress() == null && employeeUpdateRequest.getPermanentAddress() != null){

@@ -677,6 +677,7 @@ public class PayslipServiceImpl implements PayslipService {
     public ResponseEntity<?> generatePaySlipForEmployees(String salaryId, PayslipRequest payslipRequest) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
+        int inactiveEmployeeCount = 1;
         List<String> employeesWithoutAttendance = new ArrayList<>();
 
         try {
@@ -688,11 +689,12 @@ public class PayslipServiceImpl implements PayslipService {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
+
                 if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
                     log.info("Employee is inactive " + employee.getFirstName());
+                    inactiveEmployeeCount +=1;
                     continue;
                 }
-
                 List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
                 if (salaryEntities == null) {
                     log.error("Employee Salary with employeeId {} is not found", employee.getId());
@@ -755,7 +757,7 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
-            if (employeesWithoutAttendance.size() +1 == employeeEntities.size()){
+            if (employeesWithoutAttendance.size() + inactiveEmployeeCount == employeeEntities.size()){
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
                         HttpStatus.NOT_FOUND);
             }
