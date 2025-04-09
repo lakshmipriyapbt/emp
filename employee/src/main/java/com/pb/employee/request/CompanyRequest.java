@@ -14,7 +14,7 @@ public class CompanyRequest {
 
     @Schema(example = "companyName")
     @Size(min = 2, max = 200, message = "{size.message}")
-    @Pattern(regexp ="^[A-Z][a-zA-Z]*(?:\\s[A-Z][a-zA-Z]*)*$", message = "{companyName.message}")
+    @Pattern(regexp ="^[A-Z][a-zA-Z]*(?:\\s[A-Z][a-zA-Z]*)*$", message = "{companyname.message}")
     private String companyName;
 
     @Schema(example = "emailId")

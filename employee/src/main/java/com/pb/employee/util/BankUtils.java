@@ -149,6 +149,12 @@ public class BankUtils {
                 noOfChanges += 1;
             }
         }
+        if (bankEntity.getBankName() != null && bankRequest.getBankName() != null) {
+            String bankName = new String(Base64.getDecoder().decode(bankEntity.getBankName()));
+            if (!bankName.equals(bankRequest.getBankName())) {
+                noOfChanges += 1;
+            }
+        }
 
         if (bankEntity.getBranch() != null && bankRequest.getBranch() != null) {
             String branch = new String(Base64.getDecoder().decode(bankEntity.getBranch()));

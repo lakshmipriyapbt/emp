@@ -111,6 +111,8 @@
     We understand this is a sustainable increase in your pay and we appreciate
     your hard work and dedication to the company.
     <br />
+    <p>We recognize your continued contributions and dedication to the company, and we are happy to reward your hard work. Please note that all other terms and conditions of your employment remain unchanged as per your original offer letter.
+    </p>
     <br />
     All other T&C are the same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
     </p>
