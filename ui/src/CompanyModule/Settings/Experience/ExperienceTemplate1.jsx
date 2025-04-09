@@ -2,14 +2,12 @@ import React from "react";
 import { useAuth } from "../../../Context/AuthContext";
 
 const ExperienceTemplate1 = ({
-  companyLogo,
   companyData,
   date,
   employeeName,
   employeeId,
   designation,
   joiningDate,
-  department,
   experienceDate,
   aboutEmployee
 }) => {

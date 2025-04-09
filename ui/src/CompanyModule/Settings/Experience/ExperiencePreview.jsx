@@ -3,7 +3,7 @@ import {toast } from "react-toastify";
 import ExperienceTemplate1 from "./ExperienceTemplate1";
 import ExperienceTemplate2 from "./ExperienceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";
-import { companyViewByIdApi, EmployeeGetApiById} from "../../../Utils/Axios";
+import { companyViewByIdApi} from "../../../Utils/Axios";
 
 const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept previewData as a prop
   const [companyData, setCompanyData] = useState({});
@@ -38,6 +38,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           joiningDate={previewData.joiningDate}
           experienceDate={previewData.experienceDate}
           date={previewData.date}
+          aboutEmployee={previewData.aboutEmployee}
         />
       ),
     },
@@ -55,6 +56,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           joiningDate={previewData.joiningDate}
           experienceDate={previewData.experienceDate}
           date={previewData.date}
+          aboutEmployee={previewData.aboutEmployee}
         />
       ),
     },
