@@ -36,7 +36,7 @@ const InvoiceRegistration = () => {
       { key: "service", title: "Service", type: "text" },
       { key: "quantity", title: "Quantity", type: "number" },
       { key: "unitCost", title: "Unit Cost", type: "number" },
-      { key: "totalCost", title: "Total Cost (₹)", type: "number" },
+      { key: "totalCost", title: "Total Cost", type: "number" },
     ]);
 
   const [search, setSearch] = useState("");
