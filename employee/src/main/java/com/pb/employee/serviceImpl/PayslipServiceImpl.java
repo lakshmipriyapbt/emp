@@ -757,7 +757,7 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
-            if (employeesWithoutAttendance.size() + inactiveEmployeeCount == employeeEntities.size()){
+            if ((employeesWithoutAttendance.size() + inactiveEmployeeCount) == employeeEntities.size()){
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
                         HttpStatus.NOT_FOUND);
             }
