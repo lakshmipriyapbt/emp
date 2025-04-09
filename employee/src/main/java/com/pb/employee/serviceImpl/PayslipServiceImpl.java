@@ -681,16 +681,14 @@ public class PayslipServiceImpl implements PayslipService {
         List<String> employeesWithoutAttendance = new ArrayList<>();
 
         try {
-            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
-
             List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(payslipRequest.getCompanyName(), null, payslipRequest.getMonth(), payslipRequest.getYear());
-
-            List<EmployeeEntity> employeesWithoutAttendances = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities);
-
-            if ((employeesWithoutAttendances.size()+1) == employeeEntities.size()){
+            if (attendanceEntities == null || attendanceEntities.size()==0){
+                log.error("No Employee Have Attendance");
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
                         HttpStatus.NOT_FOUND);
             }
+            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
+            
             for (EmployeeEntity employee : employeeEntities) {
                 // Skip attendance check if the employee is a CompanyAdmin
                 if (Constants.ADMIN.equals(employee.getEmployeeType())) {
