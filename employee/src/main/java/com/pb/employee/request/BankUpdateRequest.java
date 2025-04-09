@@ -14,6 +14,11 @@ import lombok.*;
 @AllArgsConstructor
 public class BankUpdateRequest {
 
+    @Schema(example = "bankName")
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{bankName.format}")
+    @Size(min = 2, max = 100, message = "{bankName.size.message}")
+    private String bankName;
+
     @Schema(example = "accountType")
     @Size(min = 1, max = 35, message = "{accountType.notnull.message}")
     @Pattern(regexp = "^(?:[A-Z][a-z]*|[A-Z]+)(?: [A-Z][a-z]*| [A-Z]+)*$", message = "{accountType.message}")

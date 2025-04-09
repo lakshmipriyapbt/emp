@@ -1,32 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Relieving Letter</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            position: relative;
-            line-height: 1.6;
-            color: #333;
-        }
 
-        .container {
-            position: relative;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            z-index: 2;
-        }
-
-        .title {
-            text-align: center;
-            margin-top: 2rem;
-        }
-        .watermark {
+         .watermark {
            position: fixed;
            left: 20%;
            transform: translate(-50%, -50%) rotate(30deg);
@@ -34,76 +14,82 @@
            width: 400px;
            height: auto;
            text-align: center;
-        }
+          }
 
-        .watermark img {
-           width: 100%;
-           height: auto;
-           opacity: 0.05;
-        }
+         .watermark img {
+            width: 100%;
+            height: auto;
+            opacity: 0.05;
+          }
+         .logo {
+                   text-align: right;
+                   background-size: contain;
+                   margin-bottom: 100px:
+               }
 
-        .footer {
-            margin-top: 3rem;
-        }
-
-        .footer h5 {
-            margin: 0;
+         .header {
+                    text-align: center;
+                    text-align: top;
+                }
+       .title {
+                  margin-top: 30px;
+                  text-align: center;
+              }
+        .para p {
+               font-size: 15px; /* Adjust the font size as needed */
+           }
+        .date{
+        text-align: left;
         }
     </style>
 </head>
-
 <body>
 
-    <!-- Company Logo -->
-        <div class="logo">
-                 <#if company[0].imageFile?has_content>
-                 <img style="height: 70px; width: 160px;" src="${company[0].imageFile}" alt="Company Logo" />
-                 </#if>
+    <div class="header">
+      <h4>Relieving Letter</h4>
+      <h5 class= "date"><strong>${relieving.relievingDate}</strong></h5>
+     <div class="logo">
+         <#if company[0].imageFile?has_content>
+         <img style="height: 70px; width: 160px; margin-top: -200px;" src="${company[0].imageFile}" alt="Company Logo" />
+         </#if>
+     </div>
+     </div>
+
+
+
+    <h5 class= "title">TO WHOMSOEVER IT MAY CONCERN</h5>
+
+
+
+    <div class="content mt-3">
+
+        <div class="para">
+          <div class="watermark">
+                        <img src="${blurredImage}" alt="Blurred Company Logo" />
              </div>
-    <!-- Letter Content -->
-    <div class="container">
-        <p><strong>Date: ${relieving.relievingDate}</strong></p>
-        <h4 class="title">Relieving Letter</h4>
+            <p><strong>${employee.firstName} ${employee.lastName}</strong></p>
+            <p>
+                I am writing in response to your resignation letter dated ${relieving.resignationDate}, in which you requested to resign from your position as ${employee.designationName}, serving a notice period of ${relieving.noticePeriod}. Your services with our organization will be concluded on ${relieving.relievingDate}.
+            </p>
+            <p>We kindly request you to return your company ID and any other company-owned items that you have been using during your tenure with our firm.</p>
+            <p>We want to officially confirm the acceptance of your resignation. Effective as of the office closing hours on ${relieving.relievingDate}, you will be relieved from your duties.</p>
+            <p>
+                We also wish to confirm that your final settlement with the organization has been successfully processed. We genuinely appreciate your contributions to the company and your achievements during your tenure. We extend our best wishes for your future endeavors.
+            </p>
+        </div>
+        <div class="pt-4">
+            <p class="mb-5">Yours Sincerely,</p>
+        <div>
+           <b>Authorized Signature</b>
+                  <br/>
+          <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
 
-        <p>To,</p>
-        <p><strong>Employee Name: ${employee.firstName} ${employee.lastName}</strong></p>
-        <p><strong>Employee ID: ${employee.employeeId}</strong></p>
+        </div>
+             <h5>${company[0].companyName}</h5>
 
-         <!-- Watermark Background Image -->
-         <div class="watermark">
-                 <img src="${blurredImage}" alt="Blurred Company Logo" />
-          </div>
-
-        <p>
-            I am writing to acknowledge the resignation letter you submitted, dated <strong>${relieving.resignationDate}</strong>,
-            in which you specified that <strong>${relieving.relievingDate}</strong> would be your last working day with
-            <strong>${company[0].companyName}</strong>.
-            I want to inform you that your resignation has been accepted, and you will be relieved from your position as
-            <strong>${employee.designationName}</strong>
-            with <strong>${company[0].companyName}</strong> on <strong>${relieving.noticePeriod}</strong>.
-        </p>
-
-        <p>We kindly request you to return your company ID and any other company-owned items that you have been using
-            during your tenure with our firm.</p>
-
-        <p>Your final settlement will be processed within the next 45 days.</p>
-
-        <p>We deeply appreciate your valuable contributions to the company and wish you all the best in your future
-            endeavors.</p>
-
-        <div class="footer">
-            <p>Best Regards,</p>
-            <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
-                      <b>Authorized Signature</b>
-                             <br/>
-                     <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
-
-            </div>
-            <h5>${company[0].companyName}</h5>
-            <p>${company[0].address}</p>
+            <p>${company[0].companyAddress}</p>
         </div>
     </div>
 
 </body>
-
 </html>
