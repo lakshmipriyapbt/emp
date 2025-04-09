@@ -55,6 +55,7 @@ const AccountRegistartion = () => {
       const updatePayload = {
         branch: data.branch,
         ifscCode: data.ifscCode,
+        bankName: data.bankName,
         address: data.address,
         accountType: data.accountType.value, // Extract the value from the accountType object
       };
