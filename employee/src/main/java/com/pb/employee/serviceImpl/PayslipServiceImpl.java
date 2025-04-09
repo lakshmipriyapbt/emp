@@ -690,7 +690,7 @@ public class PayslipServiceImpl implements PayslipService {
                     continue;
                 }
 
-                if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
+                if (!employee.getStatus().equalsIgnoreCase(Constants.ACTIVE)){
                     log.info("Employee is inactive " + employee.getFirstName());
                     inactiveEmployeeCount +=1;
                     continue;
