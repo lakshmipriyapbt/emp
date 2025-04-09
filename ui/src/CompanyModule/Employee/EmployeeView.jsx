@@ -94,7 +94,7 @@ const EmployeeView = () => {
             padding: "3px 6px",
             color: "#fff",
           }}
-           className="bg-warning"
+           className="bg-danger"
         >
           InActive
         </b>

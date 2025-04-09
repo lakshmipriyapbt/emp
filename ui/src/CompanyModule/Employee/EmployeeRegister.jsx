@@ -863,7 +863,7 @@ const handleClearNewEmployee = () => {
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
-                          <input type="text" className="form-control" onInput={toInputTitleCase}
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.companyName`, {
                               validate:validateCompanyName
                             })}
@@ -873,7 +873,7 @@ const handleClearNewEmployee = () => {
 
                         <div className="col-md-3">
                           <label>Designation/Role</label>
-                          <input type="text" className="form-control" onInput={toInputTitleCase}
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
                               validate:validateCompanyName
                             })}

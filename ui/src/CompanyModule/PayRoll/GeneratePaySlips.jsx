@@ -117,7 +117,7 @@ const GeneratePaySlip = () => {
       setView(response.data.data.generatePayslip);
       setAttendanceNull(response.data.data.employeesWithoutAttendance || []); // Ensure it's always an array
       setSelectedMonthYear(`${month.label} ${year.label}`);
-      setShow(response.data.data.generatePayslip.length > 0 ? false : true);
+      setShow(response.data.data.generatePayslip.length > 0 ? true : false);
      //setShow(true);
     } catch (error) {
       // Try to get the error message from the response data
