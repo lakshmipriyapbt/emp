@@ -683,14 +683,21 @@ public class PayslipServiceImpl implements PayslipService {
         try {
             List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
 
+            List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(payslipRequest.getCompanyName(), null, payslipRequest.getMonth(), payslipRequest.getYear());
+
+            List<EmployeeEntity> employeesWithoutAttendances = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities);
+
+            if ((employeesWithoutAttendances.size()+1) == employeeEntities.size()){
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
+                        HttpStatus.NOT_FOUND);
+            }
             for (EmployeeEntity employee : employeeEntities) {
                 // Skip attendance check if the employee is a CompanyAdmin
                 if (Constants.ADMIN.equals(employee.getEmployeeType())) {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
-
-                if (!employee.getStatus().equalsIgnoreCase(Constants.ACTIVE)){
+                if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
                     log.info("Employee is inactive " + employee.getFirstName());
                     inactiveEmployeeCount +=1;
                     continue;
@@ -756,10 +763,6 @@ public class PayslipServiceImpl implements PayslipService {
                         payslipPropertiesList.add(payslipProperties);
                     }
                 }
-            }
-            if ((employeesWithoutAttendance.size() + inactiveEmployeeCount) == employeeEntities.size()){
-                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
-                        HttpStatus.NOT_FOUND);
             }
                  // If no payslips were generated but there are employees without attendance, return a success response with only that information
                 if (generatedPayslips.isEmpty()) {
