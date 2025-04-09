@@ -68,7 +68,7 @@
         .table td {
             border: 1px solid #ddd;
             border-collapse: collapse;
-            padding: 6px;
+            padding: 2px;
             font-size: 11px;
             /* Reduced font size */
         }
@@ -190,7 +190,7 @@
 
                      <#if invoice.productColumns?? && invoice.productColumns?size gt 0>
                          <#list invoice.productColumns as column>
-                             <th class="text-center">${column.title}</th>  <!-- Extract only 'title' -->
+                             <th class="text-center" style="font-size: 12px;">${column.title}</th>  <!-- Extract only 'title' -->
                          </#list>
                      </#if>
                  </tr>
@@ -276,7 +276,7 @@
                </#if>
 
                     <tr style="background-color:#f5f5f5;">
-                        <th class="text-right" colspan="${columnCount-1}" style="font-size: 13px;"><b>Grand Total</b></th>
+                        <th class="text-right" colspan="${columnCount-1}" style="font-size: 13px;"><b>Grand Total(Rs)</b></th>
                         <th class="text-right" style="font-size: 13px;"><b>${invoice.grandTotal}</b></th>
                     </tr>
                     <tr>
