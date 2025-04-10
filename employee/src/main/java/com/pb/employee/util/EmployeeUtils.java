@@ -89,7 +89,7 @@ public class EmployeeUtils {
         if(employeeEntity.getMobileNo() != null) {
             mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
         }
-        if(employeeEntity.getAlternateNo() != null) {
+        if(employeeEntity.getAlternateNo() != null && !employeeEntity.getAlternateNo().isEmpty()) {
             alterNo = new String((Base64.getDecoder().decode(employeeEntity.getAlternateNo().toString().getBytes())));
         }
         if (entity != null && employeeEntity.getDepartment() != null) {
