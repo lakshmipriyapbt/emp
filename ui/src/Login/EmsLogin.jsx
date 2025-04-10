@@ -34,10 +34,8 @@ const EmsLogin = () => {
       e.preventDefault();
     }
   };
-
   const onSubmit = async (data) => {
     setLoading(true); // Set loading to true when the request starts
-
     try {
       const response = await loginApi(data);
       const token = response.data?.token;
@@ -55,7 +53,7 @@ const EmsLogin = () => {
           setAuthUser({ userId, userRole, company, employeeId });
           toast.success("Login Successful");
           setTimeout(() => {
-            window.location.href = "/main";
+            navigate("/main");
           }, 500);  
         } catch (decodeError) {
           setErrorMessage("Failed to decode token. Ensure token is valid.");
@@ -95,7 +93,7 @@ const EmsLogin = () => {
     if (!/(?=.*[A-Z])/.test(value)) {
       errors.push("at least one uppercase letter");
     }
-    if (!/(?=.*\W)/.test(value)) {
+    if (!/(?=.*[\W_])/.test(value)) {
       errors.push("at least one special character");
     }
     if (value.includes(" ")) {
@@ -106,22 +104,6 @@ const EmsLogin = () => {
       return `Password must contain ${errors.join(", ")}.`;
     }
     return true; // Return true if all conditions are satisfied
-  };
-
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-
-    // Remove all spaces from the input
-    value = value.replace(/\s+/g, '');
-
-    // If the first character is not lowercase, make it lowercase
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    // Update the input value
-    input.value = value;
   };
 
 
@@ -171,8 +153,8 @@ const EmsLogin = () => {
                       <p className="errorMsg">{errors.username.message}</p>
                     )}
                   </div>
-                  <div class="formgroup position-relative">
-                    <label class="form-label">Password</label>
+                  <div className="formgroup position-relative">
+                    <label className="form-label">Password</label>
                     <div className="password-input-container">
                       <input
                         className="form-control form-control-lg"

@@ -79,9 +79,8 @@ public class CompanyController {
     public ResponseEntity<?> updateCompanyImageById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                @PathVariable String companyId,
-                                               @ModelAttribute @Valid CompanyImageUpdate companyImageUpdate,
-                                               @RequestPart(Constants.FILE) MultipartFile file ) throws IOException, EmployeeException {
-        return companyService.updateCompanyImageById(companyId,companyImageUpdate, file);
+                                                    @RequestPart(Constants.FILE) MultipartFile file ) throws IOException, EmployeeException {
+        return companyService.updateCompanyImageById(companyId, file);
     }
 
     @RequestMapping(value = "/stampImage/{companyId}", method = RequestMethod.PATCH,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -92,9 +91,8 @@ public class CompanyController {
     public ResponseEntity<?> updateCompanyStampImageById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                     @PathVariable String companyId,
-                                                    @ModelAttribute @Valid CompanyStampUpdate companyStampUpdate,
-                                                    @RequestPart(Constants.FILE) MultipartFile file ) throws IOException, EmployeeException {
-        return companyService.updateCompanyStampImageById(companyId,companyStampUpdate, file);
+                                                    @RequestPart(Constants.STAMP) MultipartFile stamp) throws IOException, EmployeeException {
+        return companyService.updateCompanyStampImageById(companyId, stamp);
     }
 
     @RequestMapping(value = "/employee/{employeeId}/password", method = RequestMethod.PATCH,consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -116,7 +114,7 @@ public class CompanyController {
     public ResponseEntity<?> deleteCompanyById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                @PathVariable String companyId) throws EmployeeException {
-        return companyService.deleteCompanyById(companyId);
+        return companyService.deleteCompanyById(companyId, authToken);
     }
     @RequestMapping(value = "/{companyId}/image", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },

@@ -265,6 +265,7 @@ import InvoicePdf from '../InvoiceModule/Invoice/InvoicePdf';
 import ProductView from '../InvoiceModule/Products/ProductsView';
 import ProductRegistration from '../InvoiceModule/Products/ProductRegistration'
 import CreatePassword from '../Login/CreatePassword';
+
 import ProtectedRoute from './ProtectedRoute';
 import ExistsEmployesView from '../CompanyModule/ExistingProcess/ExistsEmployesView';
 
@@ -461,11 +462,7 @@ const Routing = () => {
         path="/payslipTemplates"
         element={<ProtectedRoute element={PayslipTemplates} allowedTypes={['HR']} />}
       />
-      <Route
-        path="/payslipsList"
-        element={<ProtectedRoute element={ViewPaySlips} allowedTypes={['HR']} />}
-      />
-
+    
     </Routes>
   );
 };

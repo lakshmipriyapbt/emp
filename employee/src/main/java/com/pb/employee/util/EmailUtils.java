@@ -21,7 +21,7 @@ public class EmailUtils {
     @Autowired
     public JavaMailSender javaMailSender;
 
-    public void sendRegistrationEmail(String emailId, String url,String name) {
+    public void sendRegistrationEmail(String emailId, String url,String name, String defaultPassword) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(emailId);
         mailMessage.setSubject(subject);
@@ -30,13 +30,13 @@ public class EmailUtils {
         // Replace placeholders in the mail text
         String formattedText = mailText.replace("{emailId}", emailId);
         formattedText = formattedText.replace("{url}", url);  // Finally replace the URL
-        formattedText = formattedText.replace("{name}", name);  // Finally replace the URL
+        formattedText = formattedText.replace("{name}", name);// Finally replace the URL
+        formattedText = formattedText.replace("{password}", defaultPassword);
 
         mailMessage.setText(formattedText);
         javaMailSender.send(mailMessage);
         log.info("Credentials sent to the Email...");
     }
-
 
     public static String getBaseUrl(HttpServletRequest request) {
         String scheme = request.getScheme(); // http or https

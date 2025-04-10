@@ -1,7 +1,8 @@
 
 package com.pb.employee.serviceImpl;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
@@ -10,27 +11,32 @@ import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.AttendanceUpdateRequest;
 import com.pb.employee.request.EmployeeStatus;
+import com.pb.employee.response.EmployeeAttendanceResPayload;
+import com.pb.employee.util.*;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.poi.ss.usermodel.*;
 import com.pb.employee.request.AttendanceRequest;
 import com.pb.employee.service.AttendanceService;
-import com.pb.employee.util.CompanyUtils;
-import com.pb.employee.util.Constants;
-import com.pb.employee.util.ResourceIdUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +46,12 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Autowired
     private  OpenSearchOperations openSearchOperations;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private Configuration freemarkerConfig;
 
     private static final Map<String, Month> MONTH_NAME_MAP = createMonthNameMap();
 
@@ -96,7 +108,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                         Integer.parseInt(attendanceRequest.getYear()),
                         MONTH_NAME_MAP.get(attendanceRequest.getMonth()).getValue()
                 );
-               // Check if the attendance date is before the hiring date
+                // Check if the attendance date is before the hiring date
                 if (attendanceMonthYear.isBefore(hiringMonthYear)) {
                     log.error("Attendance date is before the hiring date for employee ID: {}", employeeId);
                     return new ResponseEntity<>(
@@ -176,6 +188,9 @@ public class AttendanceServiceImpl implements AttendanceService {
                 // Add attendance for past dates or current month after 25th
                 addAttendanceOfEmployees(attendanceRequest);
             }
+        }catch (EmployeeException employeeException){
+            log.error("Exception while adding the attendance {}" , employeeException);
+            throw employeeException;
         } catch (Exception e) {
             log.error("Error processing the uploaded file: {}", e.getMessage(), e);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -185,7 +200,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
-
 
     @Override
     public ResponseEntity<?> getAllEmployeeAttendance(String companyName, String employeeId, String month, String year) throws IOException, EmployeeException {
@@ -217,7 +231,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                             HttpStatus.NOT_FOUND);
                 }
 
-            }  else {
+            } else {
                 // If employeeId is not provided, fetch attendance for all employees in the company for the given year/month
                 if (month != null && !month.isEmpty()) {
                     attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
@@ -240,6 +254,9 @@ public class AttendanceServiceImpl implements AttendanceService {
             }
             // Return success response with the retrieved attendance records
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(attendanceEntities), HttpStatus.OK);
+        }catch (EmployeeException employeeException) {
+            log.error("Exception While Fetching attendance");
+        throw employeeException;
 
         } catch (Exception ex) {
             log.error("Exception while fetching attendance for employees in company {}: {}", companyName, ex.getMessage());
@@ -348,6 +365,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
     private List<AttendanceRequest> parseExcelFile(MultipartFile file, String company) throws Exception {
         List<AttendanceRequest> attendanceRequests = new ArrayList<>();
         String fileName = file.getOriginalFilename();
@@ -432,7 +450,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                         log.error("Error parsing numeric values for working days: {}", e.getMessage());
                         throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NUMBER_EXCEPTION), HttpStatus.INTERNAL_SERVER_ERROR);
                     }
-
                     attendanceRequests.add(attendanceRequest);
                     log.info("Added attendance request for employee ID: {}", attendanceRequest.getEmployeeId());
                 }
@@ -470,6 +487,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 return "";
         }
     }
+
     private ResponseEntity<?> addAttendanceOfEmployees(AttendanceRequest attendanceRequest) throws EmployeeException, IOException {
         log.debug("Attendance adding method is started ..");
         String index = ResourceIdUtils.generateCompanyIndex(attendanceRequest.getCompany());
@@ -491,13 +509,16 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             if (object != null) {
                 log.error("Attendance ID already exists {}", attendanceId);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ATTENDANCE_ALREADY_EXISTS),
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ATTENDANCE_ALREADY_EXISTS), attendanceRequest.getMonth()),
                         HttpStatus.NOT_ACCEPTABLE);
             }
             // Create and save the new AttendanceEntity
             Entity attendanceEntity = CompanyUtils.maskAttendanceProperties(attendanceRequest, attendanceId, employeeId);
             openSearchOperations.saveEntity(attendanceEntity, attendanceId, index);
 
+        }catch (EmployeeException e){
+            log.error("Unable to save the employee attendance details");
+            throw e;
         } catch (Exception exception) {
             log.error("Unable to save the employee attendance details {} {}", attendanceRequest.getType(), exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SAVE_ATTENDANCE),
@@ -506,6 +527,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
+
     private boolean isAttendancePeriodValid(String year, String month) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -531,5 +553,226 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         // Check if the current date is within the valid range
         return !now.isBefore(startDate) && !now.isAfter(endDate);
+    }
+
+
+    @Override
+    public ResponseEntity<byte[]> downloadEmployeeAttendance(String companyName, String month, String year, String employeeId, String format, HttpServletRequest request) throws Exception {
+        byte[] fileBytes = null;
+        HttpHeaders headers = new HttpHeaders();
+        try {
+
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Company is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+            SSLUtil.disableSSLVerification();
+            CompanyUtils.unmaskCompanyProperties(companyEntity, request);
+            List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads =  validateEmployeesAttendance(companyName, month, year, employeeId);
+
+
+            if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
+                if (employeeId != null && !employeeId.isEmpty()) {
+                    fileBytes = generateExcelFromSingleEmployeesAttendance(employeeAttendanceResPayloads);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
+                    headers.setContentDisposition(ContentDisposition.builder("attachment")
+                            .filename(employeeAttendanceResPayloads.getFirst().getFirstName()+"_"+employeeAttendanceResPayloads.getFirst().getLastName()+"_"+"AttendanceDetails.xlsx")
+                            .build());
+                }else {
+                    fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
+                    headers.setContentDisposition(ContentDisposition.builder("attachment")
+                            .filename("employeeAttendanceDetails.xlsx")
+                            .build());
+
+                }
+
+            } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
+
+                fileBytes = generateEmployeesAttendancePdf(employeeAttendanceResPayloads, employeeId, companyEntity);
+                headers.setContentType(MediaType.APPLICATION_PDF);
+                headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeAttendanceDetails.pdf").build());
+            }
+
+        } catch (EmployeeException e) {
+            log.error("Exception while downloading the Employee details: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while processing the employee details: {}", e.getMessage());
+            throw new IOException("Error generating certificate", e);
+        }
+
+        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+    }
+
+    private byte[] generateExcelFromSingleEmployeesAttendance(List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads)  throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Employees");
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Month", "Year", "TotalWorkingDays", "NoOfWorkingDays", "NoOfLeaves"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                Font headerFont = workbook.createFont();
+                headerFont.setBold(true);
+                CellStyle headerCellStyle = workbook.createCellStyle();
+                headerCellStyle.setFont(headerFont);
+                cell.setCellStyle(headerCellStyle);
+            }
+            int rowNum = 1;
+            for (EmployeeAttendanceResPayload attendanceResPayload : employeeAttendanceResPayloads) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(attendanceResPayload.getMonth());
+                row.createCell(1).setCellValue(attendanceResPayload.getYear());
+                row.createCell(2).setCellValue(attendanceResPayload.getTotalWorkingDays());
+                row.createCell(3).setCellValue(attendanceResPayload.getNoOfWorkingDays());
+                row.createCell(4).setCellValue(attendanceResPayload.getLeaves());
+            }
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 2); // Adjust the multiplier as needed
+            }
+
+            workbook.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
+
+    private byte[] generateExcelFromEmployeesAttendance(List<EmployeeAttendanceResPayload> resPayloads) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Employees");
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"FirstName", "LastName", "EmployeeId", "Month", "Year", "TotalWorkingDays", "NoOfWorkingDays", "NoOfLeaves"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                Font headerFont = workbook.createFont();
+                headerFont.setBold(true);
+                CellStyle headerCellStyle = workbook.createCellStyle();
+                headerCellStyle.setFont(headerFont);
+                cell.setCellStyle(headerCellStyle);
+            }
+            int rowNum = 1;
+            for (EmployeeAttendanceResPayload attendanceResPayload : resPayloads) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(attendanceResPayload.getFirstName());
+                row.createCell(1).setCellValue(attendanceResPayload.getLastName());
+                row.createCell(2).setCellValue(attendanceResPayload.getEmployeeCreatedId());
+                row.createCell(3).setCellValue(attendanceResPayload.getMonth());
+                row.createCell(4).setCellValue(attendanceResPayload.getYear());
+                row.createCell(5).setCellValue(attendanceResPayload.getTotalWorkingDays());
+                row.createCell(6).setCellValue(attendanceResPayload.getNoOfWorkingDays());
+                row.createCell(7).setCellValue(attendanceResPayload.getLeaves());
+            }
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 2); // Adjust the multiplier as needed
+            }
+
+            workbook.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
+    private List<EmployeeAttendanceResPayload> validateEmployeesAttendance(String companyName, String month, String year, String employeeId) throws EmployeeException {
+        try {
+            List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads = new ArrayList<>();
+            List<AttendanceEntity> attendanceEntities = null;
+            if (employeeId != null && !employeeId.isEmpty()) {
+                attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, employeeId, null, null);
+            }else if (month != null && year != null){
+                attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
+            }
+            if (attendanceEntities == null || attendanceEntities.isEmpty()) {
+                log.error("Employees Attendance do not exist in the company");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_ATTENDANCE), HttpStatus.NOT_FOUND);
+            }
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            for (AttendanceEntity attendanceEntity : attendanceEntities) {
+                    CompanyUtils.unMaskAttendanceProperties(attendanceEntity);
+                    EmployeeEntity employee = openSearchOperations.getEmployeeById(attendanceEntity.getEmployeeId(), null, index);
+                    EmployeeAttendanceResPayload attendanceResPayload = objectMapper.convertValue(attendanceEntity, EmployeeAttendanceResPayload.class);
+                    attendanceResPayload.setEmployeeCreatedId(employee.getEmployeeId());
+                    attendanceResPayload.setLeaves(String.valueOf(Integer.parseInt(attendanceResPayload.getTotalWorkingDays())- Integer.parseInt(attendanceResPayload.getNoOfWorkingDays())));
+                    employeeAttendanceResPayloads.add(attendanceResPayload);
+
+            }
+            return employeeAttendanceResPayloads;
+
+        }catch (EmployeeException e){
+            log.error("Exception while fetching the employee details");
+            throw e;
+        } catch (IOException e) {
+           log.error("Exception while fetching the employee attendance details");
+           throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_ATTENDANCE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    private byte[] generatePdfFromHtml(String html) throws IOException {
+        html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");  // Fix potential HTML issues
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(html);
+            renderer.layout();
+            renderer.createPDF(baos);
+            return baos.toByteArray();
+        } catch (DocumentException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    private byte[] generateEmployeesAttendancePdf(List<EmployeeAttendanceResPayload> employeeEntities, String employeeId, CompanyEntity companyEntity) throws IOException, DocumentException {
+        try {
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + Constants.EMPLOYEE_DETAILS);
+            if (inputStream == null) {
+                throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
+            }
+            Template template = null;
+            if (employeeId != null && !employeeId.isEmpty()) {
+                template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
+            } else {
+                template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
+            }
+
+            Map<String, Object> dataModel = new HashMap<>();
+            dataModel.put("data", employeeEntities);
+            dataModel.put("company", companyEntity);
+
+            addWatermarkToDataModel(dataModel, companyEntity);
+
+            StringWriter stringWriter = new StringWriter();
+            template.process(dataModel, stringWriter);
+            String htmlContent = stringWriter.toString();
+            return generatePdfFromHtml(htmlContent); // Return the byte array from generatePdfFromHtml
+        } catch (IOException | EmployeeException | TemplateException e) {
+            log.error("Error generating PDF: {}", e.getMessage());
+            throw new IOException("Error generating PDF", e); // Re-throw the exception
+        }
+    }
+
+    private void addWatermarkToDataModel(Map<String, Object> dataModel, CompanyEntity companyEntity) throws IOException, EmployeeException {
+        String imageUrl = companyEntity.getImageFile();
+        BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
+        if (originalImage == null) {
+            log.error("Failed to load image from URL: {}", imageUrl);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        float opacity = 0.5f;
+        double scaleFactor = 1.6d;
+        BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(watermarkedImage, "png", baos);
+        String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
+        dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
     }
 }

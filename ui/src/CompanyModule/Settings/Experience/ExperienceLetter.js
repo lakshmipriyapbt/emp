@@ -13,50 +13,15 @@ import ExperienceTemplate2 from "./ExperienceTemplate2";
 
 const ExperienceLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [companyData, setCompanyData] = useState({});
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [fetchedTemplate, setFetchedTemplate] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [isFetched, setIsFetched] = useState(false);
 
-  const { user, logoFileName } = useAuth();
+  const { company={} } = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
+  const fetchTemplate = async () => {
     try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
-
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
-
-  useEffect(() => {
-    const userId = user.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [user.userId]);
-
-  const fetchTemplate = async (companyId) => {
-    try {
-      const res = await TemplateGetAPI(companyId);
+      const res = await TemplateGetAPI(company.id);
       const templateNo = res.data.data.experienceTemplateNo; // Get the experience template number
       setFetchedTemplate(res.data.data); // Store fetched data
       setIsFetched(true); // Mark template as fetched
@@ -74,10 +39,10 @@ const ExperienceLetter = () => {
   };
 
   useEffect(() => {
-    if (companyData) {
-      fetchTemplate(companyData.id);
+    if (company) {
+      fetchTemplate(company.id);
     }
-  }, [companyData]);
+  }, [company]);
 
   const templates = useMemo(
     () => [
@@ -86,14 +51,14 @@ const ExperienceLetter = () => {
         name: "1",
         content: (data) => (
           <ExperienceTemplate1
-            companyLogo={logoFileName}
-            companyData={companyData}
+          companyLogo={company?.imageFile || "default-logo.png"} // ✅ Fallback image
+            companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
             employeeId="E123456"
             jobTitle="Software Engineer"
             joiningDate="January 1, 2020"
-            lastWorkingDate="October 27, 2024"
+            experienceDate="October 27, 2024"
             department="Department"
             designation="Designation"
           />
@@ -104,19 +69,19 @@ const ExperienceLetter = () => {
         name: "2",
         content: (data) => (
           <ExperienceTemplate2
-            companyLogo={logoFileName}
-            companyData={companyData}
+          companyLogo={company?.imageFile || "default-logo.png"} // ✅ Fallback image
+            companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
             employeeId="E123456"
             jobTitle="Software Engineer"
             joiningDate="January 1, 2020"
-            lastWorkingDate="October 27, 2024"
+            experienceDate="October 27, 2024"
           />
         ),
       },
     ],
-    [companyData, logoFileName]
+    [company]
   );
 
   useEffect(() => {
@@ -133,7 +98,7 @@ const ExperienceLetter = () => {
 
   const handleSubmitTemplate = async () => {
     const dataToSubmit = {
-      companyId: companyData.id, // Ensure this is correct
+      companyId: company.id, // Ensure this is correct
       experienceTemplateNo: selectedTemplate.name,
       // Add other necessary fields if required
     };

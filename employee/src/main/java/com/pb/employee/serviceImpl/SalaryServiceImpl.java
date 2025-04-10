@@ -2,33 +2,39 @@ package com.pb.employee.serviceImpl;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.EmployeeSalaryRequest;
-import com.pb.employee.request.EmployeeStatus;
-import com.pb.employee.request.SalaryRequest;
-import com.pb.employee.request.SalaryUpdateRequest;
+import com.pb.employee.request.*;
 import com.pb.employee.service.SalaryService;
-import com.pb.employee.util.CompanyUtils;
-import com.pb.employee.util.Constants;
-import com.pb.employee.util.EmployeeUtils;
-import com.pb.employee.util.ResourceIdUtils;
+import com.pb.employee.util.*;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,6 +46,8 @@ public class SalaryServiceImpl implements SalaryService {
     private  OpenSearchOperations openSearchOperations;
     @Autowired
     private EmployeeServiceImpl employeeService;
+    @Autowired
+    private Configuration freemarkerConfig;
 
     @Override
     public ResponseEntity<?> addSalary(EmployeeSalaryRequest employeeSalaryRequest, String employeeId) throws EmployeeException {
@@ -50,7 +58,7 @@ public class SalaryServiceImpl implements SalaryService {
         List<EmployeeSalaryEntity> salary;
         String index = ResourceIdUtils.generateCompanyIndex(employeeSalaryRequest.getCompanyName());
         EmployeeSalaryEntity employeesSalaryProperties = null;
-        List<SalaryConfigurationEntity> salaryConfigurationEntity = null;
+        List<SalaryConfigurationEntity> salaryConfigurationEntity;
 
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
@@ -67,7 +75,7 @@ public class SalaryServiceImpl implements SalaryService {
                 if (salary != null && !salary.isEmpty()) {
                     for (EmployeeSalaryEntity employeeSalaryEntity : salary) {
                         String gross = new String(Base64.getDecoder().decode(employeeSalaryEntity.getGrossAmount()));
-                        if (gross.equals(employeeSalaryRequest.getGrossAmount())) {
+                        if (employeeSalaryEntity.getStatus().equalsIgnoreCase(Constants.ACTIVE) && gross.equals(employeeSalaryRequest.getGrossAmount())) {
                             return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(
                                     new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.SALARY_ALREADY_EXIST))),
                                     HttpStatus.CONFLICT
@@ -81,7 +89,8 @@ public class SalaryServiceImpl implements SalaryService {
                 salaryConfigurationEntity = openSearchOperations.getSalaryStructureByCompanyDate(employeeSalaryRequest.getCompanyName());
                 log.debug("Fetched Salary Configurations: {}", salaryConfigurationEntity);
 
-                if (salaryConfigurationEntity == null){
+                if (salaryConfigurationEntity.size() == 0){
+                    log.error("Exception while fetching the company salary structure");
                     return new ResponseEntity<>(
                             ResponseBuilder.builder().build().
                                     createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
@@ -149,33 +158,29 @@ public class SalaryServiceImpl implements SalaryService {
 
     }
 
-    @Override
-    public ResponseEntity<?> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
 
-        List<EmployeeSalaryEntity> salaryEntities = null;
-        Object entity = null;
-        List<EmployeeSalaryEntity> salaryEntityList;
+    @Override
+    public List<EmployeeSalaryResPayload> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
         try {
-            salaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employeeId);
-            salaryEntityList = new ArrayList<>();
-            for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                EmployeeSalaryEntity salary = EmployeeUtils.unMaskEmployeeSalaryProperties(salaryEntity);
-                salaryEntityList.add(salary);
-                entity = openSearchOperations.getById(salary.getEmployeeId(), null, index);
-                if (entity == null){
-                    log.error("Employee ID mismatch for salary {}: expected {}, found {}", salary.getSalaryId(), employeeId, salary.getEmployeeId());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
-                }
+           List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName);
+            if (employeeId != null) {
+                return employeeSalaryResPayload.stream()
+                        .filter(employee -> employee.getEmployeeId().equalsIgnoreCase(employeeId))
+                        .collect(Collectors.toList());
             }
-        } catch (Exception ex) {
+
+           return employeeSalaryResPayload.stream().filter(salary -> salary.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList());
+
+        } catch (EmployeeException ex){
+            log.error("Exception while fetching the employee salaries", ex);
+            throw ex;
+        }
+        catch (Exception ex) {
             log.error("Exception while fetching salaries for employees {}: {}", employeeId, ex.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(salaryEntityList), HttpStatus.OK);
+
     }
     @Override
     public ResponseEntity<?> deleteEmployeeSalaryById(String companyName, String employeeId,String salaryId) throws EmployeeException{
@@ -248,5 +253,166 @@ public class SalaryServiceImpl implements SalaryService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
+
+    @Override
+    public ResponseEntity<byte[]> downloadEmployeesSalaries(String companyName, String format, HttpServletRequest request) throws Exception {
+        byte[] fileBytes = null;
+        HttpHeaders headers = new HttpHeaders();
+        try {
+
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Company is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+            SSLUtil.disableSSLVerification();
+            CompanyUtils.unmaskCompanyProperties(companyEntity, request);
+            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity.getShortName());
+            List<EmployeeSalaryResPayload> activeEmployeeSalaryResPayloads = employeeSalaryResPayloads.stream()
+                    .filter(employeeSalaryResPayload -> "active".equalsIgnoreCase(employeeSalaryResPayload.getStatus()))
+                    .collect(Collectors.toList());
+            if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
+                fileBytes = generateExcelFromEmployeesSalaries(activeEmployeeSalaryResPayloads);
+                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
+                headers.setContentDisposition(ContentDisposition.builder("attachment")
+                        .filename("EmployeesSalaries.xlsx")
+                        .build());
+            } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
+                fileBytes = generateEmployeesSalariesPdf(activeEmployeeSalaryResPayloads, companyEntity);
+                headers.setContentType(MediaType.APPLICATION_PDF);
+                headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeBankDetails.pdf").build());
+            }
+
+        } catch (EmployeeException e) {
+            log.error("Exception while downloading the Employee details: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while processing the employee details: {}", e.getMessage());
+            throw new IOException("Error generating certificate", e);
+        }
+
+        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+    }
+
+
+    private byte[] generateExcelFromEmployeesSalaries(List<EmployeeSalaryResPayload> salaryResPayloads) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Employees");
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"Name", "EmployeeId", "Gross Amount", "TDS", "Net Salary"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                Font headerFont = workbook.createFont();
+                headerFont.setBold(true);
+                CellStyle headerCellStyle = workbook.createCellStyle();
+                headerCellStyle.setFont(headerFont);
+                cell.setCellStyle(headerCellStyle);
+            }
+            int rowNum = 1;
+            for (EmployeeSalaryResPayload salaryResPayload : salaryResPayloads) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(salaryResPayload.getEmployeeName());
+                row.createCell(1).setCellValue(salaryResPayload.getEmployeeCreatedId());
+                row.createCell(2).setCellValue(salaryResPayload.getGrossAmount());
+                row.createCell(3).setCellValue(salaryResPayload.getIncomeTax());
+                row.createCell(4).setCellValue(salaryResPayload.getNetSalary());
+            }
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 2); // Adjust the multiplier as needed
+            }
+
+            workbook.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
+    private List<EmployeeSalaryResPayload> validateEmployeesSalaries(String companyName) throws EmployeeException {
+        try {
+            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = new ArrayList<>();
+            List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(companyName, null);
+            if (salaryEntities == null || salaryEntities.isEmpty()) {
+                log.error("Employees salaries do not exist in the company");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY), HttpStatus.NOT_FOUND);
+            }
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
+                    EmployeeUtils.unMaskEmployeeSalaryProperties(salaryEntity);
+                    EmployeeEntity employee = openSearchOperations.getEmployeeById(salaryEntity.getEmployeeId(), null, index);
+                    EmployeeSalaryResPayload employeeSalaryResPayload = objectMapper.convertValue(salaryEntity, EmployeeSalaryResPayload.class);
+                    employeeSalaryResPayload.setEmployeeName(employee.getFirstName() + " " + employee.getLastName());
+                    employeeSalaryResPayload.setEmployeeCreatedId(employee.getEmployeeId());
+                    employeeSalaryResPayloads.add(employeeSalaryResPayload);
+            }
+            return employeeSalaryResPayloads;
+
+        }catch (EmployeeException e){
+            log.error("Exception while fetching the employee details");
+            throw e;
+        } catch (IOException e) {
+            log.error("Exception while getting the employee details");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    private byte[] generatePdfFromHtml(String html) throws IOException {
+        html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");  // Fix potential HTML issues
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(html);
+            renderer.layout();
+            renderer.createPDF(baos);
+            return baos.toByteArray();
+        } catch (DocumentException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    private byte[] generateEmployeesSalariesPdf(List<EmployeeSalaryResPayload> employeeEntities, CompanyEntity companyEntity) throws IOException, DocumentException {
+        try {
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + Constants.EMPLOYEE_DETAILS);
+            if (inputStream == null) {
+                throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
+            }
+            Template template = freemarkerConfig.getTemplate(Constants.EMPLOYEE_SALARIES_DETAILS);
+
+            Map<String, Object> dataModel = new HashMap<>();
+            dataModel.put("data", employeeEntities);
+            dataModel.put("company", companyEntity);
+
+            addWatermarkToDataModel(dataModel, companyEntity);
+
+            StringWriter stringWriter = new StringWriter();
+            template.process(dataModel, stringWriter);
+            String htmlContent = stringWriter.toString();
+            return generatePdfFromHtml(htmlContent); // Return the byte array from generatePdfFromHtml
+        } catch (IOException | EmployeeException | TemplateException e) {
+            log.error("Error generating PDF: {}", e.getMessage());
+            throw new IOException("Error generating PDF", e); // Re-throw the exception
+        }
+    }
+
+    private void addWatermarkToDataModel(Map<String, Object> dataModel, CompanyEntity companyEntity) throws IOException, EmployeeException {
+        String imageUrl = companyEntity.getImageFile();
+        BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
+        if (originalImage == null) {
+            log.error("Failed to load image from URL: {}", imageUrl);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        float opacity = 0.5f;
+        double scaleFactor = 1.6d;
+        BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(watermarkedImage, "png", baos);
+        String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
+        dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
+    }
 
 }

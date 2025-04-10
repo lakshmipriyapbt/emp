@@ -31,7 +31,7 @@ public class Constants {
     public static final String ZEROS = "Zero";
     public static final String AND = " and ";
     public static final String PAISE = " Paise";
-    public static final String ONLY = " Only";
+    public static final String RUPEES_ONLY = " Rupees Only";
     public static final String HUNDRED = " Hundred";
     public static final String THOUSAND = " Thousand";
     public static final String LAKH = " Lakh";

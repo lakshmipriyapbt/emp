@@ -2,17 +2,16 @@ import React from "react";
 import { useAuth } from "../../../Context/AuthContext";
 
 const ExperienceTemplate1 = ({
-  companyLogo,
   companyData,
   date,
   employeeName,
   employeeId,
   designation,
   joiningDate,
-  department,
   experienceDate,
+  aboutEmployee
 }) => {
-  const { logoFileName } = useAuth();
+  const { company } = useAuth();
 
   return (
     <div
@@ -32,7 +31,7 @@ const ExperienceTemplate1 = ({
         </div>
         <div className="col-6 d-flex justify-content-end">
           <img
-            src={companyLogo}
+            src={company?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "160px" }}
           />
@@ -49,7 +48,7 @@ const ExperienceTemplate1 = ({
           right: "30%",
           width: "50%",
           height: "50%",
-          backgroundImage: `url(${logoFileName})`, // Use the logo or another image
+          backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
           transform: "rotate(340deg)",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
@@ -71,7 +70,7 @@ const ExperienceTemplate1 = ({
         <p>
           This is to certify that <strong>{employeeName}</strong> with an ID{" "}
           <strong>{employeeId}</strong> was employed with our Company{" "}
-          <strong>{companyData.companyName}</strong> from{" "}
+          <strong>{companyData?.companyName}</strong> from{" "}
           <strong>{joiningDate}</strong> to <strong>{experienceDate}</strong> as
           a <strong>{designation}</strong>.
         </p>
@@ -83,6 +82,7 @@ const ExperienceTemplate1 = ({
           are a true team player and a fun-loving individual who mixes well with
           both seniors and juniors.
         </p>
+        <p>About Employee : {aboutEmployee}</p>
         <p>
           We are sure that their passion and dedication will help them excel in
           whatever they choose to do next in their life. He/She have shown a
@@ -95,11 +95,12 @@ const ExperienceTemplate1 = ({
         <div className="mt-5 pt-3">
           <p className="mb-5">Sincerely,</p>
           <div className="mt-5 pt-5">
-            <h4>{companyData.companyName},</h4>
+         
+            <h4>{companyData?.companyName},</h4>
             <p>
-              {companyData.mobileNo},{companyData.emailId}
+              {companyData?.mobileNo},{companyData?.emailId}
             </p>
-            <p>{companyData.companyAddress}.</p>
+            <p>{companyData?.companyAddress}.</p>
           </div>
         </div>
       </div>

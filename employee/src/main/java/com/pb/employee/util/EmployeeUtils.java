@@ -1,32 +1,35 @@
 package com.pb.employee.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.swing.text.Position;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import javax.swing.text.Position;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.lang.reflect.Field;
 import java.util.Base64;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class EmployeeUtils {
 
-
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId) {
-        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null;
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
+        String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null, altNo= null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
         }
-        if(employeeRequest.getPassword() != null) {
-            password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
-        }
+//        if(employeeRequest.getPassword() != null) {
+//            password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
+//        }
         if(employeeRequest.getUanNo() != null) {
             uan = Base64.getEncoder().encodeToString(employeeRequest.getUanNo().getBytes());
         }
@@ -42,6 +45,12 @@ public class EmployeeUtils {
         if(employeeRequest.getMobileNo() != null) {
             mobileNo = Base64.getEncoder().encodeToString(employeeRequest.getMobileNo().getBytes());
         }
+        if(employeeRequest.getAlternateNo() != null) {
+            altNo = Base64.getEncoder().encodeToString(employeeRequest.getAlternateNo().getBytes());
+        }
+        // Encode default password
+        password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
+
         ObjectMapper objectMapper = new ObjectMapper();
 
         EmployeeEntity entity = objectMapper.convertValue(employeeRequest, EmployeeEntity.class);
@@ -54,13 +63,14 @@ public class EmployeeUtils {
         entity.setIfscCode(ifscCode);
         entity.setAccountNo(accountNo);
         entity.setMobileNo(mobileNo);
+        entity.setAlternateNo(altNo);
         entity.setType(Constants.EMPLOYEE);
         return entity;
     }
 
 
     public static Entity unmaskEmployeeProperties(EmployeeEntity employeeEntity, DepartmentEntity entity, DesignationEntity designationEntity) {
-        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null;
+        String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null, alterNo=null;
         if(employeeEntity.getPanNo() != null) {
             pan = new String((Base64.getDecoder().decode(employeeEntity.getPanNo().toString().getBytes())));
         }
@@ -79,6 +89,9 @@ public class EmployeeUtils {
         if(employeeEntity.getMobileNo() != null) {
             mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
         }
+        if(employeeEntity.getAlternateNo() != null && !employeeEntity.getAlternateNo().isEmpty()) {
+            alterNo = new String((Base64.getDecoder().decode(employeeEntity.getAlternateNo().toString().getBytes())));
+        }
         if (entity != null && employeeEntity.getDepartment() != null) {
             employeeEntity.setDepartmentName(entity.getName());
         }else {
@@ -95,6 +108,7 @@ public class EmployeeUtils {
         employeeEntity.setUanNo(uanNo);
         employeeEntity.setPassword("**********");
         employeeEntity.setPanNo(pan);
+        employeeEntity.setAlternateNo(alterNo);
         employeeEntity.setMobileNo(mobileNo);
         return employeeEntity;
     }
@@ -151,7 +165,7 @@ public class EmployeeUtils {
         return responseBody;
     }
 
-    public static int duplicateEmployeeProperties(EmployeeEntity user, EmployeeUpdateRequest employeeUpdateRequest) {
+    public static int duplicateEmployeeProperties(EmployeeEntity user, EmployeePersonnelEntity employeePersonnel, EmployeeUpdateRequest employeeUpdateRequest) {
         int noOfChanges = 0;
         String type=null, email=null;
         if (!user.getEmployeeType().equals(employeeUpdateRequest.getEmployeeType())){
@@ -167,12 +181,43 @@ public class EmployeeUtils {
             noOfChanges +=1;
         }if (!user.getManager().equals(employeeUpdateRequest.getManager())){
             noOfChanges +=1;
-        }if (!user.getMobileNo().isEmpty()) {
-            String mobile = new String(Base64.getDecoder().decode(user.getMobileNo().getBytes()));
-            if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
+        }if (user.getMobileNo() != null && !user.getMobileNo().isEmpty()) {
+            String mobile =  new String(Base64.getDecoder().decode(user.getMobileNo().getBytes())).trim();
+            if (!mobile.equals(employeeUpdateRequest.getMobileNo().trim())) {
                 noOfChanges += 1;
             }
-        }if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
+    }else if (user.getMobileNo() == null && employeeUpdateRequest.getMobileNo() != null){
+            noOfChanges +=1;
+        }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
+            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes())).trim();
+            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo().trim())){
+                noOfChanges += 1;
+            }
+        }else if (user.getAlternateNo() == null && employeeUpdateRequest.getAlternateNo() != null){
+            noOfChanges +=1;
+        }
+        if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
+            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getPermanentAddress())){
+                noOfChanges += 1;
+            }
+        }else if (user.getPermanentAddress() == null && employeeUpdateRequest.getPermanentAddress() != null){
+            noOfChanges +=1;
+        }
+        if (user.getTempAddress() != null && !user.getTempAddress().isEmpty()){
+            if (!user.getTempAddress().equals(employeeUpdateRequest.getTempAddress())){
+                noOfChanges += 1;
+            }
+        }else if (user.getTempAddress() == null && employeeUpdateRequest.getTempAddress() != null){
+            noOfChanges +=1;
+        }
+        if (user.getMaritalStatus() != null && !user.getMaritalStatus().isEmpty()){
+            if (!user.getMaritalStatus().equals(employeeUpdateRequest.getMaritalStatus())){
+                noOfChanges += 1;
+            }
+        }else if (user.getMaritalStatus() == null && employeeUpdateRequest.getMaritalStatus() != null){
+            noOfChanges +=1;
+        }
+        if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){
             noOfChanges +=1;
         }if (!user.getIfscCode().isEmpty()) {
            String ifsc = new String((Base64.getDecoder().decode(user.getIfscCode().toString().getBytes())));
@@ -188,8 +233,112 @@ public class EmployeeUtils {
         }if (!user.getBankName().equals(employeeUpdateRequest.getBankName())){
             noOfChanges +=1;
         }
+
+        if (employeePersonnel != null) {
+            noOfChanges += compareEmployeeExperience(
+                    employeePersonnel.getEmployeeExperience(),
+                    employeeUpdateRequest.getPersonnelEntity().getEmployeeExperience()
+            );
+
+            noOfChanges += compareEmployeeEducation(
+                    employeePersonnel.getEmployeeEducation(),
+                    employeeUpdateRequest.getPersonnelEntity().getEmployeeEducation()
+            );
+        }
         return noOfChanges;
     }
+
+    /**
+     * Compares two lists of EmployeeEducation and returns the number of differences.
+     *
+     * @param currentEducationList The list of current EmployeeEducation entries.
+     * @param updatedEducationList The list of updated EmployeeEducation entries.
+     * @return The number of differences between the two lists.
+     */
+    public static int compareEmployeeEducation(List<EmployeeEducation> currentEducationList, List<EmployeeEducation> updatedEducationList) {
+        int changes = 0;
+        if (currentEducationList == null) {
+            currentEducationList = Collections.emptyList();
+        }
+        if (updatedEducationList == null) {
+            updatedEducationList = Collections.emptyList();
+        }
+        List<EmployeeEducation> finalUpdatedEducationList = updatedEducationList;
+        changes += (int) currentEducationList.stream()
+                .filter(currentEducation ->
+                        finalUpdatedEducationList.stream().noneMatch(updatedEducation ->
+                                (currentEducation.getEducationLevel() != null && updatedEducation.getEducationLevel() != null && currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel())) &&
+                                        (currentEducation.getInstituteName() != null && updatedEducation.getInstituteName() != null && currentEducation.getInstituteName().equals(updatedEducation.getInstituteName())) &&
+                                        (currentEducation.getBoardOfStudy() != null && updatedEducation.getBoardOfStudy() != null && currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy())) &&
+                                        (currentEducation.getBranch() != null && updatedEducation.getBranch() != null && currentEducation.getBranch().equals(updatedEducation.getBranch())) &&
+                                        (currentEducation.getYear() != null && updatedEducation.getYear() != null && currentEducation.getYear().equals(updatedEducation.getYear())) &&
+                                        (currentEducation.getPercentage() != null && updatedEducation.getPercentage() != null && currentEducation.getPercentage().equals(updatedEducation.getPercentage()))
+                        )
+                )
+                .count();
+        List<EmployeeEducation> finalCurrentEducationList = currentEducationList;
+        changes += (int) updatedEducationList.stream()
+                .filter(updatedEducation ->
+                        finalCurrentEducationList.stream().noneMatch(currentEducation ->
+                                (currentEducation.getEducationLevel() != null && updatedEducation.getEducationLevel() != null && currentEducation.getEducationLevel().equals(updatedEducation.getEducationLevel())) &&
+                                        (currentEducation.getInstituteName() != null && updatedEducation.getInstituteName() != null && currentEducation.getInstituteName().equals(updatedEducation.getInstituteName())) &&
+                                        (currentEducation.getBoardOfStudy() != null && updatedEducation.getBoardOfStudy() != null && currentEducation.getBoardOfStudy().equals(updatedEducation.getBoardOfStudy())) &&
+                                        (currentEducation.getBranch() != null && updatedEducation.getBranch() != null && currentEducation.getBranch().equals(updatedEducation.getBranch())) &&
+                                        (currentEducation.getYear() != null && updatedEducation.getYear() != null && currentEducation.getYear().equals(updatedEducation.getYear())) &&
+                                        (currentEducation.getPercentage() != null && updatedEducation.getPercentage() != null && currentEducation.getPercentage().equals(updatedEducation.getPercentage()))
+                        )
+                )
+                .count();
+
+        return changes;
+    }
+
+
+    /**
+     * Compares two lists of EmployeeExperience and returns the number of differences.
+     *
+     * @param currentExperienceList The list of current EmployeeExperience entries.
+     * @param updatedExperienceList The list of updated EmployeeExperience entries.
+     * @return The number of differences between the two lists.
+     */
+    public static int compareEmployeeExperience(List<EmployeeExperience> currentExperienceList, List<EmployeeExperience> updatedExperienceList) {
+        int changes = 0;
+
+        // Check for null lists to avoid NullPointerException
+        if (currentExperienceList == null) {
+            currentExperienceList = Collections.emptyList();
+        }
+        if (updatedExperienceList == null) {
+            updatedExperienceList = Collections.emptyList();
+        }
+        List<EmployeeExperience> finalUpdatedExperienceList = updatedExperienceList;
+        changes += (int) currentExperienceList.stream()
+                .filter(currentExperience ->
+                        finalUpdatedExperienceList.stream().noneMatch(updatedExperience ->
+                                (currentExperience.getCompanyName() != null && updatedExperience.getCompanyName() != null && currentExperience.getCompanyName().equals(updatedExperience.getCompanyName())) &&
+                                        (currentExperience.getPositionOrTitle() != null && updatedExperience.getPositionOrTitle() != null && currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle())) &&
+                                        (currentExperience.getStartDate() != null && updatedExperience.getStartDate() != null && currentExperience.getStartDate().equals(updatedExperience.getStartDate())) &&
+                                        (currentExperience.getEndDate() != null && updatedExperience.getEndDate() != null && currentExperience.getEndDate().equals(updatedExperience.getEndDate()))
+                        )
+                )
+                .count();
+
+        List<EmployeeExperience> finalCurrentExperienceList = currentExperienceList;
+        changes += (int) updatedExperienceList.stream()
+                .filter(updatedExperience ->
+                        finalCurrentExperienceList.stream().noneMatch(currentExperience ->
+                                (currentExperience.getCompanyName() != null && updatedExperience.getCompanyName() != null && currentExperience.getCompanyName().equals(updatedExperience.getCompanyName())) &&
+                                        (currentExperience.getPositionOrTitle() != null && updatedExperience.getPositionOrTitle() != null && currentExperience.getPositionOrTitle().equals(updatedExperience.getPositionOrTitle())) &&
+                                        (currentExperience.getStartDate() != null && updatedExperience.getStartDate() != null && currentExperience.getStartDate().equals(updatedExperience.getStartDate())) &&
+                                        (currentExperience.getEndDate() != null && updatedExperience.getEndDate() != null && currentExperience.getEndDate().equals(updatedExperience.getEndDate()))
+                        )
+                )
+                .count();
+
+        return changes;
+    }
+
+
     public static EmployeeSalaryEntity unMaskEmployeeSalaryProperties(EmployeeSalaryEntity salaryEntity) {
 
         String var = null, fix = null, bas = null, gross = null;
@@ -285,6 +434,8 @@ public class EmployeeUtils {
            if (!alternate.equals(companyUpdateRequest.getAlternateNo())){
                 noOfChanges +=1;
            }
+        }else if (companyUpdateRequest.getAlternateNo()!= null){
+            noOfChanges+=1;
         }
 
         if(!user.getName().equals(companyUpdateRequest.getName())){
@@ -395,5 +546,16 @@ public class EmployeeUtils {
             }
         }
         return noOfChanges;
+    }
+
+    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(List<EmployeeEntity> employees, List<AttendanceEntity> attendanceRecords) {
+        Set<String> employeesWithAttendance = attendanceRecords.stream()
+                .map(AttendanceEntity::getEmployeeId)
+                .collect(Collectors.toSet());
+
+        return employees.stream()
+                .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
+                        !employeesWithAttendance.contains(employee.getEmployeeId())&& Constants.ACTIVE.equalsIgnoreCase(employee.getStatus()))
+                .collect(Collectors.toList());
     }
 }

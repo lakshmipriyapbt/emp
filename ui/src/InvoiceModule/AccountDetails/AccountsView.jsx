@@ -9,25 +9,27 @@ import { useDispatch, useSelector } from "react-redux";
 import { BankDeleteApiById } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import DeletePopup from "../../Utils/DeletePopup";
+import Loader from "../../Utils/Loader";
 
 const AccountsView = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { banks, loading, error } = useSelector((state) => state.banks);
+  const [isFetching, setIsFetching] = useState(true); // Local loading state
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
 
   useEffect(() => {
     if (companyId) {
+      setIsFetching(true);
       const timer = setTimeout(() => {
-        console.log("fetchBanks", fetchBanks);
-        dispatch(fetchBanks(companyId));
+        dispatch(fetchBanks(companyId)).finally(() => setIsFetching(false));
       }, 1500); // Delay of 1500ms
   
       return () => clearTimeout(timer); 
@@ -160,6 +162,7 @@ const handleCloseDeleteModal = () => {
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
   };
+  if (isFetching||loading) return  <Loader/>;
 
   return (
     <LayOut>

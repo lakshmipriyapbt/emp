@@ -1,5 +1,7 @@
 package com.pb.employee.controller;
 
+import com.pb.employee.exception.EmployeeException;
+import com.pb.employee.request.InternshipOfferLetterRequest;
 import com.pb.employee.request.OfferLetterRequest;
 import com.pb.employee.service.OfferLetterService;
 import com.pb.employee.util.Constants;
@@ -29,6 +31,18 @@ public class OfferLetterController {
                                                       @RequestBody @Valid OfferLetterRequest offerLetterRequest,
                                                       HttpServletRequest request) {
         return offerLetterService.downloadOfferLetter(offerLetterRequest,request);
+    }
+
+    @RequestMapping(value = "/internShipLetter/download", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.downloadInternShipOfferLetter.tag}", description = "${api.downloadInternShipOfferLetter.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<byte[]> downloadInternShipOfferLetter(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                      @RequestBody @Valid InternshipOfferLetterRequest internshipOfferLetterRequest,
+                                                      HttpServletRequest request) throws EmployeeException {
+        return offerLetterService.downloadInternShipOfferLetter(internshipOfferLetterRequest,request);
     }
 
 }

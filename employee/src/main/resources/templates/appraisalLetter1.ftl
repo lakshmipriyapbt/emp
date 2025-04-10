@@ -107,9 +107,12 @@
     <p>
     We are pleased to inform you that your salary increase effective from <b>${appraisal.dateOfSalaryIncrement}. </b>
     The amount of your salary increase is <b>Rs. ${appraisal.grossCompensation} pa.</b>
+    This represents a <b>${appraisal.salaryHikePersentage}%</b> increase, demonstrating our appreciation for your dedication.
     We understand this is a sustainable increase in your pay and we appreciate
     your hard work and dedication to the company.
     <br />
+    <p>We recognize your continued contributions and dedication to the company, and we are happy to reward your hard work. Please note that all other terms and conditions of your employment remain unchanged as per your original offer letter.
+    </p>
     <br />
     All other T&C are the same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
     </p>
@@ -131,6 +134,7 @@
                 <td>Gross Salary</td>
                 <td>${appraisal.grossCompensation}</td>
             </tr>
+
     </table>
     </div>
     <div>
@@ -138,8 +142,17 @@
     We appreciate your initiative and expect you to take many more such responsibilities in future
      assignments to ensure company’s growth.
     </p>
-    <p>With Best Wishes,</p>
-    <p style = "margin-top: 10px;">Authorized Signature</p>
+
+  <p>With Best Wishes</p>
+    <div>
+               <b>Authorized Signature</b>
+               <br/>
+              <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+              <br/>
+              <b>${company.companyName}</b>
+              <p>${company.mobileNo}|${company.emailId}</p>
+              <p>${company.address}</p>
+     </div>
     </div>
 
 </body>

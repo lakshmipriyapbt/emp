@@ -13,6 +13,8 @@ import {
   EmployeePostApi,
 } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const EmployeeRegistration = () => {
   const {
@@ -29,8 +31,17 @@ const EmployeeRegistration = () => {
       roles: null,
     },
     mode: "onChange",
-  });
-  const { user } = useAuth();
+  }); 
+  const dispatch = useDispatch();
+  // Step 2: Access employee data from the Redux store
+  const { data: employees, status, error } = useSelector((state) => state.employees);
+  // Step 3: Fetch employees on component mount
+  useEffect(() => {
+    if (status === "loading") {
+      dispatch(fetchEmployees());
+    }
+  }, [dispatch, status]);  
+  const { authUser } = useAuth();
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,14 +53,41 @@ const EmployeeRegistration = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(user.company);
+  console.log(authUser.company);
   const [passwordShown, setPasswordShown] = useState(false);
+
   const togglePasswordVisiblity = () => {
     setPasswordShown(!passwordShown);
   };
   const handlePasswordChange = (e) => {
     setPasswordShown(e.target.value);
   };
+
+  console.log("employees",employees);
+
+// Filter employees whose designation starts or ends with "Manager"
+const managerEmployees = employees.filter(
+  (emp) =>
+    emp.designationName &&
+    (emp.designationName.trim().toLowerCase().startsWith("manager") ||
+      emp.designationName.trim().toLowerCase().endsWith("manager"))
+);
+
+// Map manager employees to dropdown format
+const managerOptions = managerEmployees.map((emp) => ({
+  id: emp.id,
+  name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
+}));
+
+// Always include "CompanyAdmin" as an option
+const dropdownOptions = [
+  ...managerOptions,
+  { id: "CompanyAdmin", name: "CompanyAdmin" }
+];
+
+  // Get the last employeeId in the list
+  const lastEmployeeId = employees.length > 0 ? employees[employees.length - 1].employeeId : "N/A";
+console.log("lastEmployeeId",lastEmployeeId)
 
   const handleEmailChange = (e) => {
     // Get the current value of the input field
@@ -171,30 +209,6 @@ const EmployeeRegistration = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Initially disallow spaces if there are no non-space characters
-    if (!/\S/.test(value)) {
-      // If no non-space characters are present, prevent spaces
-      value = value.replace(/\s+/g, "");
-    } else {
-      // Allow spaces if there are non-space characters
-      value = value.toLowerCase();
-      value = value.replace(/^\s+/g, ""); // Remove leading spaces
-      const words = value.split(" ");
-      const capitalizedWords = words.map((word) => {
-        return word.charAt(0).toLowerCase() + word.slice(1);
-      });
-      value = capitalizedWords.join(" ");
-    }
-    // Update input value
-    input.value = value;
-  };
-
   const toInputSpaceCase = (e) => {
     let inputValue = e.target.value;
     let newValue = "";
@@ -222,7 +236,7 @@ const EmployeeRegistration = () => {
     e.target.value = newValue;
   };
 
-  let company = user.company;
+  let company = authUser.company;
   const onSubmit = async (data) => {
     // const roles = data.roles ? [data.roles] : [];
     // Constructing the payload
@@ -249,6 +263,7 @@ const EmployeeRegistration = () => {
         firstName: data.firstName,
         lastName: data.lastName,
         dateOfHiring: data.dateOfHiring,
+        manager:data.manager,
         department: data.department,
         panNo: data.panNo,
         uanNo: data.uanNo,
@@ -452,7 +467,7 @@ const EmployeeRegistration = () => {
     if (!/(?=.*[A-Z])/.test(value)) {
       errors.push("at least one uppercase letter");
     }
-    if (!/(?=.*\W)/.test(value)) {
+    if (!/(?=.*[\W_])/.test(value)) {
       errors.push("at least one special character");
     }
     if (value.includes(" ")) {
@@ -585,21 +600,6 @@ const EmployeeRegistration = () => {
 
     return true; // Return true if all validations pass
   };
-  const validatePAN = (value) => {
-    const spaceError = "Spaces are not allowed in the PAN Number.";
-    const patternError = "Invalid PAN Number format";
-
-    if (/\s/.test(value)) {
-      return spaceError; // Return space error if spaces are found
-    }
-
-    // Check the pattern for the CIN Number
-    if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value)) {
-      return patternError; // Return pattern error if it doesn't match
-    }
-
-    return true; // Return true if all checks pass
-  };
 
   const validateLocation = (value) => {
     // Trim leading and trailing spaces before further validation
@@ -708,32 +708,6 @@ const EmployeeRegistration = () => {
     // Update the input field's value
     event.target.value = value;
   }
-
-  // Function to handle keydown for specific actions (e.g., prevent multiple spaces)
-  function handlePhoneNumberKeyDown(event) {
-    let value = event.target.value;
-
-    // Prevent multiple spaces after +91
-    if (event.key === " " && value.charAt(3) === " ") {
-      event.preventDefault();
-    }
-  }
-  const toInputEmailCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-
-    // Remove all spaces from the input
-    value = value.replace(/\s+/g, "");
-
-    // If the first character is not lowercase, make it lowercase
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
-    }
-
-    // Update the input value
-    input.value = value;
-  };
-
   // In your component
   const dateOfHiring = watch("dateOfHiring"); // Use `watch` from react-hook-form
 
@@ -838,7 +812,7 @@ const EmployeeRegistration = () => {
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
-                        Employee Id <span style={{ color: "red" }}>*</span>
+                        Employee Id <span style={{ color: "red" }}>*</span>{lastEmployeeId}
                       </label>
                       <input
                         type={isUpdating ? "text" : "text"}
@@ -1038,25 +1012,12 @@ const EmployeeRegistration = () => {
                       <label className="form-label">
                         Manager <span style={{ color: "red" }}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Manager"
-                        onInput={toInputTitleCase}
-                        autoComplete="off"
-                        minLength={1}
-                        onKeyDown={handleEmailChange}
-                        {...register("manager", {
-                          required: "Manager is Required",
-                          maxLength: {
-                            value: 150,
-                            message: "Max lenght 150 Characters Exceeded.", // Maximum 150 characters
-                          },
-                          validate: {
-                            validateFirstName,
-                          },
-                        })}
-                      />
+                      <select className="form-select">
+                        <option value="">Select Manager</option>
+                        {dropdownOptions.map(emp => (
+                          <option key={emp.id} value={emp.id}>{emp.name}</option>
+                        ))}
+                      </select>
                       {errors.manager && (
                         <p className="errorMsg">{errors.manager.message}</p>
                       )}

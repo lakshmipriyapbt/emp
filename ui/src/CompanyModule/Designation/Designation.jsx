@@ -27,7 +27,7 @@ const Designation = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedItemId, setSelectedItemId] = useState(null); 
-  const { user } = useAuth();
+  const { authUser } = useAuth();
 
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
@@ -42,6 +42,7 @@ const Designation = () => {
   const handleCloseAddDesignationModal = () => {
     setAddDesignation(false);
     reset();
+    setEditingUserId(null);
   };
 
   const fetchDesignation = async () => {
@@ -62,7 +63,7 @@ const Designation = () => {
     setLoading(true);
     try {
       const formData = {
-        companyName: user.company,
+        companyName: authUser.company,
         name: data.name
       };
   

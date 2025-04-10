@@ -13,6 +13,8 @@ import {
 } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import Preview from "../Settings/Relieving/Preview";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ExistsEmpRegistration = () => {
   const {
@@ -26,7 +28,7 @@ const ExistsEmpRegistration = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser,company } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -38,6 +40,16 @@ const ExistsEmpRegistration = () => {
   const [templateAvailable, setTemplateAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const calculateNoticePeriod = (
     resignationDate,
@@ -120,15 +132,10 @@ const ExistsEmpRegistration = () => {
   };
 
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter(
-          (employee) =>
-            employee.firstName !== null && employee.status !== "InActive"
-        )
-        .map(({ referenceId, ...rest }) => rest);
-      setEmp(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -136,10 +143,11 @@ const ExistsEmpRegistration = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []);
+        }));
+
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -175,7 +183,7 @@ const ExistsEmpRegistration = () => {
       resignationDate: data.resignationDate || "",
       lastWorkingDate: data.relievingDate || "",
       noticePeriod,
-      companyName: user.company,
+      companyName: authUser.company,
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -237,9 +245,9 @@ const ExistsEmpRegistration = () => {
         }
 
         // Reset and navigate after success
-        setShowPreview(true);
-        reset();
+        setShowPreview(false);
         navigate("/relievingSummary");
+        clearForm()
       }
     } catch (error) {
       console.error("Error submitting relieving letter:", error);
@@ -339,18 +347,6 @@ const ExistsEmpRegistration = () => {
 
   if (loading) return <Loader />;
 
-  const nextSixMonths = new Date();
-  nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
-  const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
-    const dd = today.getDate().toString().padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
   // Render loading message or template not available message
   if (!templateAvailable) {
     return (
@@ -390,7 +386,7 @@ const ExistsEmpRegistration = () => {
                   <a href="/main">Home</a>
                 </li>
                 <li className="breadcrumb-item">
-                  <a href="/existingSummary">Relieving Summary</a>
+                  <a href="/relievingSummary">Relieving Summary</a>
                 </li>
                 <li className="breadcrumb-item active">
                   Employee Relieving Form
@@ -507,7 +503,6 @@ const ExistsEmpRegistration = () => {
                             type="date"
                             className="form-control"
                             placeholder="Resignation Date"
-                            max={getCurrentDate()}
                           />
                         )}
                       />
@@ -534,7 +529,6 @@ const ExistsEmpRegistration = () => {
                             type="date"
                             className="form-control"
                             placeholder="Last Working Date"
-                            max={getCurrentDate()}
                           />
                         )}
                       />

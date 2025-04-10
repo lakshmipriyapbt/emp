@@ -15,14 +15,14 @@ public class NumberToWordsConverter {
         String numberStr = new DecimalFormat("#.##").format(number);
         String[] parts = numberStr.split("\\.");
         int integerPart = Integer.parseInt(parts[0]);
-        int fractionalPart = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+       // int fractionalPart = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
 
         StringBuilder words = new StringBuilder();
         words.append(convertInteger(integerPart));
-        if (fractionalPart > 0) {
-            words.append(Constants.AND).append(convertInteger(fractionalPart)).append(Constants.PAISE);
-        }
-        words.append(Constants.ONLY);
+//        if (fractionalPart > 0) {
+//            words.append(Constants.AND).append(convertInteger(fractionalPart)).append(Constants.PAISE);
+//        }
+        words.append(Constants.RUPEES_ONLY);
         return words.toString();
     }
 

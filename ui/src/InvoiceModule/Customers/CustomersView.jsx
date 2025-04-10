@@ -12,6 +12,7 @@ import {
   removeCustomerFromState,
 } from "../../Redux/CustomerSlice";
 import DeletePopup from "../../Utils/DeletePopup";
+import Loader from "../../Utils/Loader";
 
 const CustomersView = () => {
   const dispatch = useDispatch();
@@ -21,17 +22,19 @@ const CustomersView = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [selectedItemId, setSelectedItemId] = useState(null);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
 
   // Fetch all customers on component mount
   useEffect(() => {
     if (companyId) {
+      setIsFetching(true);
       const timer = setTimeout(() => {
-        dispatch(fetchCustomers(companyId));
-      }, 1500); // Delay of 1500ms
+        dispatch(fetchCustomers(companyId)).finally(()=>setIsFetching(false));
+      }, 1000); // Delay of 1000ms
   
       return () => clearTimeout(timer);
     }
@@ -50,8 +53,9 @@ const CustomersView = () => {
       setFilteredData(result);
     } else {
       setFilteredData([]);
+      toast.error(error)
     }
-  }, [search, customers]);
+  }, [search, customers,error]);
 
   const handleEdit = (customerId) => {
     navigate(`/customerRegistration`, { state: { customerId } });
@@ -59,8 +63,8 @@ const CustomersView = () => {
   };
 
   // Function to open delete confirmation modal
-const handleOpenDeleteModal = (bankId) => {
-  setSelectedItemId(bankId);
+const handleOpenDeleteModal = (customerId) => {
+  setSelectedItemId(customerId);
   setShowDeleteModal(true);
 };
 
@@ -73,12 +77,6 @@ const handleCloseDeleteModal = () => {
   const handleDelete = async (customerId) => {
     if (!selectedItemId) return;
     try {
-      console.log(
-        "Deleting customer with companyId:",
-        companyId,
-        "and customerId:",
-        customerId
-      );
       // Make a DELETE request to the API with the given ID
       const response = await CustomerDeleteApiById(companyId, customerId);
       console.log("Delete response:", response);
@@ -167,7 +165,7 @@ const handleCloseDeleteModal = () => {
           <button
             className="btn btn-sm"
             style={{ backgroundColor: "transparent" }}
-            onClick={() => handleOpenDeleteModal(row.bankId)}
+            onClick={() => handleOpenDeleteModal(row.customerId)}
             title="Delete"
           >
             <XSquareFill size={22} color="#da542e" />
@@ -182,6 +180,7 @@ const handleCloseDeleteModal = () => {
     setSearch(searchTerm);
   };
 
+    if (isFetching||loading) return  <Loader/>;
   return (
     <LayOut>
       <div className="container-fluid p-0">
@@ -240,7 +239,7 @@ const handleCloseDeleteModal = () => {
               handleClose={handleCloseDeleteModal}
               handleConfirm={handleDelete}
               id={selectedItemId}
-              pageName="Bank Account"
+              pageName="Client Details"
             />
 
           </div>

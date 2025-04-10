@@ -4,10 +4,9 @@ import { useAuth } from '../Context/AuthContext';
 
 
 
-const Protected = () => {
+const ProtectedRoute = () => {
   const {userId}=useAuth();
 let auth={userId}
-console.log(auth);
 return auth.userId?<Outlet/>:<Navigate to={'/'}/>
 }
-export default Protected;
+export default ProtectedRoute;

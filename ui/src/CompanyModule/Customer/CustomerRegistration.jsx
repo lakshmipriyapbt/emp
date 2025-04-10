@@ -9,9 +9,9 @@ import { useAuth } from '../../Context/AuthContext';
 
 const CustomersRegistration = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  console.log("user", user.companyId);
-  const companyId = user.companyId
+  const { employee } = useAuth();
+  console.log("employee", employee.companyId);
+  const companyId = employee.companyId
   console.log("companyID:",companyId);
   
   const location = useLocation();
@@ -45,7 +45,7 @@ const CustomersRegistration = () => {
           });
         });
     } else {
-      CustomerPostApi(user.companyId, payload)
+      CustomerPostApi(employee.companyId, payload)
         .then((response) => {
           toast.success('Customer added successfully', {
             position: 'top-right',

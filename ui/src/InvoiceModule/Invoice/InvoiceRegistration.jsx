@@ -17,7 +17,7 @@ const InvoiceRegistration = () => {
     handleSubmit,
     control,
     setValue,
-    reset,
+    reset,watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   // Select data from Redux store
@@ -31,23 +31,22 @@ const InvoiceRegistration = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [invoiceData, setInvoiceData] = useState(null);
   const [productColumns, setProductColumns] = useState([
-    { key: "items", title: "Item", type: "text" },
-    { key: "hsn", title: "HSN-no", type: "text" },
-    { key: "service", title: "Service", type: "text" },
-    { key: "quantity", title: "Quantity", type: "number" },
-    { key: "unitCost", title: "Unit Cost", type: "number" },
-    { key: "totalCost", title: "Total Cost (₹)", type: "number" },
-  ]);
+      { key: "items", title: "Item", type: "text" },
+      { key: "hsn", title: "HSN-no", type: "text" },
+      { key: "service", title: "Service", type: "text" },
+      { key: "quantity", title: "Quantity", type: "number" },
+      { key: "unitCost", title: "Unit Cost", type: "number" },
+      { key: "totalCost", title: "Total Cost", type: "number" },
+    ]);
 
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [deleteType, setDeleteType] = useState(null);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
   const [showPreview, setShowPreview] = useState(false);
-  const [invoiceId, setInvoiceId] = useState(null); // to handle edit case
   const [load, setLoad] = useState(false); // to manage loading state for API calls
   const [customer, setCustomer] = useState(customers); // List of customers for the dropdown
   const [product, setProduct] = useState(products);
@@ -68,51 +67,67 @@ const InvoiceRegistration = () => {
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
-    if (type === "text") return /^[a-zA-Z0-9 _\-\W]+$/.test(value); // Allows letters, numbers, spaces, and special characters
+    if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
     if (type === "number") return /^[0-9]+$/.test(value); // Only numbers
     if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
     return true;
   };
-  
 
-  // ** Update Table Data **
   const updateData = (index, key, value) => {
-    const colType =
-      productColumns.find((col) => col.key === key)?.type || "text";
-    if (validateInput(colType, value) || value === "") {
-      const updatedData = [...productData];
-      updatedData[index] = { ...updatedData[index], [key]: value };
-
-      // Auto-calculate totalCost if quantity or unitCost are updated
-      if (key === "quantity" || key === "unitCost") {
+    const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
+  
+    // Normalize key to ensure case-insensitivity
+    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
+  
+    // Validate input before updating
+    if (!validateInput(colType, value) && value !== "") {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [index]: {
+          ...(prev[index] || {}),
+          [normalizedKey]: "Invalid Format.",
+        },
+      }));
+      return;
+    }
+  
+    setProductData((prevData) => {
+      const updatedData = [...prevData];
+      updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
+  
+      // Check if quantity column exists
+      const quantityColumnExists = productColumns.some((col) => col.key.toLowerCase() === "quantity");
+  
+      if (normalizedKey === "quantity" || normalizedKey === "unitCost") {
         const quantity = parseFloat(updatedData[index].quantity) || 0;
         const unitCost = parseFloat(updatedData[index].unitCost) || 0;
-        updatedData[index].totalCost = (quantity * unitCost).toFixed(2);
+  
+        // 🛑 If backspace clears input, ensure totalCost clears correctly
+        if (value === "") {
+          updatedData[index].totalCost = "";
+        } else if (!quantityColumnExists || isNaN(quantity) || quantity === 0) {
+          updatedData[index].totalCost = unitCost.toFixed(2);
+        } else {
+          updatedData[index].totalCost = (quantity * unitCost).toFixed(2);
+        }
       }
-      setProductData(updatedData);
-      // Clear error when the input is valid
+  
+      return updatedData; // Ensure React processes the state change correctly
+    });
+  
+    // Clear error when input is valid
     setFieldErrors((prev) => {
       const newErrors = { ...prev };
       if (newErrors[index]) {
-        delete newErrors[index][key];
+        delete newErrors[index][normalizedKey];
         if (Object.keys(newErrors[index]).length === 0) {
           delete newErrors[index];
         }
       }
       return newErrors;
     });
-    } else {
-      setFieldErrors((prev) => {
-        const newErrors = { ...prev };
-        newErrors[index] = {
-          ...(newErrors[index] || {}),
-          [key]: `Invalid Format.`,
-        };
-        return newErrors;
-      });
-    }
   };
-
+  
   useEffect(() => {
     if (Array.isArray(products)) {
       const productOptions = products.map((product) => ({
@@ -174,7 +189,6 @@ const InvoiceRegistration = () => {
     }
   }, [search, customers]);
 
-
   useEffect(() => {
     console.log("Customers from Redux store:", products);
   }, [products]);
@@ -225,7 +239,21 @@ const InvoiceRegistration = () => {
         setLoad(false);
         return;
       }
-  
+       // ✅ Validate column titles (ensure no empty titles or "New Field")
+    const invalidColumns = productColumns.filter(
+      (col) => !col.title.trim() || col.title === "New Field"
+    );
+    if (invalidColumns.length >0) {
+      toast.error("Column titles cannot be empty or 'New Field'. Please update them.");
+      setLoad(false);
+      return;
+    }
+       // ✅ Check if at least one product is added
+    if (productData.length === 0) {
+      toast.error("At least one product must be added before submitting.");
+      setLoad(false);
+      return;
+    }
       // ✅ Validate Product Rows (Ensure no empty fields)
       const isProductDataValid = productData.every((row) => {
         return productColumns.every((col) => row[col.key] && row[col.key].toString().trim() !== "");
@@ -254,13 +282,10 @@ const InvoiceRegistration = () => {
       // ✅ Send API request
       const response = await InvoicePostApi(companyId, customerId, invoiceDataToSend);
       console.log("✅ API Response:", response);
-  
-      toast.success("Invoice created successfully", {
-        position: "top-right",
-        autoClose: 1000,
-      });
-      navigate("/invoiceView");
-  
+      setTimeout(() => {
+        toast.success("Client added successfully");
+        navigate("/invoiceView");
+      }, 1000); 
       setInvoiceData(data);
       setShowPreview(true);
     } catch (error) {
@@ -273,6 +298,7 @@ const InvoiceRegistration = () => {
       setLoad(false);
     }
   };
+
   const handleClearForm = () => {
     reset({
       customerName: null,
@@ -285,7 +311,6 @@ const InvoiceRegistration = () => {
     });
   
     setProductData([]);  // Clear product rows
-    setProductColumns([]); // Reset columns if needed
     toast.info("Form cleared!", { position: "top-right", autoClose: 1000 });
   };
   
@@ -341,19 +366,43 @@ const InvoiceRegistration = () => {
     setValue("dueDate", dueDate.toISOString().split("T")[0]);
   };
 
+  const joiningDate = watch("invoiceDate");
+
+  const validateDueDate = (dueDate) => {
+    if (!joiningDate) return "Invoice Date is required before selecting End Date";
+  
+    const joinDateObj = new Date(joiningDate);
+    const endDateObj = new Date(dueDate);
+    const maxEndDate = new Date(joinDateObj);
+    maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
+  
+    if (endDateObj < joinDateObj) {
+      return "Due Date cannot be before Invoice Date";
+    }
+    if (endDateObj > maxEndDate) {
+      return "Due Date cannot exceed 1 month from Invoice Date";
+    }
+    return true;
+  };
+
+    useEffect(() => {
+      // Dynamically update the max End Date and Accept Date based on the joiningDate
+      if (joiningDate) {
+        const joiningDateObj = new Date(joiningDate);
+        
+        // Set max End Date to 12 months after the joiningDate
+        const maxEndDate = new Date(joiningDateObj);
+        maxEndDate.setMonth(maxEndDate.getMonth() + 1);
+        setValue("dueDate", maxEndDate.toISOString().split("T")[0]);
+      }
+    }, [joiningDate, setValue]);
+
   useEffect(() => {
     const invoiceDate = document.getElementById("invoiceDate").value;
     if (invoiceDate) {
       handleInvoiceDateChange({ target: { value: invoiceDate } });
     }
   }, []);
-  
-  // Add new product row
-  const updateColumnTitle = (key, title) => {
-    setProductColumns(
-      productColumns.map((col) => (col.key === key ? { ...col, title } : col))
-    );
-  };
 
   const updateColumnType = (key, type) => {
     setProductColumns(
@@ -365,16 +414,14 @@ const InvoiceRegistration = () => {
       toast.error("You cannot add more than 8 columns.");
       return;
     }
-
+  
     const newKey = `custom_${productColumns.length}`;
     const newColumn = { key: newKey, title: "New Field", type: "text" };
-
-    // Find the index of the "totalCost" column
+  
     const totalCostIndex = productColumns.findIndex(
       (col) => col.key === "totalCost"
     );
-
-    // If "totalCost" is found, insert the new column before it; otherwise, append at the end
+  
     const updatedColumns =
       totalCostIndex !== -1
         ? [
@@ -383,13 +430,41 @@ const InvoiceRegistration = () => {
             ...productColumns.slice(totalCostIndex),
           ]
         : [...productColumns, newColumn];
-
+  
     setProductColumns(updatedColumns);
   };
+  const updateColumnTitle = (key, title) => {
+    // Allow temporary clearing while the employee is typing
+    if (title === "") {
+      setProductColumns(
+        productColumns.map((col) =>
+          col.key === key ? { ...col, title: "" } : col
+        )
+      );
+      return;
+    }
+  
+    // Trim the title to avoid issues with spaces
+    const trimmedTitle = title.trim();
+  
+    // Prevent invalid titles when the employee confirms the change
+    if (trimmedTitle === "New Field") {
+      toast.error("Column title cannot be 'New Field'. Please enter a valid title.");
+      return;
+    }
+  
+    // Update the column title
+    setProductColumns(
+      productColumns.map((col) =>
+        col.key === key
+          ? { ...col, title: key === "totalCost" ? "Total Amount" : trimmedTitle }
+          : col
+      )
+    );
+  };
+   
 
   const addRow = () => setProductData([...productData, {}]);
-
-  
 
   return (
     <LayOut>
@@ -532,7 +607,7 @@ const InvoiceRegistration = () => {
                         {...register("vendorCode", {
                           required: "Vendor Code is required",
                           pattern: {
-                            value: /^[A-Za-z0-9]+$/, // Accept only alphabets and numbers
+                            value:  /^[A-Za-z0-9()\-_/&]+$/, // Accept only alphabets and numbers
                             message: "Only alphabets and numbers are allowed",
                           },
                           minLength: {
@@ -575,7 +650,7 @@ const InvoiceRegistration = () => {
                         {...register("purchaseOrder", {
                           required: "Purchase Order is required",
                           pattern: {
-                            value: /^[A-Za-z0-9]+$/, // Accept only alphabets and numbers
+                            value:  /^[A-Za-z0-9()\-_/&]+$/, // Accept only alphabets and numbers
                             message: "Only alphabets and numbers are allowed",
                           },
                           minLength: {
@@ -615,9 +690,10 @@ const InvoiceRegistration = () => {
                         name="invoiceDate"
                         id="invoiceDate"
                         autoComplete="off"
+                        max={new Date().toISOString().split("T")[0]} // Restricts future dates
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
-                          onChange: handleInvoiceDateChange, // Set due date when invoice date changes
                         })}
                       />
                       {errors.invoiceDate && (
@@ -630,7 +706,6 @@ const InvoiceRegistration = () => {
                       )}
                     </div>
                   </div>
-
                   <div className="form-group row">
                     <label
                       htmlFor="dueDate"
@@ -645,17 +720,18 @@ const InvoiceRegistration = () => {
                         name="dueDate"
                         id="dueDate"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("dueDate", {
                           required: "Due Date is required",
+                         validate:validateDueDate
                         })}
-                        disabled
                       />
-                    </div>
-                    {/* {errors.dueDate && (
+                       {errors.dueDate && (
                       <p className="errorMsg" style={{ marginLeft: "6px" }}>
                         {errors.dueDate.message}
                       </p>
-                    )} */}
+                    )}
+                    </div>    
                   </div>
                   <div className="mt-4">
                     <button
@@ -675,41 +751,40 @@ const InvoiceRegistration = () => {
                     <table className="table table-bordered">
                       <thead>
                         <tr>
-                          {productColumns.map((col) => (
-                            <th key={col.key} className="position-relative">
-                              {col.key !== "totalCost" && ( // Prevent deleting totalCost column
-                                <button
-                                  type="button"
-                                  className="btn btn-sm position-absolute top-0 end-0"
-                                  onClick={() => handleDeleteColumn(col.key)}
-                                  style={{ fontSize: "10px" }}
+                            {productColumns.map((col) => (
+                              <th key={col.key} className="position-relative">
+                                {col.key !== "totalCost" && ( // Prevent deleting totalCost column
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm position-absolute top-0 end-0"
+                                    onClick={() => handleDeleteColumn(col.key)}
+                                    style={{ fontSize: "10px" }}
+                                  >
+                                    ❌
+                                  </button>
+                                )}
+                                <input
+                                  type="text"
+                                  className="form-control mb-1"
+                                  value={col.title}
+                                  onChange={(e) =>
+                                    updateColumnTitle(col.key, e.target.value)
+                                  }
+                                  disabled={col.key === "totalCost"} // Prevent editing totalCost header
+                                />
+                                <select
+                                  className="form-select form-select-sm"
+                                  value={col.type}
+                                  onChange={(e) =>
+                                    updateColumnType(col.key, e.target.value)
+                                  }
                                 >
-                                  ❌
-                                </button>
-                              )}
-                              <input
-                                type="text"
-                                className="form-control mb-1"
-                                value={col.title}
-                                onChange={(e) =>
-                                  updateColumnTitle(col.key, e.target.value)
-                                }
-                                disabled={col.key === "totalCost"} // Prevent editing totalCost header
-                              />
-                              <select
-                                className="form-select form-select-sm"
-                                value={col.type}
-                                onChange={(e) =>
-                                  updateColumnType(col.key, e.target.value)
-                                }
-                                disabled={col.key === "totalCost"} // Prevent changing type for totalCost
-                              >
-                                <option value="text">Text</option>
-                                <option value="number">Number</option>
-                                <option value="percentage">%</option>
-                              </select>
-                            </th>
-                          ))}
+                                  <option value="text">Text</option>
+                                  <option value="number">Number</option>
+                                  <option value="percentage">%</option>
+                                </select>
+                              </th>
+                            ))}
                           <th style={{ paddingBottom: "35px" }}>Action</th>
                         </tr>
                       </thead>
@@ -733,7 +808,6 @@ const InvoiceRegistration = () => {
                                       e.target.value
                                     )
                                   }
-                                  disabled={col.key === "totalCost"} // Prevent editing totalCost directly
                                 />
                                 {fieldErrors[rowIndex] &&
                                   fieldErrors[rowIndex][col.key] && (

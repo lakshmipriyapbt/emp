@@ -83,10 +83,8 @@ public class InvoiceServiceImpl implements InvoiceService {
             String invoiceId = ResourceIdUtils.generateInvoiceResourceId(companyId, customerId, timestamp);
 
             String invoiceNo = InvoiceUtils.generateNextInvoiceNumber(invoiceId,companyEntity.getShortName(),openSearchOperations); // Assuming this method increments invoice numbers correctly
-
             // Create invoice entity
             Entity invoiceEntity = InvoiceUtils.maskInvoiceProperties(request, invoiceId, invoiceNo, companyEntity, customer, bankEntity);
-
             // Save to OpenSearch
             openSearchOperations.saveEntity(invoiceEntity, invoiceId, index);
 
@@ -177,7 +175,6 @@ public class InvoiceServiceImpl implements InvoiceService {
                 log.error("Invoice with ID {} not found", invoiceId);
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
-
             // Unmask sensitive properties in the invoice
             InvoiceUtils.unMaskInvoiceProperties(invoiceEntity,request);
 

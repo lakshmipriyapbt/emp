@@ -95,10 +95,14 @@ const RelievingTemplate1 = ({
 
         <div className="mt-3">
           <p>Sincerely,</p>
-          <h4>{companyData.companyName}</h4>
+          <h4>{companyData?.companyName}</h4>
+          <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
           <p>Authorized Signature</p>
-          <p>{companyData.companyAddress}</p>
-          <p>{companyData.cityStatePin}</p>
+          <p>{companyData?.companyAddress}</p>
+          <p>{companyData?.cityStatePin}</p>
         </div>
       </div>
     </div>

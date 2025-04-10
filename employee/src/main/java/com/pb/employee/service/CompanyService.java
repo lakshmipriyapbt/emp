@@ -17,11 +17,11 @@ public interface CompanyService {
     ResponseEntity<?> getCompanies( HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> getCompanyById(String companyId,  HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> updateCompanyById(String companyId, CompanyUpdateRequest companyUpdateRequest) throws IOException, EmployeeException;
-    ResponseEntity<?> updateCompanyImageById(String companyId,  CompanyImageUpdate companyImageUpdate,MultipartFile multipartFile) throws EmployeeException, IOException;
+    ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException;
 
-    ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException;
+    ResponseEntity<?> updateCompanyStampImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException;
 
-    ResponseEntity<?> deleteCompanyById(String companyId) throws EmployeeException;
+    ResponseEntity<?> deleteCompanyById(String companyId, String authToken) throws EmployeeException;
 
     ResponseEntity<?> getCompanyImageById(String companyId, HttpServletRequest request)  throws EmployeeException;
 

@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import LayOut from "../../LayOut/LayOut";
 import { useAuth } from "../../Context/AuthContext";
 import { fetchInvoices } from "../../Redux/InvoiceSlice";
+import Loader from "../../Utils/Loader";
+import { toast } from "react-toastify";
 
 const InvoiceView = () => {
   const dispatch = useDispatch();
@@ -15,35 +17,49 @@ const InvoiceView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
 
   // Fetch invoices on component mount
   useEffect(() => {
     if (companyId) {
       const timer = setTimeout(() => {
-        dispatch(fetchInvoices(companyId)).then((res) => {
-          // Handle the response if needed
-        });
-      }, 1500); // Delay of 1500ms
-  
+        dispatch(fetchInvoices(companyId))
+      }, 0); // Delay of 1500m
       // Clear the timeout if the component unmounts or companyId changes
       return () => clearTimeout(timer);
     }
   }, [dispatch, companyId]);  
 
-  // Filter invoices based on search
+  console.log("invoices",invoices.data)
+
   useEffect(() => {
     if (invoices?.data && Array.isArray(invoices.data)) {
-      const filtered = invoices.data.filter((invoice) =>
-        invoice.invoiceNo?.toLowerCase().includes(search.toLowerCase())
-      );
+      console.log("Filtering with search:", search);
+  
+      const filtered = invoices.data.filter((invoice) => {
+        const invoiceNo = invoice.invoiceNo ? invoice.invoiceNo.toLowerCase() : "";
+        const clientName = invoice.customer?.customerName ? invoice.customer.customerName.toLowerCase() : "";
+        const state = invoice.customer?.state ? invoice.customer.state.toLowerCase() : "";
+        const invoiceDate = invoice.invoiceDate ? invoice.invoiceDate.toLowerCase() : "";
+  
+        return (
+          invoiceNo.includes(search.toLowerCase()) ||
+          clientName.includes(search.toLowerCase()) ||
+          state.includes(search.toLowerCase()) ||
+          invoiceDate.includes(search.toLowerCase())
+        );
+      });
+  
+      console.log("Filtered Data:", filtered);
       setFilteredData(filtered);
     } else {
       setFilteredData([]);
+      toast.error(error);
     }
-  }, [invoices, search]);
+  }, [invoices, search]);  
 
+  console.log("filteredData",filteredData); 
   // Navigate to the Invoice PDF view page
   const handleView = (customerId, invoiceId) => {
     navigate("/invoicePdf", { state: { customerId, invoiceId } });
@@ -150,6 +166,8 @@ const InvoiceView = () => {
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
   };
+
+  if (loading) return  <Loader/>;
 
   return (
     <LayOut>

@@ -2,20 +2,19 @@ import React, { useEffect, useState } from "react";
 import LayOut from "../../LayOut/LayOut";
 import Select from "react-select";
 import DataTable from "react-data-table-component";
-import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Eye } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import {
-  EmployeeGetApi,
   EmployeePayslipsGet,
   AllEmployeePayslipsGet,
   TemplateGetAPI,
 } from "../../Utils/Axios";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ViewPaySlips = () => {
-  const { control } = useForm();
-  const [employees, setEmployees] = useState([]);
+  const [emp, setEmp] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -28,28 +27,33 @@ const ViewPaySlips = () => {
   const [currentTemplate, setCurrentTemplate] = useState(null);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  // Fetch employees from Redux store
+  const { data: employees } = useSelector((state) => state.employees);
 
-  // Fetch employees list on mount
+  // Fetch employees when the component mounts
   useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const data = await EmployeeGetApi();
-        const formattedData = data
-          .filter((employee) => employee.firstName)
-          .map(({ id, firstName, lastName, employeeId }) => ({
-            label: `${firstName} ${lastName} (${employeeId})`,
-            value: id,
-            firstName,
-            lastName,
-            employeeId,
-          }));
-        setEmployees(formattedData);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+  // Fetch employees list on mount
+
+    useEffect(() => {
+      if (employees) {
+        const activeEmployees = employees
+          .filter((employee) => employee.status === "Active")
+          .map((employee) => ({
+            label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+            value: employee.id,
+            firstName: employee.firstName,
+            lastName:employee.lastName,
+            employeeId: employee.employeeId,
+            designationName: employee.designationName,
+            departmentName: employee.departmentName,
+            dateOfHiring: employee.dateOfHiring,
+          })); 
+        setEmp(activeEmployees);
       }
-    };
-    fetchEmployees();
-  }, []);
+    }, [employees]);
 
   // Fetch payslip template (if needed to choose a payslip document)
   useEffect(() => {
@@ -108,7 +112,7 @@ const ViewPaySlips = () => {
     } catch (error) {
       console.error("Error fetching payslip data:", error);
       setNoRecords(true);
-      toast.error("Error fetching payslip data.");
+      toast.error(error.response.data.error.message);
     }
   };
 
@@ -292,7 +296,7 @@ const ViewPaySlips = () => {
                   Select Employee <span className="text-danger">*</span>
                 </label>
                 <Select
-                  options={employees}
+                  options={emp}
                   onChange={handleEmployeeChange}
                   placeholder="Select Employee"
                   menuPortalTarget={document.body}

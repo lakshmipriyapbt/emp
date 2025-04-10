@@ -4,14 +4,11 @@ import { useAuth } from '../Context/AuthContext';
 import { EmployeeGetApi } from '../Utils/Axios';
 import { toast } from 'react-toastify';
 import { PeopleFill, PersonFillCheck, PersonFillExclamation } from 'react-bootstrap-icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchEmployees } from '../Redux/EmployeeSlice';
+import Loader from '../Utils/Loader';
 
 const Body = () => {
-  const { user } = useAuth();
-  const [employees, setEmployees]= useState([]);;
-
-  const isAdmin = user?.userRole?.includes("ems_admin");
-  const isCompanyAdmin = user?.userRole?.includes("company_admin");
-
   const [data, setData] = useState({
     totalEmployeesCount: 0,
     activeEmployeesCount: 0,
@@ -19,49 +16,42 @@ const Body = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
-    try {
-      const response = await EmployeeGetApi();
+  const { authUser} = useAuth();
+    const dispatch = useDispatch(); // Initialize dispatch function
   
-      console.log('Full API Response:', response);
-  
-      if (response && Array.isArray(response)) {
-        const employees = response;
-  
-        console.log('Employees Data:', employees);
-  
-        const filteredData = employees
-          .filter((employee) => employee.firstName && employee.firstName.trim() !== '')
-          .map(({ id, firstName, lastName, employeeId, status }) => ({
-            label: `${firstName} ${lastName} (${employeeId})`,
-            value: id,
-            status: status 
-          }));
-  
-        setEmployees(filteredData);
+    // Select employee state from Redux store
+    const { data: employees, status, error } = useSelector(
+      (state) => state.employees
+    );
 
-        const totalEmployeesCount = filteredData.length;
-        const activeEmployeesCount = filteredData.filter(emp => emp.status === 'Active').length;
-        const inactiveEmployeesCount = filteredData.filter(emp => emp.status === 'InActive').length;
-  
-        setData({
-          totalEmployeesCount,
-          activeEmployeesCount,
-          inactiveEmployeesCount
-        });
-      } else {
-        throw new Error('Invalid data format from API');
-      }
-    } catch (error) {
-      handleApiErrors(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  
+    // Update counts when employees data changes
+useEffect(() => {
+  if (employees?.length > 0) {
+    const totalEmployeesCount = employees.length;
+    const activeEmployeesCount = employees.filter(emp => emp.status === 'Active').length;
+    const inactiveEmployeesCount = employees.filter(emp => emp.status === 'InActive').length;
 
-  const handleApiErrors = (error) => {
+    setData({
+      totalEmployeesCount,
+      activeEmployeesCount,
+      inactiveEmployeesCount
+    });
+    setLoading(false)
+  }
+}, [employees]); // Runs when `employees` changes
+  
+    // Step 1: Fetch employees when component mounts
+    useEffect(() => {
+      dispatch(fetchEmployees());
+    }, [dispatch]);
+
+  const isAdmin = authUser?.userRole?.includes("ems_admin");
+  const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
+      // Step 2: Display loading or error messages
+      if (!isAdmin && status === "loading") return <Loader/>;
+      if (!isAdmin && status === "failed") return <Loader/>;
+
+      const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
       const errorMessage = error.response.data.error.message;
       toast.error(errorMessage);
@@ -71,11 +61,6 @@ const Body = () => {
     console.error('API Error:', error);
   };
 
-  useEffect(() => {
-    if (isCompanyAdmin) {
-      fetchData();
-    }
-  }, [isCompanyAdmin]);
 
   return (
     <LayOut>
@@ -84,7 +69,7 @@ const Body = () => {
           <strong>Dashboard</strong>
         </h1>
         <div className="row h-100">
-          {user && user.userRole && user.userRole.includes("ems_admin") ? (
+          {authUser && authUser.userRole && authUser.userRole.includes("ems_admin") ? (
            
                 <div className='card'>
                   <iframe

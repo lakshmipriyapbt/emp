@@ -16,8 +16,8 @@ import java.util.List;
 @Component
 public class CompanyUtils {
 
-    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id) {
-        String password = Base64.getEncoder().encodeToString(companyRequest.getPassword().getBytes());
+    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.toString().getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null, regNo = null, mobileNo=null, landNo= null, gstNo=null, cinNo=null, pmNo=null, psmailId=null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -213,17 +213,10 @@ public class CompanyUtils {
 
         return existingEntity;
     }
-    public static CompanyEntity maskCompanyStampImageUpdateProperties(CompanyEntity existingEntity, CompanyStampUpdate companyRequest) {
-        if(companyRequest.getImage() != null){
-            existingEntity.setStampImage(companyRequest.getImage());
-        }
-
-        return existingEntity;
-    }
 
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId) {
-        String password = Base64.getEncoder().encodeToString(employeeRequest.getPassword().getBytes());
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest, String id, String companyId,String defaultPassword) {
+        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -243,7 +236,7 @@ public class CompanyUtils {
 
     public static Entity maskEmployeeUpdateProperties(EmployeeEntity user, EmployeeUpdateRequest employeeUpdateRequest) {
 
-        String accountNo=null,ifscCode=null, mobileNo=null;
+        String accountNo=null,ifscCode=null, mobileNo=null, alterNo =null;
         if (employeeUpdateRequest.getEmployeeType() != null){
             user.setEmployeeType(employeeUpdateRequest.getEmployeeType());
         }
@@ -264,6 +257,24 @@ public class CompanyUtils {
         }
         if (employeeUpdateRequest.getBankName() != null){
             user.setBankName(employeeUpdateRequest.getBankName());
+        }if (employeeUpdateRequest.getAlternateNo() != null){
+            alterNo = Base64.getEncoder().encodeToString(employeeUpdateRequest.getAlternateNo().getBytes());
+            user.setAlternateNo(alterNo);
+        }
+        if (employeeUpdateRequest.getBankBranch() != null){
+            user.setBankBranch(employeeUpdateRequest.getBankBranch());
+        }
+        if (employeeUpdateRequest.getTempAddress() != null){
+            user.setTempAddress(employeeUpdateRequest.getTempAddress());
+        }
+        if (employeeUpdateRequest.getPersonnelEntity() != null){
+            user.setPermanentAddress(employeeUpdateRequest.getPermanentAddress());
+        }
+        if (employeeUpdateRequest.getMaritalStatus() != null){
+            user.setMaritalStatus(employeeUpdateRequest.getMaritalStatus());
+        }
+        if (employeeUpdateRequest.getStatus() != null){
+            user.setStatus(employeeUpdateRequest.getStatus());
         }
         if (employeeUpdateRequest.getAccountNo() != null) {
             accountNo = Base64.getEncoder().encodeToString(employeeUpdateRequest.getAccountNo().getBytes());
@@ -277,9 +288,6 @@ public class CompanyUtils {
         if (employeeUpdateRequest.getIfscCode() != null) {
             ifscCode = Base64.getEncoder().encodeToString(employeeUpdateRequest.getIfscCode().getBytes());
             user.setIfscCode(ifscCode);
-        }
-        if (employeeUpdateRequest.getStatus() != null){
-            user.setStatus(employeeUpdateRequest.getStatus());
         }
 
         return user;

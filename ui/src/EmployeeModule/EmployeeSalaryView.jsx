@@ -17,16 +17,14 @@ const EmployeeSalaryView = () => {
     control,
     handleSubmit,
     setValue,
-    reset,
     formState: { errors },
   } = useForm({ mode: "onChange" });
-  const { user } = useAuth();
+  const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
   const userId = queryParams.get("employeeId");
   const [totalTax, setTotalTax] = useState("");
-  const [employes, setEmployes] = useState([]);
   const [salaryStructure, setSalaryStructure] = useState(0);
   const [allowances, setAllowances] = useState({});
   const [incomeTax, setIncomeTax] = useState(0);
@@ -48,9 +46,7 @@ const EmployeeSalaryView = () => {
   const [pfEmployer, setPfEmployer] = useState(0);
   const [travelAllowance, setTravelAllowance] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
-  const [message, setMessage] = useState("");
   const [status, setStatus] = useState("Active");
-  const [isReadOnly, setIsReadOnly] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [showCards, setShowCards] = useState(false);
@@ -394,7 +390,7 @@ const EmployeeSalaryView = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = user.company;
+  const companyName = authUser?.company;
   const onSubmit = (data) => {
     // Check if there's an error related to salary structures
     if (error) {
@@ -497,8 +493,10 @@ const EmployeeSalaryView = () => {
                   <li className="breadcrumb-item">
                     <a href="/main">Home</a>
                   </li>
-                  <li className="breadcrumb-item active">Payroll</li>
-                  <li className="breadcrumb-item active">Salary View</li>
+                  <li className="breadcrumb-item">
+                    <a href="/employeeSalary">Salary View</a>
+                  </li>
+                  <li className="breadcrumb-item active">Salary Form</li>
                 </ol>
               </nav>
             </div>
@@ -876,6 +874,9 @@ const EmployeeSalaryView = () => {
             </div>
           </div>
         </form>
+        <div>
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>Back</button>
+        </div>
       </div>
     </LayOut>
   );

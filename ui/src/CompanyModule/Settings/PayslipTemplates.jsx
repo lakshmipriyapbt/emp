@@ -12,9 +12,9 @@ const PayslipTemplates = () => {
     const [currentTemplate, setCurrentTemplate] = useState(<PayslipTemplate1 />);
     const [payslipTemplateNo, setPayslipTemplateNo] = useState("");
     const [loading, setLoading] = useState(false);
-    const { user } = useAuth();
+    const { employee } = useAuth();
 
-    console.log("companyId:",user.companyId);
+    console.log("companyId:",employee?.companyId);
     
 
     const templates = [
@@ -32,7 +32,7 @@ const PayslipTemplates = () => {
 
         setLoading(true);
         const data = {
-            companyId: user.companyId,
+            companyId: employee?.companyId,
             payslipTemplateNo,
         };
 

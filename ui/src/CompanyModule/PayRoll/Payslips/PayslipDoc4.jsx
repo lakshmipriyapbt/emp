@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Download } from "react-bootstrap-icons";
 import {
@@ -12,33 +12,21 @@ import LayOut from "../../../LayOut/LayOut";
 import { useAuth } from "../../../Context/AuthContext";
 
 const PayslipDoc4 = () => {
-  const [companyData, setCompanyData] = useState({});
   const [payslipData, setPayslipData] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const navigate=useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
   const payslipId = queryParams.get("payslipId");
-  const { user, logoFileName } = useAuth();
+  const { authUser, company} = useAuth();
 
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
 
   const fetchEmployeeDetails = async (employeeId) => {
     try {
       const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
+      setEmployeeDetails(response.data.data);
     } catch (err) {
       console.error("Error fetching employee details:", err);
       toast.error("Failed to fetch employee details");
@@ -89,7 +77,7 @@ const PayslipDoc4 = () => {
       fetchPayslipData();
     }
     setLoading(false);
-  }, [employeeId, payslipId, user]);
+  }, [employeeId, payslipId, authUser]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -123,6 +111,39 @@ const PayslipDoc4 = () => {
 
   return (
     <LayOut>
+         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+        <div className="col">
+          <div className="d-flex align-items-center mb-3">
+            {/* Back Button */}
+            <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+              ← Back
+            </button>
+
+            {/* Payslip Heading */}
+            <h1 className="h3 m-0">
+              <strong>PaySlip</strong>
+            </h1>
+          </div>
+        </div>
+        <div className="col-auto" style={{ paddingBottom: "20px" }}>
+          <nav aria-label="breadcrumb">
+            <ol className="breadcrumb mb-0">
+              <li className="breadcrumb-item">
+                <a href="/main">Home</a>
+              </li>
+              <li className="breadcrumb-item active">
+                <span 
+                  onClick={() => navigate(-1)} 
+                  style={{ cursor: "pointer", color: "#3b7ddd" }}
+                >
+                  Payslip View
+                </span>
+              </li>
+              <li className="breadcrumb-item active">PaySlipForm</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
       <div className="container mt-4" style={{ pointerEvents: "none" }}>
         <div className="card">
           <div
@@ -143,10 +164,10 @@ const PayslipDoc4 = () => {
               }}
             >
               <div>
-                {logoFileName ? (
+                {company?.imageFile ? (
                   <img
                     className="align-middle"
-                    src={logoFileName}
+                    src={company?.imageFile}
                     alt="Logo"
                     style={{ height: "80px", width: "180px" }}
                   />
@@ -177,7 +198,7 @@ const PayslipDoc4 = () => {
                           border: "1px solid black",
                         }}
                       >
-                        <b>{companyData.companyName}</b>
+                        <b>{company?.companyName}</b>
                       </th>
                     </tr>
                     <tr>
@@ -921,10 +942,10 @@ const PayslipDoc4 = () => {
                   className="company-details text-center"
                   style={{ padding: "2px" }}
                 >
-                  <h5>{companyData.companyName}</h5>
-                  <h6>Company Address: {companyData.companyAddress}.</h6>
-                  {/* <h6>Mobile No: {companyData.mobileNo}</h6>
-                  <h6>Email ID: {companyData.emailId}</h6> */}
+                  <h5>{company?.companyName}</h5>
+                  <h6>Company Address: {company?.companyAddress}.</h6>
+                  {/* <h6>Mobile No: {company?.mobileNo}</h6>
+                  <h6>Email ID: {company?.emailId}</h6> */}
                 </div>
               </div>
             </div>
@@ -932,6 +953,9 @@ const PayslipDoc4 = () => {
         </div>
       </div>
       <div className="d-flex justify-content-end align-items-center me-4">
+      <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+              ← Back
+            </button>
         <button
           type="button"
           className="btn btn-outline-primary"

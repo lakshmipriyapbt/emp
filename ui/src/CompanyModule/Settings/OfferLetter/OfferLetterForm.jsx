@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Bounce, toast } from "react-toastify";
 import LayOut from "../../../LayOut/LayOut";
+import { DepartmentGetApi, DesignationGetApi } from "../../../Utils/Axios";
 
 const OfferLetterForm = () => {
   const {
     register,
     handleSubmit,
     control,
-    setValue,
-    watch,
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-
+  const [designations, setDesignations] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState(null);
   const navigate = useNavigate();
 
@@ -22,7 +22,35 @@ const OfferLetterForm = () => {
   nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
   const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
 
+  const fetchDepartments = async () => {
+    try {
+      const data = await DepartmentGetApi();
+      setDepartments(data.data.data);
+    } catch (error) {
+      // handleApiErrors(error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDesignations = async () => {
+    try {
+      const data = await DesignationGetApi();
+      setDesignations(data);
+    } catch (error) {
+      // handleApiErrors(error)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+    fetchDesignations();
+  }, []);
+
   const onSubmit = (data) => {
+    console.log("offerLetter",data)
     const previewData = {
       offerDate: data.offerDate,
       referenceNo: data.referenceNo,
@@ -32,9 +60,10 @@ const OfferLetterForm = () => {
       employeeContactNo: data.employeeContactNo,
       joiningDate: data.joiningDate,
       jobLocation: data.jobLocation,
-      grossCompensation: data.grossCompensation,
+      salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
-      employeePosition: data.employeePosition,
+      department:data.department,
+      designation:data.designation
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
@@ -52,7 +81,7 @@ const OfferLetterForm = () => {
       employeeContactNo: "",
       joiningDate: "",
       jobLocation: "",
-      grossCompensation: "",
+      salaryPackage: "",
       salaryConfigurationId: "",
       employeePosition: "",
     });
@@ -336,19 +365,18 @@ const OfferLetterForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Father Name</label>
+                      <label className="form-label">Father Name/Husband Name</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Employee Father Name"
+                        placeholder="Enter Father Name/Husband Name"
                         name="firstName"
                         onInput={toInputTitleCase}
                         minLength={2}
                         autoComplete="off"
                         onKeyDown={handleEmailChange}
                         {...register("employeeFatherName", {
-                          required: "Father Name is Required",
-                          required: "Employee Name is Required",
+                          required: "Employees Father Name is Required",
                           minLength: {
                             value: 3,
                             message: "Minimum 3 Characters Required",
@@ -443,17 +471,10 @@ const OfferLetterForm = () => {
                         className="form-control"
                         autoComplete="off"
                         max={threeMonthsFromNow}
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
-                            notInFuture: (value) => {
-                              const today = new Date();
-                              const joiningDate = new Date(value);
-                              return (
-                                joiningDate >= today ||
-                                "Joining Date cannot be in the past"
-                              );
-                            },
                             notMoreThanThreeMonths: (value) => {
                               const threeMonthsFromNow = new Date();
                               threeMonthsFromNow.setMonth(
@@ -477,7 +498,7 @@ const OfferLetterForm = () => {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter Address"
+                        placeholder="Enter Location"
                         autoComplete="off"
                         minLength={2}
                         onKeyDown={handleEmailChange}
@@ -517,15 +538,15 @@ const OfferLetterForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Gross Compensation</label>
+                      <label className="form-label">Salary Package</label>
                       <input
                         type="text"
                         className="form-control"
                         maxLength={10}
-                        placeholder="Enter Gross Compensation"
-                        name="grossCompensation"
-                        {...register("grossCompensation", {
-                          required: "Gross Compensation is required",
+                        placeholder="Enter Salary Package"
+                        name="salaryPackage"
+                        {...register("salaryPackage", {
+                          required: "Saalry Package is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",
@@ -536,40 +557,67 @@ const OfferLetterForm = () => {
                           },
                         })}
                       />
-                      {errors.grossCompensation && (
+                      {errors.salaryPackage && (
                         <p className="errorMsg">
-                          {errors.grossCompensation.message}
+                          {errors.salaryPackage.message}
                         </p>
                       )}
                     </div>
-
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Position</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        maxLength={40}
-                        onInput={toInputTitleCase}
-                        onKeyDown={handleEmailChange}
-                        placeholder="Enter Position"
-                        name="employeePosition"
-                        {...register("employeePosition", {
-                          required: "Position is required",
-                          validate: {
-                            validatePosition,
-                          },
-                        })}
+                      <label className="form-label">Department</label>
+                      <Controller
+                        name="department"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: "Department is Required" }}
+                        render={({ field }) => (
+                          <select {...field} className="form-select">
+                            <option value="" disabled>
+                              Select Department
+                            </option>
+                            {departments.map((department) => (
+                              <option key={department.id} value={department.name}>
+                                {department.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       />
-                      {errors.employeePosition && (
-                        <p className="errorMsg">
-                          {errors.employeePosition.message}
-                        </p>
+                      {errors.department && (
+                        <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Designation</label>
+                      <Controller
+                        name="designation"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: true }}
+                        render={({ field }) => (
+                          <select {...field} className="form-select">
+                            <option value="" disabled>
+                              Select Designation
+                            </option>
+                            {designations.map((designation) => (
+                              <option
+                                key={designation.id}
+                                value={designation.name}
+                              >
+                                {designation.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      />
+                      {errors && errors.designation && (
+                        <p className="errorMsg">Designation is Required</p>
+                      )}
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
-                      <input
+                      <textarea
                         type="text"
                         className="form-control"
                         placeholder="Enter Address"
@@ -592,8 +640,9 @@ const OfferLetterForm = () => {
                             value: 200,
                             message: "Maximum 200 Characters allowed",
                           },
-                          validate: (value) => 
-                            value.trim().length === value.length || "Spaces at the end are not allowed.",
+                          validate: (value) =>
+                            value.trim().length === value.length ||
+                            "Spaces at the end are not allowed.",
                         })}
                       />
                       {errors.employeeAddress && (

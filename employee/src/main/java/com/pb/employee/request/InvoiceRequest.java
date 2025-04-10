@@ -16,15 +16,13 @@ import java.util.Map;
 public class InvoiceRequest {
 
     private List<Map<
-            @Pattern(regexp = "^[\\w\\s()\\-]+$", message = "{invoice.key.format}")
-            @Size(min = 2, max = 1000, message = "{invoice.key.size}") String,
+            @NotNull(message = "{invoice.key.notnull}") String,
+            @NotNull(message = "{invoice.value.notnull}") String>> productData;
 
-            @Pattern(regexp = "^[\\w\\s()\\-]+$", message = "{invoice.format}")
-            @Size(min = 1, max = 1000, message = "{invoice.size}") String>> productData;
-
-    private @NotNull(message = "{invoice.productColumns.null}")
+    @Valid
+    @NotNull(message = "{invoice.productColumns.null}")
     @NotEmpty(message = "{invoice.productColumns.empty}")
-    List<@Valid ProductColoumnsRequest> productColumns;
+    private List<ProductColumnsRequest> productColumns;
 
     private String vendorCode;
     private String purchaseOrder;

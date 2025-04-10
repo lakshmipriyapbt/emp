@@ -199,7 +199,7 @@ public class OpenSearchOperations {
             boolean indexExists = esClient.indices().exists(i -> i.index(indexName)).value();
             if (!indexExists) {
                 logger.warn("Index '{}' does not exist. Creating first invoice for the financial year.", indexName);
-                return InvoiceUtils.generateFirstInvoiceNumber(); // Generate first invoice dynamically
+                return null; // Generate first invoice dynamically
             }
 
             // ✅ Build search query to get the last invoice number
@@ -224,14 +224,12 @@ public class OpenSearchOperations {
 
         } catch (OpenSearchException e) {
             logger.error("OpenSearch error while fetching last invoice for company '{}': {}", companyId, e.getMessage(), e);
-            return InvoiceUtils.generateFirstInvoiceNumber(); // ✅ Generate first invoice on failure
+            return null; // ✅ Generate first invoice on failure
         } catch (IOException e) {
             logger.error("I/O error while fetching last invoice number for company '{}': {}", companyId, e.getMessage(), e);
-            return InvoiceUtils.generateFirstInvoiceNumber(); // ✅ Generate first invoice on failure
+            return null; // ✅ Generate first invoice on failure
         }
-
         // ✅ Return first invoice number if no invoices exist
-        return InvoiceUtils.generateFirstInvoiceNumber();
+        return null;
     }
-
 }

@@ -1,5 +1,5 @@
 server:
-  port: 8002
+  port: 8003
   servlet:
     contextPath: /invoice
   ssl:
@@ -15,7 +15,7 @@ spring:
   main:
     allow-circular-references: true
   datasource:
-    url: jdbc:mysql://localhost:3306/invoice
+    url: jdbc:mysql://localhost:3306/invoicetest
     username: root
     password: Path@2014
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -29,7 +29,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 es:
-  esHost: 192.168.1.163
+  esHost: localhost
   esPort: 9200
 # Swagger API Documentation
 springdoc:

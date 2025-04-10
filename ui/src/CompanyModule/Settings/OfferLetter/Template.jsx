@@ -36,7 +36,7 @@ const Template = () => {
     const [companyName, setCompanyName] = useState("Company Name");
     const [hasCinNo, setHasCinNo] = useState(false);
     const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
-    const { user, logoFileName } = useAuth();
+    const { company } = useAuth();
 
     const handleEditToggle = () => {
         setIsEditing(!isEditing);
@@ -49,9 +49,9 @@ const Template = () => {
 
     useEffect(() => {
         const fetchCompanyData = async () => {
-            if (!user.companyId) return;
+            if (!company?.id) return;
             try {
-                const response = await companyViewByIdApi(user.companyId);
+                const response = await companyViewByIdApi(company?.id);
                 const data = response.data;
                 setCompanyDetails(data);
                 setCompanyName(data?.companyName || "[Company Name]");
@@ -63,7 +63,7 @@ const Template = () => {
             }
         };
         fetchCompanyData();
-    }, [user.companyId, setValue, setError]);
+    }, [company?.id, setValue, setError]);
 
     const fetchSalary = async () => {
         try {
@@ -173,7 +173,7 @@ const Template = () => {
                         left: "20%",
                         width: "50%",
                         height: "50%",
-                        backgroundImage: `url(${logoFileName})`,
+                        backgroundImage: `url(${company?.imageFile})`,
                         transform: "rotate(340deg)",
                         backgroundSize: "contain",
                         backgroundRepeat: "no-repeat",
@@ -186,8 +186,8 @@ const Template = () => {
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
                         <div style={{ textAlign: "right" }}>
-                            {logoFileName ? (
-                                <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                            {company?.imageFile ? (
+                                <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
                                 <p>Logo</p>
                             )}
@@ -206,7 +206,7 @@ const Template = () => {
                         <div style={{ position: "relative", width: "100%", height: "100%" }}></div>
                         <p><strong>To, {isEditing ? <input type="text" value={recipientName} onChange={e => setRecipientName(e.target.value)} /> : recipientName}</strong></p>
                         <p><strong>S/o,D/o {isEditing ? <input type="text" value={fatherName} onChange={e => setFatherName(e.target.value)} /> : fatherName}</strong></p>
-                        <p><strong>{isEditing ? <input type="text" value={address} onChange={e => setAddress(e.target.value)} /> : address}</strong></p>
+                        <p className='w-25'><strong>{isEditing ? <input type="text" value={address} onChange={e => setAddress(e.target.value)} /> : address}</strong></p>
                         <p><strong>{isEditing ? <input type="text" value={cityStateZip} onChange={e => setCityStateZip(e.target.value)} /> : cityStateZip}</strong></p>
                         <p><strong>Contact Number: {isEditing ? <input type="text" defaultValue="+91 " value={contactNumber} onChange={e => setContactNumber(e.target.value)} /> : contactNumber}</strong></p>
                         <div style={{ margin: '40px 0' }}>
@@ -332,7 +332,7 @@ const Template = () => {
                             <div style={{ padding: "2px", textAlign: "center" }}>
                                 <h6>{companyDetails?.companyName}</h6>
                                 <h6>{companyDetails?.companyAddress}</h6>
-                                <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                                <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                             </div>
                         </div>
                     </div>
@@ -346,7 +346,7 @@ const Template = () => {
                         left: "20%",
                         width: "50%",
                         height: "50%",
-                        backgroundImage: `url(${logoFileName})`,
+                        backgroundImage: `url(${company?.imageFile})`,
                         transform: "rotate(340deg)",
                         backgroundSize: "contain",
                         backgroundRepeat: "no-repeat",
@@ -359,8 +359,8 @@ const Template = () => {
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
                         <div style={{ textAlign: "right" }}>
-                            {logoFileName ? (
-                                <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                            {company?.imageFile ? (
+                                <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
                                 <p>Logo</p>
                             )}
@@ -424,7 +424,7 @@ const Template = () => {
                         <div style={{ padding: "2px", textAlign: "center" }}>
                             <h6>{companyDetails?.companyName}</h6>
                             <h6>{companyDetails?.companyAddress}</h6>
-                            <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                            <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                         </div>
                     </div>
                 </div>
@@ -437,7 +437,7 @@ const Template = () => {
                         left: "20%",
                         width: "50%",
                         height: "50%",
-                        backgroundImage: `url(${logoFileName})`,
+                        backgroundImage: `url(${company?.imageFile})`,
                         transform: "rotate(340deg)",
                         backgroundSize: "contain",
                         backgroundRepeat: "no-repeat",
@@ -450,8 +450,8 @@ const Template = () => {
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
                         <div style={{ textAlign: "right" }}>
-                            {logoFileName ? (
-                                <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                            {company?.imageFile ? (
+                                <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
                                 <p>Logo</p>
                             )}
@@ -575,7 +575,7 @@ const Template = () => {
                     <div style={{ padding: "2px", textAlign: "center" }}>
                         <h6>{companyDetails?.companyName}</h6>
                         <h6>{companyDetails?.companyAddress}</h6>
-                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                     </div>
                 </div>
             </div>
@@ -587,7 +587,7 @@ const Template = () => {
                         left: "20%",
                         width: "50%",
                         height: "50%",
-                        backgroundImage: `url(${logoFileName})`,
+                        backgroundImage: `url(${company?.imageFile})`,
                         transform: "rotate(340deg)",
                         backgroundSize: "contain",
                         backgroundRepeat: "no-repeat",
@@ -600,8 +600,8 @@ const Template = () => {
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
                         <div style={{ textAlign: "right" }}>
-                            {logoFileName ? (
-                                <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                            {company?.imageFile ? (
+                                <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
                                 <p>Logo</p>
                             )}
@@ -706,10 +706,12 @@ const Template = () => {
                                 null}
                     </p>
                     <hr />
+                    <div className='text-end'>
+                    </div>
                     <div style={{ padding: "2px", textAlign: "center" }}>
                         <h6>{companyDetails?.companyName}</h6>
                         <h6>{companyDetails?.companyAddress}</h6>
-                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} | Web: https://{companyDetails?.shortName}.com </h6>
+                        <h6>PH: {companyDetails?.mobileNo}, Email: {companyDetails?.emailId} </h6>
                     </div>
                 </div>
             </div>

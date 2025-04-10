@@ -13,8 +13,8 @@ import { useAuth } from "../../Context/AuthContext";
 
 const CustomersRegistration = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const companyId = user.companyId
+  const { employee } = useAuth();
+  const companyId = employee?.companyId
   console.log("company Id from Customer registration", companyId);
   const location = useLocation();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -49,12 +49,12 @@ const CustomersRegistration = () => {
         .then((res) => {
           const successMessage =
             res.data.message || "Client updated successfully";
-          toast.success(successMessage, {
-            position: "top-right",
-            autoClose: 1000,
-          });
+          
           setUpdate(res.data.data);
-          navigate("/customersView");
+            setTimeout(() => {
+              toast.success(successMessage);
+              navigate("/customersView");
+            }, 1000); // 2-second delay  
         })
         .catch((error) => {
           console.error("Error updating Client:", error);
@@ -78,11 +78,10 @@ const CustomersRegistration = () => {
   
       CustomerPostApi(companyId, createPayload)
         .then((response) => {
-          toast.success("Client added successfully", {
-            position: "top-right",
-            autoClose: 1000,
-          });
-          navigate("/customersView");
+          setTimeout(() => {
+            toast.success("Client added successfully");
+            navigate("/customersView");
+          }, 1000); // 2-second delay  
         })
         .catch((error) => {
           const errorMessage =

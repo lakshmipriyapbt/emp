@@ -8,7 +8,7 @@ const AppraisalTemplate1 = ({
   employeeName,
   designation,
   employeeId, // Ensure employeeId is passed as a prop
-  period,
+  hike,
   effectiveDate,
   salaryIncrease,
   basicSalary,
@@ -16,7 +16,6 @@ const AppraisalTemplate1 = ({
 }) => {
   console.log("Basic Salary: ", basicSalary);
 
-  const { logoFileName } = useAuth();
   // Extract employeeId from URL query params if needed
 
   return (
@@ -30,10 +29,10 @@ const AppraisalTemplate1 = ({
       }}
     >
       <div style={{ textAlign: "right" }}>
-        {logoFileName ? (
+        {companyData ? (
           <img
             className="align-middle"
-            src={companyLogo}
+            src={companyData?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "150px" }}
           />
@@ -100,7 +99,7 @@ const AppraisalTemplate1 = ({
         <p>
           We are pleased to inform you that based on your performance and
           contribution to the company, our management has revised your
-          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, which
+          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum,This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication. Which
           is cost to company with effect from <strong>{effectiveDate}</strong>.
         </p>
         <p>
@@ -206,11 +205,15 @@ const AppraisalTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
+            <img 
+           src={companyData?.stampImage}
+           alt="Stamp"
+           style={{ height: "100px", width: "160px" }}/>
             <h6>{companyName}</h6>
             <h6>
-              PH: {companyData.mobileNo}, Email: {companyData.emailId}{" "}
+              PH: {companyData?.mobileNo}, Email: {companyData?.emailId}{" "}
             </h6>
-            <h6>{companyData.companyAddress}</h6>
+            <h6>{companyData?.companyAddress}</h6>
           </div>
         </div>
       </div>

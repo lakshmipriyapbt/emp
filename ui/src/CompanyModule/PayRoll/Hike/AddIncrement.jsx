@@ -22,6 +22,8 @@ import {
   ModalHeader,
   ModalTitle,
 } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchEmployees } from "../../../Redux/EmployeeSlice";
 
 const AddIncrement = () => {
   const {
@@ -40,7 +42,7 @@ const AddIncrement = () => {
       status: "Active",
     },
   });
-  const { user, companyData } = useAuth();
+  const { authUser, company,employee } = useAuth();
   const date = new Date().toLocaleDateString();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -89,8 +91,21 @@ const AddIncrement = () => {
   const [error, setError] = useState("");
   const [showCards, setShowCards] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [previousGrossAmount, setPreviousGrossAmount] = useState(0);
+  const [hikePercentage, setHikePercentage] = useState(0);
+  const [hikeErrorMessage,setHikeErrorMessage]=useState("")
+  const [download, setDownload]=useState(false);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
+  const dispatch = useDispatch();
+
+  // Fetch employees from Redux store
+  const { data: employees} = useSelector((state) => state.employees);
+
+  // Fetch employees when the component mounts
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -100,16 +115,12 @@ const AddIncrement = () => {
     }
   }, [id, salaryId]);
 
+
   useEffect(() => {
-    EmployeeGetApi().then((data) => {
-      const filteredData = data
-        .filter(
-          (employee) =>
-            employee.firstName !== null && employee.status !== "InActive"
-        )
-        .map(({ referenceId, ...rest }) => rest);
-      setEmployes(
-        filteredData.map((employee) => ({
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
           label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
           value: employee.id,
           employeeName: `${employee.firstName} ${employee.lastName}`,
@@ -117,10 +128,11 @@ const AddIncrement = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-        }))
-      );
-    });
-  }, []); 
+          currentGross:employee.currentGross
+        }));
+      setEmployes(activeEmployees);
+    }
+  }, [employees]);
 
   useEffect(() => {
     if (id && salaryId) {
@@ -153,15 +165,13 @@ const AddIncrement = () => {
   }, [id, salaryId, setValue]);
 
   const validateAppraisalDate = (value) => {
-    const dateOfHiring = new Date(watch("dateOfHiring")); // Access the dateOfHiring value
-    const appraisalDate = new Date(value);
-
-    // If the Appraisal Date is before the Date of Hiring, return an error message
-    if (appraisalDate < dateOfHiring) {
-      return "Appraisal Date must be after the Date of Hiring.";
+    const hikeDate = watch("dateOfHiring"); // Ensure this field contains the correct hike date
+    if (!hikeDate) return "Hike Date is required to validate the Appraisal Date.";
+    
+    if (new Date(value) < new Date(hikeDate)) {
+      return "Appraisal Date cannot be before the Hike Date.";
     }
-
-    return true; // If valid, return true
+    return true;
   };
 
   const fetchTemplate = async (companyId) => {
@@ -508,7 +518,7 @@ const AddIncrement = () => {
     console.error(error.response);
   };
 
-  const handleGoClick = () => {
+  const onSubmit = () => {
     const {
       employeeId,
       designationName,
@@ -516,6 +526,7 @@ const AddIncrement = () => {
       dateOfHiring,
       months,
       years,
+      grossAmount
     } = getValues(); // Get current form values
     // Check if any required field is missing
     if (
@@ -524,7 +535,7 @@ const AddIncrement = () => {
       !departmentName ||
       !dateOfHiring ||
       !months ||
-      !years
+      !years||grossAmount
     ) {
       setMessage("Please fill all the required fields.");
       setShowFields(true); // Optionally hide or show some fields based on conditions
@@ -558,7 +569,7 @@ const AddIncrement = () => {
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
     setGrossAmount(newGrossSalary);
-  }, [variableAmount, fixedAmount]);
+    }, [variableAmount, fixedAmount]);
 
   useEffect(() => {
     const monthlySalaryValue = parseFloat(grossAmount || 0) / 12;
@@ -569,6 +580,31 @@ const AddIncrement = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
+  useEffect(() => {
+    console.log("Previous Gross Amount:", previousGrossAmount);
+    console.log("Current Gross Amount:", grossAmount);
+  
+    const prevSalary = parseFloat(previousGrossAmount) || 0;
+    const newSalary = parseFloat(grossAmount) || 0;
+  
+    if (prevSalary > 0) {
+      if (newSalary > prevSalary) {
+        const hike = ((newSalary - prevSalary) / prevSalary) * 100;
+        console.log("hike",hike);
+        setHikePercentage(hike.toFixed(2));
+        if (hike < 0) {
+          setHikeErrorMessage("Warning: Hike percentage is negative.");
+        } else if (hike > 100) {
+          setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        } else {
+          setHikeErrorMessage(""); // No error
+        }
+        setHikePercentage(hike.toFixed(2)); // Store actual hike, even if negative
+      } 
+    }
+  }, [grossAmount, previousGrossAmount]); // Ensure previousGrossAmount is included
+  
+  
   const fetchSalary = async () => {
     try {
       const response = await CompanySalaryStructureGetApi();
@@ -592,11 +628,12 @@ const AddIncrement = () => {
     fetchSalary();
   }, []);
 
-  const onSubmit = async () => {
+  const onSubmitUpdateSalary = async () => {
     if (error) {
       toast.error(error);
       return;
     }
+    console.log("data",data)
     const fixedAmount = parseFloat(data.fixedAmount) || 0;
     const variableAmount = parseFloat(data.variableAmount) || 0;
     const grossAmountValue = parseFloat(grossAmount) || 0;
@@ -606,14 +643,12 @@ const AddIncrement = () => {
     const pfTaxValue = parseFloat(pfTax) || 0;
     const incomeTax = data.incomeTax || "";
     const statusValue = data.status || "";
-
     if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
       toast.error("All amounts cannot be zero.");
       return;
     }
     const allowancesData = {};
     const deductionsData = {};
-
     Object.entries(allowances).forEach(([key, value]) => {
       let displayValue = value;
 
@@ -671,7 +706,8 @@ const AddIncrement = () => {
     });
 
     const dataToSubmit = {
-      companyName: user.company,
+      salaryHikePersentage:hikePercentage,
+      companyName: authUser.company,
       fixedAmount: fixedAmount.toFixed(2),
       variableAmount: variableAmount.toFixed(2),
       grossAmount: grossAmountValue.toFixed(2),
@@ -703,7 +739,8 @@ const AddIncrement = () => {
     const salaryStructureId =
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
-      companyId: user.companyId,
+      salaryHikePersentage:hikePercentage,
+      companyId: company.id,
       employeeId: employeeId,
       date: new Date().toISOString().split("T")[0],
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
@@ -753,10 +790,25 @@ const AddIncrement = () => {
     // Calculate total deductions
     const totalDeductions = calculateTotalDeductions();
 
+    let calculatedHike = 0;
+    if (previousGrossAmount > 0) {
+      calculatedHike = ((grossAmount - previousGrossAmount) / previousGrossAmount) * 100;
+      
+      if (calculatedHike < 0) {
+        setHikeErrorMessage ("Hike percentage cannot be negative.")
+        setShowCards(false);
+        setShowPfModal(false)
+      } else if (calculatedHike > 100) {
+        setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        setShowCards(false);
+        setShowPfModal(false)
+      }
+    }
     // Calculate net salary
     const netSalary = grossAmount + finalAllowances - totalDeductions;
 
     // Set the calculated values to state
+    setHikePercentage(calculatedHike.toFixed(2));  
     setFinalAllowances(finalAllowances);
     setTotalDeductions(totalDeductions);
     setNetSalary(netSalary);
@@ -784,19 +836,21 @@ const AddIncrement = () => {
       : data.employeeId;
     setEmployeeId(employeeId);
     const submissionData = {
+      salaryHikePersentage:hikePercentage,
       employeeId: data.employeeId,
-      companyId: user.companyId,
+      companyId: company.id,
       allowances: allowances,
       totalAllowances: totalAllowances,
     };
     const preview = {
+      salaryHikePersentage:hikePercentage,
       employeeId: data.id,
       employeeName: data.employeeName || "",
       designationName: data.designationName || "",
       departmentName: data.departmentName || "",
       dateOfSalaryIncrement: data.dateOfSalaryIncrement || "",
-      companyId: user.companyId,
-      companyData: companyData,
+      companyId: company.id,
+      companyData: company,
       timePeriod: `${selectedMonth} ${selectedYear}`,
       grossCompensation: grossAmount || "",
       allowances: allowances,
@@ -814,14 +868,7 @@ const AddIncrement = () => {
     reset();
     setShowFields(false);
   };
-
-  const getCurrentDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
-    const dd = today.getDate().toString().padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  
 
   if (!templateAvailable) {
     return (
@@ -849,7 +896,6 @@ const AddIncrement = () => {
   return (
     <LayOut>
       <div className="container-fluid p-0">
-        <form onSubmit={handleSubmit(submitForm)}>
           <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
             <div className="col">
               <h1 className="h3 mb-3">
@@ -869,7 +915,7 @@ const AddIncrement = () => {
           </div>
           <div className="row">
             {showFields ? (
-              <>
+              <form onSubmit={handleSubmit(submitForm)}> 
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
@@ -947,7 +993,7 @@ const AddIncrement = () => {
                         </div>
                         <div className="col-md-5 mb-3">
                           <label className="form-label">
-                            Gross Amount<span style={{ color: "red" }}>*</span>
+                            Gross Amount<span style={{ color: "red" }}>*</span> ({hikePercentage !== null && (<span className="text-success">{hikePercentage}% </span>)})
                           </label>
                           <input
                             type="text"
@@ -973,6 +1019,7 @@ const AddIncrement = () => {
                             readOnly
                           />
                         </div>
+                        {hikeErrorMessage&& (<span className="text-center text-danger">{hikeErrorMessage}</span>)}
                         <div className="col-12 text-end mt-2">
                           <button
                             type="button"
@@ -1272,9 +1319,9 @@ const AddIncrement = () => {
                               type="submit"
                               className="btn btn-primary"
                               disabled={!!errorMessage}
-                            >
+                             >
                               Submit
-                            </button>
+                            </button>                         
                           </div>
                         </div>
                       </div>
@@ -1293,7 +1340,7 @@ const AddIncrement = () => {
                     </>
                   )
                 )}
-              </>
+              </form>
             ) : (
               <div className="col-12">
                 <div className="card ">
@@ -1358,9 +1405,14 @@ const AddIncrement = () => {
                                             selectedEmp.dateOfHiring
                                           );
                                           setValue(
+                                            "currentGross",
+                                            selectedEmp.currentGross
+                                          );
+                                          setValue(
                                             "id",
                                             selectedEmp.employeeId
                                           );
+                                          setPreviousGrossAmount(Number(selectedEmp.currentGross) || 0);
                                         }
                                       }}
                                       placeholder="Select Employee Name"
@@ -1400,9 +1452,7 @@ const AddIncrement = () => {
                                   placeholder="Resignation Date"
                                   name="dateOfHiring"
                                   readOnly
-                                  {...register("dateOfHiring", {
-                                    required: true,
-                                  })}
+                                  {...register("dateOfHiring")}
                                 />
                                 {errors.dateOfHiring && (
                                   <p className="errorMsg">
@@ -1420,9 +1470,7 @@ const AddIncrement = () => {
                                   placeholder="Designation"
                                   name="designationName"
                                   readOnly
-                                  {...register("designationName", {
-                                    required: true,
-                                  })}
+                                  {...register("designationName")}
                                 />
                                 {errors.designationName && (
                                   <p className="errorMsg">
@@ -1439,9 +1487,7 @@ const AddIncrement = () => {
                                   placeholder="Department"
                                   name="departmentName"
                                   readOnly
-                                  {...register("departmentName", {
-                                    required: true,
-                                  })}
+                                  {...register("departmentName")}
                                 />
                                 {errors.departmentName && (
                                   <p className="errorMsg">
@@ -1449,48 +1495,25 @@ const AddIncrement = () => {
                                   </p>
                                 )}
                               </div>
-                              {/* 
-                              <div className="col-md-5 mb-3">
-                                <label className="form-label">Time Period</label>
-                                <div className="row d-flex">
-                                  <div className="col-md-6 ">
-                                    <Controller
-                                      name="months"
-                                      control={control}
-                                      defaultValue=""
-                                      rules={{ required: "Please select a month" }} // Validation rule
-                                      render={({ field }) => (
-                                        <Select
-                                          {...field}
-                                          options={monthOptions}
-                                          placeholder="Select Months"
-                                        />
-                                      )}
-                                    />
-                                  </div>
-                                  <div className="col-md-6">
-                                    <Controller
-                                      name="years"
-                                      control={control}
-                                      defaultValue=""
-                                      rules={{ required: "Please select a year" }} // Validation rule
-                                      render={({ field }) => (
-                                        <Select
-                                          {...field}
-                                          options={yearOptions}
-                                          placeholder="Select Years"
-                                        />
-                                      )}
-                                    />
-                                  </div>
-                                </div>
-                                {errors.employeeType && (
+                              <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                <label className="form-label">
+                                  Current Gross Salary
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Current Gross Salary"
+                                  name="currentGross"
+                                  readOnly
+                                  {...register("currentGross")}
+                                />
+                                {errors.currentGross && (
                                   <p className="errorMsg">
-                                    Employee Type is required
+                                    Current Gross Amount Required
                                   </p>
                                 )}
                               </div>
-                              <div className="col-lg-1"></div> */}
+                              <div className="col-lg-1"></div>
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">
                                   Appraisal Date (Hike Start Date)
@@ -1498,12 +1521,18 @@ const AddIncrement = () => {
                                 <input
                                   type="date"
                                   className="form-control"
-                                  max={getCurrentDate()}
+                                  max={(() => {
+                                    const maxDate = new Date();
+                                    maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
+                                    return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
+                                  })()}
+                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
                                   {...register("dateOfSalaryIncrement", {
                                     required: "Appraisal Date is required",
                                     validate: validateAppraisalDate, // Apply custom validation
                                   })}
                                 />
+
                                 {errors.dateOfSalaryIncrement && (
                                   <p className="errorMsg">
                                     {errors.dateOfSalaryIncrement.message}
@@ -1511,6 +1540,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
                             </div>
+                            {message && (<span className="text-center text-danger">message</span>)}
                             <div
                               className="col-12  d-flex justify-content-end mt-5 "
                               style={{ background: "none" }}
@@ -1519,7 +1549,6 @@ const AddIncrement = () => {
                                 className="btn btn-primary btn-lg"
                                 style={{ marginRight: "65px" }}
                                 type="submit"
-                                onClick={handleGoClick}
                               >
                                 Update Salary Structure
                               </button>
@@ -1607,7 +1636,6 @@ const AddIncrement = () => {
               </div>
             )}
           </div>
-        </form>
         {showPreview && (
           <div
             className={`modal fade ${showPreview ? "show" : ""}`}
@@ -1653,11 +1681,11 @@ const AddIncrement = () => {
                       onClick={() => setShowPreview(false)}
                     >
                       Close
-                    </button>
+                    </button>                   
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={onSubmit}
+                      onClick={onSubmitUpdateSalary}
                     >
                       Confirm Submission
                     </button>
@@ -1732,7 +1760,12 @@ const AddIncrement = () => {
             >
               Confirm
             </Button>
-            <Button variant="secondary" onClick={() => setShowPfModal(false)}>
+            <Button variant="secondary" 
+                onClick={() => {
+                  setShowPfModal(false);
+                  setShowCards(false);
+                }}            
+            >
               Cancel
             </Button>
           </div>

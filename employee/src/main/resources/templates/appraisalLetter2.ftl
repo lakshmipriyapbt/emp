@@ -108,6 +108,7 @@
     We are pleased to inform you that based on your performance and contribution
     to the company, our management has revised your compensation to
     <b>Rs.${appraisal.grossCompensation} pa</b> which is cost to company with effect from <b>${appraisal.dateOfSalaryIncrement}.</b>
+    This represents a <b>${appraisal.salaryHikePersentage}%</b> increase, demonstrating our appreciation for your dedication.
     <br />
     <br />
     All other T&C are same as per the original offer letter.  We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
@@ -137,8 +138,17 @@
     We appreciate your initiative and expect you to take many more such responsibilities in future
      assignments to ensure company’s growth.
     </p>
-    <p>With Best Wishes,</p>
-    <p style = "margin-top: 10px;">Authorized Signature</p>
+
+    <p>With Best Wishes</p>
+    <br/>
+   <div>
+              <b>Authorized Signature</b>
+             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+             <br/>
+             <b>${company.companyName}</b>
+              <p>${company.mobileNo}|${company.emailId}</p>
+              <p>${company.address}</p>
+    </div>
     </div>
 
 </body>

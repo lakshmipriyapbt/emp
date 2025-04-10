@@ -1,16 +1,20 @@
 package com.pb.employee.serviceImpl;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.CompanyEntity;
+import com.pb.employee.persistance.model.CustomerEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
+import com.pb.employee.service.CustomerService;
 import com.pb.employee.service.DepartmentService;
 import com.pb.employee.util.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +47,12 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Autowired
     private EmailUtils emailUtils;
+
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException{
@@ -101,15 +111,17 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.CONFLICT);
         }
         try{
-            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId);
+            String defaultPassword = PasswordUtils.generateStrongPassword();
+            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId,defaultPassword);
             Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, Constants.INDEX_EMS);
         } catch (Exception exception) {
             log.error("Unable to save the company details {} {}", companyRequest.getCompanyName(),exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        String defaultPassword = PasswordUtils.generateStrongPassword();
         openSearchOperations.createIndex(companyRequest.getShortName());
-        String password = Base64.getEncoder().encodeToString(companyRequest.getPassword().getBytes());
+        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         log.info("Creating the employee of company admin");
 
         String employeeAdminId = ResourceIdUtils.generateEmployeeResourceId(companyRequest.getEmailId());
@@ -142,9 +154,9 @@ public class CompanyServiceImpl implements CompanyService {
         }
         CompletableFuture.runAsync(() -> {
             try {
-                String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.CREATE_PASSWORD ;
+                String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
-                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE);
+                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,defaultPassword);
             } catch (Exception e) {
                 log.error("Error sending email to company: {}", companyRequest.getEmailId());
                 throw new RuntimeException(e);
@@ -176,7 +188,7 @@ public class CompanyServiceImpl implements CompanyService {
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -227,7 +239,7 @@ public class CompanyServiceImpl implements CompanyService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
     @Override
-    public ResponseEntity<?> updateCompanyImageById(String companyId,  CompanyImageUpdate companyImageUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
         List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
         try {
@@ -242,7 +254,6 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        CompanyEntity entity = CompanyUtils.maskCompanyImageUpdateProperties(user, companyImageUpdate, companyId);
         if (!multipartFile.isEmpty()){
             // Validate file type
             String contentType = multipartFile.getContentType();
@@ -251,14 +262,15 @@ public class CompanyServiceImpl implements CompanyService {
                 // Return an error response if file type is invalid
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
             }
-            multiPartFileStore(multipartFile, entity);
+            multiPartFileStore(multipartFile, user);
         }
-        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        openSearchOperations.saveEntity(user, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
     @Override
-    public ResponseEntity<?> updateCompanyStampImageById(String companyId, CompanyStampUpdate companyStampUpdate, MultipartFile multipartFile) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyStampImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
         try {
             user = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
@@ -272,11 +284,10 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        CompanyEntity entity = CompanyUtils.maskCompanyStampImageUpdateProperties(user, companyStampUpdate);
         if (!multipartFile.isEmpty()){
-            multiPartFileStoreForStamp(multipartFile, entity);
+            multiPartFileStoreForStamp(multipartFile, user);
         }
-        openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
+        openSearchOperations.saveEntity(user, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
@@ -298,7 +309,7 @@ public class CompanyServiceImpl implements CompanyService {
         }
     }
     @Override
-    public ResponseEntity<?> deleteCompanyById(String companyId) throws EmployeeException {
+    public ResponseEntity<?> deleteCompanyById(String companyId, String authToken) throws EmployeeException {
         log.info("getting details of {}", companyId);
         CompanyEntity companyEntity = null;
 
@@ -306,13 +317,33 @@ public class CompanyServiceImpl implements CompanyService {
             companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
-            if (companyEntity!=null) {
-                openSearchOperations.deleteEntity(companyEntity.getId(),Constants.INDEX_EMS);
-                log.info("The company is:"+companyEntity.getId());
+            ResponseEntity<?> costCustomerEntity = customerService.getCompanyByIdCustomer(companyId, authToken);
+            Object responseBody = costCustomerEntity.getBody();
+            List<CustomerEntity> customerEntity = new ArrayList<>();  // Initialize list to avoid null issues
 
-                openSearchOperations.deleteIndex(index);
-                log.info("Index deleted for short name: {}", companyEntity.getShortName());
+            if (responseBody != null) {
+                try {
+                    if (responseBody instanceof String && !((String) responseBody).isBlank() && !((String) responseBody).isEmpty()) {
+                        customerEntity = objectMapper.readValue((String) responseBody, new TypeReference<>() {});
+                    }
+                } catch (Exception e) {
+                    log.error("Error while parsing customer entity list", e);
+                }
             }
+
+            if (!customerEntity.isEmpty()) {
+                for (CustomerEntity customer : customerEntity) {
+                    customerService.deleteCustomer(authToken, customer.getCompanyId(), customer.getCustomerId());
+                }
+            }
+
+            openSearchOperations.deleteEntity(companyEntity.getId(),Constants.INDEX_EMS);
+            log.info("The company is:"+companyEntity.getId());
+
+            openSearchOperations.deleteIndex(index);
+            log.info("Index deleted for short name: {}", companyEntity.getShortName());
+        }catch (EmployeeException e){
+            throw e;
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_COMPANY),
