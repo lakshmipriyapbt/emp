@@ -677,7 +677,6 @@ public class PayslipServiceImpl implements PayslipService {
     public ResponseEntity<?> generatePaySlipForEmployees(String salaryId, PayslipRequest payslipRequest) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
-        int inactiveEmployeeCount = 1;
         List<String> employeesWithoutAttendance = new ArrayList<>();
 
         try {
@@ -698,7 +697,6 @@ public class PayslipServiceImpl implements PayslipService {
 
                 if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
                     log.info("Employee is inactive " + employee.getFirstName());
-                    inactiveEmployeeCount +=1;
                     continue;
                 }
                 List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
@@ -763,6 +761,13 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
+            if (employeesWithoutAttendance.size() != 0){
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
+
+            }
                  // If no payslips were generated but there are employees without attendance, return a success response with only that information
                 if (generatedPayslips.isEmpty()) {
                     return new ResponseEntity<>(
@@ -771,10 +776,7 @@ public class PayslipServiceImpl implements PayslipService {
                                             .getMessage(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED)),
                             HttpStatus.FORBIDDEN);
                 }
-            Map<String, Object> responseBody = new HashMap<>();
                 responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
-                responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
-
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
 
             } catch (EmployeeException ex) {
