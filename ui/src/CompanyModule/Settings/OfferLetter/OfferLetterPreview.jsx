@@ -345,7 +345,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>S/o,D/o {previewData?.employeeFatherName}</strong>
             </p>
-            <p>
+            <p className="w-50">
               <strong>{previewData?.employeeAddress}</strong>
             </p>
             {/* <p><strong>{isEditing ? <input type="text" value={cityStateZip} onChange={e => setCityStateZip(e.target.value)} /> : cityStateZip}</strong></p> */}
