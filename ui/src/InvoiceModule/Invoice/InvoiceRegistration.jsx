@@ -60,10 +60,12 @@ const InvoiceRegistration = () => {
     dispatch(fetchBanks(companyId));
   }, [dispatch]);
 
-  const subTotal = productData.reduce(
-    (sum, row) => sum + (parseFloat(row.totalCost) || 0),
-    0
-  );
+  const subTotal = parseFloat(
+    productData.reduce(
+      (sum, row) => sum + (parseFloat(row.totalCost) || 0),
+      0
+    ).toFixed(2)
+  );  
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces

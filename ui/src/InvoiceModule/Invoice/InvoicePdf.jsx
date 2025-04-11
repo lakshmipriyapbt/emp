@@ -398,7 +398,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  In Words: {invoiceData.grandTotalInWords} /-
+                                  In Words: {invoiceData.grandTotalInWords}/-
                                 </td>
                               </tr>
                               <tr>
@@ -482,7 +482,6 @@ const InvoicePdf = () => {
     </div>
   </div>
 </div>
-
                     <hr />
                     <div className="table-responsive">
                     <div style={{ margin: "40px 0px" }}>

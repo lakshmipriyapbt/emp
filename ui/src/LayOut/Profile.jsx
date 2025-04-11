@@ -136,6 +136,7 @@ function Profile() {
         window.location.reload();
       } catch (error) {
         setStampMessage("Failed to upload stamp.");
+        
         console.error("Upload error:", error);
       } finally {
         setLoadingStamp(false);
