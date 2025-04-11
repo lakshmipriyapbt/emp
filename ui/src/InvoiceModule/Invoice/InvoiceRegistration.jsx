@@ -276,7 +276,7 @@ const InvoiceRegistration = () => {
         dueDate: data.dueDate,
         status: "Active",
         bankId: data.bankName,
-        subTotal: subTotal.toString(),
+        subTotal: parseFloat(subTotal).toFixed(2),
         productColumns,
         productData,
       };
