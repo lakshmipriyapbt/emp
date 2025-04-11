@@ -460,7 +460,7 @@ const InvoicePdf = () => {
     </div>
 
     <div className="d-flex">
-      <div className="fw-bold" style={{ width: "250px" }}>Bank Address :</div>
+      <div className="fw-bold" style={{ width: "150px" }}>Bank Address :</div>
       <div><span className="text-break" style={{ maxWidth: "300px" }}>{invoiceData.bank?.address || "N/A"}</span></div>
     </div>
   </div>
