@@ -848,7 +848,7 @@ const InvoiceRegistration = () => {
                             <input
                               type="text"
                               className="form-control"
-                              value={subTotal}
+                              value={subTotal.toFixed(2)}
                               readOnly
                             />
                           </td>
