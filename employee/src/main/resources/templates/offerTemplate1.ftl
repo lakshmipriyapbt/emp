@@ -233,7 +233,7 @@
             <h6>To</h6>
             <h6>Name: ${offerLetter.employeeName}</h6>
             <h6>S/o,D/o: ${offerLetter.employeeFatherName}</h6>
-            <h6>Address: ${offerLetter.employeeAddress}</h6>
+            <h6 style="width: 50%;">Address: ${offerLetter.employeeAddress}</h6>
             <h6>Contact No: ${offerLetter.employeeContactNo}</h6>
         </div>
         <div class="subject-offer">

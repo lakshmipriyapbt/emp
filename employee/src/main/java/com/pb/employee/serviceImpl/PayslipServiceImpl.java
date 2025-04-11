@@ -762,6 +762,15 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
+            responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
+
+            if (employeesWithoutAttendance.size() != 0){
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
+
+            }
                  // If no payslips were generated but there are employees without attendance, return a success response with only that information
                 if (generatedPayslips.isEmpty()) {
                     return new ResponseEntity<>(
@@ -770,10 +779,6 @@ public class PayslipServiceImpl implements PayslipService {
                                             .getMessage(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED)),
                             HttpStatus.FORBIDDEN);
                 }
-            Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
-                responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
-
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
 
             } catch (EmployeeException ex) {
