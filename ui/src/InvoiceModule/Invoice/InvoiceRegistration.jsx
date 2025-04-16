@@ -60,15 +60,17 @@ const InvoiceRegistration = () => {
     dispatch(fetchBanks(companyId));
   }, [dispatch]);
 
-  const subTotal = productData.reduce(
-    (sum, row) => sum + (parseFloat(row.totalCost) || 0),
-    0
-  );
+  const subTotal = parseFloat(
+    productData.reduce(
+      (sum, row) => sum + (parseFloat(row.totalCost) || 0),
+      0
+    ).toFixed(2)
+  );  
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
     if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
-    if (type === "number") return /^[0-9]+$/.test(value); // Only numbers
+    if (type === "number") return /^\d+(\.\d{1,2})?$/.test(value);
     if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
     return true;
   };

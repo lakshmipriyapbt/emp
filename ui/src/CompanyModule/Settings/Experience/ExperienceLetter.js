@@ -37,7 +37,7 @@ const ExperienceLetter = () => {
       handleApiErrors(error);
     }
   };
-
+  
   useEffect(() => {
     if (company) {
       fetchTemplate(company.id);
@@ -51,7 +51,7 @@ const ExperienceLetter = () => {
         name: "1",
         content: (data) => (
           <ExperienceTemplate1
-          companyLogo={company?.imageFile || "default-logo.png"} // ✅ Fallback image
+            companyLogo={company?.imageFile || "default-logo.png"} // ✅ Fallback image
             companyData={company}
             date="October 28, 2024"
             employeeName="John Doe"
