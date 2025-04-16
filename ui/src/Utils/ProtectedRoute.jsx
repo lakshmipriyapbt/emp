@@ -12,27 +12,7 @@ const ProtectedRoute = ({ element, allowedTypes }) => {
   console.log("User Role:", userRole);
   console.log("Allowed Types:", allowedTypes);
   console.log("Extracted Role:", role);
-
-
-  // if (!userRole || userRole.length === 0) {
-  //   console.log("Waiting for Redux state to load...");
-  //   return <div>Loading...</div>;
-  // }
   
-  // if (!allowedTypes.includes(role)) {
-  //   console.warn("Security Access Error: Unauthorized role", role);
-
-  //   switch (role) {
-  //     case 'ems_admin':
-  //       return <Navigate to="/login" replace />;
-  //     case 'company_admin':
-  //       return <Navigate to="/companyLogin" replace />;
-  //     default:
-  //       return <Navigate to="/" replace />;
-  //   }
-  // }
-
-
   if (!allowedTypes.includes(role)) {
     console.warn("403 Forbidden: User does not have the required permissions.");
     return <Navigate to="/forbidden" replace />;

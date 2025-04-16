@@ -136,10 +136,6 @@ const Routing = () => {
 
       {/* EMS Admin-specific routes */}
       <Route
-        path="/login"
-        element={<ProtectedRoute element={<EmsLogin/>} allowedTypes={['ems_admin']} />}
-      />
-      <Route
         path="/companyRegistration"
         element={<ProtectedRoute element={<CompanyRegistration/>} allowedTypes={['ems_admin']} />}
       />
@@ -167,6 +163,7 @@ const Routing = () => {
         path="/employeeSalary"
         element={<ProtectedRoute element={<EmployeeSalaryView/>} allowedTypes={['employee']} />}
       />
+
         
       {/* Company Admin & HR shared routes */}
       <Route
@@ -300,6 +297,7 @@ const Routing = () => {
         path="/invoiceView"
         element={<ProtectedRoute element={<InvoiceView/>} allowedTypes={['company_admin' , 'Accountant']} />}
       />
+      
 
       {/* employee & Accountant shared routes */}
       <Route
