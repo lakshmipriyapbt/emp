@@ -7,6 +7,7 @@ import { PeopleFill, PersonFillCheck, PersonFillExclamation } from 'react-bootst
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../Redux/EmployeeSlice';
 import Loader from '../Utils/Loader';
+import GetCalendar from '../Calender/GetCalendar';
 
 const Body = () => {
   const [data, setData] = useState({
@@ -84,6 +85,7 @@ useEffect(() => {
               {loading ? (
                 <p>Loading...</p>
               ) : (
+                <div className='container'>
                 <div className="row">
                   <div className="col-xl-4 col-12 mb-3">
                     <div className="card mt-3">
@@ -124,6 +126,10 @@ useEffect(() => {
                       </div>
                     </div>
                   </div>
+                </div>
+                 <div className='card p-4 mt-2'>
+                  <GetCalendar/>
+                 </div>
                 </div>
               )}
             </>

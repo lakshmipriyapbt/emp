@@ -72,6 +72,8 @@ import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalary
 import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
 import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
+import Calender from '../Calender/Calender';
+import HRCalendar from '../Calender/HrCalender';
 
 const Rout = () => {
   const location = useLocation();
@@ -203,6 +205,8 @@ const Rout = () => {
       <Route path='/accountRegistration' element={<AccountRegistration/>}></Route>
       <Route path='/accountsView' element={<AccountsView/>}></Route>
       <Route path='/:company/createPassword' element={<CreatePassword/>}></Route>
+      <Route path='/calender' element={<Calender/>}></Route>
+      <Route path='/HrCalender' element={<HRCalendar/>}></Route>
     </Routes>
   );
 };
