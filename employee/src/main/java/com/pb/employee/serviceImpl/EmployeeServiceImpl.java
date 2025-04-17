@@ -70,6 +70,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         String employeeExperienceId = ResourceIdUtils.generateEmployeePersonnelId(resourceId);
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(employeeRequest.getCompanyName());
+        List<EmployeeEntity> existingEmployees = openSearchOperations.getCompanyEmployees(employeeRequest.getCompanyName());
+
+        long companyAdmin = existingEmployees.stream()
+                .filter(emp -> emp.getEmployeeType() != null && emp.getEmployeeType().equalsIgnoreCase(Constants.EMPLOYEE_TYPE))
+                .count();
+
+        if (Constants.EMPLOYEE_TYPE.equalsIgnoreCase(employeeRequest.getEmployeeType()) && companyAdmin >= 2) {
+            throw new EmployeeException(
+                    ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_ADMINS_EXIST),
+                    HttpStatus.CONFLICT
+            );
+        }
         try{
             entity = openSearchOperations.getById(resourceId, null, index);
             if(entity != null) {
@@ -98,23 +110,24 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), employeeRequest.getEmployeeId()),
                     HttpStatus.CONFLICT);
         }
-        try{
-            DepartmentEntity departmentEntity =null;
+        try {
+            DepartmentEntity departmentEntity = null;
             DesignationEntity designationEntity = null;
-                departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
-                if (departmentEntity == null){
+            departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
+            if (departmentEntity == null) {
 
-                }
-                designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-                if (designationEntity == null){
-                    return new ResponseEntity<>(
+            }
+            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
+            if (designationEntity == null) {
+                return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
-                }
+            }
+
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
             defaultPassword = PasswordUtils.generateStrongPassword();
-            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword);
+            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(), defaultPassword);
             EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(employeeRequest.getPersonnelEntity(), EmployeePersonnelEntity.class);
             employeePersonnelEntity.setEmployeeId(resourceId);
             employeePersonnelEntity.setId(employeeExperienceId);
@@ -127,6 +140,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
         // Send the email with company details
         CompletableFuture.runAsync(() -> {
             try {
@@ -138,10 +152,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new RuntimeException(e);
             }
         });
-
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
-
     }
 
     @Override

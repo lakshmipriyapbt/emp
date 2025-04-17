@@ -115,7 +115,8 @@ public enum EmployeeErrorMessageKey {
     NO_PAY_SLIP_GENERATED("no.payslip.generated"),
     MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
     EMAIL_ID_MISS_MATCH("email.id.miss.match"),
-    EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist");
+    EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist"),
+    COMPANY_ADMINS_EXIST("company.admin.exist");
 
     private final String key;
 

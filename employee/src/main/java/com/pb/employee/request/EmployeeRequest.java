@@ -26,7 +26,7 @@ public class EmployeeRequest {
     private String companyName;
 
     @Schema(example = "employeeType")
-    @Pattern(regexp = "^(?!.*\\b([A-Z])\\s\\1\\s\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\.? ?[A-Z])? ?[A-Z][a-z]+)$", message = "{employee.type}")
+    @Pattern(regexp = "^[A-Z][a-zA-Z]{2,19}$", message = "{employee.type}")
     @Size(min = 3, max = 20, message = "{employeeType.size.message}")
     private String employeeType;
 
