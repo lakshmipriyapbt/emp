@@ -2,12 +2,10 @@ import React, { useEffect, useState } from "react";
 import LayOut from "../../LayOut/LayOut";
 import Select from "react-select";
 import DataTable from "react-data-table-component";
-import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import { Eye } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import {
-  EmployeeGetApi,
   EmployeePayslipsGet,
   AllEmployeePayslipsGet,
   TemplateGetAPI,
@@ -16,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
 const ViewPaySlips = () => {
-    const [emp, setEmp] = useState([]);
+  const [emp, setEmp] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -30,7 +28,6 @@ const ViewPaySlips = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   // Fetch employees from Redux store
   const { data: employees } = useSelector((state) => state.employees);
 
@@ -53,8 +50,7 @@ const ViewPaySlips = () => {
             designationName: employee.designationName,
             departmentName: employee.departmentName,
             dateOfHiring: employee.dateOfHiring,
-          }));
-  
+          })); 
         setEmp(activeEmployees);
       }
     }, [employees]);
@@ -116,7 +112,7 @@ const ViewPaySlips = () => {
     } catch (error) {
       console.error("Error fetching payslip data:", error);
       setNoRecords(true);
-      toast.error("Error fetching payslip data.");
+      toast.error(error.response.data.error.message);
     }
   };
 

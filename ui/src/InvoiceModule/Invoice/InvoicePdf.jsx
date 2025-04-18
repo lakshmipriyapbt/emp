@@ -18,19 +18,19 @@ const InvoicePdf = () => {
   const [companyDetails, setCompanyDetails] = useState({});
   const { customerId, invoiceId } = location.state || {};
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
   console.log("companyId", companyId);
 
   // Fetch company details
   useEffect(() => {
-    if (employee.companyId) {
+    if (companyId) {
       const fetchCompanyDetails = async () => {
         try {
-          const response = await companyViewByIdApi(employee.companyId);
-          console.log("Fetched company details for companyId:", employee.companyId);
-          console.log("Company Details:", response.data);
-          setCompanyDetails(response.data);
-          const companyData = response.data;
+          const response = await companyViewByIdApi(companyId);
+          console.log("Fetched company details for companyId:", companyId);
+          console.log("Company Details:", response.data.data);
+          setCompanyDetails(response.data.data);
+          const companyData = response.data.data;
           setValue("userName", companyData.userName);
           setValue("companyEmail", companyData.companyEmail);
           setValue("phone", companyData.phone);
@@ -58,7 +58,7 @@ const InvoicePdf = () => {
 
       fetchCompanyDetails();
     }
-  }, [employee.companyId, setValue]);
+  }, [companyId, setValue]);
 
   // Fetch invoice details
   useEffect(() => {
@@ -312,7 +312,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Total Amount
+                                  Total Amount(Rs)
                                 </td>
                                 <td>
                                   {(
@@ -382,7 +382,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Grand Total
+                                  Grand Total (Rs)
                                 </td>
                                 <td>
                                   {(
@@ -398,7 +398,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  In Words: {invoiceData.grandTotalInWords}
+                                  In Words: {invoiceData.grandTotalInWords}/-
                                 </td>
                               </tr>
                               <tr>
@@ -460,7 +460,7 @@ const InvoicePdf = () => {
     </div>
 
     <div className="d-flex">
-      <div className="fw-bold" style={{ width: "250px" }}>Bank Address :</div>
+      <div className="fw-bold" style={{ width: "150px" }}>Bank Address :</div>
       <div><span className="text-break" style={{ maxWidth: "300px" }}>{invoiceData.bank?.address || "N/A"}</span></div>
     </div>
   </div>
@@ -482,7 +482,6 @@ const InvoicePdf = () => {
     </div>
   </div>
 </div>
-
                     <hr />
                     <div className="table-responsive">
                     <div style={{ margin: "40px 0px" }}>

@@ -93,6 +93,8 @@ const AddIncrement = () => {
   const [loading, setLoading] = useState(false);
   const [previousGrossAmount, setPreviousGrossAmount] = useState(0);
   const [hikePercentage, setHikePercentage] = useState(0);
+  const [hikeErrorMessage,setHikeErrorMessage]=useState("")
+  const [download, setDownload]=useState(false);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
   const dispatch = useDispatch();
@@ -516,7 +518,7 @@ const AddIncrement = () => {
     console.error(error.response);
   };
 
-  const handleGoClick = () => {
+  const onSubmit = () => {
     const {
       employeeId,
       designationName,
@@ -590,9 +592,15 @@ const AddIncrement = () => {
         const hike = ((newSalary - prevSalary) / prevSalary) * 100;
         console.log("hike",hike);
         setHikePercentage(hike.toFixed(2));
-      } else {
-        setHikePercentage(0); // No hike if the salary is the same or lower
-      }
+        if (hike < 0) {
+          setHikeErrorMessage("Warning: Hike percentage is negative.");
+        } else if (hike > 100) {
+          setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        } else {
+          setHikeErrorMessage(""); // No error
+        }
+        setHikePercentage(hike.toFixed(2)); // Store actual hike, even if negative
+      } 
     }
   }, [grossAmount, previousGrossAmount]); // Ensure previousGrossAmount is included
   
@@ -620,11 +628,12 @@ const AddIncrement = () => {
     fetchSalary();
   }, []);
 
-  const onSubmit = async () => {
+  const onSubmitUpdateSalary = async () => {
     if (error) {
       toast.error(error);
       return;
     }
+    console.log("data",data)
     const fixedAmount = parseFloat(data.fixedAmount) || 0;
     const variableAmount = parseFloat(data.variableAmount) || 0;
     const grossAmountValue = parseFloat(grossAmount) || 0;
@@ -784,6 +793,16 @@ const AddIncrement = () => {
     let calculatedHike = 0;
     if (previousGrossAmount > 0) {
       calculatedHike = ((grossAmount - previousGrossAmount) / previousGrossAmount) * 100;
+      
+      if (calculatedHike < 0) {
+        setHikeErrorMessage ("Hike percentage cannot be negative.")
+        setShowCards(false);
+        setShowPfModal(false)
+      } else if (calculatedHike > 100) {
+        setHikeErrorMessage("Hike percentage cannot be more than 100%.");
+        setShowCards(false);
+        setShowPfModal(false)
+      }
     }
     // Calculate net salary
     const netSalary = grossAmount + finalAllowances - totalDeductions;
@@ -877,7 +896,6 @@ const AddIncrement = () => {
   return (
     <LayOut>
       <div className="container-fluid p-0">
-        <form onSubmit={handleSubmit(submitForm)}>
           <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
             <div className="col">
               <h1 className="h3 mb-3">
@@ -897,7 +915,7 @@ const AddIncrement = () => {
           </div>
           <div className="row">
             {showFields ? (
-              <>
+              <form onSubmit={handleSubmit(submitForm)}> 
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
@@ -1001,6 +1019,7 @@ const AddIncrement = () => {
                             readOnly
                           />
                         </div>
+                        {hikeErrorMessage&& (<span className="text-center text-danger">{hikeErrorMessage}</span>)}
                         <div className="col-12 text-end mt-2">
                           <button
                             type="button"
@@ -1300,9 +1319,9 @@ const AddIncrement = () => {
                               type="submit"
                               className="btn btn-primary"
                               disabled={!!errorMessage}
-                            >
+                             >
                               Submit
-                            </button>
+                            </button>                         
                           </div>
                         </div>
                       </div>
@@ -1321,7 +1340,7 @@ const AddIncrement = () => {
                     </>
                   )
                 )}
-              </>
+              </form>
             ) : (
               <div className="col-12">
                 <div className="card ">
@@ -1433,9 +1452,7 @@ const AddIncrement = () => {
                                   placeholder="Resignation Date"
                                   name="dateOfHiring"
                                   readOnly
-                                  {...register("dateOfHiring", {
-                                    required: true,
-                                  })}
+                                  {...register("dateOfHiring")}
                                 />
                                 {errors.dateOfHiring && (
                                   <p className="errorMsg">
@@ -1453,9 +1470,7 @@ const AddIncrement = () => {
                                   placeholder="Designation"
                                   name="designationName"
                                   readOnly
-                                  {...register("designationName", {
-                                    required: true,
-                                  })}
+                                  {...register("designationName")}
                                 />
                                 {errors.designationName && (
                                   <p className="errorMsg">
@@ -1472,9 +1487,7 @@ const AddIncrement = () => {
                                   placeholder="Department"
                                   name="departmentName"
                                   readOnly
-                                  {...register("departmentName", {
-                                    required: true,
-                                  })}
+                                  {...register("departmentName")}
                                 />
                                 {errors.departmentName && (
                                   <p className="errorMsg">
@@ -1492,9 +1505,7 @@ const AddIncrement = () => {
                                   placeholder="Current Gross Salary"
                                   name="currentGross"
                                   readOnly
-                                  {...register("currentGross", {
-                                    required: true,
-                                  })}
+                                  {...register("currentGross")}
                                 />
                                 {errors.currentGross && (
                                   <p className="errorMsg">
@@ -1502,48 +1513,6 @@ const AddIncrement = () => {
                                   </p>
                                 )}
                               </div>
-                              {/* 
-                              <div className="col-md-5 mb-3">
-                                <label className="form-label">Time Period</label>
-                                <div className="row d-flex">
-                                  <div className="col-md-6 ">
-                                    <Controller
-                                      name="months"
-                                      control={control}
-                                      defaultValue=""
-                                      rules={{ required: "Please select a month" }} // Validation rule
-                                      render={({ field }) => (
-                                        <Select
-                                          {...field}
-                                          options={monthOptions}
-                                          placeholder="Select Months"
-                                        />
-                                      )}
-                                    />
-                                  </div>
-                                  <div className="col-md-6">
-                                    <Controller
-                                      name="years"
-                                      control={control}
-                                      defaultValue=""
-                                      rules={{ required: "Please select a year" }} // Validation rule
-                                      render={({ field }) => (
-                                        <Select
-                                          {...field}
-                                          options={yearOptions}
-                                          placeholder="Select Years"
-                                        />
-                                      )}
-                                    />
-                                  </div>
-                                </div>
-                                {errors.employeeType && (
-                                  <p className="errorMsg">
-                                    Employee Type is required
-                                  </p>
-                                )}
-                              </div>
-                              <div className="col-lg-1"></div> */}
                               <div className="col-lg-1"></div>
                               <div className="col-md-5 mb-3">
                                 <label className="form-label">
@@ -1571,6 +1540,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
                             </div>
+                            {message && (<span className="text-center text-danger">message</span>)}
                             <div
                               className="col-12  d-flex justify-content-end mt-5 "
                               style={{ background: "none" }}
@@ -1579,7 +1549,6 @@ const AddIncrement = () => {
                                 className="btn btn-primary btn-lg"
                                 style={{ marginRight: "65px" }}
                                 type="submit"
-                                onClick={handleGoClick}
                               >
                                 Update Salary Structure
                               </button>
@@ -1667,7 +1636,6 @@ const AddIncrement = () => {
               </div>
             )}
           </div>
-        </form>
         {showPreview && (
           <div
             className={`modal fade ${showPreview ? "show" : ""}`}
@@ -1713,11 +1681,11 @@ const AddIncrement = () => {
                       onClick={() => setShowPreview(false)}
                     >
                       Close
-                    </button>
+                    </button>                   
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={onSubmit}
+                      onClick={onSubmitUpdateSalary}
                     >
                       Confirm Submission
                     </button>
@@ -1792,7 +1760,12 @@ const AddIncrement = () => {
             >
               Confirm
             </Button>
-            <Button variant="secondary" onClick={() => setShowPfModal(false)}>
+            <Button variant="secondary" 
+                onClick={() => {
+                  setShowPfModal(false);
+                  setShowCards(false);
+                }}            
+            >
               Cancel
             </Button>
           </div>

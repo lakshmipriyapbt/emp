@@ -45,7 +45,7 @@ useEffect(() => {
       dispatch(fetchEmployees());
     }, [dispatch]);
 
-  const isAdmin = authUser?.userRole?.includes("ems_admin");
+    const isAdmin = authUser?.userRole?.includes("ems_admin");
   const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
   
     // Step 2: Display loading or error messages
@@ -53,7 +53,7 @@ useEffect(() => {
     if (!isAdmin && status === "failed") return <Loader/>;
 
 
-  const handleApiErrors = (error) => {
+      const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
       const errorMessage = error.response.data.error.message;
       toast.error(errorMessage);
@@ -75,7 +75,7 @@ useEffect(() => {
            
                 <div className='card'>
                   <iframe
-                    src="https://122.175.43.71:2800/kibana/s/ems/app/dashboards#/view/deba4a73-baa2-4c62-aa78-089197311bcb?embed=true&fullscreen=true"height="1000" width="800"
+                    src="https://ems.pathbreakertech.in/kibana/s/ems/app/dashboards#/view/b2cd369d-3e89-48bf-b730-ef6c754cb270?embed=true&fullscreen=true"height="1000" width="800"
                     title="EMS Dashboard"
                       style={{ border: 'none'}}
                   ></iframe>

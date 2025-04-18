@@ -74,7 +74,7 @@ public class EmployeeUpdateRequest {
 
 
     @Schema(example = "Active")
-    @Pattern(regexp = "^(Active|InActive)$", message = "{status.format}")
+    @Pattern(regexp = "^(Active|InActive|OnBoard)$", message = "{status.format}")
     @NotBlank(message = "{status.notnull.message}")
     private String status;
 

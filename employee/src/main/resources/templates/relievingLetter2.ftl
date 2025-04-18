@@ -1,88 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Relieving Letter</title>
     <style>
-        .watermarked {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
             position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            line-height: 1.6;
+            color: #333;
         }
-         .watermark {
-            position: fixed;
-            left: 20%;
-            transform: translate(-50%, -50%) rotate(30deg);
-            z-index: -1;
-            width: 400px;
-            height: auto;
-            text-align: center;
-         }
 
-         .watermark img {
-            width: 100%;
-            height: auto;
-            opacity: 0.05;
-         }
-        .content {
+        .container {
             position: relative;
-            z-index: 2;
             padding: 20px;
             background-color: rgba(255, 255, 255, 0.8);
+            z-index: 2;
         }
-        .header {
-            text-align: center;
 
+        .title {
+            text-align: center;
+            margin-top: 2rem;
         }
-       .para p {
-                      font-size: 15px; /* Adjust the font size as needed */
-              }
+        .watermark {
+           position: fixed;
+           left: 20%;
+           transform: translate(-50%, -50%) rotate(30deg);
+           z-index: -1;
+           width: 400px;
+           height: auto;
+           text-align: center;
+        }
+
+        .watermark img {
+           width: 100%;
+           height: auto;
+           opacity: 0.05;
+        }
+
+        .footer {
+            margin-top: 3rem;
+        }
+
+        .footer h5 {
+            margin: 0;
+        }
     </style>
 </head>
+
 <body>
-    <div class="watermarked">
-        <!-- Company Logo -->
+
+    <!-- Company Logo -->
         <div class="logo">
                  <#if company[0].imageFile?has_content>
                  <img style="height: 70px; width: 160px;" src="${company[0].imageFile}" alt="Company Logo" />
                  </#if>
              </div>
+    <!-- Letter Content -->
+    <div class="container">
+        <p><strong>Date: ${relieving.relievingDate}</strong></p>
+        <h4 class="title">Relieving Letter</h4>
 
+        <p>To,</p>
+        <p><strong>Employee Name: ${employee.firstName} ${employee.lastName}</strong></p>
+        <p><strong>Employee ID: ${employee.employeeId}</strong></p>
 
-        <h4 class="header">RELIEVING LETTER</h4>
-        <!-- Content -->
-        <div class="content">
-            <div class="row d-flex align-items-center p-1">
-                <div>
-                    <p class="mb-2">${relieving.relievingDate}</p>
-                    <p style= "font-size: 15px;"><h4>${employee.firstName} ${employee.lastName},</h4></p>
-                    <h5>${employee.employeeId}.</h5>
-                </div>
+         <!-- Watermark Background Image -->
+         <div class="watermark">
+                 <img src="${blurredImage}" alt="Blurred Company Logo" />
+          </div>
+
+        <p>
+            I am writing to acknowledge the resignation letter you submitted, dated <strong>${relieving.resignationDate}</strong>,
+            in which you specified that <strong>${relieving.relievingDate}</strong> would be your last working day with
+            <strong>${company[0].companyName}</strong>.
+            I want to inform you that your resignation has been accepted, and you will be relieved from your position as
+            <strong>${employee.designationName}</strong>
+            with <strong>${company[0].companyName}</strong> on <strong>${relieving.noticePeriod}</strong>.
+        </p>
+
+        <p>We kindly request you to return your company ID and any other company-owned items that you have been using
+            during your tenure with our firm.</p>
+
+        <p>Your final settlement will be processed within the next 45 days.</p>
+
+        <p>We deeply appreciate your valuable contributions to the company and wish you all the best in your future
+            endeavors.</p>
+
+        <div class="footer">
+            <p>Best Regards,</p>
+            <div>
+                      <b>Authorized Signature</b>
+                             <br/>
+                     <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
+
             </div>
-             <div class="watermark">
-                                    <img src="${blurredImage}" alt="Blurred Company Logo" />
-                         </div>
-            <p>
-
-                This is in reference to your resignation dated <strong>${relieving.resignationDate}</strong>, where you requested to be relieved from your services on <strong>${employee.dateOfHiring}</strong>. We wish to inform you that your resignation has been accepted, and you shall be relieved from your duties as <strong>${employee.designationName}</strong>, post serving notice period, with effect from <strong>${relieving.relievingDate}</strong>.
-            </p>
-            <p>We kindly request you to return your company ID and any other company-owned items that you have been using during your tenure with our firm.</p>
-            <div class="para">
-                <p>Sincerely,</p>
-
-                <h4>${company[0].companyName}</h4>
-            <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
-                   <b>Authorized Signature</b>
-                          <br/>
-                  <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
-
-            </div>
-                <p>${company[0].companyAddress}</p>
-
-            </div>
+            <h5>${company[0].companyName}</h5>
+            <p>${company[0].address}</p>
         </div>
     </div>
+
 </body>
+
 </html>

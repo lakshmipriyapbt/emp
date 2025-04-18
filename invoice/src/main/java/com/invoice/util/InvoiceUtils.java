@@ -16,10 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
@@ -112,7 +111,7 @@ public class InvoiceUtils {
         if (value == null || value.isEmpty()) {
             return value;
         }
-        return Base64.getEncoder().encodeToString(value.getBytes());
+        return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
 
@@ -240,7 +239,7 @@ public class InvoiceUtils {
         String scheme = request.getScheme(); // http or https
         String serverName = request.getServerName(); // localhost or IP address
         int serverPort = request.getServerPort(); // port number
-        String contextPath = "/" + request.getContextPath(); // context path
+        String contextPath = "" + request.getContextPath(); // context path
 
         return scheme + "://" + serverName + ":" + serverPort + contextPath + "/";
     }
@@ -280,7 +279,8 @@ public class InvoiceUtils {
         if (value == null || value.isEmpty()) {
             return value; // Return as is if null or empty
         }
-        return new String(Base64.getDecoder().decode(value)); // Correctly decode without extra bytes conversion
+        byte[] decodedBytes = Base64.getDecoder().decode(value);
+        return new String(decodedBytes, StandardCharsets.UTF_8); // Correctly decode without extra bytes conversion
     }
 
     public static String generateNextInvoiceNumber(String companyId, String shortName, OpenSearchOperations openSearchOperations) throws InvoiceException {

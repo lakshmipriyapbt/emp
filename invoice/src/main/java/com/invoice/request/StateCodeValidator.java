@@ -25,6 +25,12 @@ public class StateCodeValidator implements ConstraintValidator<ValidStateCode, C
         String customerGstNo = customerRequest.getCustomerGstNo();
         String stateCode = customerRequest.getStateCode();
 
+        // allow empty Gst and State code
+        if ((customerGstNo == null || customerGstNo.isEmpty()) &&
+                (stateCode == null || stateCode.isEmpty())) {
+            return true;
+        }
+
         if (customerGstNo != null && customerGstNo.matches(GST_REGEX)) {
             String extractedStateCode = customerGstNo.substring(0, 2);
 

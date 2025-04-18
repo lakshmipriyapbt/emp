@@ -111,6 +111,8 @@
     We understand this is a sustainable increase in your pay and we appreciate
     your hard work and dedication to the company.
     <br />
+    <p>We recognize your continued contributions and dedication to the company, and we are happy to reward your hard work. Please note that all other terms and conditions of your employment remain unchanged as per your original offer letter.
+    </p>
     <br />
     All other T&C are the same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
     </p>
@@ -140,11 +142,16 @@
     We appreciate your initiative and expect you to take many more such responsibilities in future
      assignments to ensure company’s growth.
     </p>
-     <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
-          <b>Authorized Signature</b>
-                 <br/>
-         <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
 
+  <p>With Best Wishes</p>
+    <div>
+               <b>Authorized Signature</b>
+               <br/>
+              <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+              <br/>
+              <b>${company.companyName}</b>
+              <p>${company.mobileNo}|${company.emailId}</p>
+              <p>${company.address}</p>
      </div>
     </div>
 

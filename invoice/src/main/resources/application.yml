@@ -1,12 +1,13 @@
 server:
   port: 8002
+
   servlet:
     contextPath: /invoice
   ssl:
     enabled: true
-    key-store: /opt/EMS-demo/certificates/keystore.jks
+    key-store: ../certificates/ssl.jks
     key-store-password: pathbreaker
-    key-alias: ems.pathbreakertech.in
+    key-alias: pbt
     key-store-type: JKS
 # MySQL Database Configuration
 spring:
@@ -31,7 +32,6 @@ spring:
 es:
   esHost: localhost
   esPort: 9201
-
 # Swagger API Documentation
 springdoc:
   api-docs:

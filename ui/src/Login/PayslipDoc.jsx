@@ -15,7 +15,7 @@ const PayslipDoc = () => {
   const queryParams = new URLSearchParams(location.search);
   const employeeId = queryParams.get("employeeId");
   const payslipId = queryParams.get("payslipId");
-  const { user, logoFileName } = useAuth();
+  const { company } = useAuth();
 
   const fetchCompanyData = async (companyId) => {
     try {
@@ -79,7 +79,7 @@ const PayslipDoc = () => {
       fetchPayslipData();
     }
     setLoading(false);
-  }, [employeeId, payslipId, user]);
+  }, [employeeId, payslipId]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -132,8 +132,8 @@ const PayslipDoc = () => {
                 <p><b>Name: {employeeDetails.firstName} {employeeDetails.lastName}</b></p>
               </div>
               <div>
-                {logoFileName ? (
-                  <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                {company?.imageFile ? (
+                  <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                 ) : (
                   <p>Logo</p>
                 )}
@@ -336,7 +336,7 @@ export default PayslipDoc;
 //   const queryParams = new URLSearchParams(location.search);
 //   const employeeId = queryParams.get("employeeId");
 //   const payslipId = queryParams.get("payslipId");
-//   const { user, logoFileName } = useAuth();
+//   const { user, company?.imageFile } = useAuth();
 
 //   const fetchCompanyData = async (companyId) => {
 //     try {
@@ -448,8 +448,8 @@ export default PayslipDoc;
 //                 <p><b>Name: {employeeDetails.firstName} {employeeDetails.lastName}</b></p>
 //               </div>
 //               <div>
-//                 {logoFileName ? (
-//                   <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+//                 {company?.imageFile ? (
+//                   <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
 //                 ) : (
 //                   <p>Logo</p>
 //                 )}

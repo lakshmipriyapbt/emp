@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -250,9 +251,16 @@ export const downloadEmployeesFileAPI = async (format, showToast) => {
       responseType: "blob",
     });
 
-    // Check if the response contains an error message
-    if (response.data && response.data.error) {
-      throw new Error(response.data.error); // If API returns an error message, throw it
+    // Check if response is an error by trying to parse JSON from Blob
+    const contentType = response.headers["content-type"];
+    if (contentType && contentType.includes("application/json")) {
+      // Convert Blob to JSON
+      const errorText = await response.data.text();
+      const errorJson = JSON.parse(errorText);
+
+      if (errorJson?.error?.message) {
+        throw new Error(errorJson.error.message); // Throw extracted API error message
+      }
     }
 
     // If the response is valid, proceed with the download
@@ -270,13 +278,22 @@ export const downloadEmployeesFileAPI = async (format, showToast) => {
 
     showToast("Download successful!", "success"); // Show success toast
   } catch (error) {
-    console.error("Error downloading file:", error);
+    let errorMessage = "Download failed. Please try again.";
 
-    // Extract API-provided error message if available
-    const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+    if (error.response) {
+      const errorBlob = error.response.data;
+      try {
+        const errorText = await errorBlob.text();
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson?.error?.message || errorMessage;
+      } catch (jsonError) {
+        console.error("Failed to parse error response:", jsonError);
+      }
+    } else {
+      errorMessage = error.message;
+    }
 
-    showToast(errorMessage, "error"); // Show error toast with API message
+    showToast(`❌ ${errorMessage}`, "error");
   }
 };
 
@@ -290,10 +307,17 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
       responseType: "blob",
     });
 
-    // Check if the response contains an error message
-    if (response.data && response.data.error) {
-      throw new Error(response.data.error); // If API returns an error message, throw it
-    }
+     // Check if response is an error by trying to parse JSON from Blob
+     const contentType = response.headers["content-type"];
+     if (contentType && contentType.includes("application/json")) {
+       // Convert Blob to JSON
+       const errorText = await response.data.text();
+       const errorJson = JSON.parse(errorText);
+ 
+       if (errorJson?.error?.message) {
+         throw new Error(errorJson.error.message); // Throw extracted API error message
+       }
+     }
 
     // If the response is valid, proceed with the download
     const blob = new Blob([response.data]);
@@ -310,41 +334,54 @@ export const downloadEmployeeBankDataAPI = async (format, showToast) => {
 
     showToast("Download successful!", "success"); // Show success toast
   } catch (error) {
-    console.error("Error downloading file:", error);
+    let errorMessage = "Download failed. Please try again.";
 
-    // Extract API-provided error message if available
-    const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+    if (error.response) {
+      const errorBlob = error.response.data;
+      try {
+        const errorText = await errorBlob.text();
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson?.error?.message || errorMessage;
+      } catch (jsonError) {
+        console.error("Failed to parse error response:", jsonError);
+      }
+    } else {
+      errorMessage = error.message;
+    }
 
-    showToast(errorMessage, "error"); // Show error toast with API message
+    showToast(`❌ ${errorMessage}`, "error");
   }
 };
 
-export const downloadAttendanceFileAPI = async (format, year, month, employeeId, showToast) => {
+export const downloadAttendanceFileAPI = async (format, year, month, employeeId, showToast) => { 
   const company = localStorage.getItem("companyName");
 
   if (!format) {
-    showToast("Please select a file format!", "warning");
+    showToast("⚠️ Please select a file format!", "warning");
     return;
   }
 
   try {
-    showToast("Downloading file...", "info");
+    showToast("📥 Downloading file...", "info");
 
     const response = await axiosInstance.get(`${company}/employee/attendance/download`, {
-      params: {
-        format, 
-        month: month || "", 
-        year: year || "", 
-        employeeId: employeeId || "", 
-      },
-      responseType: "blob",
+      params: { format, month: month || "", year: year || "", employeeId: employeeId || "" },
+      responseType: "blob", // Response is expected as a file, but errors can still be in JSON
     });
 
-    if (response.data && response.data.error) {
-      throw new Error(response.data.error);
+    // Check if response is an error by trying to parse JSON from Blob
+    const contentType = response.headers["content-type"];
+    if (contentType && contentType.includes("application/json")) {
+      // Convert Blob to JSON
+      const errorText = await response.data.text();
+      const errorJson = JSON.parse(errorText);
+
+      if (errorJson?.error?.message) {
+        throw new Error(errorJson.error.message); // Throw extracted API error message
+      }
     }
 
+    // If no error, proceed with file download
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
 
@@ -357,10 +394,27 @@ export const downloadAttendanceFileAPI = async (format, year, month, employeeId,
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    showToast("Download successful!", "success");
+    showToast("✅ Download successful!", "success");
   } catch (error) {
     console.error("Error downloading file:", error);
-    showToast(error.response?.data?.message || "Download failed. Please try again.", "error");
+
+    // Extract API error message properly
+    let errorMessage = "Download failed. Please try again.";
+
+    if (error.response) {
+      const errorBlob = error.response.data;
+      try {
+        const errorText = await errorBlob.text();
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson?.error?.message || errorMessage;
+      } catch (jsonError) {
+        console.error("Failed to parse error response:", jsonError);
+      }
+    } else {
+      errorMessage = error.message;
+    }
+
+    showToast(`❌ ${errorMessage}`, "error");
   }
 };
 
@@ -398,24 +452,35 @@ export const EmployeeSalaryDeleteApiById = (employeeId, salaryId) => {
 }
 
 export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
-  const company = localStorage.getItem("companyName")
+  const company = localStorage.getItem("companyName");
 
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employee/salaries/download?format=${format}`, {
-      responseType: "blob",
-    });
+    const response = await axiosInstance.get(
+      `${company}/employee/salaries/download?format=${format}`,
+      { responseType: "blob" }
+    );
 
-    // Check if the response contains an error message
-    if (response.data && response.data.error) {
-      throw new Error(response.data.error); // If API returns an error message, throw it
+    // Handle cases where API returns JSON with an error instead of a file
+    const contentType = response.headers["content-type"];
+    if (contentType && contentType.includes("application/json")) {
+      const reader = new FileReader();
+      reader.readAsText(response.data);
+      reader.onloadend = () => {
+        try {
+          const errorResponse = JSON.parse(reader.result);
+          throw new Error(errorResponse?.error?.message || "Unknown error occurred.");
+        } catch (err) {
+          showToast("Failed to parse error message.", "error");
+        }
+      };
+      return;
     }
 
-    // If the response is valid, proceed with the download
+    // Proceed with file download if the response is valid
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = `Employees_Salaries_Data.${format === "excel" ? "xlsx" : "pdf"}`;
@@ -427,15 +492,25 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
 
     showToast("Download successful!", "success"); // Show success toast
   } catch (error) {
-    console.error("Error downloading file:", error);
+    let errorMessage = "Download failed. Please try again.";
 
-    // Extract API-provided error message if available
-    const errorMessage =
-      error.response?.data?.message || error.message || "Download failed. Please try again.";
+    if (error.response) {
+      const errorBlob = error.response.data;
+      try {
+        const errorText = await errorBlob.text();
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson?.error?.message || errorMessage;
+      } catch (jsonError) {
+        console.error("Failed to parse error response:", jsonError);
+      }
+    } else {
+      errorMessage = error.message;
+    }
 
-    showToast(errorMessage, "error"); // Show error toast with API message
+    showToast(`❌ ${errorMessage}`, "error");
   }
 };
+
 
   export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
     return axiosInstance.post(`/${employeeId}/salary/${salaryId}`, data);
@@ -487,10 +562,12 @@ export const AllEmployeePayslipsGet = (month, year) => {
 }
 
 export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
-  const company = localStorage.getItem("companyName");
+  const companyName = localStorage.getItem("companyName");
+  console.log("companyName:", companyName);
+  
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`, {
+    const response = await axiosInstance.get(`/${companyName}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
         'Accept': 'application/pdf', // Accept PDF format

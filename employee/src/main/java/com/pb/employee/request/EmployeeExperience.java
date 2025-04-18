@@ -16,12 +16,12 @@ import lombok.*;
 public class EmployeeExperience {
 
     @Schema(example = "companyName")
-    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{companyName.pattern.message}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,()'&\\s-]+(?! )$", message = "{companyName.pattern.message}")
     @Size(max = 100, min = 2, message = "{companyName.notnull.message}")
     private String companyName;
 
     @Schema(example = "positionOrTitle")
-    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{positionOrTitle.pattern.message}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$", message = "{positionOrTitle.pattern.message}")
     @Size(max = 50, min = 2, message = "{positionOrTitle.notnull.message}")
     private String positionOrTitle;
 

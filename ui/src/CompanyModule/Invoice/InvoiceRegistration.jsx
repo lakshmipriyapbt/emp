@@ -34,8 +34,8 @@ const InvoiceRegistration = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const { user } = useAuth();
-  const companyId = user.companyId;
+  const { company } = useAuth();
+  const companyId = company?.id;
   console.log("companyId", companyId);
 
   const [productsInfo, setProductsInfo] = useState([
@@ -426,7 +426,6 @@ const InvoiceRegistration = () => {
                         {...register("purchaseOrder", {
                           required: "Enter Purchase Order",
                         })}
-                        onKeyPress={allowNumbersOnly}
                       />
                     </div>
                     {errors.purchaseOrder && (

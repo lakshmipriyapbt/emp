@@ -231,7 +231,7 @@ const CompanyRegistration = () => {
     if (!/(?=.*[A-Z])/.test(value)) {
       errors.push("at least one uppercase letter");
     }
-    if (!/(?=.*\W)/.test(value)) {
+    if (!/(?=.*[\W_])/.test(value)) {
       errors.push("at least one special character");
     }
     if (value.includes(" ")) {
@@ -952,7 +952,7 @@ const CompanyRegistration = () => {
                             value: 15,
                             message: "GST Number must not exceed 15 characters",
                           },
-                          validate: validateGST,
+                          validate: (value) => value === "" || validateGST(value), // ✅ Makes GST optional
                         })}
                         disabled={editMode}
                       />

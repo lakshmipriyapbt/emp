@@ -222,8 +222,8 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private Long generateOtp() {
-        Random random = new Random();
-        //Long otp = 100000 + random.nextLong(900000);
+//        Random random = new Random();
+//        Long otp = 100000 + random.nextLong(900000);
         //TODO for now harding  the OTP value
         Long otp = 123456L;
         return otp;

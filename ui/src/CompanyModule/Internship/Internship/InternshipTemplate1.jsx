@@ -14,17 +14,17 @@ const InternshipTemplate1 = ({
   startDate,
   endDate,
 }) => {
-  const { user, logoFileName } = useAuth();
+  const {company } = useAuth();
   const [error, setError] = useState(null);
   const [value, setValue] = useState("");
   const [companyDetails, setCompanyDetails] = useState(null);
 
   useEffect(() => {
     const fetchCompanyData = async () => {
-        if (!user.companyId) return;
+        if (!company?.id) return;
 
         try {
-            const response = await companyViewByIdApi(user.companyId);
+            const response = await companyViewByIdApi(company?.id);
             const data = response.data;
             setCompanyDetails(data);
             Object.keys(data).forEach(key => setValue(key, data[key]));
@@ -34,7 +34,7 @@ const InternshipTemplate1 = ({
     };
 
     fetchCompanyData();
-}, [user.companyId, setValue, setError]);
+}, [company?.id, setValue, setError]);
 
   return (
 
@@ -49,8 +49,8 @@ const InternshipTemplate1 = ({
     >
       {/* Position the logo absolutely to the right */}
       <div style={{ textAlign: "right" }}>
-        {logoFileName ? (
-          <img className="align-middle" src={logoFileName} alt="Logo" style={{ height: "80px", width: "180px" }} />
+        {company?.imageFile ? (
+          <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
         ) : (
           <p>Logo</p>
         )}
@@ -64,7 +64,7 @@ const InternshipTemplate1 = ({
           right: "30%",
           width: "50%",
           height: "50%",
-          backgroundImage: `url(${logoFileName})`,
+          backgroundImage: `url(${company?.imageFile})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",

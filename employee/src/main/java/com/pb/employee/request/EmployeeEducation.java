@@ -28,7 +28,7 @@ public class EmployeeEducation {
     private String boardOfStudy;
 
     @Schema(example = "branch")
-    @Pattern(regexp = "^(?! )[A-Za-z0-9.,'&\\s-]+(?! )$", message = "{branch.pattern.message}")
+    @Pattern(regexp = "^(?! )[A-Za-z0-9.,()/'&\\s-]+(?! )$", message = "{branch.pattern.message}")
     @Size(max = 100, min = 2, message = "{branch.notnull.message}")
     private String branch;
 

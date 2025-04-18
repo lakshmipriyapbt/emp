@@ -17,7 +17,7 @@ const InvoiceRegistration = () => {
     handleSubmit,
     control,
     setValue,
-    reset,
+    reset,watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   // Select data from Redux store
@@ -36,7 +36,7 @@ const InvoiceRegistration = () => {
       { key: "service", title: "Service", type: "text" },
       { key: "quantity", title: "Quantity", type: "number" },
       { key: "unitCost", title: "Unit Cost", type: "number" },
-      { key: "totalCost", title: "Total Cost (₹)", type: "number" },
+      { key: "totalCost", title: "Total Cost", type: "number" },
     ]);
 
   const [search, setSearch] = useState("");
@@ -45,9 +45,8 @@ const InvoiceRegistration = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [deleteType, setDeleteType] = useState(null);
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
   const [showPreview, setShowPreview] = useState(false);
-  const [invoiceId, setInvoiceId] = useState(null); // to handle edit case
   const [load, setLoad] = useState(false); // to manage loading state for API calls
   const [customer, setCustomer] = useState(customers); // List of customers for the dropdown
   const [product, setProduct] = useState(products);
@@ -61,15 +60,17 @@ const InvoiceRegistration = () => {
     dispatch(fetchBanks(companyId));
   }, [dispatch]);
 
-  const subTotal = productData.reduce(
-    (sum, row) => sum + (parseFloat(row.totalCost) || 0),
-    0
-  );
+  const subTotal = parseFloat(
+    productData.reduce(
+      (sum, row) => sum + (parseFloat(row.totalCost) || 0),
+      0
+    ).toFixed(2)
+  );  
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
     if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
-    if (type === "number") return /^[0-9]+$/.test(value); // Only numbers
+    if (type === "number") return /^\d+(\.\d{1,2})?$/.test(value);
     if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
     return true;
   };
@@ -275,7 +276,7 @@ const InvoiceRegistration = () => {
         dueDate: data.dueDate,
         status: "Active",
         bankId: data.bankName,
-        subTotal: subTotal.toString(),
+        subTotal: parseFloat(subTotal).toFixed(2),
         productColumns,
         productData,
       };
@@ -366,6 +367,37 @@ const InvoiceRegistration = () => {
     dueDate.setDate(invoiceDate.getDate() + 15);
     setValue("dueDate", dueDate.toISOString().split("T")[0]);
   };
+
+  const joiningDate = watch("invoiceDate");
+
+  const validateDueDate = (dueDate) => {
+    if (!joiningDate) return "Invoice Date is required before selecting End Date";
+  
+    const joinDateObj = new Date(joiningDate);
+    const endDateObj = new Date(dueDate);
+    const maxEndDate = new Date(joinDateObj);
+    maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
+  
+    if (endDateObj < joinDateObj) {
+      return "Due Date cannot be before Invoice Date";
+    }
+    if (endDateObj > maxEndDate) {
+      return "Due Date cannot exceed 1 month from Invoice Date";
+    }
+    return true;
+  };
+
+    useEffect(() => {
+      // Dynamically update the max End Date and Accept Date based on the joiningDate
+      if (joiningDate) {
+        const joiningDateObj = new Date(joiningDate);
+        
+        // Set max End Date to 12 months after the joiningDate
+        const maxEndDate = new Date(joiningDateObj);
+        maxEndDate.setMonth(maxEndDate.getMonth() + 1);
+        setValue("dueDate", maxEndDate.toISOString().split("T")[0]);
+      }
+    }, [joiningDate, setValue]);
 
   useEffect(() => {
     const invoiceDate = document.getElementById("invoiceDate").value;
@@ -661,10 +693,9 @@ const InvoiceRegistration = () => {
                         id="invoiceDate"
                         autoComplete="off"
                         max={new Date().toISOString().split("T")[0]} // Restricts future dates
-                        onFocus={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
-                          onChange: handleInvoiceDateChange, // Set due date when invoice date changes
                         })}
                       />
                       {errors.invoiceDate && (
@@ -691,17 +722,18 @@ const InvoiceRegistration = () => {
                         name="dueDate"
                         id="dueDate"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("dueDate", {
                           required: "Due Date is required",
+                         validate:validateDueDate
                         })}
-                        disabled
                       />
-                    </div>
-                    {/* {errors.dueDate && (
+                       {errors.dueDate && (
                       <p className="errorMsg" style={{ marginLeft: "6px" }}>
                         {errors.dueDate.message}
                       </p>
-                    )} */}
+                    )}
+                    </div>    
                   </div>
                   <div className="mt-4">
                     <button
@@ -816,7 +848,7 @@ const InvoiceRegistration = () => {
                             <input
                               type="text"
                               className="form-control"
-                              value={subTotal}
+                              value={subTotal.toFixed(2)}
                               readOnly
                             />
                           </td>

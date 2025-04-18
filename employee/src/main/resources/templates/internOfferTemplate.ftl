@@ -14,15 +14,17 @@
             padding: 50px;
             position: relative;
         }
-        .logo {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        }
-        .logo img {
-        max-width: 120px;
-        height: auto;
-        }
+         .logo {
+                   text-align: right;
+             }
+
+             .logo img {
+                   max-width: 60px;
+                   height: 100px;
+                   margin-right: 5px;
+                   margin-bottom: 20px;
+                   margin-top: -10px;
+             }
         .content {
         margin-top: 80px; /* create space below logo */
         background: rgba(255, 255, 255, 0.9);

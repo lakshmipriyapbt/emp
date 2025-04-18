@@ -93,11 +93,24 @@ const EmployeeView = () => {
             borderRadius: "5px",
             padding: "3px 6px",
             color: "#fff",
-            background:"red",
           }}
-          // className="bg-danger"
+           className="bg-danger"
         >
           InActive
+        </b>
+      ),
+    },
+    OnBoard: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+          }}
+         className="bg-info"
+        >
+          OnBoard
         </b>
       ),
     },

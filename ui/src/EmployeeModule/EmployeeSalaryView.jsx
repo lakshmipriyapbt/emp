@@ -390,7 +390,7 @@ const EmployeeSalaryView = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = authUser.company;
+  const companyName = authUser?.company;
   const onSubmit = (data) => {
     // Check if there's an error related to salary structures
     if (error) {
@@ -493,8 +493,10 @@ const EmployeeSalaryView = () => {
                   <li className="breadcrumb-item">
                     <a href="/main">Home</a>
                   </li>
-                  <li className="breadcrumb-item active">Payroll</li>
-                  <li className="breadcrumb-item active">Salary View</li>
+                  <li className="breadcrumb-item">
+                    <a href="/employeeSalary">Salary View</a>
+                  </li>
+                  <li className="breadcrumb-item active">Salary Form</li>
                 </ol>
               </nav>
             </div>
@@ -872,6 +874,9 @@ const EmployeeSalaryView = () => {
             </div>
           </div>
         </form>
+        <div>
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>Back</button>
+        </div>
       </div>
     </LayOut>
   );

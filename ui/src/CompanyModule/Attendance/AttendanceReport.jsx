@@ -27,7 +27,6 @@ const AttendanceReport = () => {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
-  const [selectedEmployeeDetails, setSelectedEmployeeDetails] = useState({});
   const [editAttendance, setEditAttendance] = useState(false);
   const [attendanceData, setAttendanceData] = useState([]);
   const [refreshData, setRefreshData] = useState("");
@@ -118,8 +117,8 @@ const AttendanceReport = () => {
   };
 
   const filterByMonthYear = () => {
-    if (!selectedYear || !employeeId) {
-      console.log("Please select Employee and Year");
+    if (!selectedYear) {
+      console.log("Please select Year");
       return;
     }
 
@@ -173,16 +172,16 @@ const AttendanceReport = () => {
     let message = `You are about to download the employee attendance data in ${format.toUpperCase()} format.\n\n`;
   
     if (selectedYear && selectedMonth && employeeId) {
-      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
     } else if (selectedYear && selectedMonth) {
       message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}`;
     } else if (employeeId) {
-      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${employeeId})`;
+      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
     }
   
     // Show confirmation popup
     if (window.confirm(message)) {
-      downloadAttendanceFileAPI(format, selectedYear || "", selectedMonth || "", employeeId || "", showToast);
+      downloadAttendanceFileAPI(format, selectedYear || null, selectedMonth || null, employeeId || null, showToast);
     }
   };  
 
@@ -332,7 +331,7 @@ const AttendanceReport = () => {
                 <div className="row d-flex justify-content-start align-items-center">
                   <div className="col-12 col-md-3 col-lg-3">
                     <label className="card-title">
-                      Select Employee <span className="text-danger">*</span>
+                      Select Employee
                     </label>
                     <Select
                       options={emp}
@@ -395,7 +394,7 @@ const AttendanceReport = () => {
                     <button
                       className="btn btn-primary"
                       onClick={filterByMonthYear}
-                      disabled={!selectedYear || !employeeId}
+                      disabled={!selectedYear}
                       style={{ paddingBottom: "8px" }}
                     >
                       Go
@@ -403,19 +402,18 @@ const AttendanceReport = () => {
                   </div>
 
                   <div
-  className="col-12 col-md-2 col-lg-2 d-flex justify-content-center align-items-center"
-  style={{ marginTop: "30px" }}
->
-  <select
-    className="form-select bg-primary border-0 text-white"
-    onChange={(e) => handleDownloadAttendance(e.target.value)}
-  >
-    <option value="">Download Attendance Data</option>
-    <option value="excel">Excel (.xlsx)</option>
-    <option value="pdf">PDF (.pdf)</option>
-  </select>
-</div>
-
+                    className="col-12 col-md-2 col-lg-2 d-flex justify-content-center align-items-center"
+                    style={{ marginTop: "30px" }}
+                  >
+                    <select
+                      className="form-select bg-primary border-0 text-white"
+                      onChange={(e) => handleDownloadAttendance(e.target.value)}
+                    >
+                      <option value="">Download Attendance Data</option>
+                      <option value="excel">Excel (.xlsx)</option>
+                      <option value="pdf">PDF (.pdf)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 

@@ -26,7 +26,7 @@ const CustomersView = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [isFetching, setIsFetching] = useState(true); // Local loading state
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
 
   // Fetch all customers on component mount
   useEffect(() => {

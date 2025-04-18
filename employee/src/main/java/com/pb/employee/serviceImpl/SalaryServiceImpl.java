@@ -58,7 +58,7 @@ public class SalaryServiceImpl implements SalaryService {
         List<EmployeeSalaryEntity> salary;
         String index = ResourceIdUtils.generateCompanyIndex(employeeSalaryRequest.getCompanyName());
         EmployeeSalaryEntity employeesSalaryProperties = null;
-        List<SalaryConfigurationEntity> salaryConfigurationEntity = null;
+        List<SalaryConfigurationEntity> salaryConfigurationEntity;
 
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
@@ -75,7 +75,7 @@ public class SalaryServiceImpl implements SalaryService {
                 if (salary != null && !salary.isEmpty()) {
                     for (EmployeeSalaryEntity employeeSalaryEntity : salary) {
                         String gross = new String(Base64.getDecoder().decode(employeeSalaryEntity.getGrossAmount()));
-                        if (gross.equals(employeeSalaryRequest.getGrossAmount())) {
+                        if (employeeSalaryEntity.getStatus().equalsIgnoreCase(Constants.ACTIVE) && gross.equals(employeeSalaryRequest.getGrossAmount())) {
                             return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(
                                     new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.SALARY_ALREADY_EXIST))),
                                     HttpStatus.CONFLICT
@@ -89,7 +89,8 @@ public class SalaryServiceImpl implements SalaryService {
                 salaryConfigurationEntity = openSearchOperations.getSalaryStructureByCompanyDate(employeeSalaryRequest.getCompanyName());
                 log.debug("Fetched Salary Configurations: {}", salaryConfigurationEntity);
 
-                if (salaryConfigurationEntity == null){
+                if (salaryConfigurationEntity.size() == 0){
+                    log.error("Exception while fetching the company salary structure");
                     return new ResponseEntity<>(
                             ResponseBuilder.builder().build().
                                     createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
@@ -167,7 +168,8 @@ public class SalaryServiceImpl implements SalaryService {
                         .filter(employee -> employee.getEmployeeId().equalsIgnoreCase(employeeId))
                         .collect(Collectors.toList());
             }
-           return employeeSalaryResPayload;
+
+           return employeeSalaryResPayload.stream().filter(salary -> salary.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList());
 
         } catch (EmployeeException ex){
             log.error("Exception while fetching the employee salaries", ex);
@@ -266,16 +268,17 @@ public class SalaryServiceImpl implements SalaryService {
             SSLUtil.disableSSLVerification();
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
             List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity.getShortName());
-
-
+            List<EmployeeSalaryResPayload> activeEmployeeSalaryResPayloads = employeeSalaryResPayloads.stream()
+                    .filter(employeeSalaryResPayload -> "active".equalsIgnoreCase(employeeSalaryResPayload.getStatus()))
+                    .collect(Collectors.toList());
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateExcelFromEmployeesSalaries(employeeSalaryResPayloads);
+                fileBytes = generateExcelFromEmployeesSalaries(activeEmployeeSalaryResPayloads);
                 headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                 headers.setContentDisposition(ContentDisposition.builder("attachment")
                         .filename("EmployeesSalaries.xlsx")
                         .build());
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateEmployeesSalariesPdf(employeeSalaryResPayloads, companyEntity);
+                fileBytes = generateEmployeesSalariesPdf(activeEmployeeSalaryResPayloads, companyEntity);
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeBankDetails.pdf").build());
             }
@@ -338,14 +341,12 @@ public class SalaryServiceImpl implements SalaryService {
             }
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                if (salaryEntity.getStatus().equalsIgnoreCase(Constants.ACTIVE)) {
                     EmployeeUtils.unMaskEmployeeSalaryProperties(salaryEntity);
                     EmployeeEntity employee = openSearchOperations.getEmployeeById(salaryEntity.getEmployeeId(), null, index);
                     EmployeeSalaryResPayload employeeSalaryResPayload = objectMapper.convertValue(salaryEntity, EmployeeSalaryResPayload.class);
                     employeeSalaryResPayload.setEmployeeName(employee.getFirstName() + " " + employee.getLastName());
                     employeeSalaryResPayload.setEmployeeCreatedId(employee.getEmployeeId());
                     employeeSalaryResPayloads.add(employeeSalaryResPayload);
-                }
             }
             return employeeSalaryResPayloads;
 

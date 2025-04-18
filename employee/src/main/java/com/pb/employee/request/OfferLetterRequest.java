@@ -26,14 +26,14 @@ public class OfferLetterRequest {
     private String referenceNo;
 
     @Schema(example = "employeeName")
-    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{firstname.format}")
-    @Size(min = 1, max = 100, message = "{firstName.size.message}")
+    @Pattern(regexp = "^(?! )[A-Z][A-Za-z.,'&/()_\\s-]+(?! )$", message = "{employeeName.format}")
+    @Size(min = 2, max = 100, message = "{employeeName.size.message}")
     private String employeeName;
 
     @Schema(example = "employeeFatherName")
     @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$",
-            message = "{fathername.format}")
-    @Size(min = 1, max = 100, message = "{firstName.size.message}")
+            message = "{employeeFatherName.format}")
+    @Size(min = 2, max = 100, message = "{employeeFatherName.size.message}")
     private String employeeFatherName;
 
     @Schema(example = "address")
@@ -65,13 +65,12 @@ public class OfferLetterRequest {
     private String salaryConfigurationId;
 
     @Schema(example = "designation")
-    @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$",
             message = "{invalid.position.format}")
     private String designation;
 
     @Schema(example = "department")
-    @Pattern(regexp =  "^(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z]{2,} [A-Z][a-z]+|[A-Z]+(?: [A-Z]+)*|[A-Z]+(?:/[A-Z]+)*)$",
-            message = "{department.format}")
+    @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$", message = "{department.format}")
     private String department;
 
 }

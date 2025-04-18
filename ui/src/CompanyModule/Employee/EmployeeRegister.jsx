@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { validateAadhar, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { handleBranchInput, toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -38,9 +38,9 @@ export default function EmployeeRegister() {
         contactNumber: "",
         alternateNumber: "",
         personalEmail: "",
-        aadhar: "",
-        uan: "",
-        pan: "",
+        aadhaarId: "",
+        uanNo: "",
+        panNo: "",
         permanentAddress: "",
         tempAddress: "",
   
@@ -86,79 +86,14 @@ const { fields: experienceFields, append: addExperience, remove: removeExperienc
 });
 
 const onNext = async () => {
-  if (step === 4) {
-    setStep(5); // Skip validation and move to Step 5
-  } else {
-    const isValid = await trigger(); // Validate other steps
-    if (isValid && step < 5) {
-      setStep(step + 1); // Move to the next step
+  const isValid = await trigger(); // Validate current step fields
+  
+  if (isValid) {
+    if (step < 5) {
+      setStep(step + 1); // Move to the next step, but DO NOT submit
     }
   }
 };
-
-useEffect(() => {
-  if (location && location.state && location.state.id) {
-    const fetchData = async () => {
-      try {
-        const response = await EmployeeGetApiById(location.state.id);
-        console.log(response.data.data);
-        
-        // Reset the entire form data
-        reset(response.data.data);
-
-        // Set status manually
-        const status = response.data.data.status;
-        setValue("status", status.toString());
-
-        // Conditionally show "Notice Period" option based on status
-        if (status === "NoticePeriod") {
-          setShowNoticePeriodOption(true);
-        }
-
-        // Set employeeEducation data
-        if (response.data.data.personnelEntity?.employeeEducation?.length) {
-          reset((prev) => ({
-            ...prev,
-            employeeEducation: response.data.data.personnelEntity.employeeEducation
-          }));
-        }
-
-        // Set employeeExperience data
-        if (response.data.data.personnelEntity?.employeeExperience?.length) {
-          reset((prev) => ({
-            ...prev,
-            employeeExperience: response.data.data.personnelEntity.employeeExperience
-          }));
-        }
-
-      } catch (error) {
-        handleApiErrors(error);
-      }
-    };
-
-    fetchData();
-  }
-}, [location.state, reset, setValue]);
-
-    const handleApiErrors = (error) => {
-      // if (error.response && error.response.data && error.response.data.message) {
-      //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
-      //   alert(alertMessage);
-      // }
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.error &&
-        error.response.data.error.message
-      ) {
-        const errorMessage = error.response.data.error.message;
-        setErrorMessage(errorMessage);
-        toast.error(errorMessage);
-      } else {
-        // toast.error("Network Error !");
-      }
-      console.error(error.response);
-    };
 
 const onPrevious = () => {
   setStep(step - 1);
@@ -246,10 +181,48 @@ const onPrevious = () => {
             navigate("/employeeView");
         }, 1000); // Adjust delay time if needed
 
-    } catch (error) {
-        console.error("Error submitting data:", error);
-        toast.error("Error submitting employee details");
-    }
+    }catch (error) {
+      console.error("Error submitting data:", error);
+    
+      const message = error.response?.data?.message || "Error submitting employee details";
+      const duplicateFields = error.response?.data?.data;
+    
+      // Create a readable string from the duplicate fields
+      let fieldDetails = "";
+      if (duplicateFields && typeof duplicateFields === "object") {
+        fieldDetails = Object.entries(duplicateFields)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(", ");
+      }
+    
+      const fullMessage = fieldDetails
+        ? `${message} - Duplicate Fields: ${fieldDetails}`
+        : message;
+    
+      setErrorMessage(fullMessage);     // 👈 set full message
+      toast.error(message);         // Optional: show in toast
+      handleApiErrors(error);           // Existing error handler
+    }    
+};
+
+const handleApiErrors = (error) => {
+  // if (error.response && error.response.data && error.response.data.message) {
+  //   const alertMessage = `${error.response.data.message} (Duplicate Values)`;
+  //   alert(alertMessage);
+  // }
+  if (
+    error.response &&
+    error.response.data &&
+    error.response.data.error &&
+    error.response.data.error.message
+  ) {
+    const errorMessage = error.response.data.error.message ;
+    setErrorMessage(errorMessage);
+    toast.error(errorMessage);
+  } else {
+    // toast.error("Network Error !");
+  }
+  console.error(error.response);
 };
 
   // eslint-disable-next-line no-undef
@@ -321,6 +294,50 @@ const dropdownOptions = [
     fetchBankNames();
   }, []);
 
+  useEffect(() => {
+    if (location && location.state && location.state.id) {
+      const fetchData = async () => {
+        try {
+          const response = await EmployeeGetApiById(location.state.id);          
+          // Reset the entire form data
+          reset(response.data.data);
+          // Set status manually
+          const status = response.data.data.status;
+          setValue("status", status.toString());
+          setLoading(true);
+          // Conditionally show "Notice Period" option based on status
+          // if (status === "NoticePeriod") {
+          //   setShowNoticePeriodOption(true);
+          // }
+  
+          // Set employeeEducation data
+          if (response.data.data.personnelEntity?.employeeEducation?.length) {
+            reset((prev) => ({
+              ...prev,
+              employeeEducation: response.data.data.personnelEntity.employeeEducation
+            }));
+          }
+  
+          // Set employeeExperience data
+          if (response.data.data.personnelEntity?.employeeExperience?.length) {
+            reset((prev) => ({
+              ...prev,
+              employeeExperience: response.data.data.personnelEntity.employeeExperience
+            }));
+          }
+  
+        } catch (error) {
+          handleApiErrors(error);
+        }
+      };
+  
+      fetchData();
+    }else{
+      reset();
+      setValue("employeeId", "");
+    }
+  }, [location,location.state, reset, setValue]);
+
   const validateDates = (value, index) => {
     const startDate = getValues(`employeeExperience.${index}.startDate`);
     if (!startDate || !value) return true; // Allow empty values (if optional)
@@ -352,45 +369,6 @@ const dropdownOptions = [
 const dob = watch("dateOfBirth");
 const hiringDate = watch("dateOfHiring");
 
-const validateCompanyName = (value) => {
-  // Trim leading and trailing spaces before further validation
-  const trimmedValue = value.trim();
-
-  // Check for trailing spaces first
-  if (/\s$/.test(value)) {
-    return "Spaces e at the end are not allowed.";
-  } else if (/^\s/.test(value)) {
-    return "No Leading Space Allowed.";
-  }
-
-  // Ensure only alphabetic characters and spaces
-  else if (!/^[A-Za-z\s]+$/.test(trimmedValue)) {
-    return "Only Alphabetic Characters are Allowed.";
-  }
-
-  // Check for minimum and maximum word length
-  else {
-    const words = trimmedValue.split(" ");
-    for (const word of words) {
-      if (word.length < 1) {
-        return "Minimum Length 1 Character Required."; // If any word is shorter than 1 character
-      } else if (word.length > 100) {
-        return "Max Length 100 Characters Required."; // If any word is longer than 100 characters
-      }
-    }
-    // Check if there are multiple spaces between words
-    if (/\s{2,}/.test(trimmedValue)) {
-      return "No Multiple Spaces Between Words Allowed.";
-    }
-
-    // Check minimum character length after other validations
-    if (trimmedValue.length < 3) {
-      return "Minimum 3 Characters Required.";
-    }
-  }
-
-  return true; // Return true if all conditions are satisfied
-};
 
 // Custom Validation Function
 const validateDOB = (value) => {
@@ -418,9 +396,72 @@ const validateHiringDate = (value) => {
   return true;
 };
 
+const handleClear = () => {
+  reset(); // Reset form fields
+  setStep(1); // Move to Step 1
+};
+
+const handleClearNewEmployee = () => {
+  reset({
+    employeeId: "",
+    employeeType: "",
+    firstName: "",
+    lastName: "",
+    emailId: "",
+    designation: "",
+    dateOfHiring: "",
+    dateOfBirth: "",
+    department: "",
+    location: "",
+    tempAddress: "",
+    permanentAddress: "",
+    manager: "",
+    mobileNo: "",
+    alternateNo: "",
+    maritalStatus: "",
+    status: "",
+    panNo: "",
+    uanNo: "",
+    aadhaarId: "",
+    accountNo: "",
+    ifscCode: "",
+    bankName: "",
+    bankBranch: "",
+    pfNo: "",
+    personnelEntity: {
+      employeeEducation: [],
+      employeeExperience: [],
+    },
+  });
+
+  setStep(1); // Move back to Step 1
+  navigate(".", { replace: true, state: {} });
+};
+
+
   return (
     <LayOut>
-      <div className="container d-flex justify-content-center align-items-center min-vh-100">
+      <div className=" row container d-flex justify-content-center align-items-center min-vh-100">
+      <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+          <div className="col">
+            <h1 className="h3 mb-3">
+              <strong>Employee Registration</strong>{" "}
+            </h1>
+          </div>
+          <div className="col-auto">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb mb-0">
+                <li className="breadcrumb-item">
+                  <a href="/main">Home</a>
+                </li>
+                <li className="breadcrumb-item">
+                  <a href="/employeeView">Employees</a>
+                </li>
+                <li className="breadcrumb-item active">Registration</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
       <div className="card shadow-lg p-4 w-100">
         <div className="card-body">
         <h2 className="text-start text-dark">
@@ -441,11 +482,12 @@ const validateHiringDate = (value) => {
           <form onSubmit={handleSubmit(onSubmit)}>
             {step === 1 && (
               <div>    
-                <h3 className="mb-3">Step 1: Employee Details</h3>
+                <h3 className="mb-3">Step 1: Employee Details <span className='text-danger'>*</span></h3>
                 <div className="row">
                   <div className="col-md-6 mb-2">
                     <label>Employee First Name</label>
-                    <input type="text" className="form-control" name='firstName'
+                    <input type="text" className="form-control" name='firstName' onInput={toInputTitleCase}
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                       {...register("firstName", { required: "First Name is required",
                         validate:validateFirstName
                        })}
@@ -454,7 +496,8 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2">
                     <label>Employee Last Name</label>
-                    <input type="text" className="form-control" name='lastName'
+                    <input type="text" className="form-control" name='lastName' onInput={toInputTitleCase}  
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                       {...register("lastName", { required: "Last Name is required",
                        validate:validateLastName
                       })}
@@ -462,8 +505,9 @@ const validateHiringDate = (value) => {
                       <small className="text-danger">{errors.lastName?.message}</small>
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
-                    <label>Employee ID</label> (last ID:{lastEmployeeId})
-                    <input type="text" className="form-control" name='employeeId'
+                    <label>Employee ID</label> {!location.state?.id && `Last ID: ${lastEmployeeId}`}
+                    <input type="text" className="form-control" name='employeeId' 
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                      {...register("employeeId", {
                       required: "Employee ID is required",
                       pattern: { value: /^[A-Za-z0-9_-]+$/, message: "Invalid Employee ID format" },
@@ -510,6 +554,7 @@ const validateHiringDate = (value) => {
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Employee Mail ID</label>
                     <input type="email" className="form-control"
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                      {...register("emailId", {
                       required: "Email is required",
                       validate:validateEmail
@@ -527,10 +572,13 @@ const validateHiringDate = (value) => {
                         <option key={mgr.id} value={mgr.id}>{mgr.name}</option>
                       ))}
                     </select>
+                    <small className="text-danger">{errors.manager?.message}</small>
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Date of Hiring</label>
                     <input type="date" className="form-control"
+                      readOnly={!!location.state?.id} // Set readOnly if employee ID exists
+                      onClick={(e) => e.target.showPicker()} 
                      {...register("dateOfHiring", {
                       required: "Date of Hiring is required",
                       validate:validateHiringDate
@@ -540,7 +588,7 @@ const validateHiringDate = (value) => {
                   </div>
                   <div className="col-md-6 mb-2 mt-2">
                     <label>Branch Location</label>
-                    <input type="text" className="form-control"
+                    <input type="text" className="form-control" onInput={toInputAddressCase}
                      {...register("location", {
                       required: "Branch Location is required",
                       validate:validateLocation
@@ -557,9 +605,8 @@ const validateHiringDate = (value) => {
                       <option value='Active'>Active</option>
                       <option value='InActive'>In Active</option>
                       <option value='OnBoard'>OnBoard</option>
-                      <option value='NoticePeriod'>Notice Period</option>
-                      <option value='Relieved'>Relieved</option>
-                    </select>
+                      {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
+                      </select>
                     <small className="text-danger">{errors.status?.message}</small>
                   </div>
 
@@ -568,12 +615,14 @@ const validateHiringDate = (value) => {
             )}
             {step === 2 && (
               <div>
-              <h3 className="mb-3">Step 2: Personal Details</h3>
+              <h3 className="mb-3">Step 2: Personal Details<span className='text-danger'>*</span></h3>
               <h5>Personal Details</h5>
               <div className="row mb-3">
                 <div className="col-md-4">
                   <label htmlFor="dob" className="form-label">Date of Birth</label>
                   <input type="date" className="form-control" id="dob" 
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
+                    onClick={(e) => e.target.showPicker()} 
                   {...register("dateOfBirth", {
                     required: "Date of Birth is required",
                     validate:validateDOB
@@ -583,7 +632,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
-                  <input type="tel" className="form-control" id="mobileNumber"
+                  <input type="tel" className="form-control" id="mobileNumber" defaultValue="+91 "
                   {...register("mobileNo", {
                     required: "Mobile Number is required",
                    validate:validatePhoneNumber
@@ -593,7 +642,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-4">
                   <label htmlFor="alternateNumber" className="form-label">Alternate Number</label>
-                  <input type="tel" className="form-control" 
+                  <input type="tel" className="form-control" defaultValue="+91 "
                     {...register("alternateNo", {
                       required: "Alternate Number is required",
                      validate:validatePhoneNumber,
@@ -621,6 +670,7 @@ const validateHiringDate = (value) => {
                 <div className="col-md-6">
                   <label htmlFor="aadharNumber" className="form-label">Aadhar Number</label>
                   <input type="text" className="form-control" id="aadhaarId"
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                     {...register("aadhaarId", {
                       required: "Aadhar Number is required",
                       validate:validateAadhar
@@ -634,6 +684,7 @@ const validateHiringDate = (value) => {
                 <div className="col-md-6">
                   <label htmlFor="panNumber" className="form-label">PAN Number</label>
                   <input type="text" className="form-control" id="panNo" 
+                    readOnly={!!location.state?.id} // Set readOnly if employee ID exists
                   {...register("panNo", {
                     required: "PAN Number is required",
                    validate:validatePAN
@@ -645,17 +696,26 @@ const validateHiringDate = (value) => {
                   <label htmlFor="uanNumber" className="form-label">UAN Number (Optional)</label>
                   <input type="text" className="form-control" id="uanNumber" 
                   {...register("uanNo", {
-                    required: "UAN Number is required",
                     validate:validateUAN
                   })}
                   />
                   <small className="text-danger">{errors.uanNo?.message}</small>
                 </div>
+            
               </div>
               <div className="row mb-3">
+              <div className="col-md-6">
+                  <label htmlFor="pfNo" className="form-label">PF Number (Optional)</label>
+                  <input type="text" className="form-control" id="pfNo" 
+                  {...register("pfNo", {
+                    validate:validatePFNumber
+                  })}
+                  />
+                  <small className="text-danger">{errors.pfNo?.message}</small>
+                </div>
                 <div className="col-md-6">
                   <label htmlFor="permanentAddress" className="form-label">Permanent Address</label>
-                  <textarea type="text" className="form-control"
+                  <textarea type="text" className="form-control" onInput={toInputAddressCase}
                    {...register("permanentAddress", {
                     required: "Permanent Address is required",
                    validate:validateLocation
@@ -665,7 +725,7 @@ const validateHiringDate = (value) => {
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="tempAddress" className="form-label">Temporary Address</label>
-                  <textarea type="text" className="form-control"
+                  <textarea type="text" className="form-control" onInput={toInputAddressCase}
                    {...register("tempAddress", {
                     required: "Temporary Address is required",
                   validate:validateLocation
@@ -715,13 +775,12 @@ const validateHiringDate = (value) => {
             )}
             {step === 3 && (
               <div>
-                <h3 className="mb-3">Step 3: Educational Details</h3>
-
+                <h3 className="mb-3">Step 3: Educational Details<span className='text-danger'>*</span></h3>
                 {educationFields.map((edu, index) => (
                   <div key={edu.id} className="row mb-2">
                     <div className="col-md-4">
                       <label>Education Level</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.educationLevel`, {
                           required: "Education Level is required",
                           pattern: { value: /^[A-Za-z0-9\s]+$/, message: "Only letters allowed" }
@@ -732,10 +791,10 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Name of Institution/University</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.instituteName`, {
                           required: "Institution is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.instituteName?.message}</small>
@@ -743,10 +802,10 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Board of Study</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputTitleCase}
                         {...register(`employeeEducation.${index}.boardOfStudy`, {
                           required: "Board of Study is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.boardOfStudy?.message}</small>
@@ -754,10 +813,10 @@ const validateHiringDate = (value) => {
 
                     <div className="col-md-4">
                       <label>Branch/Specialization</label>
-                      <input type="text" className="form-control"
+                      <input type="text" className="form-control" onInput={toInputAddressCase}
                         {...register(`employeeEducation.${index}.branch`, {
                           required: "Branch is required",
-                          pattern: { value: /^[A-Za-z\s]+$/, message: "Only letters allowed" }
+                          pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
                         })}
                       />
                       <small className="text-danger">{errors.employeeEducation?.[index]?.branch?.message}</small>
@@ -798,13 +857,13 @@ const validateHiringDate = (value) => {
              {/* Step 4: Experience Details */}
             {step === 4 && (
                 <div>
-                  <h3 className="mb-3">Step 4: Experience Details</h3>
+                  <h3 className="mb-3">Step 4: Experience Details(<span className='text-small'>Optional</span>)</h3>
                   {experienceFields.map((exp, index) => {
                     return (
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
-                          <input type="text" className="form-control"
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.companyName`, {
                               validate:validateCompanyName
                             })}
@@ -814,7 +873,7 @@ const validateHiringDate = (value) => {
 
                         <div className="col-md-3">
                           <label>Designation/Role</label>
-                          <input type="text" className="form-control"
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
                               validate:validateCompanyName
                             })}
@@ -825,6 +884,7 @@ const validateHiringDate = (value) => {
                         <div className="col-md-2">
                           <label>Start Date</label>
                           <input type="date" className="form-control"
+                           onClick={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.startDate`, {
                             })}
                             onChange={(e) => calculateTenure(0, e.target.value, getValues(`employeeExperience.0.endDate`))}
@@ -835,6 +895,7 @@ const validateHiringDate = (value) => {
                         <div className="col-md-2">
                           <label>End Date</label>
                           <input type="date" className="form-control"
+                           onClick={(e) => e.target.showPicker()} 
                             {...register(`employeeExperience.${index}.endDate`, {
                               validate: (value) => validateDates(value, index), // Custom validation
                             })}
@@ -863,11 +924,11 @@ const validateHiringDate = (value) => {
             )}
             {step === 5 && (
               <div>
-                <h3 className="mb-3">Step 5: Personal & Bank Details</h3>
+                <h3 className="mb-3">Step 5: Personal & Bank Details <span className='text-danger'>*</span></h3>
                 <div className="row">
                  <div className="col-md-6">
                    <label>Bank Name</label>
-                   <select className="form-control"  {...register("bankName", { required: "Bank Name is required" })}>
+                   <select className="form-select"  {...register("bankName", { required: "Bank Name is required" })}>
                      <option value="">Select Bank</option>
                      {bank.map((bank,index) => (
                     <option key={index} value={bank.bankName}>
@@ -905,13 +966,10 @@ const validateHiringDate = (value) => {
                  </div>
                  <div className="col-md-6 mt-2">
                    <label>Branch</label>
-                   <input type="text" className="form-control" 
+                   <input type="text" className="form-control" onInput={toInputAddressCase}
                     {...register("bankBranch", {
                       required: "Branch Name is required",
-                      pattern: {
-                        value: /^[A-Za-z\s]+$/,
-                        message: "Only letters and spaces allowed",
-                      },
+                     validate:validateLocation
                     })}
                   />
                   <small className="text-danger">{errors.bankBranch?.message}</small>
@@ -919,28 +977,37 @@ const validateHiringDate = (value) => {
                </div>
               </div>
             )}
-              {errorMessage && (
+                  <div className="mt-3 d-flex justify-content-between">
+                    {step > 1 && (
+                      <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>
+                        Previous
+                      </button>
+                    )}
+                    {location.state && location.state.id ?(
+                      <button type="button" className="btn btn-warning me-2" onClick={handleClearNewEmployee}>
+                        Add New Employee
+                      </button>
+                    ):(
+                      <button type="button" className="btn btn-warning me-2" onClick={handleClear}>
+                      Clear
+                    </button>
+                    )}
+                    {step < 5 ? (
+                      <button type="button" className="btn btn-primary" onClick={onNext}>
+                        Next
+                      </button>
+                    ) : (
+                      <button type="submit" className="btn btn-success">
+                        Submit
+                      </button>
+                    )}
+                  </div>
+          </form>
+          {errorMessage && (
                       <div className="alert alert-danger mt-4 text-center">
                         {errorMessage}
                       </div>
                     )}
-             <div className="mt-3 d-flex justify-content-between">
-        {step > 1 && (
-          <button type="button" className="btn btn-secondary me-2" onClick={onPrevious}>
-            Previous
-          </button>
-        )}
-        {step < 5 ? (
-          <button type="button" className="btn btn-primary" onClick={onNext}>
-            Next
-          </button>
-        ) : (
-          <button type="submit" className="btn btn-success" onClick={(e) => e.stopPropagation()} >
-            Submit
-          </button>
-        )}
-      </div>
-          </form>
         </div>
       </div>
     </div>

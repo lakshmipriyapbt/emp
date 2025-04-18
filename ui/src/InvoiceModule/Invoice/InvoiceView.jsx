@@ -18,7 +18,7 @@ const InvoiceView = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
   const { employee } = useAuth();
-  const companyId = employee.companyId;
+  const companyId = employee?.companyId;
 
   // Fetch invoices on component mount
   useEffect(() => {

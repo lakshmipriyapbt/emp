@@ -75,8 +75,8 @@ const Reset = ({ companyName, onClose, show }) => {
       setLoading(false);
       onClose(); 
       toast.success("Password Reset Successful");
-      navigate("/");
-    } catch (error) {
+      navigate(`/${companyName}/login`);
+      } catch (error) {
       handleApiErrors(error);
       setLoading(false);
     }
@@ -136,6 +136,30 @@ const Reset = ({ companyName, onClose, show }) => {
     e.target.value = sanitizedText; // Insert the sanitized text back into the input
   };
 
+  const validatePassword = (value) => {
+    const errors = [];
+    if (!/(?=.*[0-9])/.test(value)) {
+      errors.push("at least one digit");
+    }
+    if (!/(?=.*[a-z])/.test(value)) {
+      errors.push("at least one lowercase letter");
+    }
+    if (!/(?=.*[A-Z])/.test(value)) {
+      errors.push("at least one uppercase letter");
+    }
+    if (!/(?=.*[\W_])/.test(value)) {
+      errors.push("at least one special character");
+    }
+    if (value.includes(" ")) {
+      errors.push("no spaces");
+    }
+
+    if (errors.length > 0) {
+      return `Password must contain ${errors.join(", ")}.`;
+    }
+    return true; // Return true if all conditions are satisfied
+  };
+
   return (
     <Modal
       show={show}
@@ -172,7 +196,6 @@ const Reset = ({ companyName, onClose, show }) => {
                   placeholder="Enter your old password"
                   type={oldPasswordShown ? "text" : "password"}
                   onKeyDown={handleEmailChange}
-                  onPaste={handlePaste}
                   {...register("password", {
                     required: "Old Password is Required",
                     minLength: {
@@ -180,12 +203,7 @@ const Reset = ({ companyName, onClose, show }) => {
                       message:
                         "Old Password must be at least 6 characters long",
                     },
-                    pattern: {
-                      value:
-                        /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{6,16}$/,
-                      message:
-                        "Old Password must contain at least one number, one lowercase letter, one uppercase letter, and one special character.",
-                    },
+                     validate:validatePassword
                   })}
                 />
               </div>

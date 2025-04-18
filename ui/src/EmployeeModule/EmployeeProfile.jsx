@@ -7,22 +7,22 @@ const EmployeeProfile = () => {
     const [error, setError] = useState("");
     const [employeeData, setEmployeeData] = useState(false);
     const { authUser } = useAuth();
-    console.log("EmployeeProfile", authUser.userId)
+    console.log("EmployeeProfile", authUser?.userId)
     useEffect(() => {
-        if (!authUser.userId) return; 
+        if (!authUser?.userId) return; 
 
         const fetchData = async () => {
             try {
-                const response = await EmployeeGetApiById(authUser.userId);
-                console.log("API Response:", response.data);
-                setEmployeeData(response.data);
+                const response = await EmployeeGetApiById(authUser?.userId);
+                console.log("API Response:", response.data.data);
+                setEmployeeData(response.data.data);
             } catch (error) {
                 setError("Failed to fetch employee data");
                 console.error("Error fetching employee data:", error);
             }
         };
         fetchData();
-    }, [authUser.userId]); 
+    }, [authUser?.userId]); 
 
 
     return (

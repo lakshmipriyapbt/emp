@@ -15,6 +15,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
 }) => {
+    const { logoFileName } = useAuth();
   return (
     <div
       className="watermarked"
@@ -98,7 +99,7 @@ const AppraisalTemplate2 = ({
           compensation to Rs.<strong>{salaryIncrease}</strong> per Annum, This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.Which
           is cost to company with effect from <strong>{effectiveDate}</strong>.
         </p>
-        <p>All other T&C are same as per the original offer letter.</p>
+        <p>All other T&C are same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.</p>
         <table className="table border-collapse mb-5">
           <thead>
             <tr className="text-center">

@@ -15,7 +15,6 @@ const SideNav = () => {
   const [isLettresOpen, setIsLettersOpen] = useState(false);
   const location = useLocation();
   const { authUser = {}, company={} } = useAuth();
-  console.log("authUser",authUser);
 
   useEffect(() => {
     if (
@@ -725,7 +724,7 @@ const SideNav = () => {
                   </li>
                 </ul>
               </li>
-              <li className="sidebar-item has-dropdown">
+              {/* <li className="sidebar-item has-dropdown">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
                   href=" "
@@ -773,7 +772,7 @@ const SideNav = () => {
                     </Link>
                   </li>
                 </ul>
-              </li>
+              </li> */}
               <li className="sidebar-item has-dropdown">
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
@@ -818,7 +817,7 @@ const SideNav = () => {
                     }`}
                   >
                     <Link className="sidebar-link" to="/invoiceRegistartion">
-                      Invoice Registartion
+                      Invoice Registration
                     </Link>
                   </li>
                 </ul>
@@ -1406,55 +1405,6 @@ const SideNav = () => {
                 <a
                   className="sidebar-link collapsed d-flex justify-content-between align-items-center"
                   href=" "
-                  onClick={toggleProducts}
-                  data-bs-target="#attendenceManagement"
-                  data-bs-toggle="collapse"
-                >
-                  <span className="align-middle">
-                    <i
-                      className="bi bi-stack"
-                      style={{ fontSize: "medium" }}
-                    ></i>
-                  </span>
-                  <span className="align-middle">Products</span>
-                  <i
-                    className={`bi ${
-                      isProductsOpen ? "bi-chevron-up" : "bi-chevron-down"
-                    } ms-auto`}
-                  ></i>
-                </a>
-                <ul
-                  id="attendenceManagement"
-                  className={`sidebar-dropDown list-unstyled collapse ${
-                    isProductsOpen ? "show" : ""
-                  }`}
-                >
-                  <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/attendanceReport" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to="/productsView">
-                      product View
-                    </Link>
-                  </li>
-                  <li
-                    style={{ paddingLeft: "40px" }}
-                    className={`sidebar-item ${
-                      location.pathname === "/addAttendance" ? "active" : ""
-                    }`}
-                  >
-                    <Link className="sidebar-link" to="/productRegistartion">
-                      Product Registartion
-                    </Link>
-                  </li>
-                </ul>
-              </li>
-              <li className="sidebar-item has-dropdown">
-                <a
-                  className="sidebar-link collapsed d-flex justify-content-between align-items-center"
-                  href=" "
                   onClick={toggleInvoice}
                   data-bs-target="#attendenceManagement"
                   data-bs-toggle="collapse"
@@ -1495,10 +1445,20 @@ const SideNav = () => {
                     }`}
                   >
                     <Link className="sidebar-link" to="/invoiceRegistartion">
-                      Invoice Registartion
+                      Invoice Registration
                     </Link>
                   </li>
                 </ul>
+              </li>
+              <li
+                className={`sidebar-item ${
+                  location.pathname === "/employeePayslip" ? "active" : ""
+                }`}
+              >
+                <Link className="sidebar-link" to="/employeePayslip">
+                  <i className="bi bi-file-earmark-medical-fill"></i>
+                  <span className="align-middle">Payslips</span>
+                </Link>
               </li>
             </>
           )}

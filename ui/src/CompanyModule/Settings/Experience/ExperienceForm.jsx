@@ -168,6 +168,7 @@ const ExperienceForm = () => {
       employeeId: data.employeeId,
       companyName: authUser.company,
       date: data.experienceDate,
+      aboutEmployee:data.aboutEmployee
     };
     // Format the date fields to dd-mm-yyyy format
     const formattedLastWorkingDate = formatDate(data.relievingDate);
@@ -292,7 +293,8 @@ const ExperienceForm = () => {
       designationName: "",
       departmentName: "",
       dateOfHiring: "",
-      lastWorkingDate: "",
+      experienceDate: "",
+      aboutEmployee:"",
     });
   };
 
@@ -524,9 +526,9 @@ const ExperienceForm = () => {
                             "Spaces at the end are not allowed.",
                         })}
                       />
-                      {errors.employeeAddress && (
+                      {errors.aboutEmployee && (
                         <p className="errorMsg">
-                          {errors.employeeAddress.message}
+                          {errors.aboutEmployee.message}
                         </p>
                       )}
                     </div>
@@ -547,7 +549,7 @@ const ExperienceForm = () => {
                           type="button"
                           onClick={clearForm}
                         >
-                          Close
+                          Clear
                         </button>
                         <button
                           className={

@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { DepartmentGetApi, DesignationGetApi, ExperienceFormPostApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
+import { DepartmentGetApi, DesignationGetApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
 import { fetchEmployees } from "../../../../Redux/EmployeeSlice";
 import LayOut from "../../../../LayOut/LayOut";
 import InternOfferPrev from "./InternOfferPrev";
@@ -28,7 +28,9 @@ const InternOfferForm = () => {
   const [selectedAssignee, setSelectedAssignee] = useState({
     associateName: "",
     associateDesignation: "",
-  });  const [selectedHR, setSelectedHR] = useState({
+  }); 
+  const [selectedHR, setSelectedHR] = useState({
+    hrId:"",
     hrName: "",
     hrEmail: "",
   });
@@ -47,64 +49,77 @@ const InternOfferForm = () => {
   // Handle Assignee and HR selection
   const handleAssigneeChange = (event) => {
     const selectedId = event.target.value;
-    const selectedEmployee = employees.find((emp) => emp.id === selectedId);
-
+    const selectedEmployee = employees.find((emp) => String(emp.id) === selectedId); // Ensure type match
+  
     if (selectedEmployee) {
       setSelectedAssignee({
+        associateId: selectedEmployee.id,  // Store ID to match the <select> value
         associateName: `${selectedEmployee.firstName} ${selectedEmployee.lastName}`,
         associateDesignation: selectedEmployee.designationName,
       });
     }
-  };
+  };  
 
   const handleHRChange = (event) => {
     const selectedId = event.target.value;
   
     if (selectedId === "Company Admin") {
       setSelectedHR({
+        hrId: "Company Admin",
         hrName: "Company Admin",
-        hrEmail: company?.mailId || "N/A", // Fallback if company email is missing
+        hrEmail: company?.mailId || "N/A",
       });
     } else {
-      const selectedHRPerson = employees.find((emp) => emp.id === selectedId);
+      const selectedHRPerson = hrEmployees.find((emp) => String(emp.id) === selectedId);
+  
       if (selectedHRPerson) {
         setSelectedHR({
-          hrName: `${selectedHRPerson.firstName} ${selectedHRPerson.lastName}`,
+          hrId: String(selectedHRPerson.id),
+          hrName: `${selectedHRPerson.firstName || ""} ${selectedHRPerson.lastName || ""}`,
           hrEmail: selectedHRPerson.emailId,
         });
       }
     }
-  }; 
+  };  
+  
   const joiningDate = watch("startDate");
 
   const validateEndDate = (endDate) => {
-      if (!joiningDate) return "Joining Date is required before selecting End Date";
-
-      const joinDateObj = new Date(joiningDate);
-      const endDateObj = new Date(endDate);
-      const today = new Date();
-      const maxEndDate = new Date(joinDateObj);
-      maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
-
-      if (endDateObj < today) return "End Date cannot be in the past";
-      if (endDateObj > maxEndDate) return "End Date cannot exceed 12 months from Joining Date";
-      
-      return true;
+    if (!joiningDate) return "Joining Date is required before selecting End Date";
+  
+    const joinDateObj = new Date(joiningDate);
+    const endDateObj = new Date(endDate);
+    const maxEndDate = new Date(joinDateObj);
+    maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
+  
+    if (endDateObj < joinDateObj) {
+      return "End Date cannot be before Joining Date";
+    }
+    if (endDateObj > maxEndDate) {
+      return "End Date cannot exceed 12 months from Joining Date";
+    }
+  
+    return true;
   };
+  
   const validateAssigneeDate = (acceptDate) => {
     if (!joiningDate) return "Joining Date is required before selecting Assignee Date";
-
+  
     const joinDateObj = new Date(joiningDate);
     const assigneeDateObj = new Date(acceptDate);
-    const today = new Date();
     const maxAssigneeDate = new Date(joinDateObj);
     maxAssigneeDate.setMonth(maxAssigneeDate.getMonth() + 1); // 1 month ahead
-
-    if (assigneeDateObj < today) return "Assignee Date cannot be in the past";
-    if (assigneeDateObj > maxAssigneeDate) return "Assignee Date cannot exceed 1 month from Joining Date";
-
+  
+    if (assigneeDateObj < joinDateObj) {
+      return "Assignee Date cannot be before Joining Date";
+    }
+    if (assigneeDateObj > maxAssigneeDate) {
+      return "Assignee Date cannot exceed 1 month from Joining Date";
+    }
+  
     return true;
-};
+  };
+  
 
   useEffect(() => {
     // Dynamically update the max End Date and Accept Date based on the joiningDate
@@ -124,12 +139,12 @@ const InternOfferForm = () => {
   }, [joiningDate, setValue]);
 
   useEffect(() => {
-    const allEmployeeOptions = employees.map((emp) => ({
+    const allEmployeeOptions = employees
+    .filter(emp => emp.status?.toLowerCase() === "active") // ✅ Filter only active employees
+    .map((emp) => ({
       id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${
-        emp.designationName
-      })`.trim(),
-    }));
+      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
+    }));  
   
     setEmployeeOptions(allEmployeeOptions);
   
@@ -141,23 +156,19 @@ const InternOfferForm = () => {
           emp.departmentName.toLowerCase().startsWith("human resources"))
     );
   
-    const hrEmployeeOptions = hrDepartmentsEmployees.map((emp) => ({
-      id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
-    }));
-  
-    setHrEmployees(hrEmployeeOptions);
+    // ✅ Save full employee objects here
+    setHrEmployees(hrDepartmentsEmployees);
   
     // If no HR employees exist, default to Company Admin
-    if (hrEmployeeOptions.length === 0) {
+    if (hrDepartmentsEmployees.length === 0) {
       setSelectedHR({
+        hrId: "Company Admin",
         hrName: "Company Admin",
         hrEmail: company?.emailId || "N/A",
       });
     }
-  }, [employees, company]);
+  }, [employees, company]);  
   
-
   const fetchDepartments = async () => {
     try {
       const data = await DepartmentGetApi();
@@ -206,6 +217,7 @@ const InternOfferForm = () => {
         if (success) {
           setShowPreview(true);
           reset();
+          setShowPreview(false)
         }
       } catch (error) {
         console.error("Error downloading the PDF:", error);
@@ -581,7 +593,17 @@ const InternOfferForm = () => {
                     required: "Address is required",
                     pattern: { value: /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/,
                       message: "Enter a valid Address",
+                    }, minLength: {
+                      value: 3,
+                      message: "Minimum 3 Characters allowed",
                     },
+                    maxLength: {
+                      value: 200,
+                      message: "Maximum 200 Characters allowed",
+                    },
+                    validate: (value) =>
+                      value.trim().length === value.length ||
+                      "Spaces at the end are not allowed.",
                   })}
                   />
                       {errors.address && (
@@ -598,6 +620,7 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         max={threeMonthsFromNow}
                         {...register("startDate", {
                             required: "Joining Date is required",
@@ -616,6 +639,7 @@ const InternOfferForm = () => {
                         placeholder="Enter End Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("endDate", {
                         required: "End Date is required",
                         validate:validateEndDate,
@@ -728,10 +752,10 @@ const InternOfferForm = () => {
                         type="text"
                         className="form-control"
                         maxLength={10}
-                        placeholder="Enter Salary Package"
+                        placeholder="Enter Stipend Amount"
                         name="stipend"
                         {...register("stipend", {
-                          required: "Gross Compensation is required",
+                          // required: "Stipend is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",
@@ -756,6 +780,7 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
+                        onClick={(e) => e.target.showPicker()} 
                         {...register("acceptDate", {
                           required: "Accept Date is required",
                           validate: validateAssigneeDate,
@@ -769,20 +794,21 @@ const InternOfferForm = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Assigned To</label>
                       <select
-                        className="form-select"
-                        onChange={handleAssigneeChange}
-                        name="associateName"
-                        value={selectedAssignee.associateName || ""}
-                      >
-                        <option value="" disabled>
-                          Select Employee
-                        </option>
-                        {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name}
+                          className="form-select"
+                          onChange={handleAssigneeChange}
+                          name="associateId"
+                          value={selectedAssignee.associateId || ""}
+                        >
+                          <option value="" disabled>
+                            Select Employee
                           </option>
-                        ))}
-                      </select>
+                          {employeeOptions.map((emp) => (
+                            <option key={emp.id} value={emp.id}>
+                              {emp.name}
+                            </option>
+                          ))}
+                        </select>
+
                       {errors.associateName && (
                         <p className="errorMsg">
                           {errors.associateName.message}
@@ -791,19 +817,26 @@ const InternOfferForm = () => {
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">HR</label>
-                      <select className="form-select" onChange={handleHRChange} value={selectedHR.hrName || ""}>
-  <option value="">Select HR</option>
-  {hrEmployees.length > 0 ? (
-    hrEmployees.map((emp) => (
-      <option key={emp.id} value={emp.id}>
-        {emp.name}
-      </option>
-    ))
-  ) : (
-    <option value="Company Admin">Company Admin</option>
-  )}
-</select>
-
+                      <select
+        id="hrSelect"
+        className="form-select"
+        onChange={handleHRChange}
+        value={selectedHR?.hrId || ""}
+      >
+        <option value="">Select HR</option>
+        {hrEmployees.length > 0 ? (
+          <>
+            {hrEmployees.map((emp) => (
+              <option key={emp.id} value={String(emp.id)}>
+                {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
+              </option>
+            ))}
+            <option value="Company Admin">Company Admin</option>
+          </>
+        ) : (
+          <option value="Company Admin">Company Admin</option>
+        )}
+      </select>
                       {errors.hrName && (
                         <p className="errorMsg">{errors.hrName.message}</p>
                       )}

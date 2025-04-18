@@ -573,18 +573,19 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                if (employeeId != null) {
-                    fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
-                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
-                    headers.setContentDisposition(ContentDisposition.builder("attachment")
-                            .filename("employeeAttendanceDetails.xlsx")
-                            .build());
-                }else {
+                if (employeeId != null && !employeeId.isEmpty()) {
                     fileBytes = generateExcelFromSingleEmployeesAttendance(employeeAttendanceResPayloads);
                     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                     headers.setContentDisposition(ContentDisposition.builder("attachment")
                             .filename(employeeAttendanceResPayloads.getFirst().getFirstName()+"_"+employeeAttendanceResPayloads.getFirst().getLastName()+"_"+"AttendanceDetails.xlsx")
                             .build());
+                }else {
+                    fileBytes = generateExcelFromEmployeesAttendance(employeeAttendanceResPayloads);
+                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
+                    headers.setContentDisposition(ContentDisposition.builder("attachment")
+                            .filename("employeeAttendanceDetails.xlsx")
+                            .build());
+
                 }
 
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
@@ -684,8 +685,8 @@ public class AttendanceServiceImpl implements AttendanceService {
         try {
             List<EmployeeAttendanceResPayload> employeeAttendanceResPayloads = new ArrayList<>();
             List<AttendanceEntity> attendanceEntities = null;
-            if (employeeId != null) {
-                attendanceEntities = openSearchOperations.getAttendanceByYear(companyName, employeeId, null);
+            if (employeeId != null && !employeeId.isEmpty()) {
+                attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, employeeId, null, null);
             }else if (month != null && year != null){
                 attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName, null, month, year);
             }
@@ -736,10 +737,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                 throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
             }
             Template template = null;
-            if (employeeId == null) {
-              template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
+            if (employeeId != null && !employeeId.isEmpty()) {
+                template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
             } else {
-               template =  freemarkerConfig.getTemplate(Constants.SINGLE_EMPLOYEE_ATTENDANCE_DETAILS);
+                template =  freemarkerConfig.getTemplate(Constants.EMPLOYEE_ATTENDANCE_DETAILS);
             }
 
             Map<String, Object> dataModel = new HashMap<>();
