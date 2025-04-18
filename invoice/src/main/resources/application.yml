@@ -4,10 +4,10 @@ server:
   servlet:
     contextPath: /invoice
   ssl:
-    enabled: true
-    key-store: ../certificates/ssl.jks
+ enabled: true
+    key-store: /opt/ems-prod/certificates/keystore.jks
     key-store-password: pathbreaker
-    key-alias: pbt
+    key-alias: ems.pathbreakertech.in
     key-store-type: JKS
 # MySQL Database Configuration
 spring:
