@@ -3,7 +3,7 @@ server:
   servlet:
     contextPath: /ems
   ssl:
- enabled: true
+    enabled: true
     key-store: /opt/ems-prod/certificates/keystore.jks
     key-store-password: pathbreaker
     key-alias: ems.pathbreakertech.in
