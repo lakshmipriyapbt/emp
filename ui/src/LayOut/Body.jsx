@@ -8,6 +8,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployees } from '../Redux/EmployeeSlice';
 import Loader from '../Utils/Loader';
 import GetCalendar from '../Calender/GetCalendar';
+import GetTaxSlab from '../CompanyModule/TaxSlab/GetTaxSlab';
+import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 
 const Body = () => {
   const [data, setData] = useState({
@@ -127,9 +129,20 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
-                 <div className='card p-4 mt-2'>
-                  <GetCalendar/>
-                 </div>
+                <div className="row mt-2">
+  <div className="col-md-6">
+    <div className="card h-100 p-4">
+      <GetCalendar />
+    </div>
+  </div>
+
+  <div className="col-md-6">
+    <div className="card h-100 p-4">
+      <TaxSlab />
+    </div>
+  </div>
+</div>
+
                 </div>
               )}
             </>

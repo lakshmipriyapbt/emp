@@ -17140,6 +17140,23 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
     }
 }
 
+.currency-symbol {
+	position: absolute;
+	right: 18px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+	color: #888;
+  }
+  
+  .percentage-symbol {
+	position: absolute;
+	right: 18px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+	color: #888;
+  }
   
 
 /* Pre Loadder css End */

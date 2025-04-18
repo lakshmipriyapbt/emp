@@ -74,6 +74,8 @@ import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLet
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
 import Calender from '../Calender/Calender';
 import HRCalendar from '../Calender/HrCalender';
+import AddTaxSlab from '../CompanyModule/TaxSlab/AddTaxSlab';
+import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 
 const Rout = () => {
   const location = useLocation();
@@ -205,8 +207,12 @@ const Rout = () => {
       <Route path='/accountRegistration' element={<AccountRegistration/>}></Route>
       <Route path='/accountsView' element={<AccountsView/>}></Route>
       <Route path='/:company/createPassword' element={<CreatePassword/>}></Route>
+      {/* Calendar Routes  */}
       <Route path='/calender' element={<Calender/>}></Route>
       <Route path='/HrCalender' element={<HRCalendar/>}></Route>
+      {/* Tax Slab */}
+       <Route path='/addtaxSlab' element={<AddTaxSlab/>}></Route>
+       <Route path='/taxslabview' element={<TaxSlab/>}></Route>
     </Routes>
   );
 };
