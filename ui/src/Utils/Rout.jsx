@@ -77,8 +77,9 @@ import ForbiddenPage from './ForbiddenPage';
 
 
 export const allAvailableRoutes = [
+  {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'HR', 'employee']},
   {path: '/companyRegistration', allowedTypes: ['ems_admin'] },
-  {path: '/CompanyView', allowedTypes: ['ems_admin'] },
+  {path: '/companyView', allowedTypes: ['ems_admin'] },
   {path: '/companylogin', allowedTypes: ['company_admin'] },
   {path: '/accountsView', allowedTypes: ['company_admin'] },
   {path: '/forgotPassword', allowedTypes: ['company_admin']},
@@ -92,6 +93,7 @@ export const allAvailableRoutes = [
   {path: '/employeeRegister', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeView', allowedTypes: ['company_admin', 'HR'] },
   {path: '/experienceForm', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/experienceSummary', allowedTypes: ['company_admin', 'HR'] },
   {path: '/relievingSummary', allowedTypes: ['company_admin', 'HR'] },
   {path: '/appraisalLetter', allowedTypes: ['company_admin', 'HR'] },
   {path: '/incrementList', allowedTypes: ['company_admin', 'HR'] },
@@ -113,11 +115,16 @@ export const allAvailableRoutes = [
   {path: '/experienceLetter', allowedTypes: ['company_admin', 'HR'] },
   {path: '/relievingProcess', allowedTypes: ['company_admin', 'HR'] },
   {path: '/relievingTemplates', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/relivingReview', allowedTypes: ['company_admin', 'HR'] },
   {path: '/internOfferTemplate', allowedTypes: ['company_admin', 'HR'] },
   {path: '/internsTemplates', allowedTypes: ['company_admin', 'HR'] },
   {path: '/internPrev', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipTemplates', allowedTypes: ['company_admin', 'HR'] },
   {path: '/template', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/payslipUpdate1', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/payslipUpdate2', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -125,7 +132,11 @@ export const allAvailableRoutes = [
   {path: '/invoiceRegistartion', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/invoiceView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/invoicePdf', allowedTypes: ['company_admin', 'Accountant'] },
-  {path: '/employeePayslip', allowedTypes: ['employee', 'Accountant'] }
+  {path: '/employeePayslip', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/payslipDoc1', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/payslipDoc2', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/payslipDoc3', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
 ];
 
 const Routing = () => {
@@ -219,6 +230,10 @@ const Routing = () => {
         element={<ProtectedRoute element={<ExperienceForm/>} allowedTypes={['company_admin', 'HR']} />}
       />
       <Route
+        path="/experienceSummary"
+        element={<ProtectedRoute element={<ExperienceView/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
         path="/relievingSummary"
         element={<ProtectedRoute element={<ExistsEmployesView/>} allowedTypes={['company_admin', 'HR']} />}
       />
@@ -299,6 +314,10 @@ const Routing = () => {
         element={<ProtectedRoute element={<RelievingLetter/>} allowedTypes={['company_admin', 'HR']} />}
       />
       <Route
+        path="/relivingReview"
+        element={<ProtectedRoute element={<Preview/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
         path="/internsTemplates"
         element={<ProtectedRoute element={<InternShipTemplates/>} allowedTypes={['company_admin', 'HR']} />}
       />
@@ -309,6 +328,22 @@ const Routing = () => {
       <Route
         path="/template"
         element={<ProtectedRoute element={<Template/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/payslipUpdate1"
+        element={<ProtectedRoute element={<PayslipUpdate1/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/payslipUpdate2"
+        element={<ProtectedRoute element={<PayslipUpdate2/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/payslipUpdate3"
+        element={<ProtectedRoute element={<PayslipUpdate3/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/payslipUpdate4"
+        element={<ProtectedRoute element={<PayslipUpdate4/>} allowedTypes={['company_admin', 'HR']} />}
       />
 
 
@@ -347,6 +382,25 @@ const Routing = () => {
       <Route
         path="/employeePayslip"
         element={<ProtectedRoute element={<EmployeePayslips/>} allowedTypes={['employee' , 'Accountant']} />}
+      />
+
+      {/* company_admin, HR, employee & Accountant shared routes */}
+
+      <Route
+        path="/payslipDoc1"
+        element={<ProtectedRoute element={<PayslipDoc1/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/payslipDoc2"
+        element={<ProtectedRoute element={<PayslipDoc2/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/payslipDoc3"
+        element={<ProtectedRoute element={<PayslipDoc3/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/payslipDoc4"
+        element={<ProtectedRoute element={<PayslipDoc4/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
       />
     
     </Routes>
