@@ -116,7 +116,9 @@ public enum EmployeeErrorMessageKey {
     MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
     EMAIL_ID_MISS_MATCH("email.id.miss.match"),
     EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist"),
-    COMPANY_ADMINS_EXIST("company.admin.exist");
+    COMPANY_ADMINS_EXIST("company.admin.exist"),
+    UNABLE_SAVE_USER("unable.to.save.user"),
+    NO_CHANGES_DONE("no.changes.done");
 
     private final String key;
 
