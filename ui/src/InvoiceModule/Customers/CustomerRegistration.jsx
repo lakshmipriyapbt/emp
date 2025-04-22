@@ -7,6 +7,7 @@ import {
   CustomerGetApiById,
   CustomerPostApi,
   CustomerPutApiById,
+  getCountryCodes
 } from "../../Utils/Axios";
 import Select from "react-select";
 import { useAuth } from "../../Context/AuthContext";
@@ -19,6 +20,8 @@ const CustomersRegistration = () => {
   const location = useLocation();
   const [isUpdating, setIsUpdating] = useState(false);
   const [update, setUpdate] = useState([]);
+  const [countryCodes, setCountryCodes] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState({ value: "+91", label: "🇮🇳 India (+91)" });
   const {
     register,
     handleSubmit,
@@ -26,10 +29,56 @@ const CustomersRegistration = () => {
     control,
     trigger,
     setValue,
+    getValues,
     formState: { errors },
-  } = useForm({mode:"onChange"});
+  } = useForm({ mode: "onChange" });
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
 
+  useEffect(() => {
+    // Fetch country codes
+    const fetchCountryCodes = async () => {
+      try {
+        const data = await getCountryCodes();
+        console.log("Fetched country codes:", data); // Debug here
+        const options = data.map((country) => ({
+          value: country.dial_code,
+          label: `${country.emoji} ${country.name} (${country.dial_code})`,
+        }));
+        setCountryCodes(options);
+      } catch (error) {
+        console.error("Failed to fetch country codes:", error.message);
+        toast.error("Failed to load country codes.");
+      }
+    };
+    fetchCountryCodes();
+
+    // Check if updating an existing customer
+    if (location.state?.customerId) {
+      const customerId = location.state.customerId;
+      CustomerGetApiById(companyId, customerId)
+        .then((response) => {
+          const customerData = {
+            ...response,
+            status: { value: response.status, label: response.status },
+          };
+          reset(customerData);
+          setIsUpdating(true);
+        })
+        .catch((error) => {
+          console.error("Error fetching customer data:", error);
+          toast.error("Failed to fetch customer data.");
+        });
+    }
+  }, [companyId, location.state, reset]);
+
+  const handleCountryCodeChange = (selectedOption) => {
+    setSelectedCountry(selectedOption);
+    // Update the mobile number with the selected country code
+    const currentNumber = getValues("mobileNumber") || "";
+    const numericPart = currentNumber.replace(/^\+\d+\s/, ""); // Remove existing country code
+    setValue("mobileNumber", `${selectedOption.value} ${numericPart}`);
+    trigger("mobileNumber");
+  };
   const onSubmit = (data) => {
     if (location && location.state && location.state.customerId) {
       // Build the update payload with only the specified fields
@@ -42,19 +91,19 @@ const CustomersRegistration = () => {
         customerGstNo: data.customerGstNo,
         stateCode: data.stateCode,
       };
-  
+
       console.log("Update Payload:", updatePayload);
-  
+
       CustomerPutApiById(companyId, location.state.customerId, updatePayload)
         .then((res) => {
           const successMessage =
             res.data.message || "Client updated successfully";
-          
+
           setUpdate(res.data.data);
-            setTimeout(() => {
-              toast.success(successMessage);
-              navigate("/customersView");
-            }, 1000); // 2-second delay  
+          setTimeout(() => {
+            toast.success(successMessage);
+            navigate("/customersView");
+          }, 1000); // 2-second delay  
         })
         .catch((error) => {
           console.error("Error updating Client:", error);
@@ -73,9 +122,9 @@ const CustomersRegistration = () => {
         ...data,
         status: data.status.value,
       };
-  
+
       console.log("Create Payload:", createPayload);
-  
+
       CustomerPostApi(companyId, createPayload)
         .then((response) => {
           setTimeout(() => {
@@ -90,31 +139,31 @@ const CustomersRegistration = () => {
           toast.error(errorMessage);
         });
     }
-  };  
+  };
 
-  useEffect(() => {
-    console.log("Location state:", location.state);
-    console.log("companyId:", companyId);
-    if (location && location.state && location.state.customerId) {
-      const customerId = location.state.customerId;
-      CustomerGetApiById(companyId, customerId)
-        .then((response) => {
-          const customerData = {
-            ...response,
-            status: { value: response.status, label: response.status }
-          };
-          reset(customerData);
-          setIsUpdating(true);
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error.response || error);
-          if (error.response) {
-            console.error("API Error Response:", error.response.data);
-          }
-          toast.error("Error fetching customer data.");
-        });
-    }
-  }, [location.state?.customerId, reset]);
+  // useEffect(() => {
+  //   console.log("Location state:", location.state);
+  //   console.log("companyId:", companyId);
+  //   if (location && location.state && location.state.customerId) {
+  //     const customerId = location.state.customerId;
+  //     CustomerGetApiById(companyId, customerId)
+  //       .then((response) => {
+  //         const customerData = {
+  //           ...response,
+  //           status: { value: response.status, label: response.status }
+  //         };
+  //         reset(customerData);
+  //         setIsUpdating(true);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error fetching data:", error.response || error);
+  //         if (error.response) {
+  //           console.error("API Error Response:", error.response.data);
+  //         }
+  //         toast.error("Error fetching customer data.");
+  //       });
+  //   }
+  // }, [location.state?.customerId, reset]);
 
   const handleEmailChange = (e) => {
     // Get the current value of the input field
@@ -199,8 +248,8 @@ const CustomersRegistration = () => {
   const validateField = (value, type) => {
     switch (type) {
       case "customerName":
-        return(
-          /^[a-zA-Z\s.,]+$/.test(value)||
+        return (
+          /^[a-zA-Z\s.,]+$/.test(value) ||
           "Invalid Client Name Format"
         );
       case "email":
@@ -217,7 +266,7 @@ const CustomersRegistration = () => {
         );
 
       case "pincode":
-        return /^\d{6}$/.test(value) || "Zip Code must be exactly 6 digits";
+        return /^\d{5,8}$/.test(value) || "Zip Code must be between 5 and 8 digits";
 
       case "gst":
         return (
@@ -230,11 +279,11 @@ const CustomersRegistration = () => {
           /^[0-9]{1,2}$/.test(value) ||
           "State Code must be a numeric value (1-2 digits)"
         );
-      case "address": 
-      return(
-        /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(value)||
-        "Invalid Address Format Special Characters should allow !-_@#&()*,. "
-      )
+      case "address":
+        return (
+          /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(value) ||
+          "Invalid Address Format Special Characters should allow !-_@#&()*,. "
+        )
       default:
         return true;
     }
@@ -352,7 +401,6 @@ const CustomersRegistration = () => {
                         placeholder="Enter Client Name"
                         name="customerName"
                         autoComplete="off"
-                        disabled={isUpdating}
                         {...register("customerName", {
                           required: "Client Name is Required",
                           validate: (value) => validateField(value, "customerName"),
@@ -368,8 +416,7 @@ const CustomersRegistration = () => {
                           },
                         })}
                         onChange={(e) => handleInputChange(e, "customerName")}
-                        // onKeyPress={(e) => preventInvalidInput(e, "alpha")}
-                        readOnly={isUpdating}
+                      // onKeyPress={(e) => preventInvalidInput(e, "alpha")}
                       />
                       {errors.customerName && (
                         <p className="errorMsg">
@@ -388,21 +435,19 @@ const CustomersRegistration = () => {
                         placeholder="Enter Email Id"
                         name="email"
                         autoComplete="off"
-                        disabled={isUpdating}
                         {...register("email", {
                           required: "Email Id is Required",
                           validate: (value) => validateField(value, "email"),
                         })}
                         onChange={(e) => handleInputChange(e, "email")}
                         onKeyPress={(e) => preventInvalidInput(e, "whitespace")}
-                        readOnly={isUpdating}
                       />
                       {errors.email && (
                         <p className="errorMsg">{errors.email.message}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    {/* <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Mobile Number <span style={{ color: "red" }}>*</span>
                       </label>
@@ -411,7 +456,6 @@ const CustomersRegistration = () => {
                         className="form-control"
                         placeholder="Enter Personal Mobile Number"
                         autoComplete="off"
-                        disabled={isUpdating}
                         maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
                         defaultValue="+91 " // Set the initial value to +91 with a space
                         onInput={handlePhoneNumberChange} // Handle input changes
@@ -445,12 +489,51 @@ const CustomersRegistration = () => {
                             message: "Mobile Number must be 10 digits.",
                           },
                         })}
-                        readOnly={isUpdating}
                       />
                       {errors.mobileNumber && (
                         <p className="errorMsg">
                           {errors.mobileNumber.message}
                         </p>
+                      )}
+                    </div> */}
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">
+                        Mobile Number <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <div className="input-group">
+                        {/* Country Code Dropdown */}
+                        <div className="input-group-prepend">
+                          <Select
+                            options={countryCodes}
+                            value={selectedCountry}
+                            onChange={handleCountryCodeChange}
+                            placeholder="Code"
+                            className="react-select-container"
+                          />
+                        </div>
+
+                        {/* Mobile Number Input Field */}
+                        <input
+                          type="tel"
+                          className="form-control"
+                          placeholder="Enter Mobile Number"
+                          autoComplete="off"
+                          {...register("mobileNumber", {
+                            required: "Mobile Number is Required",
+                            validate: {
+                              correctLength: (value) => {
+                                const numericValue = value.replace(/\D/g, ""); // Extract numeric digits
+                                if (numericValue.length < 7 || numericValue.length > 15) {
+                                  return "Mobile Number must be between 7 and 15 digits.";
+                                }
+                                return true;
+                              },
+                            },
+                          })}
+                        />
+                      </div>
+                      {errors.mobileNumber && (
+                        <p className="errorMsg">{errors.mobileNumber.message}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
@@ -579,7 +662,7 @@ const CustomersRegistration = () => {
                         className="form-control"
                         autoComplete="off"
                         {...register("stateCode", {
-                         // required: "State Code is Required",
+                          // required: "State Code is Required",
                           validate: (value) =>
                             !value || validateField(value, "stateCode"), // Validate only if the field is not empty
                           minLength: {
@@ -651,8 +734,8 @@ const CustomersRegistration = () => {
                               "Address must be at most 250 characters long",
                           },
                         })}
-                        //onChange={(e) => handleInputChange(e, "address")}
-                        //onKeyPress={(e) => preventInvalidInput(e, "address")}
+                      //onChange={(e) => handleInputChange(e, "address")}
+                      //onKeyPress={(e) => preventInvalidInput(e, "address")}
                       />
                       {errors.address && (
                         <p className="errorMsg">
