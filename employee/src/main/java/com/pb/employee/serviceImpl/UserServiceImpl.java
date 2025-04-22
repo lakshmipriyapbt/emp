@@ -37,7 +37,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     @Override
     public ResponseEntity<?> registerUser(UserRequest userRequest) throws EmployeeException, IOException {
         String resourceId = null;
@@ -94,11 +93,16 @@ public class UserServiceImpl implements UserService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
 
-
     @Override
     public ResponseEntity<?> getUserById(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, index);
+            if (shortName == null || shortName.isEmpty()) {
+                log.error("Company not found: {}", index);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.BAD_REQUEST);
+            }
+
             EmployeeEntity userEntity = openSearchOperations.getEmployeeById(Id, null, index);
 
             if (userEntity != null) {
@@ -112,6 +116,9 @@ public class UserServiceImpl implements UserService {
                         HttpStatus.NOT_FOUND
                 );
             }
+        } catch (EmployeeException employeeException) {
+            log.error("Error retrieving user  {}", employeeException.getMessage());
+            throw employeeException;
         } catch (Exception exception) {
             log.error("Error retrieving user for company {}: {}", companyName, exception.getMessage());
             throw new EmployeeException(
@@ -126,6 +133,12 @@ public class UserServiceImpl implements UserService {
         List<EmployeeEntity> employeeEntities = null;
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, index);
+            if (shortName == null || shortName.isEmpty()) {
+                log.error("Company not found: {}", index);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), index), HttpStatus.BAD_REQUEST);
+            }
+
             employeeEntities = openSearchOperations.getCompanyUsers(companyName);
 
             if (employeeEntities != null) {
@@ -139,8 +152,11 @@ public class UserServiceImpl implements UserService {
                         HttpStatus.NOT_FOUND
                 );
             }
+        } catch (EmployeeException employeeException) {
+            log.error("Error retrieving user  {}", employeeException.getMessage());
+            throw employeeException;
         } catch (Exception exception) {
-            log.error("Error retrieving users {} for company {}: {}", companyName, exception.getMessage());
+            log.error("Error retrieving users {} for company {}", companyName, exception.getMessage());
             throw new EmployeeException(
                     String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), companyName),
                     HttpStatus.INTERNAL_SERVER_ERROR
@@ -205,6 +221,7 @@ public class UserServiceImpl implements UserService {
                     ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
 
         } catch (EmployeeException employeeException) {
+            log.error("Error during user update: {}", employeeException.getMessage());
             throw employeeException;
         } catch (Exception exception) {
             log.error("Error during user update: {}", exception.getMessage());
