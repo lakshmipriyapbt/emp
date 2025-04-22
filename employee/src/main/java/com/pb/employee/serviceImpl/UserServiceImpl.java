@@ -8,7 +8,7 @@ import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.DepartmentEntity;
-import com.pb.employee.persistance.model.EmployeeEntity;
+import com.pb.employee.persistance.model.UserEntity;
 import com.pb.employee.request.UserRequest;
 import com.pb.employee.request.UserUpdateRequest;
 import com.pb.employee.service.UserService;
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         String defaultPassword = null;
 
         try {
-            resourceId = ResourceIdUtils.generateEmployeeResourceId(userRequest.getEmailId());
+            resourceId = ResourceIdUtils.generateUserResourceId(userRequest.getEmailId());
             index = ResourceIdUtils.generateCompanyIndex(userRequest.getCompanyName());
 
             List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, userRequest.getCompanyName());
@@ -71,16 +71,16 @@ public class UserServiceImpl implements UserService {
             String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
 
             // Convert UserRequest to EmployeeEntity and then override other fields
-            EmployeeEntity employee = objectMapper.convertValue(userRequest, EmployeeEntity.class);
+            UserEntity userEntity = objectMapper.convertValue(userRequest, UserEntity.class);
 
-            employee.setId(resourceId);
-            employee.setEmployeeId(resourceId);
-            employee.setPassword(password);
-            employee.setType(Constants.USER);
-            employee.setCompanyId(shortName.getFirst().getId());
-            employee.setDepartment(departmentEntity.getId());
+            userEntity.setId(resourceId);
+            userEntity.setUserId(resourceId);
+            userEntity.setPassword(password);
+            userEntity.setType(Constants.USER);
+            userEntity.setCompanyId(shortName.getFirst().getId());
+            userEntity.setDepartment(departmentEntity.getId());
 
-            openSearchOperations.saveEntity(employee, resourceId, index);
+            openSearchOperations.saveEntity(userEntity, resourceId, index);
 
         } catch (EmployeeException employeeException) {
             throw employeeException;
@@ -97,13 +97,13 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> getUserById(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, index);
+            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
             if (shortName == null || shortName.isEmpty()) {
                 log.error("Company not found: {}", index);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.BAD_REQUEST);
             }
 
-            EmployeeEntity userEntity = openSearchOperations.getEmployeeById(Id, null, index);
+            UserEntity userEntity = openSearchOperations.getUserById(Id, null, index);
 
             if (userEntity != null) {
                 return new ResponseEntity<>(
@@ -130,20 +130,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<?> getCompanyUsers(String companyName) throws EmployeeException {
-        List<EmployeeEntity> employeeEntities = null;
+        List<UserEntity> userEntities = null;
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, index);
+            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
             if (shortName == null || shortName.isEmpty()) {
                 log.error("Company not found: {}", index);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), index), HttpStatus.BAD_REQUEST);
             }
 
-            employeeEntities = openSearchOperations.getCompanyUsers(companyName);
+            userEntities = openSearchOperations.getCompanyUsers(companyName);
 
-            if (employeeEntities != null) {
+            if (userEntities != null) {
                 return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createSuccessResponse(employeeEntities),
+                        ResponseBuilder.builder().build().createSuccessResponse(userEntities),
                         HttpStatus.OK
                 );
             } else {
@@ -170,19 +170,19 @@ public class UserServiceImpl implements UserService {
         try {
             index = ResourceIdUtils.generateCompanyIndex(userUpdateRequest.getCompanyName());
 
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, userUpdateRequest.getCompanyName());
-            if (shortName == null || shortName.isEmpty()) {
+            List<CompanyEntity> company = openSearchOperations.getCompanyByData(null, Constants.COMPANY, userUpdateRequest.getCompanyName());
+            if (company == null || company.isEmpty()) {
                 log.error("Company not found: {}", userUpdateRequest.getCompanyName());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), userUpdateRequest.getCompanyName()), HttpStatus.BAD_REQUEST);
             }
 
-            EmployeeEntity existingUser = openSearchOperations.getEmployeeById(Id, null, index);
+            UserEntity existingUser = openSearchOperations.getUserById(Id, null, index);
             if (existingUser == null) {
                 log.error("User not found in this company {}", userUpdateRequest.getCompanyName());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND),userUpdateRequest.getCompanyName()), HttpStatus.NOT_FOUND);
             }
 
-            EmployeeEntity originalUser = new EmployeeEntity();
+            UserEntity originalUser = new UserEntity();
             BeanUtils.copyProperties(existingUser, originalUser);
 
             DepartmentEntity departmentEntity = null;
@@ -198,16 +198,16 @@ public class UserServiceImpl implements UserService {
                 departmentId = departmentEntity.getId();
             }
 
-            EmployeeEntity updatedData = objectMapper.convertValue(userUpdateRequest, EmployeeEntity.class);
+            UserEntity updatedData = objectMapper.convertValue(userUpdateRequest, UserEntity.class);
 
             // Update only the mutable fields
-            existingUser.setEmployeeType(updatedData.getEmployeeType());
+            existingUser.setUserType(updatedData.getUserType());
             existingUser.setFirstName(updatedData.getFirstName());
             existingUser.setLastName(updatedData.getLastName());
             existingUser.setDepartment(departmentId);
 
             // Check if any changes were made
-            if (originalUser.getEmployeeType().equals(existingUser.getEmployeeType()) &&
+            if (originalUser.getUserType().equals(existingUser.getUserType()) &&
                     originalUser.getFirstName().equals(existingUser.getFirstName()) &&
                     originalUser.getLastName().equals(existingUser.getLastName()) &&
                     Objects.equals(originalUser.getDepartment(), existingUser.getDepartment())) {
@@ -233,13 +233,12 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> deleteUser(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            EmployeeEntity existingUser = openSearchOperations.getEmployeeById(Id, null, index);
+            UserEntity existingUser = openSearchOperations.getUserById(Id, null, index);
 
             if (existingUser == null) {
                 log.error("User not found in this company {}", index);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND)), HttpStatus.NOT_FOUND);
             }
-
              openSearchOperations.deleteEntity(Id, index);
 
                 return new ResponseEntity<>(
@@ -247,10 +246,10 @@ public class UserServiceImpl implements UserService {
                         HttpStatus.OK
                 );
         } catch (EmployeeException employeeException) {
-            log.error("Employee not found for company  {}: {}", companyName, employeeException.getMessage());
+            log.error("Employee not found for company  {}", employeeException.getMessage());
             throw employeeException;
         } catch (Exception exception) {
-            log.error("Error deleting user for company {}: {}", companyName, exception.getMessage());
+            log.error("Error deleting user for company {}", exception.getMessage());
             throw new EmployeeException(
                     String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_EMPLOYEE), companyName),
                     HttpStatus.INTERNAL_SERVER_ERROR

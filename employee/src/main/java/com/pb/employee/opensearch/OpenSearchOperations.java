@@ -3,7 +3,6 @@ package com.pb.employee.opensearch;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
-import com.pb.employee.model.UserEntity;
 import com.pb.employee.persistance.model.*;
 
 import com.pb.employee.persistance.model.CompanyEntity;
@@ -101,16 +100,6 @@ public class OpenSearchOperations {
         return id;
     }
 
-    public UserEntity getEMSAdminById(String user) throws IOException {
-        GetRequest getRequest = new GetRequest.Builder().id(Constants.EMS_ADMIN + "_" + user)
-                .index(Constants.INDEX_EMS).build();
-        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
-        if (searchResponse != null && searchResponse.source() != null) {
-            return searchResponse.source();
-        }
-        return null;
-    }
-
     public Object getById(String resourceId, String type, String index) throws IOException {
         if (type != null) {
             resourceId = type + "_" + resourceId;
@@ -146,6 +135,19 @@ public class OpenSearchOperations {
         GetRequest getRequest = new GetRequest.Builder().id(resourceId)
                 .index(index).build();
         GetResponse<EmployeeEntity> searchResponse = esClient.get(getRequest, EmployeeEntity.class);
+        if (searchResponse != null && searchResponse.source() != null) {
+            return searchResponse.source();
+        }
+        return null;
+    }
+
+    public UserEntity getUserById(String resourceId, String type, String index) throws IOException {
+        if (type != null) {
+            resourceId = type + "_" + resourceId;
+        }
+        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
+                .index(index).build();
+        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
         if (searchResponse != null && searchResponse.source() != null) {
             return searchResponse.source();
         }
@@ -470,29 +472,29 @@ public class OpenSearchOperations {
         return employeeEntities;
     }
 
-    public List<EmployeeEntity> getCompanyUsers(String companyName) throws EmployeeException {
+    public List<UserEntity> getCompanyUsers(String companyName) throws EmployeeException {
         logger.debug("Getting employees for company {}", companyName);
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
         boolQueryBuilder = boolQueryBuilder
                 .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.USER)));
         BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
-        SearchResponse<EmployeeEntity> searchResponse = null;
+        SearchResponse<UserEntity> searchResponse = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
 
         try {
             // Adjust the type or field according to your index structure
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build()._toQuery()), EmployeeEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), UserEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<Hit<EmployeeEntity>> hits = searchResponse.hits().hits();
+        List<Hit<UserEntity>> hits = searchResponse.hits().hits();
         logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
 
-        List<EmployeeEntity> employeeEntities = new ArrayList<>();
-        for (Hit<EmployeeEntity> hit : hits) {
+        List<UserEntity> employeeEntities = new ArrayList<>();
+        for (Hit<UserEntity> hit : hits) {
             employeeEntities.add(hit.source());
         }
 

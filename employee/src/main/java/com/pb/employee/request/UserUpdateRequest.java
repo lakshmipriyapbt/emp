@@ -27,10 +27,10 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{lastname.format}")
     private String lastName;
 
-    @Schema(example = "employeeType")
-    @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]*$", message = "{employee.type}")
-    @Size(min = 3, max = 20, message = "{employeeType.size.message}")
-    private String employeeType;
+    @Schema(example = "userType")
+    @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]*$", message = "{user.type}")
+    @Size(min = 3, max = 20, message = "{userType.size.message}")
+    private String userType;
 
     @Schema(example = "departmentId")
     @Size(min = 2, max = 100, message = "{department.size.message}")
