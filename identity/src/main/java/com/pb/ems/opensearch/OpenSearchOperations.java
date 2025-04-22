@@ -6,6 +6,7 @@ import com.pb.ems.exception.IdentityException;
 import com.pb.ems.model.CompanyEntity;
 import com.pb.ems.model.DepartmentEntity;
 import com.pb.ems.model.EmployeeEntity;
+import com.pb.ems.model.UserEntity;
 import com.pb.ems.persistance.Entity;
 import com.pb.ems.util.Constants;
 import com.pb.ems.util.ResourceUtils;
@@ -97,6 +98,20 @@ public class OpenSearchOperations {
         return null;
     }
 
+    public UserEntity getUserById(String user, String company) throws IOException {
+        String index = Constants.INDEX_EMS+"_"+company;
+        String username = resourceIdUtils.generateCompanyResourceId(user);
+        GetRequest getRequest = new GetRequest.Builder().id(Constants.USER+"-"+username)
+                .index(index).build();
+        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
+        if(searchResponse != null && searchResponse.source() != null){
+            UserEntity userEntity = searchResponse.source();
+            userEntity.setId(searchResponse.id()); // Set the _id from the response
+            return userEntity;
+        }
+        return null;
+    }
+
     public CompanyEntity getCompanyById(String user) throws IOException {
         String index = Constants.INDEX_EMS;
         String username = resourceIdUtils.generateCompanyResourceId(user);
@@ -111,7 +126,16 @@ public class OpenSearchOperations {
         return null;
     }
 
-    public void saveOtpToUser(EmployeeEntity user, Long otp, String company) throws IdentityException {
+    public void saveOtpToUser(UserEntity user, Long otp, String company) throws IdentityException {
+        user.setOtp(otp);
+        user.setExpiryTime(Instant.now().plus(60, ChronoUnit.SECONDS).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
+        String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
+        String id = Constants.USER+"-"+resourceIdUtils.generateCompanyResourceId(user.getEmailId());
+        saveEntity(user,id , index);  // Ensure this method saves the user entity to the correct index
+        logger.info("The otp and expiry time saved into the db for index: " + index);
+    }//save the entity
+
+    public void saveOtpToEmployee(EmployeeEntity user, Long otp, String company) throws IdentityException {
         user.setOtp(otp);
         user.setExpiryTime(Instant.now().plus(60, ChronoUnit.SECONDS).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
         String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
@@ -119,6 +143,7 @@ public class OpenSearchOperations {
         saveEntity(user,id , index);  // Ensure this method saves the user entity to the correct index
         logger.info("The otp and expiry time saved into the db for index: " + index);
     }//save the entity
+
 
 
     public SearchResponse<Object> searchByQuery(BoolQuery.Builder query, String index, Class targetClass) throws IdentityException {
@@ -141,6 +166,22 @@ public class OpenSearchOperations {
                 .index(index)
                 .id(employeeId)
                 .document(employee)
+                .build();
+
+        IndexResponse response = esClient.index(request);
+        if (response.result() != Result.Updated && response.result() != Result.Created) {
+            throw new IOException("Failed to update employee: " + employeeId);
+        }
+    }
+
+    public void updateUser(UserEntity userEntity,String company) throws IOException {
+        String index = Constants.INDEX_EMS + "_" + company;
+        String employeeId = userEntity.getId();
+
+        IndexRequest<UserEntity> request = new IndexRequest.Builder<UserEntity>()
+                .index(index)
+                .id(employeeId)
+                .document(userEntity)
                 .build();
 
         IndexResponse response = esClient.index(request);
