@@ -28,7 +28,7 @@ public class UserUpdateRequest {
     private String lastName;
 
     @Schema(example = "employeeType")
-    @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]{2,19}$", message = "{employee.type}")
+    @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]*$", message = "{employee.type}")
     @Size(min = 3, max = 20, message = "{employeeType.size.message}")
     private String employeeType;
 

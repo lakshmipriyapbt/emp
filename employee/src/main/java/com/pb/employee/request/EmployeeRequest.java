@@ -26,7 +26,7 @@ public class EmployeeRequest {
     private String companyName;
 
     @Schema(example = "employeeType")
-    @Pattern(regexp = "^[A-Z][a-zA-Z]{2,19}$", message = "{employee.type}")
+    @Pattern(regexp = "^(?!.*\\b([A-Z])\\s\\1\\s\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\.? ?[A-Z])? ?[A-Z][a-z]+)$", message = "{employee.type}")
     @Size(min = 3, max = 20, message = "{employeeType.size.message}")
     private String employeeType;
 
@@ -47,12 +47,6 @@ public class EmployeeRequest {
     @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
     @NotBlank(message = "{emailId.notnull.message}")
     private String emailId;// "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$"
-
-    /*@Schema(example = "password")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{invalid.password}")
-    @NotBlank(message = "{password.notnull.message}")*/
-    //password not mandatory
-  //  private String password;
 
     @Schema(example = "designationId")
     @Size(min = 2, max = 100, message = "{designation.size.message}")

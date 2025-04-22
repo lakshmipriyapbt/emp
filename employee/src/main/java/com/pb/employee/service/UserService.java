@@ -20,5 +20,3 @@ public interface UserService {
     ResponseEntity<?>deleteUser(String companyName, String employeeId)throws EmployeeException;
 
 }
-
-

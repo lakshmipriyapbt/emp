@@ -15,7 +15,6 @@ public enum ResourceType {
     EMS_ADMIN("ems_admin"),
     COMPANY("company"),
     EMPLOYEE("employee"),
-    USER("user"),
     DEPARTMENT("department"),
     DESIGNATION("designation"),
     ATTENDANCE("attendance"),
