@@ -181,4 +181,9 @@ public class Constants {
     public static final String SINGLE_EMPLOYEE_ATTENDANCE_DETAILS = "singleEmployeeAttendance.ftl";
     public static final String LOGIN = "login";
     public static final String ON_BOARDING = "Onboarding";
+    public static final String COMPANY_CALENDAR = "company_calendar";
+    public static final String BIRTHDAY_WISH = "Happy Birthday!";
+    public static final String WELCOME_WISH = "Welcome Onboard!";
+    public static final String HAPPY = "Happy";
+    public static final String ANNIVERSARY = "Anniversary";
 }
