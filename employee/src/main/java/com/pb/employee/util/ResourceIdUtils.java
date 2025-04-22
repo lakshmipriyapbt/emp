@@ -65,6 +65,10 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.BANK, companyId,accountNo);
 
     }
+    public static String generateCompanyCalenderId(String companyName, String year) {
+        return generateGlobalResourceId(ResourceType.COMPANY_CALENDAR, companyName, year);
+
+    }
 
     public static String generateEmployeePersonnelId(String resourceId) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE_PERSONNEL, resourceId);
@@ -132,7 +136,12 @@ public class ResourceIdUtils {
         }   if (type == ResourceType.EMPLOYEE_PERSONNEL) {
             prefix = Constants.EMPLOYEE_PERSONNEL +"-";
 
+        } if (type == ResourceType.COMPANY_CALENDAR) {
+            prefix = Constants.COMPANY_CALENDAR + "-";
+
         }
+
+
 
 
         StringBuilder md5Input = new StringBuilder();
@@ -155,5 +164,4 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
-
 }

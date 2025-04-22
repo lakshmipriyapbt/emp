@@ -118,7 +118,13 @@ public enum EmployeeErrorMessageKey {
     EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist"),
     COMPANY_ADMINS_EXIST("company.admin.exist"),
     UNABLE_SAVE_USER("unable.to.save.user"),
-    NO_CHANGES_DONE("no.changes.done");
+    NO_CHANGES_DONE("no.changes.done"),
+    COMPANY_CALENDAR_ALREADY_EXIST("company.calendar.already.exist"),
+    UNABLE_ADD_COMPANY_CALENDAR("unable.add.company.calendar"),
+    COMPANY_CALENDAR_NOT_FOUND("company.calendar.not.found"),
+    UNABLE_UPDATE_COMPANY_CALENDAR("unable.update.company.calendar"),
+    COMPANY_YEAR_CALENDAR_NOT_FOUND("company.year.calendar.not.found"),
+    UNABLE_GET_TODAY_COMPANY_CALENDAR("unable.get.today.company.calendar");
 
     private final String key;
 
