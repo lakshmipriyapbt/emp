@@ -31,20 +31,19 @@ public class UserController {
     public ResponseEntity<?> registerUser(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                               @RequestHeader(Constants.AUTH_KEY) String authToken,
                                               @Parameter(required = true, description = "${api.registerUserPayload.description}")
-                                              @RequestBody @Valid UserRequest userRequest,
-                                              HttpServletRequest request) throws EmployeeException, IOException {
-        return userService.registerUser(userRequest,request);
+                                              @RequestBody @Valid UserRequest userRequest) throws EmployeeException, IOException {
+        return userService.registerUser(userRequest);
     }
 
-    @RequestMapping(value = "{companyName}/user/{employeeId}", method = RequestMethod.GET)
+    @RequestMapping(value = "{companyName}/user/{Id}", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.getUser.tag}", description = "${api.getUser.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getUserById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                             @PathVariable String companyName, @PathVariable String employeeId) throws IOException, EmployeeException {
+                                             @PathVariable String companyName, @PathVariable String Id) throws IOException, EmployeeException {
 
-        return userService.getUserById(companyName,employeeId);
+        return userService.getUserById(companyName,Id);
     }
 
     @RequestMapping(value = "{companyName}/users", method = RequestMethod.GET)
@@ -58,25 +57,25 @@ public class UserController {
         return userService.getCompanyUsers(companyName);
     }
 
-    @RequestMapping(value = "user/{employeeId}", method = RequestMethod.PATCH,consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "user/{Id}", method = RequestMethod.PATCH,consumes = MediaType.APPLICATION_JSON_VALUE)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.updateUser.tag}", description = "${api.updateUser.description}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "202", description= "Accepted")
     public ResponseEntity<?> updateUser(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                               @PathVariable String employeeId,
+                                               @PathVariable String Id,
                                                @RequestBody @Valid UserUpdateRequest userUpdateRequest) throws IOException, EmployeeException {
-        return userService.updateUser(employeeId, userUpdateRequest);
+        return userService.updateUser(Id, userUpdateRequest);
     }
 
-    @RequestMapping(value = "{companyName}/user/{employeeId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "{companyName}/user/{Id}", method = RequestMethod.DELETE)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.deleteUser.tag}", description = "${api.deleteUser.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> deleteUser(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                 @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                @PathVariable String companyName,@PathVariable String employeeId) throws EmployeeException {
-        return userService.deleteUser(companyName,employeeId);
+                                                @PathVariable String companyName,@PathVariable String Id) throws EmployeeException {
+        return userService.deleteUser(companyName,Id);
     }
 }

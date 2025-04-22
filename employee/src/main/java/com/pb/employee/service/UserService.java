@@ -9,14 +9,14 @@ import org.springframework.http.ResponseEntity;
 import java.io.IOException;
 
 public interface UserService {
-    ResponseEntity<?> registerUser(UserRequest userRequest, HttpServletRequest request) throws EmployeeException, IOException;
+    ResponseEntity<?> registerUser(UserRequest userRequest) throws EmployeeException, IOException;
 
-    ResponseEntity<?>getUserById(String companyName,String employeeId)throws EmployeeException;
+    ResponseEntity<?>getUserById(String companyName,String Id)throws EmployeeException;
 
     ResponseEntity<?>getCompanyUsers(String companyName)throws EmployeeException;
 
-    ResponseEntity<?>updateUser(String employeeId, UserUpdateRequest userUpdateRequest)throws EmployeeException;
+    ResponseEntity<?>updateUser(String Id, UserUpdateRequest userUpdateRequest)throws EmployeeException;
 
-    ResponseEntity<?>deleteUser(String companyName, String employeeId)throws EmployeeException;
+    ResponseEntity<?>deleteUser(String companyName, String Id)throws EmployeeException;
 
 }
