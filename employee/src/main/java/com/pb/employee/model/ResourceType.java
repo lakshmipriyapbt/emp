@@ -25,7 +25,8 @@ public enum ResourceType {
     TEMPLATE("template"),
     BANK("bank_details"),
     BACKGROUND("background_details"),
-    EMPLOYEE_PERSONNEL("employee-personnel");
+    EMPLOYEE_PERSONNEL("employee-personnel"),
+    COMPANY_CALENDAR("company_calendar");
 
 
 
