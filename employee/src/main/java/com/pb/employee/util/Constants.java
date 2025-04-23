@@ -186,4 +186,5 @@ public class Constants {
     public static final String WELCOME_WISH = "Welcome Onboard!";
     public static final String HAPPY = "Happy";
     public static final String ANNIVERSARY = "Anniversary";
+    public static final String DIALCODES="DialCodes.txt";
 }
