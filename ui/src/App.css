@@ -5875,18 +5875,17 @@ fieldset:disabled .btn {
 
 .fixed-sideNav {
 	width: 250px;
-	transition: width 0.3s ease;
+    position: fixed;
+	transition: transform 0.35s ease-in-out;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
 }
 
-.fixed-sideNav.hidden {
-	width: 0px;
-	overflow: hidden;
-}
-
-.main {
-	flex-grow: 1;
-	transition: margin-left 0.3s ease;
-}
+.fixed-sideNav.collapsed {
+	transform: translateX(-100%);
+  }
 
 .main.full-width {
 	margin-left: 0;
@@ -13647,13 +13646,11 @@ a.list-group-item {
 	overflow: hidden;
 	transition: margin-left 0.35s ease-in-out, left 0.35s ease-in-out,
 		margin-right 0.35s ease-in-out, right 0.35s ease-in-out;
-	width: 100%;
-}
-
-.navbar {
-	border-bottom: 0;
-	/* box-shadow: 0 0 2rem 0 rgba(33, 37, 41, 0.1); */
-}
+    width: calc(100% - 250px); /* responsive width */
+	flex-grow: 1;
+	position: absolute;
+	margin-left: 250px;
+	}
 
 @media (max-width: 767.98px) {
 	.navbar {
@@ -13923,9 +13920,11 @@ a.sidebar-link i {
 	width: 26px;
 }
 
-.sidebar.collapsed {
-	margin-left: 260px;
-}
+.main.sidebar-collapsed {
+	margin-left: 0;
+	left: 0;
+	width: 100%;
+  }
 
 .sidebar-content::-webkit-scrollbar {
 	width: 0px;
@@ -14066,10 +14065,10 @@ a {
 }
 
 .wrapper {
-	align-items: stretch;
-	background: #222e3c;
 	display: flex;
-	width: 100%;
+    width: 100%;
+    background: #222e3c;
+	align-items: stretch;
 }
 
 .cursor-grab {
@@ -15694,14 +15693,6 @@ body.active-modal {
 	cursor: pointer;
 }
 
-.navbar {
-	display: flex;
-	justify-content: space-between;
-	/* To evenly distribute items */
-	align-items: center;
-	/* To vertically center items */
-}
-
 /* Style for the profile icon and dropdown */
 .profile-dropdown {
 	position: relative;
@@ -16895,13 +16886,9 @@ header.hide-for-sharing.headerGlobalNav {
 } 
 
 body{font-family: 'Poppins-Medium', sans-serif !important;}
-.main {
-    background: #edf4ff;
-}
 
 .sidebar, .sidebar-content{background: #1e2a5e;}
 .sidebar-brand{width: 90%; margin:15px auto; border-radius: 15px; background: #fff;}
-.navbar-bg { background: #8691a4; margin-left: 10px;}
 .navbar-light .navbar-nav .nav-link{color: #000;}
 ul.navbar-nav.navbar-align span.mt-3{color: #000;}
 
@@ -17158,10 +17145,15 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	color: #888;
   }
 .side-nav {
-	width: 240px; /* or 280px, or whatever you prefer */
-	background-color: #1f2a40; /* Sidebar background color */
-	min-height: 100vh; /* Full height */
-	
+	position:absolute;
+	transition: opacity 0.35s ease-in-out;
+	width: 100%;
+    background-color: #1f2a40;
+    min-height: 100vh;
+	opacity: 1;
+  }
+  .fixed-sideNav.collapsed .side-nav {
+	opacity: 0;
   }
   
 .side-nav .nav-link {
@@ -17171,7 +17163,6 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	padding: 12px 15px;
 	margin: 0; /* ❗ No vertical margin */
 	border-radius: 0; /* ❗ No rounded corners for touching boxes */
-	background-color: #2e3b55; /* Dark blue-gray background */
 	color: #fff;
 	text-decoration: none;
 	margin-bottom: 8px; /* ⬅️ Add small gap between items */

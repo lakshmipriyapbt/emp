@@ -31,7 +31,7 @@ const SideNav = () => {
           {hasChildren ? (
             <div
               role="button"
-              className={`nav-link d-flex justify-content-between align-items-center text-white ${active ? 'active' : ''}`}
+              className={`nav-link d-flex justify-content-between align-items-center ${active ? 'active' : ''}`}
               onClick={() => handleToggleExpand(item.path || item.title)}
             >
               <i className={`bi bi-${item.icon || 'file'} me-2`}></i>
@@ -41,7 +41,7 @@ const SideNav = () => {
           ) : (
             <Link
               to={item.path}
-              className={`nav-link d-flex align-items-center text-white ${active ? 'active' : ''}`}
+              className={`nav-link d-flex align-items-center ${active ? 'active' : ''}`}
             >
               <i className={`bi bi-${item.icon || 'file'} me-2`}></i>
               {item.title}
