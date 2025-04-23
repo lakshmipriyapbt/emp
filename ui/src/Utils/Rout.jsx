@@ -125,6 +125,7 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate2', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/employeeSalaryList', allowedTypes: ['company_admin', 'HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -344,6 +345,10 @@ const Routing = () => {
       <Route
         path="/payslipUpdate4"
         element={<ProtectedRoute element={<PayslipUpdate4/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/employeeSalaryList"
+        element={<ProtectedRoute element={<EmployeeSalaryList/>} allowedTypes={['company_admin', 'HR']} />}
       />
 
 
