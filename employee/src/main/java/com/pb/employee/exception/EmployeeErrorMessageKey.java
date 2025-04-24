@@ -124,7 +124,11 @@ public enum EmployeeErrorMessageKey {
     COMPANY_CALENDAR_NOT_FOUND("company.calendar.not.found"),
     UNABLE_UPDATE_COMPANY_CALENDAR("unable.update.company.calendar"),
     COMPANY_YEAR_CALENDAR_NOT_FOUND("company.year.calendar.not.found"),
-    UNABLE_GET_TODAY_COMPANY_CALENDAR("unable.get.today.company.calendar");
+    UNABLE_GET_TODAY_COMPANY_CALENDAR("unable.get.today.company.calendar"),
+    USER_ID_ALREADY_EXISTS("user.id.already.exist"),
+    UNABLE_GET_USER("unable.to.get.user"),
+    USER_NOT_FOUND("user.not.found"),
+    UNABLE_DELETE_USER("unable.delete.user");
 
     private final String key;
 

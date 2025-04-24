@@ -14,12 +14,6 @@ import lombok.*;
 @AllArgsConstructor
 public class UserRequest {
 
-    @Schema(example = "companyShortName")
-    @Pattern(regexp = "^[a-z]+$", message = "{companyName.format}")
-    @NotBlank(message = "{companyname.message}")
-    @Size(min = 2, max = 30, message = "{size.message}")
-    private String companyName;
-
     @Schema(example = "firstName")
     @Pattern(regexp ="^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{firstname.format}")
     private String firstName;

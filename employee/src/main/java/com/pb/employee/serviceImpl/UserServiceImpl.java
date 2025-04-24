@@ -2,10 +2,12 @@ package com.pb.employee.serviceImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.dao.UserDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
+import com.pb.employee.persistance.model.CompanyCalendarEntity;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.UserEntity;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,35 +38,38 @@ public class UserServiceImpl implements UserService {
     private OpenSearchOperations openSearchOperations;
 
     @Autowired
+    private UserDao dao;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<?> registerUser(UserRequest userRequest) throws EmployeeException, IOException {
+    public ResponseEntity<?> registerUser(String companyName,UserRequest userRequest) throws EmployeeException, IOException {
         String resourceId = null;
         String index = null;
         String defaultPassword = null;
 
         try {
             resourceId = ResourceIdUtils.generateUserResourceId(userRequest.getEmailId());
-            index = ResourceIdUtils.generateCompanyIndex(userRequest.getCompanyName());
+            index = ResourceIdUtils.generateCompanyIndex(companyName);
 
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, userRequest.getCompanyName());
-            if (shortName == null || shortName.isEmpty()) {
-                log.error("Company not found: {}", userRequest.getCompanyName());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), userRequest.getCompanyName()), HttpStatus.BAD_REQUEST);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Exception while fetching the company calendar details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
             Object existingEntity = openSearchOperations.getById(resourceId, null, index);
             if (existingEntity != null) {
-                log.error("User already exists in the company {}", userRequest.getCompanyName());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS)), HttpStatus.CONFLICT);
+                log.error("User already exists in the company {}", companyName);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_ID_ALREADY_EXISTS)), HttpStatus.CONFLICT);
             }
 
             DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(userRequest.getDepartment(), null, index);
             if (departmentEntity == null) {
                 log.error("Department not found: {}", userRequest.getDepartment());
                 return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
                         HttpStatus.CONFLICT);
             }
 
@@ -77,10 +83,10 @@ public class UserServiceImpl implements UserService {
             userEntity.setUserId(resourceId);
             userEntity.setPassword(password);
             userEntity.setType(Constants.USER);
-            userEntity.setCompanyId(shortName.getFirst().getId());
+            userEntity.setCompanyId(companyEntity.getId());
             userEntity.setDepartment(departmentEntity.getId());
 
-            openSearchOperations.saveEntity(userEntity, resourceId, index);
+            dao.save(userEntity, companyName);
 
         } catch (EmployeeException employeeException) {
             throw employeeException;
@@ -94,92 +100,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> getUserById(String companyName, String Id) throws EmployeeException {
+    public Collection<UserEntity> getUserById(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
-            if (shortName == null || shortName.isEmpty()) {
-                log.error("Company not found: {}", index);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.BAD_REQUEST);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Exception while fetching the company calendar details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            UserEntity userEntity = openSearchOperations.getUserById(Id, null, index);
+            return dao.getUsers(companyName, Id, companyEntity.getId());
 
-            if (userEntity != null) {
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createSuccessResponse(userEntity),
-                        HttpStatus.OK
-                );
-            } else {
-                throw new EmployeeException(
-                        String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), companyName),
-                        HttpStatus.NOT_FOUND
-                );
-            }
         } catch (EmployeeException employeeException) {
             log.error("Error retrieving user  {}", employeeException.getMessage());
             throw employeeException;
         } catch (Exception exception) {
             log.error("Error retrieving user for company {}: {}", companyName, exception.getMessage());
             throw new EmployeeException(
-                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), companyName),
+                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_USER), companyName),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
     }
 
     @Override
-    public ResponseEntity<?> getCompanyUsers(String companyName) throws EmployeeException {
-        List<UserEntity> userEntities = null;
-        try {
-            String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            List<CompanyEntity> shortName = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
-            if (shortName == null || shortName.isEmpty()) {
-                log.error("Company not found: {}", index);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), index), HttpStatus.BAD_REQUEST);
-            }
-
-            userEntities = openSearchOperations.getCompanyUsers(companyName);
-
-            if (userEntities != null) {
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createSuccessResponse(userEntities),
-                        HttpStatus.OK
-                );
-            } else {
-                throw new EmployeeException(
-                        String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), companyName),
-                        HttpStatus.NOT_FOUND
-                );
-            }
-        } catch (EmployeeException employeeException) {
-            log.error("Error retrieving user  {}", employeeException.getMessage());
-            throw employeeException;
-        } catch (Exception exception) {
-            log.error("Error retrieving users {} for company {}", companyName, exception.getMessage());
-            throw new EmployeeException(
-                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), companyName),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
-    }
-
-    @Override
-    public ResponseEntity<?> updateUser(String Id, UserUpdateRequest userUpdateRequest) throws EmployeeException {
+    public ResponseEntity<?> updateUser(String companyName, String Id, UserUpdateRequest userUpdateRequest) throws EmployeeException {
         String index = null;
         try {
-            index = ResourceIdUtils.generateCompanyIndex(userUpdateRequest.getCompanyName());
+            index = ResourceIdUtils.generateCompanyIndex(companyName);
 
-            List<CompanyEntity> company = openSearchOperations.getCompanyByData(null, Constants.COMPANY, userUpdateRequest.getCompanyName());
-            if (company == null || company.isEmpty()) {
-                log.error("Company not found: {}", userUpdateRequest.getCompanyName());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), userUpdateRequest.getCompanyName()), HttpStatus.BAD_REQUEST);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Exception while fetching the company calendar details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
             UserEntity existingUser = openSearchOperations.getUserById(Id, null, index);
             if (existingUser == null) {
-                log.error("User not found in this company {}", userUpdateRequest.getCompanyName());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND),userUpdateRequest.getCompanyName()), HttpStatus.NOT_FOUND);
+                log.error("User not found in this company {}", companyName);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);
             }
 
             UserEntity originalUser = new UserEntity();
@@ -215,7 +174,7 @@ public class UserServiceImpl implements UserService {
                         ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE)), HttpStatus.OK);
             }
 
-            openSearchOperations.saveEntity(existingUser, Id, index);
+            dao.save(existingUser, companyName);
 
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
@@ -225,33 +184,28 @@ public class UserServiceImpl implements UserService {
             throw employeeException;
         } catch (Exception exception) {
             log.error("Error during user update: {}", exception.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_USER), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
-    public ResponseEntity<?> deleteUser(String companyName, String Id) throws EmployeeException {
+    public void deleteUser(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            UserEntity existingUser = openSearchOperations.getUserById(Id, null, index);
+            Collection<UserEntity> existingUser = this.getUserById(companyName, Id);
 
             if (existingUser == null) {
                 log.error("User not found in this company {}", index);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND)), HttpStatus.NOT_FOUND);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND)), HttpStatus.NOT_FOUND);
             }
-             openSearchOperations.deleteEntity(Id, index);
-
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS),
-                        HttpStatus.OK
-                );
+             dao.delete(companyName, Id);
         } catch (EmployeeException employeeException) {
             log.error("Employee not found for company  {}", employeeException.getMessage());
             throw employeeException;
         } catch (Exception exception) {
             log.error("Error deleting user for company {}", exception.getMessage());
             throw new EmployeeException(
-                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_EMPLOYEE), companyName),
+                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_USER), companyName),
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }

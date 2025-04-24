@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UserEntity implements Entity{
+public class UserEntity implements Entity, IDEntity {
 
     private String id;
     private String userType;

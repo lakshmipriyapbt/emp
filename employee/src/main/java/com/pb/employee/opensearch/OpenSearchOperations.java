@@ -472,35 +472,6 @@ public class OpenSearchOperations {
         return employeeEntities;
     }
 
-    public List<UserEntity> getCompanyUsers(String companyName) throws EmployeeException {
-        logger.debug("Getting employees for company {}", companyName);
-        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
-        boolQueryBuilder = boolQueryBuilder
-                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.USER)));
-        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
-        SearchResponse<UserEntity> searchResponse = null;
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
-        try {
-            // Adjust the type or field according to your index structure
-            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build()._toQuery()), UserEntity.class);
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        List<Hit<UserEntity>> hits = searchResponse.hits().hits();
-        logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
-
-        List<UserEntity> employeeEntities = new ArrayList<>();
-        for (Hit<UserEntity> hit : hits) {
-            employeeEntities.add(hit.source());
-        }
-
-        return employeeEntities;
-    }
-
     public TemplateEntity getCompanyTemplates(String companyName) throws EmployeeException {
         logger.debug("Getting Templates for company {}", companyName);
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
