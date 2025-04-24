@@ -14,7 +14,7 @@ import lombok.*;
 public class HolidaysEntity {
 
     @Schema(example = "Birthday2025")
-    @Pattern(regexp = "^[a-zA-Z0-9]+$", message = "{invalid.event}")
+    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{invalid.event}")
     @Size(max = 60, message = "{event.size.message}")
     private String event;
 

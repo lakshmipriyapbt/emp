@@ -12,6 +12,7 @@ import lombok.*;
 public class DesignationEntity implements Entity {
 
     private String id;
+    private String departmentId;
     private String name;
     private String type;
 
