@@ -198,7 +198,7 @@ public class UserServiceImpl implements UserService {
                 log.error("User not found in this company {}", index);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND)), HttpStatus.NOT_FOUND);
             }
-             dao.delete(companyName, Id);
+             dao.delete(Id, companyName);
         } catch (EmployeeException employeeException) {
             log.error("Employee not found for company  {}", employeeException.getMessage());
             throw employeeException;
