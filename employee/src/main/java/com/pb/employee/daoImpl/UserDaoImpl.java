@@ -36,6 +36,5 @@ public class UserDaoImpl extends AbstractDao<UserEntity> implements UserDao {
 
         return search(filters, companyName);
     }
-
-
+    
 }
