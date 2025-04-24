@@ -128,7 +128,8 @@ public enum EmployeeErrorMessageKey {
     USER_ID_ALREADY_EXISTS("user.id.already.exist"),
     UNABLE_GET_USER("unable.to.get.user"),
     USER_NOT_FOUND("user.not.found"),
-    UNABLE_DELETE_USER("unable.delete.user");
+    UNABLE_DELETE_USER("unable.delete.user"),
+    UNABLE_GET_DIAL_CODES("unable.get.dial.codes");
 
     private final String key;
 
