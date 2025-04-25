@@ -3,6 +3,7 @@ package com.pb.employee.daoImpl;
 import com.pb.employee.persistance.model.CompanyCalendarEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.persistance.model.IDEntity;
+import com.pb.employee.persistance.model.UserEntity;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -28,4 +29,6 @@ public class DocumentType {
 
 
     public static final DocumentType COMPANY_CALENDAR = new DocumentType("company_calendar", CompanyCalendarEntity.class);
+
+    public static final DocumentType USER = new DocumentType("user", UserEntity.class);
 }

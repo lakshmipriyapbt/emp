@@ -135,12 +135,13 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            UserEntity existingUser = openSearchOperations.getUserById(Id, null, index);
-            if (existingUser == null) {
+            Collection<UserEntity> existingUsers = dao.getUsers(companyName, Id, companyEntity.getId());
+            if (existingUsers == null) {
                 log.error("User not found in this company {}", companyName);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);
             }
-
+            
+            UserEntity existingUser = existingUsers.iterator().next();
             UserEntity originalUser = new UserEntity();
             BeanUtils.copyProperties(existingUser, originalUser);
 

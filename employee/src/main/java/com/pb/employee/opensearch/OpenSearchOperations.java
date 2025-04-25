@@ -141,19 +141,6 @@ public class OpenSearchOperations {
         return null;
     }
 
-    public UserEntity getUserById(String resourceId, String type, String index) throws IOException {
-        if (type != null) {
-            resourceId = type + "_" + resourceId;
-        }
-        GetRequest getRequest = new GetRequest.Builder().id(resourceId)
-                .index(index).build();
-        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
-        if (searchResponse != null && searchResponse.source() != null) {
-            return searchResponse.source();
-        }
-        return null;
-    }
-
     public CompanyEntity getCompanyById(String resourceId, String type, String index) throws IOException {
         if (type != null) {
             resourceId = type + "_" + resourceId;
