@@ -24,6 +24,9 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateUserResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.USER, id);
+    }
     public static String generateTemplateResourceId(String id) {
         return generateGlobalResourceId(ResourceType.TEMPLATE, id);
     }
@@ -96,6 +99,9 @@ public class ResourceIdUtils {
         }
         if (type == ResourceType.EMPLOYEE) {
             prefix = Constants.EMPLOYEE + "-";
+        }
+        if (type == ResourceType.USER) {
+            prefix = Constants.USER + "-";
         }
         if (type == ResourceType.DEPARTMENT) {
             prefix = Constants.DEPARTMENT + "-";
