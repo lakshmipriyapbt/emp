@@ -116,12 +116,19 @@ public enum EmployeeErrorMessageKey {
     MOBILE_NUMBER_MISMATCH("mobile.number.not.match"),
     EMAIL_ID_MISS_MATCH("email.id.miss.match"),
     EMPLOYEE_ATTENDANCE_NOT_EXIST("employee.attendance.not.exist"),
+    COMPANY_ADMINS_EXIST("company.admin.exist"),
+    UNABLE_SAVE_USER("unable.to.save.user"),
+    NO_CHANGES_DONE("no.changes.done"),
     COMPANY_CALENDAR_ALREADY_EXIST("company.calendar.already.exist"),
     UNABLE_ADD_COMPANY_CALENDAR("unable.add.company.calendar"),
     COMPANY_CALENDAR_NOT_FOUND("company.calendar.not.found"),
     UNABLE_UPDATE_COMPANY_CALENDAR("unable.update.company.calendar"),
     COMPANY_YEAR_CALENDAR_NOT_FOUND("company.year.calendar.not.found"),
     UNABLE_GET_TODAY_COMPANY_CALENDAR("unable.get.today.company.calendar"),
+    USER_ID_ALREADY_EXISTS("user.id.already.exist"),
+    UNABLE_GET_USER("unable.to.get.user"),
+    USER_NOT_FOUND("user.not.found"),
+    UNABLE_DELETE_USER("unable.delete.user"),
     UNABLE_GET_DIAL_CODES("unable.get.dial.codes");
 
     private final String key;

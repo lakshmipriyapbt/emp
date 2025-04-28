@@ -101,16 +101,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         try{
             DepartmentEntity departmentEntity =null;
             DesignationEntity designationEntity = null;
-                departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
-                if (departmentEntity == null){
+            departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
+            if (departmentEntity == null){
 
-                }
-                designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-                if (designationEntity == null){
-                    return new ResponseEntity<>(
+            }
+            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
+            if (designationEntity == null){
+                return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
-                }
+            }
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
             defaultPassword = PasswordUtils.generateStrongPassword();

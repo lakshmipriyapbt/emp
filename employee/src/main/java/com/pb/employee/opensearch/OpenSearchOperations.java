@@ -3,7 +3,6 @@ package com.pb.employee.opensearch;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
-import com.pb.employee.model.UserEntity;
 import com.pb.employee.persistance.model.*;
 
 import com.pb.employee.persistance.model.CompanyEntity;
@@ -99,16 +98,6 @@ public class OpenSearchOperations {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXCEPTION_OCCURRED), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return id;
-    }
-
-    public UserEntity getEMSAdminById(String user) throws IOException {
-        GetRequest getRequest = new GetRequest.Builder().id(Constants.EMS_ADMIN + "_" + user)
-                .index(Constants.INDEX_EMS).build();
-        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
-        if (searchResponse != null && searchResponse.source() != null) {
-            return searchResponse.source();
-        }
-        return null;
     }
 
     public Object getById(String resourceId, String type, String index) throws IOException {

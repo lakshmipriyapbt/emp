@@ -83,12 +83,15 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException {
         EmployeeEntity employee;
+        UserEntity userEntity = null;
         Object entity = null;
         DepartmentEntity department;
+        String password = null;
         try {
             employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
             if (employee != null && employee.getPassword() != null) {
-                String password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+                password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
                 if (request.getPassword().equals(password)) {
                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
                 } else {
@@ -96,7 +99,18 @@ public class LoginServiceImpl implements LoginService {
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                             HttpStatus.FORBIDDEN);
                 }
-            } else {
+            }
+            if (userEntity != null && userEntity.getPassword() != null){
+                 password = new String(Base64.getDecoder().decode(userEntity.getPassword()),StandardCharsets.UTF_8);
+                 if (request.getPassword().equals(password)){
+                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
+                 }else {
+                     log.error("Invalid credentials");
+                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
+                             HttpStatus.FORBIDDEN);
+                 }
+            }
+            else {
                 log.error("Invalid credentials");
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                         HttpStatus.FORBIDDEN);
@@ -116,30 +130,56 @@ public class LoginServiceImpl implements LoginService {
                 throw new RuntimeException(e);
             }
         });
-        openSearchOperations.saveOtpToUser(employee, otp,request.getCompany());
+        if(userEntity==null) {
+            openSearchOperations.saveOtpToEmployee(employee, otp, request.getCompany());
+        }else {
+            openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
+        }
         List<String> roles = new ArrayList<>();
         String token= null;
-        if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
-            roles.add(Constants.COMPANY_ADMIN);
-        }
-        else {
-            department = openSearchOperations.getDepartmentById(employee.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
+        if(userEntity==null) {
+            if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
+                roles.add(Constants.COMPANY_ADMIN);
+            } else {
+                department = openSearchOperations.getDepartmentById(employee.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
 
-            if (department != null) {
-                if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
-                    roles.add(Constants.ACCOUNTANT);
-                } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
-                    roles.add(Constants.HR);
-                }
-                else if (Constants.ASSOCIATE.equalsIgnoreCase(employee.getEmployeeType())) {
-                    roles.add(Constants.ASSOCIATE);
-                }
-                else {
-                    roles.add(Constants.EMPLOYEE);
+                if (department != null) {
+                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
+                        roles.add(Constants.ACCOUNTANT);
+                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
+                        roles.add(Constants.HR);
+                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(employee.getEmployeeType())) {
+                        roles.add(Constants.ASSOCIATE);
+                    } else {
+                        roles.add(Constants.EMPLOYEE);
+                    }
                 }
             }
         }
-        token = JwtTokenUtil.generateEmployeeToken(employee.getId(), roles, request.getCompany(), request.getUsername());
+        if (employee==null) {
+            if (userEntity.getUserType().equals(Constants.EMPLOYEE_TYPE)) {
+                roles.add(Constants.COMPANY_ADMIN);
+            }else {
+                department = openSearchOperations.getDepartmentById(userEntity.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
+
+                if (department != null) {
+                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
+                        roles.add(Constants.ACCOUNTANT);
+                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
+                        roles.add(Constants.HR);
+                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(userEntity.getUserType())) {
+                        roles.add(Constants.ASSOCIATE);
+                    } else {
+                        roles.add(Constants.EMPLOYEE);
+                    }
+                }
+            }
+        }
+        if(userEntity==null) {
+            token = JwtTokenUtil.generateEmployeeToken(employee.getId(), roles, request.getCompany(), request.getUsername());
+        }else {
+            token = JwtTokenUtil.generateEmployeeToken(userEntity.getId(), roles, request.getCompany(), request.getUsername());
+        }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
     }
@@ -176,12 +216,16 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public ResponseEntity<?> validateCompanyOtp(OTPRequest request) throws IdentityException {
         EmployeeEntity user;
+        UserEntity userEntity=null;
         try {
             user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
             if (user == null) {
-                log.debug("checking the user details..");
-                throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
-                        HttpStatus.NOT_FOUND);
+                userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
+                if (userEntity==null) {
+                    log.debug("checking the user details..");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
+                            HttpStatus.NOT_FOUND);
+                }
             }
             if (user != null && user.getOtp() != null) {
                 Long otp = user.getOtp();
@@ -205,7 +249,32 @@ public class LoginServiceImpl implements LoginService {
                 user.setExpiryTime(null);
 
                 openSearchOperations.updateEmployee(user,request.getCompany());
-            } else {
+            }
+            if (userEntity != null && userEntity.getOtp() != null) {
+                Long otp = userEntity.getOtp();
+                long currentTime = Instant.now().getEpochSecond();
+                log.debug("the user found checking the otp..");
+
+                Long userOtp = Long.valueOf(request.getOtp());
+                if (!userOtp.equals(otp)) {
+                    log.error("Invalid OTP for user.. ");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                            HttpStatus.FORBIDDEN);
+                }
+
+                if (currentTime > userEntity.getExpiryTime()) {
+                    log.error("OTP expired for user..." );
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
+                            HttpStatus.FORBIDDEN);
+                }
+                // Clear OTP and expiry time
+                userEntity.setOtp(null);
+                userEntity.setExpiryTime(null);
+
+                openSearchOperations.updateUser(userEntity,request.getCompany());
+
+            }
+            else {
                 log.error("Invalid credentials for user..");
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                         HttpStatus.FORBIDDEN);
@@ -256,17 +325,27 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public ResponseEntity<?> forgotPassword(EmployeePasswordRequest loginRequest) throws IdentityException {
         EmployeeEntity user ;
+        UserEntity userEntity = null;
 
         try {
             user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
             if (user == null) {
-                log.debug("checking the user details..");
-                throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
-                        HttpStatus.NOT_FOUND);
+                userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
+                if(userEntity==null) {
+                    log.debug("checking the user details..");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
+                            HttpStatus.NOT_FOUND);
+                }
+
             }
             Long otp = generateOtp();
             sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
-            openSearchOperations.saveOtpToUser(user, otp, loginRequest.getCompany());
+            if(user==null){
+                openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
+            }
+            else {
+                openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
+            }
 
         } catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), ex);
@@ -281,16 +360,25 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public ResponseEntity<?> updatePasswordForForgot(EmployeePasswordforgot otpRequest) throws IdentityException {
         EmployeeEntity user = null;
+        UserEntity userEntity = null;
+        String oldPassword = null;
 
         try {
             user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
           List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
             if (user == null) {
-                log.debug("checking the user details..");
-                throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
-                        HttpStatus.NOT_FOUND);
+                userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
+                if (userEntity == null){
+                    log.debug("checking the user details..");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
+                            HttpStatus.NOT_FOUND);
+                }
             }
-            String oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
+            if(user==null){
+                 oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
+            }else {
+                 oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
+            }
             if (otpRequest.getPassword().equals(oldPassword)) {
                 log.error("you can't update with the previous password");
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new
@@ -306,8 +394,13 @@ public class LoginServiceImpl implements LoginService {
                     openSearchOperations.updateCompany(companyEntity);
                 }
             }
-            user.setPassword(newPassword);
-            openSearchOperations.updateEmployee(user,otpRequest.getCompany());
+            if(userEntity == null) {
+                user.setPassword(newPassword);
+                openSearchOperations.updateEmployee(user, otpRequest.getCompany());
+            }else {
+                userEntity.setPassword(newPassword);
+                openSearchOperations.updateUser(userEntity, otpRequest.getCompany());
+            }
 
         } catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", otpRequest.getUsername(), ex);
