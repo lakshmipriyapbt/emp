@@ -74,6 +74,10 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.BACKGROUND, companyName,employeeId);
 
     }
+    public static String generateCompanyTDSId(String companyName, String startYear, String endYear) {
+        return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear);
+
+    }
     /**
      * Generate a global resource ID based on the resource type
      *
@@ -134,8 +138,10 @@ public class ResourceIdUtils {
             prefix = Constants.COMPANY_CALENDAR + "-";
 
         }
+        if (type == ResourceType.COMPANY_TDS) {
+            prefix = Constants.COMPANY_TDS + "-";
 
-
+        }
 
 
         StringBuilder md5Input = new StringBuilder();
@@ -158,4 +164,5 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
+
 }

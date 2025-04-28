@@ -139,14 +139,14 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
                 log.error("Exception while fetching the company calendar details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            Collection<CompanyCalendarEntity> equipmentResPayloads = this.getCompanyCalender(companyName, calendarId);
-            if (Objects.isNull(equipmentResPayloads) || equipmentResPayloads.isEmpty()) {
+            Collection<CompanyCalendarEntity> calendarResPayloads = this.getCompanyCalender(companyName, calendarId);
+            if (Objects.isNull(calendarResPayloads) || calendarResPayloads.isEmpty()) {
                 log.error("Company calendar not existed for id: {}", calendarId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_CALENDAR_NOT_FOUND), calendarId),
                         HttpStatus.BAD_REQUEST);
             }
             dao.delete(calendarId, companyName);
-            log.info("The Equipment with id: {} got deleted successfully", calendarId);
+            log.info("The company calendar with id: {} got deleted successfully", calendarId);
         } catch (EmployeeException e) {
             throw new EmployeeException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
