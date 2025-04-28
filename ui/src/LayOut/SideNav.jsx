@@ -447,16 +447,7 @@ const SideNav = () => {
                 </Link>
               </li>
 
-              <li
-                className={`sidebar-item ${
-                  location.pathname === "/designation" ? "active" : ""
-                }`}
-              >
-                <Link className="sidebar-link" to="/designation">
-                  <i className="bi bi-file-earmark-medical-fill"></i>
-                  <span className="align-middle">Designation</span>
-                </Link>
-              </li>
+              
 
               <li
                 className={`sidebar-item ${
@@ -1003,17 +994,6 @@ const SideNav = () => {
                 <Link className="sidebar-link" to="/department">
                   <i className="bi bi-diagram-3-fill"></i>
                   <span className="align-middle">Department</span>
-                </Link>
-              </li>
-
-              <li
-                className={`sidebar-item ${
-                  location.pathname === "/designation" ? "active" : ""
-                }`}
-              >
-                <Link className="sidebar-link" to="/designation">
-                  <i className="bi bi-file-earmark-medical-fill"></i>
-                  <span className="align-middle">Designation</span>
                 </Link>
               </li>
 

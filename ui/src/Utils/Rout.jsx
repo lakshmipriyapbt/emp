@@ -5,8 +5,10 @@ import CompanyLogin from '../Login/CompanyLogin';
 import CompanyRegistration from '../EMSModule/Company/CompanyRegistration';
 import Body from '../LayOut/Body';
 import CompanyView from '../EMSModule/Company/CompanyView';
-import Department from '../CompanyModule/Department/Department';
-import Designation from '../CompanyModule/Designation/Designation';
+
+import Department from '../CompanyModule/Department/Department'
+
+
 import EmployeeRegistration from '../CompanyModule/Employee/EmployeeRegistration';
 import EmployeeView from '../CompanyModule/Employee/EmployeeView';
 import ExistsEmpRegistration from '../CompanyModule/ExistingProcess/ExistsEmpRegistration';
@@ -137,7 +139,7 @@ const Rout = () => {
       <Route path='/companyRegistration' element={<CompanyRegistration />}></Route>
       <Route path='/companyView' element={<CompanyView />}></Route>
       <Route path='/department' element={<Department />}></Route>
-      <Route path='/designation' element={<Designation />}></Route>
+     
       <Route path='/employeeRegister' element={<EmployeeRegister/>}></Route>
       <Route path='/employeeRegistration' element={<EmployeeRegistration />}></Route>
       <Route path='/employeeView' element={<EmployeeView />}></Route>
@@ -203,6 +205,7 @@ const Rout = () => {
       <Route path='/accountRegistration' element={<AccountRegistration/>}></Route>
       <Route path='/accountsView' element={<AccountsView/>}></Route>
       <Route path='/:company/createPassword' element={<CreatePassword/>}></Route>
+      
     </Routes>
   );
 };
