@@ -6,6 +6,7 @@ import com.pb.employee.persistance.model.CompanyCalendarEntity;
 import com.pb.employee.persistance.model.UserEntity;
 import com.pb.employee.request.UserRequest;
 import com.pb.employee.request.UserUpdateRequest;
+import com.pb.employee.response.UserResponse;
 import com.pb.employee.service.UserService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +48,7 @@ public class UserController {
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
                                              @PathVariable String companyName, @PathVariable String Id) throws IOException, EmployeeException {
 
-        Collection<UserEntity> users =  userService.getUserById(companyName, Id);
+        Collection<UserResponse> users =  userService.getUserById(companyName, Id);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(users), HttpStatus.OK);
     }
 
@@ -59,7 +60,7 @@ public class UserController {
     public ResponseEntity<?> getCompanyUsers(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
                                          @PathVariable String companyName) throws IOException, EmployeeException {
-        Collection<UserEntity> users =  userService.getUserById(companyName, null);
+        Collection<UserResponse> users =  userService.getUserById(companyName, null);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(users), HttpStatus.OK);
     }
 

@@ -7,12 +7,12 @@ import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
-import com.pb.employee.persistance.model.CompanyCalendarEntity;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.UserEntity;
 import com.pb.employee.request.UserRequest;
 import com.pb.employee.request.UserUpdateRequest;
+import com.pb.employee.response.UserResponse;
 import com.pb.employee.service.UserService;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.PasswordUtils;
@@ -25,10 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -100,19 +97,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserEntity> getUserById(String companyName, String Id) throws EmployeeException {
+    public Collection<UserResponse> getUserById(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
-            if (companyEntity == null){
-                log.error("Exception while fetching the company calendar details");
+            if (companyEntity == null) {
+                log.error("Exception while fetching the company details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            return dao.getUsers(companyName, Id, companyEntity.getId());
+            Collection<UserEntity> users = dao.getUsers(companyName, Id, companyEntity.getId());
+            List<UserResponse> userResponses = new ArrayList<>();
+            for (UserEntity user : users) {
+                UserResponse userResponse = objectMapper.convertValue(user, UserResponse.class);
+
+                if (user.getDepartment() != null) {
+                    DepartmentEntity department = openSearchOperations.getDepartmentById(user.getDepartment(), null, index);
+
+                    if (department != null) {
+                        userResponse.setDepartmentName(department.getName());
+                    }
+                }
+                userResponses.add(userResponse);
+            }
+
+            return userResponses;
 
         } catch (EmployeeException employeeException) {
-            log.error("Error retrieving user  {}", employeeException.getMessage());
+            log.error("Error retrieving user: {}", employeeException.getMessage());
             throw employeeException;
         } catch (Exception exception) {
             log.error("Error retrieving user for company {}: {}", companyName, exception.getMessage());
@@ -140,7 +153,7 @@ public class UserServiceImpl implements UserService {
                 log.error("User not found in this company {}", companyName);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);
             }
-            
+
             UserEntity existingUser = existingUsers.iterator().next();
             UserEntity originalUser = new UserEntity();
             BeanUtils.copyProperties(existingUser, originalUser);
@@ -193,7 +206,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            Collection<UserEntity> existingUser = this.getUserById(companyName, Id);
+            Collection<UserResponse> existingUser = this.getUserById(companyName, Id);
 
             if (existingUser == null) {
                 log.error("User not found in this company {}", index);
