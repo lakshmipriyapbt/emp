@@ -89,7 +89,7 @@ public class EmployeeUtils {
         if(employeeEntity.getMobileNo() != null) {
             mobileNo = new String((Base64.getDecoder().decode(employeeEntity.getMobileNo().toString().getBytes())));
         }
-        if(employeeEntity.getAlternateNo() != null) {
+        if(employeeEntity.getAlternateNo() != null && !employeeEntity.getAlternateNo().isEmpty()) {
             alterNo = new String((Base64.getDecoder().decode(employeeEntity.getAlternateNo().toString().getBytes())));
         }
         if (entity != null && employeeEntity.getDepartment() != null) {
@@ -182,39 +182,39 @@ public class EmployeeUtils {
         }if (!user.getManager().equals(employeeUpdateRequest.getManager())){
             noOfChanges +=1;
         }if (user.getMobileNo() != null && !user.getMobileNo().isEmpty()) {
-            String mobile = new String(Base64.getDecoder().decode(user.getMobileNo().getBytes()));
-            if (!mobile.equals(employeeUpdateRequest.getMobileNo())) {
+            String mobile =  new String(Base64.getDecoder().decode(user.getMobileNo().getBytes())).trim();
+            if (!mobile.equals(employeeUpdateRequest.getMobileNo().trim())) {
                 noOfChanges += 1;
             }
-        }else if (user.getMobileNo() == null){
+    }else if (user.getMobileNo() == null && employeeUpdateRequest.getMobileNo() != null){
             noOfChanges +=1;
         }if (user.getAlternateNo() != null && employeeUpdateRequest.getAlternateNo()!= null){
-            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes()));
-            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo())){
+            String alterNo = new String(Base64.getDecoder().decode(user.getAlternateNo().getBytes())).trim();
+            if (!alterNo.equals(employeeUpdateRequest.getAlternateNo().trim())){
                 noOfChanges += 1;
             }
-        }else if (user.getAlternateNo() == null){
+        }else if (user.getAlternateNo() == null && employeeUpdateRequest.getAlternateNo() != null){
             noOfChanges +=1;
         }
         if (user.getPermanentAddress() != null && !user.getPermanentAddress().isEmpty()){
-            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getAlternateNo())){
+            if (!user.getPermanentAddress().equals(employeeUpdateRequest.getPermanentAddress())){
                 noOfChanges += 1;
             }
-        }else if (user.getPermanentAddress() == null){
+        }else if (user.getPermanentAddress() == null && employeeUpdateRequest.getPermanentAddress() != null){
             noOfChanges +=1;
         }
         if (user.getTempAddress() != null && !user.getTempAddress().isEmpty()){
             if (!user.getTempAddress().equals(employeeUpdateRequest.getTempAddress())){
                 noOfChanges += 1;
             }
-        }else if (user.getTempAddress() == null){
+        }else if (user.getTempAddress() == null && employeeUpdateRequest.getTempAddress() != null){
             noOfChanges +=1;
         }
         if (user.getMaritalStatus() != null && !user.getMaritalStatus().isEmpty()){
             if (!user.getMaritalStatus().equals(employeeUpdateRequest.getMaritalStatus())){
                 noOfChanges += 1;
             }
-        }else if (user.getMaritalStatus() == null){
+        }else if (user.getMaritalStatus() == null && employeeUpdateRequest.getMaritalStatus() != null){
             noOfChanges +=1;
         }
         if (!user.getStatus().equals(employeeUpdateRequest.getStatus())){

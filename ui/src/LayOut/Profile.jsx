@@ -133,8 +133,10 @@ function Profile() {
         setStampMessage("Stamp uploaded successfully!");
         reset();
         setStampPreview(null);
+        window.location.reload();
       } catch (error) {
         setStampMessage("Failed to upload stamp.");
+        
         console.error("Upload error:", error);
       } finally {
         setLoadingStamp(false);

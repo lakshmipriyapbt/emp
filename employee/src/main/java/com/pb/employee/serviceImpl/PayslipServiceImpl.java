@@ -677,18 +677,29 @@ public class PayslipServiceImpl implements PayslipService {
     public ResponseEntity<?> generatePaySlipForEmployees(String salaryId, PayslipRequest payslipRequest) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
+        int inactiveEmployeeCount = 1;
         List<String> employeesWithoutAttendance = new ArrayList<>();
 
         try {
+            List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(payslipRequest.getCompanyName(), null, payslipRequest.getMonth(), payslipRequest.getYear());
+            if (attendanceEntities == null || attendanceEntities.size()==0){
+                log.error("No Employee Have Attendance");
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
+                        HttpStatus.NOT_FOUND);
+            }
             List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
-
+            
             for (EmployeeEntity employee : employeeEntities) {
                 // Skip attendance check if the employee is a CompanyAdmin
                 if (Constants.ADMIN.equals(employee.getEmployeeType())) {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
-
+                if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
+                    log.info("Employee is inactive " + employee.getFirstName());
+                    inactiveEmployeeCount +=1;
+                    continue;
+                }
                 List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
                 if (salaryEntities == null) {
                     log.error("Employee Salary with employeeId {} is not found", employee.getId());
@@ -751,9 +762,14 @@ public class PayslipServiceImpl implements PayslipService {
                     }
                 }
             }
-            if (employeesWithoutAttendance.size() +1 == employeeEntities.size()){
-                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ATTENDANCE_NOT_EXIST)),
-                        HttpStatus.NOT_FOUND);
+
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
+            responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
+
+            if (employeesWithoutAttendance.size() != 0){
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
+
             }
                  // If no payslips were generated but there are employees without attendance, return a success response with only that information
                 if (generatedPayslips.isEmpty()) {
@@ -763,10 +779,6 @@ public class PayslipServiceImpl implements PayslipService {
                                             .getMessage(EmployeeErrorMessageKey.NO_PAY_SLIP_GENERATED)),
                             HttpStatus.FORBIDDEN);
                 }
-            Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
-                responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
-
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
 
             } catch (EmployeeException ex) {

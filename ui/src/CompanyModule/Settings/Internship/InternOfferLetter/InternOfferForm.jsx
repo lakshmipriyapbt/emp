@@ -139,10 +139,12 @@ const InternOfferForm = () => {
   }, [joiningDate, setValue]);
 
   useEffect(() => {
-    const allEmployeeOptions = employees.map((emp) => ({
+    const allEmployeeOptions = employees
+    .filter(emp => emp.status?.toLowerCase() === "active") // ✅ Filter only active employees
+    .map((emp) => ({
       id: emp.id,
       name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
-    }));
+    }));  
   
     setEmployeeOptions(allEmployeeOptions);
   

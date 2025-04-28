@@ -8,6 +8,7 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.DepartmentEntity;
+import com.pb.employee.persistance.model.DesignationEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.request.DepartmentRequest;
@@ -165,6 +166,10 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         try {
             entity = openSearchOperations.getById(departmentId, null, index);
+            if (entity!=null) {
+                log.error("department is not exist with id: {}", departmentId);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
+            }
             employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
             for (EmployeeEntity employee: employeeEntities){
                     if (employee.getDepartment()!=null && employee.getDepartment().equals(departmentId)) {
@@ -176,14 +181,19 @@ public class DepartmentServiceImpl implements DepartmentService {
                                 HttpStatus.CONFLICT);
                     }
             }
-            if (entity!=null) {
-                openSearchOperations.deleteEntity(departmentId,index);
-            } else {
-                log.error("unable to find department");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT),
-                        HttpStatus.NOT_FOUND);
+            List<DesignationEntity> designationEntities = openSearchOperations.getCompanyDesignationByDepartmentId(companyName, departmentId, null);
+            if (designationEntities != null || designationEntities.size()>=0){
+                for (DesignationEntity designationEntity : designationEntities) {
+                    String id = designationEntity.getId();
+                    openSearchOperations.deleteEntity(id, index);
+                }
             }
-        } catch (Exception ex) {
+            openSearchOperations.deleteEntity(departmentId,index);
+
+        }catch (EmployeeException e){
+                log.error("Exception while deleting the department details");
+                throw e;
+        }catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_DEPARTMENT),
                     HttpStatus.INTERNAL_SERVER_ERROR);

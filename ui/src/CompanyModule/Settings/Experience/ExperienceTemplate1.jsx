@@ -2,14 +2,12 @@ import React from "react";
 import { useAuth } from "../../../Context/AuthContext";
 
 const ExperienceTemplate1 = ({
-  companyLogo,
   companyData,
   date,
   employeeName,
   employeeId,
   designation,
   joiningDate,
-  department,
   experienceDate,
   aboutEmployee
 }) => {
@@ -29,7 +27,13 @@ const ExperienceTemplate1 = ({
 
       <div className="row d-flex align-items-center p-1">
         <div className="col-6 d-flex align-items-center">
-          <p className="mb-0">{date}</p>
+          <p className="mb-0">
+          {new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })}
+          </p>
         </div>
         <div className="col-6 d-flex justify-content-end">
           <img

@@ -28,7 +28,13 @@ const ExperienceTemplate2 = ({
           <h4 className="text-center">EXPERIENCE CERTIFICATE</h4>
           <div className="row d-flex align-items-center p-1">
             <div className="col-6 d-flex align-items-center">
-                <p className="mb-0">{date}</p>
+                <p className="mb-0">
+                  {new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
             </div>
             <div className="col-6 d-flex justify-content-end">
                 <img
@@ -84,7 +90,7 @@ const ExperienceTemplate2 = ({
               and proactive approach were instrumental in overcoming challenges
               and achieving project objectives.
             </p>
-            <p>About Emoployee :{aboutEmployee}</p>
+            <p>About Employee :{aboutEmployee}</p>
             <p>
               We commend <strong>{employeeName}</strong> for his outstanding performance and
               professionalism throughout his/her tenure with{" "}
@@ -92,7 +98,6 @@ const ExperienceTemplate2 = ({
               to our team, and we have no doubt that he/she will continue to excel
               in his/her future endeavors.
             </p>
-
             <div className="mt-5 pt-3">
               <p className='mb-5'>Sincerely,</p>
               <div className='mt-5 pt-5'>

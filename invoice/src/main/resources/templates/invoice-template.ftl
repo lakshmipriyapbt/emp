@@ -68,7 +68,7 @@
         .table td {
             border: 1px solid #ddd;
             border-collapse: collapse;
-            padding: 6px;
+            padding: 2px;
             font-size: 11px;
             /* Reduced font size */
         }
@@ -190,7 +190,7 @@
 
                      <#if invoice.productColumns?? && invoice.productColumns?size gt 0>
                          <#list invoice.productColumns as column>
-                             <th class="text-center">${column.title}</th>  <!-- Extract only 'title' -->
+                             <th class="text-center" style="font-size: 12px;">${column.title}</th>  <!-- Extract only 'title' -->
                          </#list>
                      </#if>
                  </tr>
@@ -223,60 +223,60 @@
                            </tr>
                        </#if>
                     <tr style="text-align: right;">
-                        <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>Total Amount</strong></td>
-                        <td style="text-align: right; font-size: 13px;">${invoice.subTotal}</td>
+                        <td colspan="${columnCount-1}" style="text-align: right;"><strong>Total Amount</strong></td>
+                        <td style="text-align: right;">${invoice.subTotal}</td>
                     </tr>
 
-                 <#assign iGstValue = (invoice.iGst?has_content && invoice.iGst?matches("^[0-9.]+$"))?then(invoice.iGst?number, 0) />
-                 <#assign cGstValue = (invoice.cGst?has_content && invoice.cGst?matches("^[0-9.]+$"))?then(invoice.cGst?number, 0) />
-                 <#assign sGstValue = (invoice.sGst?has_content && invoice.sGst?matches("^[0-9.]+$"))?then(invoice.sGst?number, 0) />
+                 <#assign iGstValue = (invoice.iGst?has_content && invoice.iGst?matches("^[0-9.]+$"))?then(invoice.iGst?number, 0.00) />
+                 <#assign cGstValue = (invoice.cGst?has_content && invoice.cGst?matches("^[0-9.]+$"))?then(invoice.cGst?number, 0.00) />
+                 <#assign sGstValue = (invoice.sGst?has_content && invoice.sGst?matches("^[0-9.]+$"))?then(invoice.sGst?number, 0.00) />
 
                  <#if iGstValue gt 0>
                      <tr>
-                         <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>IGST</strong> (18%)</td>
-                         <td>${iGstValue}</td>
+                         <td colspan="${columnCount-1}" style="text-align: right;"><strong>IGST</strong> (18%)</td>
+                         <td>${iGstValue?string("0.00")}</td>
                      </tr>
                  <#elseif cGstValue gt 0 && sGstValue gt 0>
                      <tr>
-                         <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>CGST</strong> (9%)</td>
-                         <td>${cGstValue}</td>
+                         <td colspan="${columnCount-1}" style="text-align: right;"><strong>CGST</strong> (9%)</td>
+                         <td>${cGstValue?string("0.00")}</td>
                      </tr>
                      <tr>
-                         <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>SGST</strong> (9%)</td>
-                         <td>${sGstValue}</td>
+                         <td colspan="${columnCount-1}" style="text-align: right;"><strong>SGST</strong> (9%)</td>
+                         <td>${sGstValue?string("0.00")}</td>
                      </tr>
                  </#if>
-               <#assign iGstValue = (iGst??)?then(iGst?number, 0) />
-               <#assign cGstValue = (cGst??)?then(cGst?number, 0) />
-               <#assign sGstValue = (sGst??)?then(sGst?number, 0) />
+               <#assign iGstValue = (iGst??)?then(iGst?number, 0.00) />
+               <#assign cGstValue = (cGst??)?then(cGst?number, 0.00) />
+               <#assign sGstValue = (sGst??)?then(sGst?number, 0.00) />
 
                <#if iGstValue gt 0>
                    <tr>
-                       <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>IGST</strong> (18%)</td>
-                       <td>${iGstValue}</td>
+                       <td colspan="${columnCount-1}" style="text-align: right;"><strong>IGST</strong> (18%)</td>
+                       <td>${iGstValue?string("0.00")}</td>
                    </tr>
                <#elseif cGstValue gt 0 && sGstValue gt 0>
                    <tr>
-                       <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>CGST</strong> (9%)</td>
-                       <td>${cGstValue}</td>
+                       <td colspan="${columnCount-1}" style="text-align: right;"><strong>CGST</strong> (9%)</td>
+                       <td>${cGstValue?string("0.00")}</td>
                    </tr>
                    <tr>
-                       <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>SGST</strong> (9%)</td>
-                       <td>${sGstValue}</td>
+                       <td colspan="${columnCount-1}" style="text-align: right;"><strong>SGST</strong> (9%)</td>
+                       <td>${sGstValue?string("0.00")}</td>
                    </tr>
                <#else>
                    <tr>
-                       <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>CGST</strong> (9%)</td>
-                       <td>${cGstValue}</td>
+                       <td colspan="${columnCount-1}" style="text-align: right;"><strong>CGST</strong> (9%)</td>
+                       <td>${cGstValue?string("0.00")}</td>
                    </tr>
                    <tr>
-                       <td colspan="${columnCount-1}" style="text-align: right; font-size: 13px;"><strong>SGST</strong> (9%)</td>
-                       <td>${sGstValue}</td>
+                       <td colspan="${columnCount-1}" style="text-align: right;"><strong>SGST</strong> (9%)</td>
+                       <td>${sGstValue?string("0.00")}</td>
                    </tr>
                </#if>
 
                     <tr style="background-color:#f5f5f5;">
-                        <th class="text-right" colspan="${columnCount-1}" style="font-size: 13px;"><b>Grand Total</b></th>
+                        <th class="text-right" colspan="${columnCount-1}" style="font-size: 13px;"><b>Grand Total(Rs)</b></th>
                         <th class="text-right" style="font-size: 13px;"><b>${invoice.grandTotal}</b></th>
                     </tr>
                     <tr>

@@ -1066,5 +1066,10 @@ export const InvoiceDownloadById = async (companyId, customerId, invoiceId) => {
     return false;  // Indicate failure
   }
 };
+export const DialCodesListApi = () => {
+  return axiosInstance.get(`/dialcodes/list`);
+}
+
+
 
 

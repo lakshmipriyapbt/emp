@@ -312,7 +312,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Total Amount
+                                  Total Amount(Rs)
                                 </td>
                                 <td>
                                   {(
@@ -382,7 +382,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  Grand Total
+                                  Grand Total (Rs)
                                 </td>
                                 <td>
                                   {(
@@ -398,7 +398,7 @@ const InvoicePdf = () => {
                                     fontWeight: "bold",
                                   }}
                                 >
-                                  In Words: {invoiceData.grandTotalInWords}
+                                  In Words: {invoiceData.grandTotalInWords}/-
                                 </td>
                               </tr>
                               <tr>
@@ -460,7 +460,7 @@ const InvoicePdf = () => {
     </div>
 
     <div className="d-flex">
-      <div className="fw-bold" style={{ width: "250px" }}>Bank Address :</div>
+      <div className="fw-bold" style={{ width: "150px" }}>Bank Address :</div>
       <div><span className="text-break" style={{ maxWidth: "300px" }}>{invoiceData.bank?.address || "N/A"}</span></div>
     </div>
   </div>
@@ -482,7 +482,6 @@ const InvoicePdf = () => {
     </div>
   </div>
 </div>
-
                     <hr />
                     <div className="table-responsive">
                     <div style={{ margin: "40px 0px" }}>

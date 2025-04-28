@@ -48,10 +48,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  console.log("employee",employee);
-  console.log("Company",company);
-  console.log("authUser",authUser)
-
   return (
     <AuthContext.Provider value={{ authUser,setAuthUser, employee, company }}>
       {children}

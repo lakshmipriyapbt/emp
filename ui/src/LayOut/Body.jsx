@@ -51,7 +51,7 @@ useEffect(() => {
       if (!isAdmin && status === "loading") return <Loader/>;
       if (!isAdmin && status === "failed") return <Loader/>;
 
-  const handleApiErrors = (error) => {
+      const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
       const errorMessage = error.response.data.error.message;
       toast.error(errorMessage);

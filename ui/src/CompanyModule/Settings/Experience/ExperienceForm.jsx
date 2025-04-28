@@ -168,6 +168,7 @@ const ExperienceForm = () => {
       employeeId: data.employeeId,
       companyName: authUser.company,
       date: data.experienceDate,
+      aboutEmployee:data.aboutEmployee
     };
     // Format the date fields to dd-mm-yyyy format
     const formattedLastWorkingDate = formatDate(data.relievingDate);

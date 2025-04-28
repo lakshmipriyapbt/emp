@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { handleBranchInput, toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -813,7 +813,7 @@ const handleClearNewEmployee = () => {
 
                     <div className="col-md-4">
                       <label>Branch/Specialization</label>
-                      <input type="text" className="form-control" onInput={toInputTitleCase}
+                      <input type="text" className="form-control" onInput={toInputAddressCase}
                         {...register(`employeeEducation.${index}.branch`, {
                           required: "Branch is required",
                           pattern: { value: /^[A-Za-z\s,.()\[\]]+$/, message: "Only letters allowed" }
@@ -863,7 +863,7 @@ const handleClearNewEmployee = () => {
                       <div key={exp.id} className="row mb-2">
                         <div className="col-md-3">
                           <label>Company Name</label>
-                          <input type="text" className="form-control" onInput={toInputTitleCase}
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.companyName`, {
                               validate:validateCompanyName
                             })}
@@ -873,7 +873,7 @@ const handleClearNewEmployee = () => {
 
                         <div className="col-md-3">
                           <label>Designation/Role</label>
-                          <input type="text" className="form-control" onInput={toInputTitleCase}
+                          <input type="text" className="form-control" onInput={toInputAddressCase}
                             {...register(`employeeExperience.${index}.positionOrTitle`, {
                               validate:validateCompanyName
                             })}
