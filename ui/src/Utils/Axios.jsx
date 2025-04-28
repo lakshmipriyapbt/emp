@@ -1066,15 +1066,10 @@ export const InvoiceDownloadById = async (companyId, customerId, invoiceId) => {
     return false;  // Indicate failure
   }
 };
-export const getCountryCodes = async () => {
-  try {
-    const response = await axios.get("https://country-code-au6g.vercel.app/Country.json");
-    return response.data; // Return the data from the response
-  } catch (error) {
-    console.error("Error fetching country codes:", error); // Log the error for debugging
-    throw new Error("Failed to fetch country codes. Please try again later.");
-  }
-};
+export const DialCodesListApi = () => {
+  return axiosInstance.get(`/dialcodes/list`);
+}
+
 
 
 

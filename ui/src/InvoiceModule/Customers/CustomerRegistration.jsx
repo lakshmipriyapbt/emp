@@ -7,7 +7,7 @@ import {
   CustomerGetApiById,
   CustomerPostApi,
   CustomerPutApiById,
-  getCountryCodes
+  DialCodesListApi
 } from "../../Utils/Axios";
 import Select from "react-select";
 import { useAuth } from "../../Context/AuthContext";
@@ -21,7 +21,18 @@ const CustomersRegistration = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [update, setUpdate] = useState([]);
   const [countryCodes, setCountryCodes] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState({ value: "+91", label: "🇮🇳 India (+91)" });
+  const [selectedCountry, setSelectedCountry] = useState({ value: "+91",  label: (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <img
+        src="https://flagcdn.com/w40/in.png" 
+        alt="India Flag"
+        width="20"
+        height="15"
+      />
+      India (+91)
+    </div>
+  ),
+ });
   const {
     register,
     handleSubmit,
@@ -35,14 +46,21 @@ const CustomersRegistration = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
 
   useEffect(() => {
-    // Fetch country codes
     const fetchCountryCodes = async () => {
       try {
-        const data = await getCountryCodes();
-        console.log("Fetched country codes:", data); // Debug here
-        const options = data.map((country) => ({
-          value: country.dial_code,
-          label: `${country.emoji} ${country.name} (${country.dial_code})`,
+        const response = await DialCodesListApi();
+        const options = (response.data.data || []).map((country) => ({
+          value: country.dialCode,
+          label: (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <img
+                src={country.flag}
+                alt={country.name}
+                style={{ width: "20px", height: "15px", marginRight: "8px" }}
+              />
+              {`${country.name} (${country.dialCode})`}
+            </div>
+          ),
         }));
         setCountryCodes(options);
       } catch (error) {
@@ -50,10 +68,12 @@ const CustomersRegistration = () => {
         toast.error("Failed to load country codes.");
       }
     };
-    fetchCountryCodes();
 
-    // Check if updating an existing customer
-    if (location.state?.customerId) {
+    fetchCountryCodes();
+  }, []);
+
+  useEffect(() => {
+    if (location.state?.customerId && countryCodes.length > 0) {
       const customerId = location.state.customerId;
       CustomerGetApiById(companyId, customerId)
         .then((response) => {
@@ -61,6 +81,27 @@ const CustomersRegistration = () => {
             ...response,
             status: { value: response.status, label: response.status },
           };
+  
+          const existingCountryCode = response.mobileNumber?.split(" ")[0] || "+91";
+          const matchingOption = countryCodes.find((option) => option.value === existingCountryCode);
+  
+          setSelectedCountry(
+            matchingOption || {
+              value: "+91",
+              label: (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img
+                    src="https://flagcdn.com/w40/in.png"
+                    alt="India Flag"
+                    width="20"
+                    height="15"
+                  />
+                  India (+91)
+                </div>
+              )
+            }
+          );
+  
           reset(customerData);
           setIsUpdating(true);
         })
@@ -69,17 +110,16 @@ const CustomersRegistration = () => {
           toast.error("Failed to fetch customer data.");
         });
     }
-  }, [companyId, location.state, reset]);
-
+  }, [companyId, location.state, reset, countryCodes]);
+  
   const handleCountryCodeChange = (selectedOption) => {
     setSelectedCountry(selectedOption);
-    // Update the mobile number with the selected country code
-    const currentNumber = getValues("mobileNumber") || "";
-    const numericPart = currentNumber.replace(/^\+\d+\s/, ""); // Remove existing country code
-    setValue("mobileNumber", `${selectedOption.value} ${numericPart}`);
-    trigger("mobileNumber");
+    console.log("Selected Country Code:", selectedOption.value);
   };
+
+
   const onSubmit = (data) => {
+    const formattedMobileNumber = `${selectedCountry.value}${data.mobileNumber.replace(/\D/g, "")}`;
     if (location && location.state && location.state.customerId) {
       // Build the update payload with only the specified fields
       const updatePayload = {
@@ -87,6 +127,7 @@ const CustomersRegistration = () => {
         state: data.state,
         city: data.city,
         pinCode: data.pinCode,
+        mobileNumber: formattedMobileNumber,
         status: data.status.value, // Assuming status is a select option object
         customerGstNo: data.customerGstNo,
         stateCode: data.stateCode,
@@ -120,6 +161,7 @@ const CustomersRegistration = () => {
       // Build the full payload for creating a new customer
       const createPayload = {
         ...data,
+        mobileNumber: formattedMobileNumber,
         status: data.status.value,
       };
 
@@ -141,29 +183,6 @@ const CustomersRegistration = () => {
     }
   };
 
-  // useEffect(() => {
-  //   console.log("Location state:", location.state);
-  //   console.log("companyId:", companyId);
-  //   if (location && location.state && location.state.customerId) {
-  //     const customerId = location.state.customerId;
-  //     CustomerGetApiById(companyId, customerId)
-  //       .then((response) => {
-  //         const customerData = {
-  //           ...response,
-  //           status: { value: response.status, label: response.status }
-  //         };
-  //         reset(customerData);
-  //         setIsUpdating(true);
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error fetching data:", error.response || error);
-  //         if (error.response) {
-  //           console.error("API Error Response:", error.response.data);
-  //         }
-  //         toast.error("Error fetching customer data.");
-  //       });
-  //   }
-  // }, [location.state?.customerId, reset]);
 
   const handleEmailChange = (e) => {
     // Get the current value of the input field
@@ -403,20 +422,15 @@ const CustomersRegistration = () => {
                         autoComplete="off"
                         {...register("customerName", {
                           required: "Client Name is Required",
-                          validate: (value) => validateField(value, "customerName"),
+                          validate: (value) => noTrailingSpaces(value, "customerName"),
                           maxLength: {
                             value: 60,
                             message:
                               "Client Name must not exceed 60 characters.",
                           },
-                          minLength: {
-                            value: 3,
-                            message:
-                              "Minimum 3 Characters Required.",
-                          },
                         })}
                         onChange={(e) => handleInputChange(e, "customerName")}
-                      // onKeyPress={(e) => preventInvalidInput(e, "alpha")}
+                        onKeyPress={(e) => preventInvalidInput(e, "alpha")}
                       />
                       {errors.customerName && (
                         <p className="errorMsg">
@@ -447,55 +461,6 @@ const CustomersRegistration = () => {
                       )}
                     </div>
                     <div className="col-lg-1"></div>
-                    {/* <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Mobile Number <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Enter Personal Mobile Number"
-                        autoComplete="off"
-                        maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
-                        defaultValue="+91 " // Set the initial value to +91 with a space
-                        onInput={handlePhoneNumberChange} // Handle input changes
-                        {...register("mobileNumber", {
-                          required: "Mobile Number is Required",
-                          validate: {
-                            startsWithPlus91: (value) => {
-                              if (!value.startsWith("+91 ")) {
-                                return "Mobile Number must start with +91.";
-                              }
-                              return true;
-                            },
-                            correctLength: (value) => {
-                              if (value.length !== 14) {
-                                return "Mobile Number must be 10 digits.";
-                              }
-                              return true;
-                            },
-                           notRepeatingDigits: (value) => {
-          // Extract only numeric digits
-          const numericValue = value.replace(/\D/g, ""); // Remove non-numeric characters
-          const repeatingPattern = /(\d)\1{7,}/; // Matches any digit repeated 8 or more times
-          return (
-            !repeatingPattern.test(numericValue) ||
-            "Mobile Number cannot have the same digit repeated 8 or more times."
-          );
-        },
-      },
-                          pattern: {
-                            value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                            message: "Mobile Number must be 10 digits.",
-                          },
-                        })}
-                      />
-                      {errors.mobileNumber && (
-                        <p className="errorMsg">
-                          {errors.mobileNumber.message}
-                        </p>
-                      )}
-                    </div> */}
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Mobile Number <span style={{ color: "red" }}>*</span>
@@ -509,7 +474,25 @@ const CustomersRegistration = () => {
                             onChange={handleCountryCodeChange}
                             placeholder="Code"
                             className="react-select-container"
+                            classNamePrefix="react-select"
+                            isSearchable
+                            menuPortalTarget={document.body}
+                            styles={{
+                              control: (base) => ({
+                                ...base,
+                                width: "160px", // Set a fixed width
+                              }),
+                              menu: (base) => ({
+                                ...base,
+                                width: "280px", // Ensure dropdown stays the same width
+                              }),
+                              menuPortal: (base) => ({
+                                ...base,
+                                zIndex: 9999,
+                              }),
+                            }}
                           />
+
                         </div>
 
                         {/* Mobile Number Input Field */}
@@ -522,7 +505,7 @@ const CustomersRegistration = () => {
                             required: "Mobile Number is Required",
                             validate: {
                               correctLength: (value) => {
-                                const numericValue = value.replace(/\D/g, ""); // Extract numeric digits
+                                const numericValue = value.replace(/\D/g, "");
                                 if (numericValue.length < 7 || numericValue.length > 15) {
                                   return "Mobile Number must be between 7 and 15 digits.";
                                 }
