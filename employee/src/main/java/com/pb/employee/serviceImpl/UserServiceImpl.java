@@ -206,6 +206,12 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String companyName, String Id) throws EmployeeException {
         try {
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Exception while fetching the company calendar details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
             Collection<UserResponse> existingUser = this.getUserById(companyName, Id);
 
             if (existingUser == null) {
