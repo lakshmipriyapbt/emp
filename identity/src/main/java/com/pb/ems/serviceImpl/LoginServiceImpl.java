@@ -100,7 +100,7 @@ public class LoginServiceImpl implements LoginService {
                             HttpStatus.FORBIDDEN);
                 }
             }
-            if (userEntity != null && userEntity.getPassword() != null){
+            else if (userEntity != null && userEntity.getPassword() != null){
                  password = new String(Base64.getDecoder().decode(userEntity.getPassword()),StandardCharsets.UTF_8);
                  if (request.getPassword().equals(password)){
                      log.debug("Successfully logged into ems portal for {}", request.getUsername());
@@ -250,7 +250,7 @@ public class LoginServiceImpl implements LoginService {
 
                 openSearchOperations.updateEmployee(user,request.getCompany());
             }
-            if (userEntity != null && userEntity.getOtp() != null) {
+            else if (userEntity != null && userEntity.getOtp() != null) {
                 Long otp = userEntity.getOtp();
                 long currentTime = Instant.now().getEpochSecond();
                 log.debug("the user found checking the otp..");
