@@ -1,15 +1,12 @@
-package com.pb.employee.request.CompanyCalendarPayload;
+package com.pb.employee.request.TDSPayload;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pb.employee.persistance.model.DateEntity;
-import com.pb.employee.persistance.model.HolidaysEntity;
-import jakarta.validation.Valid;
+import com.pb.employee.persistance.model.TDSPercentageEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Getter
@@ -19,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CompanyCalendarResponse {
+public class TDSResPayload {
 
     @JsonProperty("id")
     private String id;
@@ -27,12 +24,15 @@ public class CompanyCalendarResponse {
     @JsonProperty("companyId")
     private String companyId;
 
-    @JsonProperty("year")
-    private String year;
+    @JsonProperty("startYear")
+    private String startYear;
 
-    private String month;
-    private List<HolidaysEntity> holidaysEntities;
-    private List<EmployeesDayEntity> employeesDayEntities;
+    @JsonProperty("endYear")
+    private String endYear;
 
+    private List<TDSPercentageEntity> persentageEntityList;
+
+    @JsonProperty("type")
+    private String type;
 
 }

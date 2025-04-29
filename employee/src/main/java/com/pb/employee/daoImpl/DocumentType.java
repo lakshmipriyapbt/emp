@@ -1,5 +1,9 @@
 package com.pb.employee.daoImpl;
 
+import com.pb.employee.persistance.model.CompanyCalendarEntity;
+import com.pb.employee.persistance.model.Entity;
+import com.pb.employee.persistance.model.IDEntity;
+import com.pb.employee.persistance.model.TDSEntity;
 import com.pb.employee.persistance.model.*;
 import lombok.Getter;
 
@@ -26,7 +30,7 @@ public class DocumentType {
 
 
     public static final DocumentType COMPANY_CALENDAR = new DocumentType("company_calendar", CompanyCalendarEntity.class);
-
+    public static final DocumentType COMPANY_TDS = new DocumentType("company_tds", TDSEntity.class);
     public static final DocumentType USER = new DocumentType("user", UserEntity.class);
 
 }
