@@ -5,8 +5,10 @@ import CompanyLogin from '../Login/CompanyLogin';
 import CompanyRegistration from '../EMSModule/Company/CompanyRegistration';
 import Body from '../LayOut/Body';
 import CompanyView from '../EMSModule/Company/CompanyView';
-import Department from '../CompanyModule/Department/Department';
-import Designation from '../CompanyModule/Designation/Designation';
+
+import Department from '../CompanyModule/Department/Department'
+
+
 import EmployeeRegistration from '../CompanyModule/Employee/EmployeeRegistration';
 import EmployeeView from '../CompanyModule/Employee/EmployeeView';
 import ExistsEmpRegistration from '../CompanyModule/ExistingProcess/ExistsEmpRegistration';
@@ -88,7 +90,6 @@ export const allAvailableRoutes = [
   {path: '/companySalaryStructure', allowedTypes: ['company_admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin'] },
   {path: '/department', allowedTypes: ['company_admin', 'HR'] },
-  {path: '/designation', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeRegistration', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeRegister', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeView', allowedTypes: ['company_admin', 'HR'] },
@@ -197,10 +198,6 @@ const Routing = () => {
       <Route
         path="/department"
         element={<ProtectedRoute element={<Department/>} allowedTypes={['company_admin', 'HR']} />}
-      />
-      <Route
-        path="/designation"
-        element={<ProtectedRoute element={<Designation/>} allowedTypes={['company_admin', 'HR']} />}
       />
       <Route
         path="/employeeRegistration"

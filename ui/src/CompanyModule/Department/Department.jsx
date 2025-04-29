@@ -1,39 +1,90 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import DataTable from "react-data-table-component";
-import { PencilSquare, XSquareFill } from "react-bootstrap-icons";
-import { Bounce, toast } from "react-toastify";
+import React, { useEffect, useState } from "react";
 import LayOut from "../../LayOut/LayOut";
-import DeletePopup from "../../Utils/DeletePopup";
-import { ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import {
-  DepartmentDeleteApiById,
-  DepartmentGetApi,
-  DepartmentPostApi,
-  DepartmentPutApiById,
-} from "../../Utils/Axios";
+  XSquareFill,
+  PencilSquare,
+  ChevronDown,
+  ChevronUp,
+} from "react-bootstrap-icons";
+import { DepartmentDeleteApiById, DepartmentGetApi, DepartmentPostApi, DepartmentPutApiById } from "../../Utils/Axios";
+import { useForm } from "react-hook-form";
+import { ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import { useAuth } from "../../Context/AuthContext";
+import { Bounce, toast } from "react-toastify";
+import DeletePopup from "../../Utils/DeletePopup";
+import Designation from "../Designation/Designation";
+
 
 const Department = () => {
   const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors },
-  } = useForm({ mode: "onChange" });
-  const [departments, setDepartments] = useState([]);
-  const [editingId, setEditingId] = useState(null);
+     register,
+     handleSubmit,
+     reset,
+     setValue,
+     formState: { errors },
+   } = useForm({ mode: "onChange" });
+  const [expandedId, setExpandedId] = useState(null);
+  const [departments, setDepartments] = useState();
   const [addDepartment, setAddDeparment] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState(null);
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [filteredDepartments, setFilteredDepartments] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const { authUser } = useAuth();
+  const [editingId, setEditingId] = useState(null);
+const [showDeleteModal, setShowDeleteModal] = useState(false);
+ const [selectedItemId, setSelectedItemId] = useState(null);
+ const [loading, setLoading] = useState(false);
+   const { authUser } = useAuth();
 
+
+   const toInputTitleCase = (e) => {
+    const input = e.target;
+    let value = input.value;
+    const cursorPosition = input.selectionStart; // Save the cursor position
+
+    // Remove leading spaces
+    value = value.replace(/^\s+/g, "");
+
+    // Ensure only alphabets, numbers, spaces, and allowed special characters like /, -, ., etc.
+    const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
+    value = value
+      .split("")
+      .filter((char) => allowedCharsRegex.test(char))
+      .join("");
+
+    // Capitalize the first letter of each word but leave the rest as-is (case-sensitive) and allow special characters
+    const words = value.split(" ");
+    const capitalizedWords = words.map((word) => {
+      if (word.length > 0) {
+        // Capitalize first letter of each word, leave the rest as-is
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return word;
+    });
+
+    // Join the words back into a string
+    let formattedValue = capitalizedWords.join(" ");
+
+    // Update input value
+    input.value = formattedValue;
+
+    // Restore the cursor position
+    input.setSelectionRange(cursorPosition, cursorPosition);
+  };
+  const getDepartments = async ()=> {
+    const response = await DepartmentGetApi()
+    setDepartments(response.data.data);
+  }
+
+  const handleDepartment = useEffect(() => {
+    getDepartments();
+  },[])
+
+  const handleEdit = (id) => {
+    const userToEdit = departments.find((user) => user.id === id);
+    if (userToEdit) {
+      setValue("name", userToEdit.name);
+      setEditingId(id);
+      setAddDeparment(true);
+    }
+  };
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
     setSelectedItemId(null); // Reset the selected item ID
@@ -49,21 +100,17 @@ const Department = () => {
     setSelectedItemId(id); // Set the ID of the item to be deleted
     setShowDeleteModal(true);
   };
-  const fetchDepartments = async () => {
-    try {
-      const response = await DepartmentGetApi();
-      const sortedDepartments = response.data.data.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      setDepartments(sortedDepartments);
-    } catch (error) {
-      // handleApiErrors(error);
-    }
-  };
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+ 
 
+  const toggleAccordion = (id) => {
+    setExpandedId(prevId => (prevId === id ? null : id));
+  };
+
+  const handleDropdownSelect = (e) => {
+    const selectedId = e.target.value;
+    console.log(' selected id :', selectedId);
+    setExpandedId(selectedId);
+  };
   const onSubmit = async (data) => {
     setLoading(true);
     try {
@@ -137,6 +184,20 @@ const Department = () => {
       }
     }
   };
+const fetchDepartments = async () => {
+    try {
+      const response = await DepartmentGetApi();
+      const sortedDepartments = response.data.data.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setDepartments(sortedDepartments);
+    } catch (error) {
+      // handleApiErrors(error);
+    }
+  };
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   const handleApiErrors = (error) => {
     if (
@@ -153,58 +214,28 @@ const Department = () => {
     console.error(error.response);
   };
 
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
+  const getStatusStyle = (status) => {
+    return {
+      backgroundColor: status === "Active" ? "green" : "red",
+      color: "white",
+      padding: "2px 8px",
+      borderRadius: "4px",
+    };
+  };
+  const handleEmailChange = (e) => {
+    // Get the current value of the input field
+    const value = e.target.value;
 
-  useEffect(() => {
-    setFilteredDepartments(departments);
-  }, [departments]);
+    // Check if the value is empty
+    if (value.trim() !== "") {
+      return; // Allow space button
+    }
 
-  const handleEdit = (id) => {
-    const userToEdit = departments.find((user) => user.id === id);
-    if (userToEdit) {
-      setValue("name", userToEdit.name);
-      setEditingId(id);
-      setAddDeparment(true);
+    // Prevent space character entry if the value is empty
+    if (e.keyCode === 32) {
+      e.preventDefault();
     }
   };
-
-  const toInputTitleCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Ensure only alphabets, numbers, spaces, and allowed special characters like /, -, ., etc.
-    const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
-    value = value
-      .split("")
-      .filter((char) => allowedCharsRegex.test(char))
-      .join("");
-
-    // Capitalize the first letter of each word but leave the rest as-is (case-sensitive) and allow special characters
-    const words = value.split(" ");
-    const capitalizedWords = words.map((word) => {
-      if (word.length > 0) {
-        // Capitalize first letter of each word, leave the rest as-is
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return word;
-    });
-
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(" ");
-
-    // Update input value
-    input.value = formattedValue;
-
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
-  };
-
   const validateName = (value) => {
     // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
@@ -249,186 +280,112 @@ const Department = () => {
 
     return true; // Return true if all conditions are satisfied
   };
-
-  const getFilteredList = (searchTerm) => {
-    setSearch(searchTerm);
-    if (searchTerm === "") {
-      setFilteredDepartments(departments);
-    } else {
-      const filteredList = departments.filter((department) =>
-        department.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredDepartments(filteredList);
-    }
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handlePerRowsChange = (newPerPage, page) => {
-    setRowsPerPage(newPerPage);
-    setCurrentPage(page);
-  };
-
-  // Calculate the start index and end index for the current page
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-
-  // Slice the filtered data based on the current page and rows per page
-  const paginatedData = filteredDepartments.slice(startIndex, endIndex);
-
-  // Compute the serial number for each row
-  const getSerialNumber = (index) => startIndex + index + 1;
-
-  const columns = [
-    {
-      name: (
-        <h5>
-          <b>#</b>
-        </h5>
-      ),
-      selector: (row, index) => getSerialNumber(index),
-      width: "400px",
-    },
-    {
-      name: (
-        <h5>
-          <b>Department Name</b>
-        </h5>
-      ),
-      selector: (row) => row.name,
-      width: "500px",
-    },
-    {
-      name: (
-        <h5>
-          <b>Actions</b>
-        </h5>
-      ),
-      cell: (row) => (
-        <div>
-          <button
-            className="btn btn-sm"
-            style={{
-              backgroundColor: "transparent",
-              border: "none",
-              padding: "0",
-              marginRight: "10px",
-            }}
-            onClick={() => handleEdit(row.id, row.name)}
-            title="Edit"
-          >
-            <PencilSquare size={22} color="#2255a4" />
-          </button>
-          <button
-            className="btn btn-sm"
-            style={{
-              backgroundColor: "transparent",
-              border: "none",
-              padding: "0",
-              marginLeft: "5px",
-            }}
-            onClick={() => handleShowDeleteModal(row.id)}
-            title="Delete"
-            disabled={loading}
-          >
-            <XSquareFill size={22} color="#da542e" />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-  const handleEmailChange = (e) => {
-    // Get the current value of the input field
-    const value = e.target.value;
-
-    // Check if the value is empty
-    if (value.trim() !== "") {
-      return; // Allow space button
-    }
-
-    // Prevent space character entry if the value is empty
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
-  };
+  console.log("expandedId:",expandedId)
 
   return (
     <LayOut>
       <div className="container-fluid p-0">
-        <div className="row d-flex align-items-center justify-content-between mt-1">
+        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
             <h1 className="h3 mb-3">
-              <strong>Department</strong>{" "}
+              <strong>Departments</strong>
             </h1>
           </div>
           <div className="col-auto">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main">Home</Link>
                 </li>
-                <li className="breadcrumb-item active">Department</li>
+                <p style={{padding:"2px"}}>/</p>
+                <a style={{paddingLeft:"3px", color: "#3b7ddd", cursor:"pointer"}}
+                      onClick={() => setAddDeparment(true)}
+                      // className="btn btn-primary"
+                      type="submit"
+                    >
+                      Add Department
+                    </a>
               </ol>
             </nav>
           </div>
         </div>
 
+        {/* 🔽 Dropdown for Add Department */}
+        <div className="col-12 col-md-6 col-lg-4 mb-3">
+          <select
+            className="form-select"
+            onChange={handleDropdownSelect}
+            value={expandedId || ""}
+          >
+            <option value="">-- Select Department --</option>
+            {departments?.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 🧩 Department Cards */}
         <div className="row">
-          <div className="col-12 col-lg-12 col-xxl-12 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header">
-                <div className="row">
-                  <div className="col-12 col-md-6 col-lg-4">
+          {departments?.map((dept) => (
+            <div key={dept.id} className="mb-3">
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0 card-title">{dept.name}</h5>
+                  <div className="d-flex align-items-center">
+                              <button
+                                className="btn btn-sm"
+                                style={{
+                                  backgroundColor: "transparent",
+                                  border: "none",
+                                  padding: "0",
+                                  marginRight: "10px",
+                                }}
+                                onClick={() => handleEdit(dept.id, dept.name)}
+                                title="Edit"
+                              >
+                                <PencilSquare size={22} color="#2255a4" />
+                              </button>
                     <button
-                      onClick={() => setAddDeparment(true)}
-                      className="btn btn-primary"
-                      type="submit"
+                      className="btn btn-sm"
+                      style={{ backgroundColor: "transparent", border: "none" }}
+                      title="Delete"
+                      onClick={() => handleShowDeleteModal(dept.id)}
                     >
-                      Add Department
+                      <XSquareFill size={22} color="#da542e" />
+                    </button>
+                    <button
+                      className="btn btn-sm"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "none",
+                        marginLeft: "10px",
+                      }}
+                      onClick={() => toggleAccordion(dept.id)}
+                    >
+                      {expandedId === dept.id ? (
+                        <ChevronUp size={22} />
+                      ) : (
+                        <ChevronDown size={22} />
+                      )}
                     </button>
                   </div>
-                  <div className="col-12 col-md-6 col-lg-4"></div>
-                  <div className="col-12 col-md-6 col-lg-4">
-                    <input
-                      type="search"
-                      className="form-control"
-                      placeholder="Search...."
-                      value={search}
-                      onInput={toInputTitleCase}
-                      onChange={(e) => getFilteredList(e.target.value)}
-                    />
-                  </div>
                 </div>
-                <div
-                  className="dropdown-divider"
-                  style={{ borderTopColor: "#d7d9dd" }}
-                />
-              </div>
-              <DataTable
-                columns={columns}
-                data={paginatedData}
-                pagination
-                paginationServer
-                paginationTotalRows={filteredDepartments.length}
-                onChangePage={handlePageChange}
-                onChangeRowsPerPage={handlePerRowsChange}
-                highlightOnHover
-                striped
-                noHeader
-              />
-            </div>
 
-            <DeletePopup
-              show={showDeleteModal}
-              handleClose={handleCloseDeleteModal}
-              handleConfirm={() => handleConfirmDelete(selectedItemId)}
-              id={selectedItemId}
-              pageName="Department"
-            />
-            {addDepartment && (
+                
+
+                {expandedId === dept.id && (
+                  <div className="card-body pt-0">
+                    {/* <h6 className="mt-3">Designations:</h6> */}
+                    <Designation deptName={dept.name}/>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        {addDepartment && (
               <div
                 role="dialog"
                 aria-modal="true"
@@ -513,9 +470,14 @@ const Department = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
       </div>
+      <DeletePopup
+              show={showDeleteModal}
+              handleClose={handleCloseDeleteModal}
+              handleConfirm={() => handleConfirmDelete(selectedItemId)}
+              id={selectedItemId}
+              pageName="Department"
+            />
     </LayOut>
   );
 };
