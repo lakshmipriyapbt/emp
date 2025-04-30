@@ -134,7 +134,8 @@ public enum EmployeeErrorMessageKey {
     USER_ID_ALREADY_EXISTS("user.id.already.exist"),
     UNABLE_GET_USER("unable.to.get.user"),
     USER_NOT_FOUND("user.not.found"),
-    UNABLE_DELETE_USER("unable.delete.user");
+    UNABLE_DELETE_USER("unable.delete.user"),
+    ERROR_RETRIEVING_SALARY("error.retrieving.salary");
 
     private final String key;
 

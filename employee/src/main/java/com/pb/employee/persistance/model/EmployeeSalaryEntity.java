@@ -26,5 +26,6 @@ public class EmployeeSalaryEntity implements Entity {
     private String totalTax;
     private String status;
     private String type;
+    private String addedSalaryDate;
 
 }
