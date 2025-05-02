@@ -67,9 +67,4 @@ public class EmployeeSalaryRequest {
     @NotBlank(message = "{status.notnull.message}")
     private String status;
 
-    @Schema(example = "yyyy-mm-dd")
-    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{date.format}")
-    @NotBlank(message = "{date.notnull.message}")
-    private String addedSalaryDate;
-
     }

@@ -80,13 +80,8 @@ public class PayslipServiceImpl implements PayslipService {
                                     .getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE_TYPE)))),
                     HttpStatus.CONFLICT);
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         LocalDate payslipGenerationDate = LocalDate.now();
-
-        List<EmployeeSalaryEntity> entities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
-
-// Always assign the applicable salary (even if future exists)
-
         entity = this.getApplicableSalaryDate(payslipRequest.getCompanyName(), employeeId, payslipGenerationDate);
         if (entity==null){
             log.error("Exception while fetching employee for salary {}", employeeId);
@@ -140,43 +135,31 @@ public class PayslipServiceImpl implements PayslipService {
     public EmployeeSalaryEntity getApplicableSalaryDate(String companyName, String employeeId, LocalDate payslipGenerationDate) throws EmployeeException {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
             List<EmployeeSalaryEntity> entities = openSearchOperations.getEmployeeSalaries(companyName, employeeId);
 
             EmployeeSalaryEntity applicableSalary = null;
             boolean hasFutureActiveSalary = false;
 
-            for (EmployeeSalaryEntity salaryEntity : entities) {
-                LocalDate addedSalaryDate = LocalDate.parse(salaryEntity.getAddedSalaryDate(), formatter);
+            for (EmployeeSalaryEntity entity : entities) {
+                String dateStr = entity.getAddSalaryDate();
+                if (dateStr == null || !EmployeeStatus.ACTIVE.getStatus().equalsIgnoreCase(entity.getStatus())) continue;
 
-                if (addedSalaryDate.isAfter(payslipGenerationDate) &&
-                        salaryEntity.getStatus().equalsIgnoreCase(EmployeeStatus.ACTIVE.getStatus())) {
+                LocalDate addedDate = LocalDate.parse(dateStr, formatter);
+                if (addedDate.isAfter(payslipGenerationDate)) {
                     hasFutureActiveSalary = true;
-                }
-
-                if (!addedSalaryDate.isAfter(payslipGenerationDate) &&
-                        salaryEntity.getStatus().equalsIgnoreCase(EmployeeStatus.ACTIVE.getStatus())) {
-                    if (applicableSalary == null ||
-                            LocalDate.parse(applicableSalary.getAddedSalaryDate(), formatter).isBefore(addedSalaryDate)) {
-                        applicableSalary = salaryEntity;
-                    }
+                } else if (applicableSalary == null ||
+                        LocalDate.parse(applicableSalary.getAddSalaryDate(), formatter).isBefore(addedDate)) {
+                    applicableSalary = entity;
                 }
             }
 
             if (applicableSalary != null && !hasFutureActiveSalary) {
-                LocalDate applicableDate = LocalDate.parse(applicableSalary.getAddedSalaryDate(), formatter);
-
-                if (!applicableDate.isAfter(payslipGenerationDate)) {
-                    for (EmployeeSalaryEntity salaryEntity : entities) {
-                        if (!salaryEntity.getSalaryId().equals(applicableSalary.getSalaryId()) &&
-                                salaryEntity.getStatus().equalsIgnoreCase(EmployeeStatus.ACTIVE.getStatus())) {
-                            salaryEntity.setStatus(EmployeeStatus.INACTIVE.getStatus());
-                            openSearchOperations.saveEntity(
-                                    salaryEntity,
-                                    salaryEntity.getSalaryId(),
-                                    ResourceIdUtils.generateCompanyIndex(companyName)
-                            );
-                        }
+                String applicableId = applicableSalary.getSalaryId();
+                String index = ResourceIdUtils.generateCompanyIndex(companyName);
+                for (EmployeeSalaryEntity e : entities) {
+                    if (EmployeeStatus.ACTIVE.getStatus().equalsIgnoreCase(e.getStatus()) && !e.getSalaryId().equals(applicableId)) {
+                        e.setStatus(EmployeeStatus.INACTIVE.getStatus());
+                        openSearchOperations.saveEntity(e, e.getSalaryId(), index);
                     }
                 }
             }
@@ -188,6 +171,8 @@ public class PayslipServiceImpl implements PayslipService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ERROR_RETRIEVING_SALARY), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     @Override
     public ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException {

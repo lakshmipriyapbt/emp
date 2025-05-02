@@ -367,11 +367,11 @@ public class SalaryServiceImpl implements SalaryService {
 
                 // Split into past and future salaries
                 List<EmployeeSalaryEntity> past = salaryList.stream()
-                        .filter(s -> !LocalDate.parse(s.getAddedSalaryDate(), formatter).isAfter(today))
+                        .filter(s -> !LocalDate.parse(s.getAddSalaryDate(), formatter).isAfter(today))
                         .collect(Collectors.toList());
 
                 List<EmployeeSalaryEntity> future = salaryList.stream()
-                        .filter(s -> LocalDate.parse(s.getAddedSalaryDate(), formatter).isAfter(today))
+                        .filter(s -> LocalDate.parse(s.getAddSalaryDate(), formatter).isAfter(today))
                         .collect(Collectors.toList());
 
                 EmployeeSalaryEntity selectedSalary = null;
@@ -379,12 +379,12 @@ public class SalaryServiceImpl implements SalaryService {
                 if (!future.isEmpty()) {
                     // Future exists → use latest past
                     selectedSalary = past.stream()
-                            .max(Comparator.comparing(s -> LocalDate.parse(s.getAddedSalaryDate(), formatter)))
+                            .max(Comparator.comparing(s -> LocalDate.parse(s.getAddSalaryDate(), formatter)))
                             .orElse(null);
                 } else {
                     // No future → use latest available
                     selectedSalary = salaryList.stream()
-                            .max(Comparator.comparing(s -> LocalDate.parse(s.getAddedSalaryDate(), formatter)))
+                            .max(Comparator.comparing(s -> LocalDate.parse(s.getAddSalaryDate(), formatter)))
                             .orElse(null);
                 }
 
