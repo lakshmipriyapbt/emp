@@ -2,6 +2,7 @@ package com.pb.employee.persistance.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.pb.employee.config.ValidAge;
 import com.pb.employee.request.EmployeeEducation;
 import com.pb.employee.request.EmployeeExperience;
 import jakarta.validation.Valid;

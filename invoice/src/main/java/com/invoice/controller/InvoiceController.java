@@ -1,9 +1,7 @@
 package com.invoice.controller;
 
 import com.invoice.exception.InvoiceException;
-import com.invoice.request.CustomerUpdateRequest;
 import com.invoice.request.InvoiceRequest;
-import com.invoice.request.InvoiceUpdateRequest;
 import com.invoice.service.InvoiceService;
 import com.invoice.util.Constants;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,18 +77,5 @@ public class InvoiceController {
                                              @Parameter(required = true, description = "${api.createInvoicePayload.description}")
                                              @PathVariable String invoiceId, HttpServletRequest request) throws Exception {
         return invoiceService.downloadInvoice(companyId,customerId,invoiceId,request);
-    }
-
-    @PatchMapping("company/{companyId}/customer/{customerId}/invoice/{invoiceId}")
-    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.updateInvoice.tag}", description = "${api.updateInvoice.description}")
-    @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "${api.createInvoicePayload.description}")
-    public ResponseEntity<?> updateInvoice(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                            @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                            @PathVariable String companyId,
-                                            @PathVariable String customerId,
-                                            @PathVariable String invoiceId,
-                                            @RequestBody @Valid InvoiceUpdateRequest updateRequest, HttpServletRequest request) throws InvoiceException, IOException {
-        return invoiceService.updateInvoice(companyId,customerId, invoiceId, updateRequest, request);
     }
 }

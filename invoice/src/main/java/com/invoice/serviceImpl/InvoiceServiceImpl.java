@@ -1,6 +1,5 @@
 package com.invoice.serviceImpl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.invoice.common.ResponseBuilder;
 import com.invoice.config.Config;
 import com.invoice.exception.InvoiceErrorMessageHandler;
@@ -10,19 +9,14 @@ import com.invoice.model.*;
 import com.invoice.opensearch.OpenSearchOperations;
 import com.invoice.repository.CustomerRepository;
 import com.invoice.request.InvoiceRequest;
-import com.invoice.request.InvoiceUpdateRequest;
 import com.invoice.service.InvoiceService;
 import com.invoice.util.*;
 import com.itextpdf.text.DocumentException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import io.swagger.models.auth.In;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -32,6 +26,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -49,9 +44,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Autowired
     private CustomerRepository customerRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private Config config;
@@ -254,58 +246,6 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
-    @Override
-    public ResponseEntity<?> updateInvoice(String companyId, String customerId, String invoiceId, InvoiceUpdateRequest updateRequest, HttpServletRequest request) throws InvoiceException,IOException {
-        log.info("Updating Gst with ID: {}", invoiceId);
-
-        CompanyEntity companyEntity;
-        companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
-        if (companyEntity == null) {
-            log.error("company is not exist with companyId {}", companyId);
-            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.COMPANY_NOT_FOUND),
-                    HttpStatus.NOT_FOUND);
-        }
-
-        String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
-        try {
-
-            CustomerModel customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new InvoiceException(
-                            InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.BAD_REQUEST));
-
-            // Check if the customer belongs to the provided companyId
-            if (!customer.getCompanyId().equals(companyId)) {
-                log.error("Customer ID {} does not belong to company ID {}", customer.getCustomerId(), companyId);
-                throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_ASSOCIATED_WITH_COMPANY), HttpStatus.BAD_REQUEST);
-            }
-
-            InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(index,null,invoiceId);
-            if (invoiceEntity == null) {
-                log.error("Invoice with ID {} not found", invoiceId);
-                throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
-            }
-            BeanUtils.copyProperties(updateRequest, invoiceEntity, getNullPropertyNames(updateRequest));
-
-            InvoiceModel invoiceModelTgt = objectMapper.convertValue(updateRequest, InvoiceModel.class);
-            BeanUtils.copyProperties(invoiceModelTgt, invoiceEntity, getNullPropertyNames(invoiceModelTgt));
-
-                 openSearchOperations.saveEntity(invoiceEntity, invoiceId, index);
-
-
-            log.info("Invoice Gst values updated successfully with ID: {}", customerId);
-            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.UPDATE_SUCCESS), HttpStatus.OK);
-
-        }catch (InvoiceException invoiceException){
-            log.error("Exception while updating the GST Value");
-            throw invoiceException;
-        } catch (Exception e) {
-            log.error("Unexpected error while updating invoice Gst values: {}", e.getMessage(), e);
-            throw new InvoiceException(InvoiceErrorMessageKey.UNABLE_TO_UPDATE_CUSTOMER.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-
-    }
-
     private byte[] generatePdfFromHtml(String html) throws IOException {
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -317,18 +257,6 @@ public class InvoiceServiceImpl implements InvoiceService {
         } catch (DocumentException e) {
             throw new IOException(e.getMessage());
         }
-    }
-
-    private String[] getNullPropertyNames(Object source) {
-        final BeanWrapper src = new BeanWrapperImpl(source);
-        Set<String> emptyNames = new HashSet<>();
-        for (var pd : src.getPropertyDescriptors()) {
-            Object value = src.getPropertyValue(pd.getName());
-            if (value == null) {
-                emptyNames.add(pd.getName());
-            }
-        }
-        return emptyNames.toArray(new String[0]);
     }
 
 }

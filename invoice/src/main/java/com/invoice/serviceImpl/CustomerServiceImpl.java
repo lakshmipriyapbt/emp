@@ -46,7 +46,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
         try {
             // Step 4.1: Generate a unique resource ID for the customer using companyId and customer details
-            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getEmail(),companyId, String.valueOf(System.currentTimeMillis()));
+            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getEmail(),companyId);
 
             // Step 2: Fetch all customers for the given companyId
             List<CustomerModel> customers = repository.findByCompanyId(companyId); // Assuming you have a method to fetch all customers for a company

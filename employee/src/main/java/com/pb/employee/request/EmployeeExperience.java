@@ -1,6 +1,6 @@
 package com.pb.employee.request;
 
-import com.pb.employee.validations.ValidDateRange;
+import com.pb.employee.config.ValidDateRange;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

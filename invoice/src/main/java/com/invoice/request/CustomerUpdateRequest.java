@@ -15,18 +15,6 @@ import lombok.*;
 public class CustomerUpdateRequest {
 
 
-    @NotBlank(message = "{customerName.notnull.message}")
-    @Size(min = 2, max = 100, message = "{customerName.size.message}")
-    private String customerName;
-
-    @NotBlank(message = "{email.notnull.message}")
-    @Email(message = "{email.message}")
-    private String email;
-
-    @NotBlank(message = "{mobileNumber.notnull.message}")
-    @Pattern(regexp = "^(\\+\\d{1,3}[- ]?)?\\d{10,15}$", message = "{mobileNumber.format}")
-    private String mobileNumber;
-
     @NotBlank(message = "{address.notnull.message}")
     @Size(max = 255, message = "{address.size.message}")
     private String address;
