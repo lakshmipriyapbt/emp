@@ -3,6 +3,7 @@ package com.pb.employee.controller;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.InvoiceRequest;
+import com.pb.employee.request.InvoiceUpdateRequest;
 import com.pb.employee.service.InvoiceService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,5 +80,21 @@ public class InvoiceController {
                                              @Parameter(required = true, description = "${api.getInvoicePayload.description}")
                                              @PathVariable String invoiceId,HttpServletRequest request) throws EmployeeException {
         return invoiceService.downloadInvoice(authToken,companyId,customerId,invoiceId,request);
+    }
+
+
+    @PatchMapping("company/{companyId}/customer/{customerId}/invoice/{invoiceId}")
+    @Operation(security = { @SecurityRequirement(name = Constants.AUTH_KEY) },summary = "${api.updateInvoice.tag}", description = "${api.updateInvoice.description}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> downloadInvoice(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                             @Parameter(required = true, description = "${api.getCompanyPayload.description}")
+                                             @PathVariable String companyId,
+                                             @Parameter(required = true, description = "${api.getCustomerPayload.description}")
+                                             @PathVariable String customerId,
+                                             @Parameter(required = true, description = "${api.getInvoicePayload.description}")
+                                             @PathVariable String invoiceId,
+                                             @RequestBody @Valid InvoiceUpdateRequest updateRequest, HttpServletRequest request) throws EmployeeException {
+        return invoiceService.updateInvoice(authToken,companyId,customerId,invoiceId, updateRequest,request);
     }
 }

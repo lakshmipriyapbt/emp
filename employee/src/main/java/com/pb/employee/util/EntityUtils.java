@@ -87,10 +87,7 @@ public class EntityUtils {
         }
     }
 
-    public ResponseEntity<String> sendPatchRequest(
-            String authToken,
-            Object request,
-            String uri) throws WebClientResponseException {
+    public ResponseEntity<String> sendPatchRequest(String authToken, Object request, String uri) throws WebClientResponseException {
 
         try {
             return webClient.patch()
