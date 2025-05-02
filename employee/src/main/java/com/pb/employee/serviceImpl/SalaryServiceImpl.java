@@ -11,7 +11,9 @@ import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
 import com.pb.employee.service.PayslipService;
+import com.pb.employee.request.TDSPayload.TDSResPayload;
 import com.pb.employee.service.SalaryService;
+import com.pb.employee.service.TDSService;
 import com.pb.employee.util.*;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -33,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +57,9 @@ public class SalaryServiceImpl implements SalaryService {
     private Configuration freemarkerConfig;
     @Autowired
     PayslipService payslipService;
+
+    @Autowired
+    private TDSService tdsService;
 
     @Override
     public ResponseEntity<?> addSalary(EmployeeSalaryRequest employeeSalaryRequest, String employeeId) throws EmployeeException {
@@ -104,7 +111,11 @@ public class SalaryServiceImpl implements SalaryService {
                 }
                 for (SalaryConfigurationEntity salaryConfiguration : salaryConfigurationEntity) {
                     if (salaryConfiguration.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
-                        employeesSalaryProperties = CompanyUtils.maskEmployeesSalaryProperties(employeeSalaryRequest, salaryId, employeeId, salaryConfiguration);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        LocalDate salaryDate = LocalDate.parse(employeeSalaryRequest.getAddSalaryDate(), formatter);
+                        int year = salaryDate.getYear();
+                        TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(employeeSalaryRequest.getCompanyName(), String.valueOf(year), employeeSalaryRequest.getTdsType());
+                        employeesSalaryProperties = CompanyUtils.maskEmployeesSalaryProperties(employeeSalaryRequest, salaryId, employeeId, salaryConfiguration, tdsResPayload);
                     }
                 }
 
@@ -123,7 +134,6 @@ public class SalaryServiceImpl implements SalaryService {
             log.error("IOException while saving salary details: {}", exception.getMessage(), exception);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SAVE_SALARY), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
 

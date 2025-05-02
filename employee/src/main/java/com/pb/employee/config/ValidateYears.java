@@ -1,6 +1,7 @@
 package com.pb.employee.config;
 
 import com.pb.employee.persistance.model.TDSEntity;
+import com.pb.employee.request.TDSPayload.TDSCreatePayload;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -8,7 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ValidateYears implements ConstraintValidator<ValidateYearsRange, TDSEntity> {
+public class ValidateYears implements ConstraintValidator<ValidateYearsRange, TDSCreatePayload> {
 
 
     @Override
@@ -17,7 +18,7 @@ public class ValidateYears implements ConstraintValidator<ValidateYearsRange, TD
     }
 
     @Override
-    public boolean isValid(TDSEntity entity, ConstraintValidatorContext context) {
+    public boolean isValid(TDSCreatePayload entity, ConstraintValidatorContext context) {
         if (entity == null) {
             return true;
         }

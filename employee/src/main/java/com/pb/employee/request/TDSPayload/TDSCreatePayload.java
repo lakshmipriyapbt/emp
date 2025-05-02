@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
@@ -27,6 +28,10 @@ public class TDSCreatePayload {
     @NotNull(message = "{endYear.notnull.message}")
     @Pattern(regexp = "^\\d{4}$", message = "{invalid.endYear}")
     private String endYear;
+
+    @Schema(example = "tdsType")
+    @Pattern(regexp = "^(new|old)$", message = "{tdsType.format}")
+    private String tdsType;
 
     @Valid
     private List<TDSPercentageEntity> persentageEntityList;

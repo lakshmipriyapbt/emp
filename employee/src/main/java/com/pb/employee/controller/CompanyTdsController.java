@@ -47,7 +47,7 @@ public class CompanyTdsController {
                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
                                           @PathVariable String companyName,
                                           @PathVariable String id) throws EmployeeException {
-        Collection<TDSResPayload> tds =  tdsService.getCompanyTDS(companyName, id);
+        Collection<TDSResPayload> tds =  tdsService.getCompanyTDS(companyName, id, null);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(tds), HttpStatus.OK);
     }
 
@@ -59,8 +59,8 @@ public class CompanyTdsController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getCompanyTDS(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                            @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                           @PathVariable String companyName) throws EmployeeException {
-        Collection<TDSResPayload> tds =  tdsService.getCompanyTDS(companyName, null);
+                                           @PathVariable String companyName, @RequestParam(required = false) String tdsType) throws EmployeeException {
+        Collection<TDSResPayload> tds =  tdsService.getCompanyTDS(companyName, null, tdsType);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(tds), HttpStatus.OK);
     }
 
@@ -97,8 +97,10 @@ public class CompanyTdsController {
     public ResponseEntity<?> getCompanyYearTDS(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                      @PathVariable String companyName,
-                                                     @PathVariable String year) throws EmployeeException {
-        TDSResPayload tdsResPayload =  tdsService.getCompanyYearTDS(companyName, year);
+                                                     @PathVariable String year,
+                                                     @RequestParam(required = false) String tdsType) throws EmployeeException {
+
+        TDSResPayload tdsResPayload =  tdsService.getCompanyYearTDS(companyName, year, tdsType);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(tdsResPayload), HttpStatus.OK);
     }
 }

@@ -22,9 +22,11 @@ public class EmployeeSalaryEntity implements Entity {
     private String lop;
     private String totalDeductions;
     private String pfTax;
+    private String tdsType;
     private String incomeTax;
     private String totalTax;
     private String status;
+    private String addSalaryDate;
     private String type;
     private String addedSalaryDate;
 
