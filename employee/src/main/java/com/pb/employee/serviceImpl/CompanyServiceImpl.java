@@ -61,6 +61,8 @@ public class CompanyServiceImpl implements CompanyService {
         String resourceId = ResourceIdUtils.generateCompanyResourceId(companyRequest.getCompanyName());
         String index = ResourceIdUtils.generateCompanyIndex(companyRequest.getShortName());
         Object entity = null;
+        String defaultPassword;
+        String password;
         try{
             entity = openSearchOperations.getById(resourceId, null, Constants.INDEX_EMS);
             if(entity != null) {
@@ -111,17 +113,16 @@ public class CompanyServiceImpl implements CompanyService {
                     HttpStatus.CONFLICT);
         }
         try{
-            String defaultPassword = PasswordUtils.generateStrongPassword();
-            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId,defaultPassword);
+            defaultPassword = PasswordUtils.generateStrongPassword();
+            password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
+            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId, password);
             Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, Constants.INDEX_EMS);
         } catch (Exception exception) {
             log.error("Unable to save the company details {} {}", companyRequest.getCompanyName(),exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        String defaultPassword = PasswordUtils.generateStrongPassword();
         openSearchOperations.createIndex(companyRequest.getShortName());
-        String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
         log.info("Creating the employee of company admin");
 
         String employeeAdminId = ResourceIdUtils.generateEmployeeResourceId(companyRequest.getEmailId());

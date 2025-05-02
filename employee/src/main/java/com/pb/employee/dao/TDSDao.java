@@ -13,5 +13,5 @@ public interface TDSDao extends Dao<TDSEntity>{
         return TDSEntity.class;
     }
 
-    Collection<TDSEntity> getCompanyTDS(String companyName, String id, String year, String companyId) throws EmployeeException;
+    Collection<TDSEntity> getCompanyTDS(String companyName, String id, String year, String tdsType, String companyId) throws EmployeeException;
 }

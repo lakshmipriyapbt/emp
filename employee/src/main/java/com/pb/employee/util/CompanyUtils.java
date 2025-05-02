@@ -3,6 +3,7 @@ package com.pb.employee.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
+import com.pb.employee.request.TDSPayload.TDSResPayload;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,6 @@ import java.util.List;
 public class CompanyUtils {
 
     public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword) {
-        String password = Base64.getEncoder().encodeToString(defaultPassword.toString().getBytes());
         String hra = null, pan = null, pf = null, spa = null, ta = null, regNo = null, mobileNo=null, landNo= null, gstNo=null, cinNo=null, pmNo=null, psmailId=null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -73,7 +73,7 @@ public class CompanyUtils {
         }
 
         entity.setId(id);
-        entity.setPassword(password);
+        entity.setPassword(defaultPassword);
         entity.setType(Constants.COMPANY);
         return entity;
     }
@@ -708,7 +708,7 @@ public class CompanyUtils {
 //        }
 //    }
 
-    public static EmployeeSalaryEntity maskEmployeesSalaryProperties(EmployeeSalaryRequest salaryRequest, String id, String employeeId, SalaryConfigurationEntity salaryConfigurationEntity) {
+    public static EmployeeSalaryEntity maskEmployeesSalaryProperties(EmployeeSalaryRequest salaryRequest, String id, String employeeId, SalaryConfigurationEntity salaryConfigurationEntity, TDSResPayload tdsResPayload) {
 
         String fix = null, gross = null, var= null, basic= null, net = null, te=null, totalDed=null, pfTax= null, incomeTax=null, ttax=null;
 
@@ -725,10 +725,8 @@ public class CompanyUtils {
             var= (Base64.getEncoder().encodeToString(salaryRequest.getVariableAmount().toString().getBytes()));
             entity.setVariableAmount(var);
         }
-        if (salaryRequest.getIncomeTax().equals(Constants.NEW)){
-            incomeTax = String.valueOf(TaxCalculatorUtils.getNewTax(Double.parseDouble(salaryRequest.getGrossAmount())));
-        }else if(salaryRequest.getIncomeTax().equals(Constants.OLD)){
-            incomeTax = String.valueOf(TaxCalculatorUtils.getOldTax(Double.parseDouble(salaryRequest.getGrossAmount())));
+        if (salaryRequest.getTdsType() != null){
+            incomeTax = String.valueOf(TaxCalculatorUtils.getTax(Double.parseDouble(salaryRequest.getGrossAmount()), tdsResPayload));
         }
         if (salaryRequest.getGrossAmount() != null) {
             pfTax  = String.valueOf(TaxCalculatorUtils.getPfTax(Double.parseDouble(salaryRequest.getGrossAmount())));

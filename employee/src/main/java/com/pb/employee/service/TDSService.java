@@ -12,7 +12,7 @@ public interface TDSService {
     ResponseEntity<?> createCompanyTDS(String companyName, TDSCreatePayload createPayload)
             throws EmployeeException;
 
-    Collection<TDSResPayload> getCompanyTDS(String companyName, String id)
+    Collection<TDSResPayload> getCompanyTDS(String companyName, String id, String tdsType)
             throws EmployeeException;
 
     ResponseEntity<?> updateCompanyTDS(String companyName, String id, TDSUpdatePayload updatePayload)
@@ -20,6 +20,6 @@ public interface TDSService {
 
     void deleteCompanyTDS(String companyName, String calendarId) throws EmployeeException;
 
-    TDSResPayload getCompanyYearTDS(String companyName, String year)
+    TDSResPayload getCompanyYearTDS(String companyName, String year, String tdsType)
             throws EmployeeException;
 }

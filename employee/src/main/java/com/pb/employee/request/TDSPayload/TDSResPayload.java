@@ -30,6 +30,9 @@ public class TDSResPayload {
     @JsonProperty("endYear")
     private String endYear;
 
+    @JsonProperty("tdsType")
+    private String tdsType;
+
     private List<TDSPercentageEntity> persentageEntityList;
 
     @JsonProperty("type")
