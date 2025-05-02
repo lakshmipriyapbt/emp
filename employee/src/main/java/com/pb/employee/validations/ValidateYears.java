@@ -1,11 +1,9 @@
-package com.pb.employee.config;
+package com.pb.employee.validations;
 
-import com.pb.employee.persistance.model.TDSEntity;
 import com.pb.employee.request.TDSPayload.TDSCreatePayload;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 

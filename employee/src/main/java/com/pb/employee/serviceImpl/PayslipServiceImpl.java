@@ -89,11 +89,11 @@ public class PayslipServiceImpl implements PayslipService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        if (!entity.getEmployeeId().equals(employeeId)) {
-            log.error("Employee ID mismatch for salary {}: expected {}, found", salaryId, employeeId);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_MATCHING),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+//        if (!entity.getEmployeeId().equals(employeeId)) {
+//            log.error("Employee ID mismatch for salary {}: expected {}, found", salaryId, employeeId);
+//            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_MATCHING),
+//                    HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
         if (entity.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
             log.error("Employee{} Salary {}: is inActive", salaryId, employeeId);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.SALARY_INACTIVE),
