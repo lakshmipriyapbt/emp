@@ -77,8 +77,8 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.BACKGROUND, companyName,employeeId);
 
     }
-    public static String generateCompanyTDSId(String companyName, String startYear, String endYear) {
-        return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear);
+    public static String generateCompanyTDSId(String companyName, String startYear, String endYear, String tdsType) {
+        return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
 
     }
     /**

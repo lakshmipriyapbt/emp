@@ -21,7 +21,7 @@ public class TDSDaoImpl extends AbstractDao<TDSEntity>  implements TDSDao {
         super(repository);
     }
 
-    public Collection<TDSEntity> getCompanyTDS(String companyName, String id, String year, String companyId) throws EmployeeException {
+    public Collection<TDSEntity> getCompanyTDS(String companyName, String id, String year, String tdsType, String companyId) throws EmployeeException {
         Collection<Filter> filters = new ArrayList<>();
         if (StringUtils.isNotBlank(companyName)) {
             filters.add(new Filter(Constants.COMPANY_ID, Operator.EQ, companyId));
@@ -31,6 +31,9 @@ public class TDSDaoImpl extends AbstractDao<TDSEntity>  implements TDSDao {
         }
         if (StringUtils.isNotBlank(year)) {
             filters.add(new Filter(Constants.START_YEAR, Operator.EQ, year));
+        }
+        if (StringUtils.isNotBlank(tdsType)) {
+            filters.add(new Filter(Constants.TDS_TYPE, Operator.EQ, tdsType));
         }
         return search(filters, companyName);
     }

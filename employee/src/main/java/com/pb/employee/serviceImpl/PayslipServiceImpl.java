@@ -10,7 +10,9 @@ import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.EmployeeStatus;
 import com.pb.employee.request.PayslipRequest;
 import com.pb.employee.request.PayslipUpdateRequest;
+import com.pb.employee.request.TDSPayload.TDSResPayload;
 import com.pb.employee.service.PayslipService;
+import com.pb.employee.service.TDSService;
 import com.pb.employee.util.*;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -41,6 +43,8 @@ public class PayslipServiceImpl implements PayslipService {
 
     @Autowired
     private EmailUtils emailUtils;
+    @Autowired
+    private TDSService tdsService;
 
     @Override
     public ResponseEntity<?> generatePaySlip(PayslipRequest payslipRequest, String salaryId, String employeeId,HttpServletRequest request) throws EmployeeException, IOException {
@@ -102,7 +106,8 @@ public class PayslipServiceImpl implements PayslipService {
                 log.error("Employee Attendance is not found for the employee {}", ref.employee.getEmployeeId());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_ATTENDANCE_FOUND), HttpStatus.NOT_FOUND);
             }
-            PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(entity, payslipRequest, paySlipId, employeeId, attendance);
+            TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendance.getYear(), entity.getTdsType());
+            PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(entity, payslipRequest, paySlipId, employeeId, attendance, tdsResPayload);
             PayslipUtils.forFormatNumericalFields(payslipProperties);
             DepartmentEntity departmentEntity =null;
             DesignationEntity designationEntity = null;
@@ -209,8 +214,9 @@ public class PayslipServiceImpl implements PayslipService {
 
                             if (salaryConfig.getId().equals(salary.getSalaryConfigurationEntity().getId())) {
 
+                                TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntities.getYear(), salary.getTdsType());
                                 // Create payslip based on active salary and salary configuration
-                                PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities);
+                                PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntities, tdsResPayload);
 
                                 DepartmentEntity departmentEntity = null;
                                 DesignationEntity designationEntity = null;
@@ -784,7 +790,8 @@ public class PayslipServiceImpl implements PayslipService {
                 List<PayslipEntity> payslipPropertiesList = new ArrayList<>();
                 for (EmployeeSalaryEntity salary : salaryEntities) {
                     if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
-                        PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntity);
+                        TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntity.getYear(), salary.getTdsType());
+                        PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntity, tdsResPayload);
                         assert designationEntity != null;
                         payslipProperties.setDesignation(designationEntity.getName());
                         payslipProperties.setDepartment(departmentEntity.getName());

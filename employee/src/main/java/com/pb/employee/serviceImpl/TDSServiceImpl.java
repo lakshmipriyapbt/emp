@@ -45,13 +45,13 @@ public class TDSServiceImpl implements TDSService {
     public ResponseEntity<?> createCompanyTDS(String companyName, TDSCreatePayload createPayload)
             throws EmployeeException {
         try {
-            String resourceId = ResourceIdUtils.generateCompanyTDSId(companyName, createPayload.getStartYear(), createPayload.getEndYear());
+            String resourceId = ResourceIdUtils.generateCompanyTDSId(companyName, createPayload.getStartYear(), createPayload.getEndYear(), createPayload.getTdsType());
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null){
                 log.error("Exception while fetching the company calendar details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            Collection<TDSResPayload> tds = this.getCompanyTDS(companyName, resourceId);
+            Collection<TDSResPayload> tds = this.getCompanyTDS(companyName, resourceId, null);
             if (!tds.isEmpty()){
                 log.error("Company tds details is already exist");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_TDS_ALREADY_EXIST), HttpStatus.FORBIDDEN);
@@ -74,7 +74,7 @@ public class TDSServiceImpl implements TDSService {
     }
 
     @Override
-    public Collection<TDSResPayload> getCompanyTDS(String companyName, String id)
+    public Collection<TDSResPayload> getCompanyTDS(String companyName, String id, String tdsType)
             throws EmployeeException {
         try {
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
@@ -83,7 +83,7 @@ public class TDSServiceImpl implements TDSService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
             log.debug("Getting Company TDS by companyName: {}", companyName);
-            Collection<TDSEntity> tds = dao.getCompanyTDS(companyName, id, null, companyEntity.getId());
+            Collection<TDSEntity> tds = dao.getCompanyTDS(companyName, id, null, tdsType, companyEntity.getId());
             Collection<TDSResPayload> tdsResPayloadCollections = tds.stream()
                     .map(entity -> objectMapper.convertValue(entity, TDSResPayload.class))
                     .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class TDSServiceImpl implements TDSService {
                     log.error("Exception while fetching the company calendar details");
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
                 }
-                Collection<TDSResPayload> companyTDSEntities = this.getCompanyTDS(companyName, id);
+                Collection<TDSResPayload> companyTDSEntities = this.getCompanyTDS(companyName, id, null);
                 if (Objects.isNull(companyTDSEntities) || companyTDSEntities.isEmpty()) {
                     log.error("Company TDS does not existed for id {}", id);
                     throw new RuntimeException();
@@ -133,7 +133,7 @@ public class TDSServiceImpl implements TDSService {
     }
 
     @Override
-    public void deleteCompanyTDS(String companyName, String calendarId) throws EmployeeException {
+    public void deleteCompanyTDS(String companyName, String id) throws EmployeeException {
         log.debug("validating id: {}  existed ", companyName);
         try {
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
@@ -141,21 +141,21 @@ public class TDSServiceImpl implements TDSService {
                 log.error("Exception while fetching the company details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            Collection<TDSResPayload> tdsResPayloads = this.getCompanyTDS(companyName, calendarId);
+            Collection<TDSResPayload> tdsResPayloads = this.getCompanyTDS(companyName, id, null);
             if (Objects.isNull(tdsResPayloads) || tdsResPayloads.isEmpty()) {
-                log.error("Company tds not existed for id: {}", calendarId);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_TDS_NOT_FOUND), calendarId),
+                log.error("Company tds not existed for id: {}", id);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_TDS_NOT_FOUND), id),
                         HttpStatus.BAD_REQUEST);
             }
-            dao.delete(calendarId, companyName);
-            log.info("The company tds with id: {} got deleted successfully", calendarId);
+            dao.delete(id, companyName);
+            log.info("The company tds with id: {} got deleted successfully", id);
         } catch (EmployeeException e) {
             throw new EmployeeException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
-    public TDSResPayload getCompanyYearTDS(String companyName, String year)
+    public TDSResPayload getCompanyYearTDS(String companyName, String year, String tdsType)
             throws EmployeeException {
          TDSResPayload tdsResPayload;
         try {
@@ -165,7 +165,7 @@ public class TDSServiceImpl implements TDSService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
             log.debug("Getting Company TDS by companyName: {}, year: {}", companyName, year);
-            Collection<TDSEntity> tds = dao.getCompanyTDS(companyName, null, year, companyEntity.getId());
+            Collection<TDSEntity> tds = dao.getCompanyTDS(companyName, null, year, tdsType, companyEntity.getId());
 
             tdsResPayload = objectMapper.convertValue(dao.get(tds.stream().findFirst().get().getId(), companyName).orElseThrow(), TDSResPayload.class);
         } catch (Exception e) {
