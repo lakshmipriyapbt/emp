@@ -821,8 +821,8 @@ public class PayslipServiceImpl implements PayslipService {
 
                 // Generate and save payslip using only applicableSalary
                 if (applicableSalary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
-                    PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(
-                            applicableSalary, payslipRequest, paySlipId, employee.getId(), attendanceEntity);
+                    TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntity.getYear(),applicableSalary.getTdsType());
+                    PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(applicableSalary, payslipRequest, paySlipId, employee.getId(), attendanceEntity,tdsResPayload);
                     assert designationEntity != null;
                     payslipProperties.setDesignation(designationEntity.getName());
                     payslipProperties.setDepartment(departmentEntity.getName());
