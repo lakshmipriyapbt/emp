@@ -85,15 +85,17 @@ export const NAV_CONFIG = {
             title: 'Settings',
             icon: 'gear', // ⚙️
             items: [
-                { title: 'Company Salary Structure', path: '/companySalaryView' },
-                { title: 'Bank Details', path: '/accountsView' },
-                { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
+                { title: 'Bank Details', path: '/accountsView' },
+                { title: 'Calendar', path:'/HrCalendar'},
+                { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
-                { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Offer Letter Templates', path: '/offerLetters' },
+                { title: 'Relieving Template', path: '/relievingTemplates' },
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+
             ]
         }
     ],
@@ -118,6 +120,11 @@ export const NAV_CONFIG = {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people'
+        },
+        {
+            title:'Calendar',
+            path:'/HrCalendar',
+            icon:'calendar'
         },
         {
             title: 'Letters',

@@ -1,106 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
+import { Modal, Button } from "react-bootstrap";
 
-const Calendar = ({ currentMonth, setCurrentMonth, currentYear, setCurrentYear, events }) => {
-  const today = new Date();
-  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
+const Calendar = ({ events, year, month }) => {
+  const [selectedDateEvents, setSelectedDateEvents] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
 
-  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
 
-  const goToPrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
+  const handleDateClick = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const matchedEvents = events.filter(e => e.calendarDate === dateStr);
+    setSelectedDateEvents(matchedEvents);
+    setSelectedDate(dateStr);
+    setShowModal(true);
   };
 
-  const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
+  const calendarCells = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    calendarCells.push(<div key={`empty-${i}`} className="border p-3" />);
+  }
 
-  const generateCalendar = () => {
-    const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-    const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
-    const calendarCells = [];
-    for (let i = 0; i < firstDay; i++) {
-      calendarCells.push(<td key={`empty-${i}`}></td>);
-    }
-    for (let day = 1; day <= daysInMonth; day++) {
-      const fullDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const event = events.find((e) => e.calendarDate === fullDate);
-      calendarCells.push(
-        <td key={day} className={event ? `bg-${event.color} text-white` : ""}>
-          {day}
-          {event && <div>{event.title}</div>}
-        </td>
-      );
-    }
-    const rows = [];
-    for (let i = 0; i < calendarCells.length; i += 7) {
-      rows.push(<tr key={i}>{calendarCells.slice(i, i + 7)}</tr>);
-    }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const dayEvents = events.filter(e => e.calendarDate === dateStr);
 
-    return rows;
-  };
+    calendarCells.push(
+      <div key={day} className="border p-2" style={{ cursor: "pointer", minHeight:"80px" }} onClick={() => handleDateClick(day)}>
+        <div className="fw-bold">{day}</div>
+        {dayEvents.map((ev, i) => (
+          <div key={i} className={`badge bg-${ev.color} mt-1 d-block text-white`}>{ev.title}</div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <button className="btn btn-outline-primary" onClick={goToPrevMonth}>❮ Prev</button>
-        <div className="d-flex align-items-center gap-2">
-  <select
-    className="form-select"
-    value={currentMonth}
-    onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
-  >
-    {monthNames.map((month, index) => (
-      <option key={index} value={index}>
-        {month}
-      </option>
-    ))}
-  </select>
-
-  <select
-    className="form-select"
-    value={currentYear}
-    onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-  >
-    {Array.from({ length: 20 }, (_, i) => {
-      const year = new Date().getFullYear() - 10 + i;
-      return (
-        <option key={year} value={year}>
-          {year}
-        </option>
-      );
-    })}
-  </select>
-</div>
-
-        <button className="btn btn-outline-primary" onClick={goToNextMonth}>Next ❯</button>
+    <div>
+      <div className="d-grid mb-3" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+          <div className="fw-bold text-center" key={d}>{d}</div>
+        ))}
+        {calendarCells}
       </div>
 
-      <table className="table table-bordered text-center">
-        <thead className="table-light">
-          <tr>
-            {daysOfWeek.map((day) => (
-              <th key={day}>{day}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>{generateCalendar()}</tbody>
-      </table>
-    </>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Events on {selectedDate}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedDateEvents.length ? selectedDateEvents.map((e, i) => (
+            <div key={i} className={`alert alert-${e.color}`}>{e.title}</div>
+          )) : <p>No events on this date.</p>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
   );
 };
 

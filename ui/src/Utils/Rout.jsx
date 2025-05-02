@@ -78,6 +78,7 @@ import AddTaxSlab from '../CompanyModule/TaxSlab/AddTaxSlab';
 import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
+import GetCalendar from '../Calender/GetCalendar';
 
 
 export const allAvailableRoutes = [
@@ -129,6 +130,7 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate2', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/HrCalendar', allowedTypes: ['company_admin','HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -140,7 +142,10 @@ export const allAvailableRoutes = [
   {path: '/payslipDoc1', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc2', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc3', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
-  {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
+  {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/calendar', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/getcalendar', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/tds', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
 ];
 
 const Routing = () => {
@@ -349,7 +354,10 @@ const Routing = () => {
         path="/payslipUpdate4"
         element={<ProtectedRoute element={<PayslipUpdate4/>} allowedTypes={['company_admin', 'HR']} />}
       />
-
+      <Route
+        path="/HrCalendar"
+        element={<ProtectedRoute element={<HRCalendar/>} allowedTypes={['company_admin', 'HR']} />}
+      />
 
       {/* Company Admin & Accountant shared routes */}
       <Route
@@ -406,7 +414,18 @@ const Routing = () => {
         path="/payslipDoc4"
         element={<ProtectedRoute element={<PayslipDoc4/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
       />
-    
+       <Route
+        path="/getcalendar"
+        element={<ProtectedRoute element={<GetCalendar/>} allowedTypes={['company_admin', 'HR','employee', 'Accountant']} />}
+      />
+       <Route
+        path="/calendar"
+        element={<ProtectedRoute element={<Calender/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+       <Route 
+       path='/taxSlab'
+       element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin','HR','employee', 'Accountant']}/> }
+       />
     </Routes>
   );
 };

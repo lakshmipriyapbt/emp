@@ -1067,4 +1067,44 @@ export const InvoiceDownloadById = async (companyId, customerId, invoiceId) => {
   }
 };
 
+export const calendarPostAPI=async (data)=>{
+  const company = localStorage.getItem("companyName")
+    try {
+    const response = await axiosInstance.post(`/company/${company}/calendar`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }  
+}
 
+export const CalendarGetApi=()=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar`);
+}
+
+export const CalendarGetApiById=(id)=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar/${id}`);
+}
+
+export const TodayCalendarGetApi=()=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar/today`);
+}
+
+export const calendarPatchAPIById=async (data)=>{
+  const company = localStorage.getItem("companyName")
+    try {
+    const response = await axiosInstance.post(`/company/${company}/calendar`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }  
+}
+
+export const CalendarDeleteByIdApi = async (id) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar/${id}`);
+};

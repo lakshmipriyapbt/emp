@@ -95,7 +95,6 @@ const SideNav = () => {
         });
       }
     });
-    console.log('SideNav Items:', roleItems);
     return roleItems;
   }, [userRole]);
   

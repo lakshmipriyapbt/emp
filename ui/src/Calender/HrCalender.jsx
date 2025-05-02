@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import Calendar from "./Calender";
+import React, { useState, useEffect } from "react";
 import LayOut from "../LayOut/LayOut";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import { calendarPostAPI, calendarPatchAPIById } from "../Utils/Axios";
+import Calendar from "./Calender";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCalendarData } from "../Redux/CalendarSlice";
 
 const HRCalendar = () => {
   const { register, handleSubmit, reset, setValue } = useForm();
@@ -12,64 +14,112 @@ const HRCalendar = () => {
   const [events, setEvents] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
 
-  const onAddEvent = (data) => {
-    const { title, day, month, year, color } = data;
+  const dispatch = useDispatch();
+  const { data } = useSelector((state) => state.calendar);
+
+  useEffect(() => {
+    dispatch(fetchCalendarData());
+  }, [dispatch]);
+
+  useEffect(() => {
+    console.log("📦 Redux calendar state:", data); // ✅ Debug Redux data
+    if (Array.isArray(data)) {
+      const matchedCompanyCalendar = data.find((entry) => entry.year === String(currentYear));
+      console.log("✅ Matched Year Entry:", matchedCompanyCalendar); // ✅ Debug matching entry
+      if (matchedCompanyCalendar?.dateEntityList) {
+        const loadedEvents = [];
+
+        matchedCompanyCalendar.dateEntityList.forEach(({ month, holidaysEntities }) => {
+          holidaysEntities.forEach(({ event, date, theme }) => {
+            const formattedDate = `${String(date).padStart(2, "0")}-${month}-${matchedCompanyCalendar.year}`;
+            const calendarDate = `${matchedCompanyCalendar.year}-${month}-${String(date).padStart(2, "0")}`;
+            loadedEvents.push({ title: event, date: formattedDate, calendarDate, color: theme });
+          });
+        });
+        console.log("📆 Events loaded for calendar:", loadedEvents); // ✅ Debug processed events
+        setEvents(loadedEvents); // Load from API
+      }
+    }
+  }, [data, currentYear]);
+
+  const onAddEvent = (formData) => {
+    const { title, day, month, year, color } = formData;
     const formattedDate = `${String(day).padStart(2, "0")}-${String(Number(month) + 1).padStart(2, "0")}-${year}`;
     const calendarDate = `${year}-${String(Number(month) + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const newEvent = { title, date: formattedDate, calendarDate, color };
 
-    const newEvent = {
-      title,
-      date: formattedDate,
-      calendarDate,
-      color,
-    };
-    console.log("Updated events:", events); // Log events after adding/editing
     if (editIndex !== null) {
-      const updatedEvents = [...events];
-      updatedEvents[editIndex] = newEvent;
-      setEvents(updatedEvents);
+      const updated = [...events];
+      updated[editIndex] = newEvent;
+      setEvents(updated);
       setEditIndex(null);
-      console.log("events",events)
     } else {
       setEvents([...events, newEvent]);
     }
 
-    reset(); // Clear form
+    reset();
   };
 
   const onSubmitAll = async () => {
-    const groupedByMonth = events.reduce((acc, event) => {
+    // Group events by month
+    const grouped = events.reduce((acc, event) => {
       const [day, month, year] = event.date.split("-");
-      const dateObj = new Date(`${year}-${month}-${day}`);
-      const monthName = dateObj.toLocaleString("default", { month: "long" });
-
-      if (!acc[monthName]) acc[monthName] = [];
-
-      acc[monthName].push({
-        event: event.title,
-        theme: event.color,
-        date: day, // only dd
-      });
-
+      const monthNum = String(Number(month)).padStart(2, "0");
+  
+      if (!acc[monthNum]) acc[monthNum] = [];
+      acc[monthNum].push({ event: event.title, theme: event.color, date: day });
+  
       return acc;
     }, {});
-
+  
+    // Prepare the payload for API
     const payload = {
       year: String(currentYear),
-      dateEntityList: Object.entries(groupedByMonth).map(([month, holidays]) => ({
+      dateEntityList: Object.entries(grouped).map(([month, holidays]) => ({
         month,
         holidaysEntities: holidays,
       })),
     };
-
+  
     try {
-      const res = await axios.post("https://your-api-endpoint.com/calendar", payload);
-      console.log("Response:", res.data);
-      alert("Submitted Successfully!");
-    } catch (error) {
-      console.error("Submission Error:", error);
-      alert("Failed to submit!");
+      // Check if the year already exists in the calendar data
+      const existingEntry = Array.isArray(data)
+        ? data.find(entry => entry.year === String(currentYear))
+        : null;
+  
+      if (existingEntry) {
+        // If year exists, PATCH the data
+        const updatedPayload = {
+          ...payload,
+          id: existingEntry.id, // Ensure you have the ID from getAPI
+          type: "company_calendar",
+        };
+  
+        await calendarPatchAPIById(updatedPayload);
+        alert("✅ Updated existing calendar successfully!");
+      } else {
+        // If year doesn't exist, POST a new entry
+        await calendarPostAPI(payload);
+        alert("✅ Created new calendar successfully!");
+      }
+  
+      // Refresh the calendar data after submit
+      dispatch(fetchCalendarData());
+    } catch (err) {
+      console.error("❌ Submit failed:", err);
+      alert("❌ Submit failed!");
     }
+  };  
+
+  const handleEdit = (index) => {
+    const { title, date, color } = events[index];
+    const [day, month, year] = date.split("-");
+    setValue("title", title);
+    setValue("day", day);
+    setValue("month", parseInt(month) - 1);
+    setValue("year", year);
+    setValue("color", color);
+    setEditIndex(index);
   };
 
   const handleDelete = (index) => {
@@ -78,109 +128,59 @@ const HRCalendar = () => {
     setEvents(updated);
   };
 
-  const handleEdit = (index) => {
-    const event = events[index];
-    const [day, month, year] = event.date.split("-");
-    setValue("title", event.title);
-    setValue("day", day);
-    setValue("month", parseInt(month) - 1); // since value was index
-    setValue("year", year);
-    setValue("color", event.color);
-    setEditIndex(index);
-  };
-
-  const bootstrapColors = [
-    "primary", "secondary", "success", "danger",
-    "warning", "info", "light", "dark"
-  ];
-
   return (
     <LayOut>
-      <div className="container my-4">
-        <div className="card p-4">
-          <h4 className="mb-4">HR Event/Holiday Calendar</h4>
+      <div className="container mt-4">
+        <h3>HR Calendar Management</h3>
+        <form onSubmit={handleSubmit(onAddEvent)} className="mb-4 row g-2">
+          <div className="col-md-2">
+            <input {...register("title")} placeholder="Event Title" className="form-control" required />
+          </div>
+          <div className="col-md-2">
+            <input {...register("day")} placeholder="Day" type="number" min="1" max="31" className="form-control" required />
+          </div>
+          <div className="col-md-2">
+            <select {...register("month")} className="form-select">
+              {Array.from({ length: 12 }, (_, i) => (
+                <option value={i} key={i}>{new Date(0, i).toLocaleString("default", { month: "long" })}</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-2">
+            <input {...register("year")} placeholder="Year" defaultValue={currentYear} className="form-control" required />
+          </div>
+          <div className="col-md-2">
+            <select {...register("color")} className="form-select">
+              <option value="primary">Primary</option>
+              <option value="success">Success</option>
+              <option value="danger">Danger</option>
+              <option value="warning">Warning</option>
+              <option value="info">Info</option>
+            </select>
+          </div>
+          <div className="col-md-2">
+            <button type="submit" className="btn btn-primary w-100">{editIndex !== null ? "Update" : "Add Event"}</button>
+          </div>
+        </form>
 
-          <form onSubmit={handleSubmit(onAddEvent)} className="row g-3 mb-4">
-            <div className="col-md-3">
-              <label className="form-label">Event Name</label>
-              <input type="text" className="form-control" {...register("title", { required: true })} />
-            </div>
-            <div className="col-md-1">
-              <label className="form-label">Day</label>
-              <input type="number" min="1" max="31" className="form-control" {...register("day", { required: true })} />
-            </div>
-            <div className="col-md-2">
-              <label className="form-label">Month</label>
-              <select className="form-select" {...register("month")}>
-                {[
-                  "January", "February", "March", "April", "May", "June",
-                  "July", "August", "September", "October", "November", "December"
-                ].map((month, idx) => (
-                  <option key={month} value={idx}>{month}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <label className="form-label">Year</label>
-              <select className="form-select" {...register("year")}>
-                {Array.from({ length: 50 }, (_, i) => 2000 + i).map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2">
-              <label className="form-label">Color</label>
-              <select className="form-select" {...register("color")}>
-                {bootstrapColors.map((color) => (
-                  <option key={color} value={color}>{color}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-2 d-flex align-items-end">
-              <button type="submit" className="btn btn-success w-100">
-                {editIndex !== null ? "Update" : "Add"}
-              </button>
-            </div>
-          </form>
-           <hr/>
-          <div>
-            <h5>Event List</h5>
-            {events.length === 0 ? (
-              <p>No events added yet.</p>
-            ) : (
-                <>
-              <ul className="list-group">
-                {events.map((event, index) => (
-                  <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    <span className={`bg-${event.color}`}>
-                      <strong>{event.title}</strong> — {event.date}
-                    </span>
-                    <span>
-                      <button className="btn btn-sm btn-primary me-2" onClick={() => handleEdit(index)}>Edit</button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(index)}>Delete</button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-               <div className="text-end mt-3">
-               <button className="btn btn-warning" onClick={onSubmitAll}>
-                 Submit All Events to API
-               </button>
-             </div>
-             </>
-            )}
-          </div>
-            <hr/>
-          <div className="mt-4">
-            <Calendar
-              currentMonth={currentMonth}
-              currentYear={currentYear}
-              setCurrentMonth={setCurrentMonth}
-              setCurrentYear={setCurrentYear}
-              events={events}
-            />
-          </div>
+        <div className="mb-4">
+          <Calendar year={currentYear} month={currentMonth} events={events} />
         </div>
+
+        <h5>Events List</h5>
+        <ul className="list-group mb-3">
+          {events.map((event, index) => (
+            <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+              <span><strong>{event.title}</strong> on {event.date} <span className={`badge bg-${event.color} ms-2`}>{event.color}</span></span>
+              <div>
+                <button className="btn btn-sm btn-info me-2" onClick={() => handleEdit(index)}>Edit</button>
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(index)}>Delete</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <button className="btn btn-success" onClick={onSubmitAll}>Submit Calendar</button>
       </div>
     </LayOut>
   );
