@@ -15,6 +15,7 @@ public enum ResourceType {
     EMS_ADMIN("ems_admin"),
     COMPANY("company"),
     EMPLOYEE("employee"),
+    USER("user"),
     DEPARTMENT("department"),
     DESIGNATION("designation"),
     ATTENDANCE("attendance"),
@@ -26,7 +27,8 @@ public enum ResourceType {
     BANK("bank_details"),
     BACKGROUND("background_details"),
     EMPLOYEE_PERSONNEL("employee-personnel"),
-    COMPANY_CALENDAR("company_calendar");
+    COMPANY_CALENDAR("company_calendar"),
+    COMPANY_TDS("company_tds");
 
 
 

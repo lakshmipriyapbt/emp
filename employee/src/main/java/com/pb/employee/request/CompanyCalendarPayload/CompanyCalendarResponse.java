@@ -21,6 +21,11 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CompanyCalendarResponse {
 
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("companyId")
+    private String companyId;
 
     @JsonProperty("year")
     private String year;

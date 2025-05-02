@@ -39,6 +39,7 @@ public class Constants {
     public static final String EMPLOYEE_TYPE = "CompanyAdmin";
     public static final String EMPLOYEE_NAME = "EmployeeName";
     public static final String EMPLOYEE = "employee";
+    public static final String USER="user";
     public static final String SUCCESS = "success";
     public static final String USED_PASSWORD = "Used Password";
 
@@ -181,9 +182,14 @@ public class Constants {
     public static final String SINGLE_EMPLOYEE_ATTENDANCE_DETAILS = "singleEmployeeAttendance.ftl";
     public static final String LOGIN = "login";
     public static final String ON_BOARDING = "Onboarding";
+    public static final String DEPARTMENT_ID = "departmentId";
     public static final String COMPANY_CALENDAR = "company_calendar";
     public static final String BIRTHDAY_WISH = "Happy Birthday!";
     public static final String WELCOME_WISH = "Welcome Onboard!";
     public static final String HAPPY = "Happy";
     public static final String ANNIVERSARY = "Anniversary";
+    public static final String DIALCODES="DialCodes.txt";
+    public static final String COMPANY_TDS = "company_tds";
+    public static final String START_YEAR = "startYear";
+    public static final String TDS_TYPE = "tdsType";
 }

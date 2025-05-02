@@ -55,7 +55,7 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
             }
             Collection<CompanyCalendarEntity> calendarEntities = this.getCompanyCalender(companyName, resourceId);
             if (!calendarEntities.isEmpty()){
-                    log.error("Company calendar details is already exist");
+                log.error("Company calendar details is already exist");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_CALENDAR_ALREADY_EXIST), HttpStatus.FORBIDDEN);
             }
             CompanyCalendarEntity calendarEntity = objectMapper.convertValue(createPayload, CompanyCalendarEntity.class);
@@ -97,8 +97,6 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
         try {
             log.debug("validating id {}  existence ", id);
             CompanyCalendarEntity companyCalendarEntity = null;
-            String index = ResourceIdUtils.generateCompanyIndex(companyName);
-
             try {
                 CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
                 if (companyEntity == null){
@@ -111,7 +109,7 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
                     throw new RuntimeException();
                 }
 
-                companyCalendarEntity = dao.get(companyCalendarEntities.stream().findFirst().get().getId(), index).orElseThrow();
+                companyCalendarEntity = dao.get(companyCalendarEntities.stream().findFirst().get().getId(), companyName).orElseThrow();
             } catch (EmployeeException e) {
                 log.error("Unable to get the company calendar for id {}", id);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_CALENDAR_NOT_FOUND), id),
@@ -121,7 +119,7 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
             try {
                 CompanyCalendarEntity calendarSrc = objectMapper.convertValue(updatePayload, CompanyCalendarEntity.class);
                 BeanUtils.copyProperties(calendarSrc, companyCalendarEntity, getNullPropertyNames(calendarSrc));
-                dao.save(calendarSrc, index);
+                dao.save(calendarSrc, companyName);
             } catch (Exception exception) {
                 log.error("Unable to update the company calendar details for id {} with the reason of {}", id, exception.getMessage());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPDATE_COMPANY_CALENDAR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -136,20 +134,19 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
     public void deleteCompanyCalendar(String companyName, String calendarId) throws EmployeeException {
         log.debug("validating id: {}  existed ", companyName);
         try {
-            String index = ResourceIdUtils.generateCompanyIndex(companyName);
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null){
                 log.error("Exception while fetching the company calendar details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            Collection<CompanyCalendarEntity> equipmentResPayloads = this.getCompanyCalender(companyName, calendarId);
-            if (Objects.isNull(equipmentResPayloads) || equipmentResPayloads.isEmpty()) {
+            Collection<CompanyCalendarEntity> calendarResPayloads = this.getCompanyCalender(companyName, calendarId);
+            if (Objects.isNull(calendarResPayloads) || calendarResPayloads.isEmpty()) {
                 log.error("Company calendar not existed for id: {}", calendarId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_CALENDAR_NOT_FOUND), calendarId),
                         HttpStatus.BAD_REQUEST);
             }
-            dao.delete(calendarId, index);
-            log.info("The Equipment with id: {} got deleted successfully", calendarId);
+            dao.delete(calendarId, companyName);
+            log.info("The company calendar with id: {} got deleted successfully", calendarId);
         } catch (EmployeeException e) {
             throw new EmployeeException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

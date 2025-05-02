@@ -24,6 +24,9 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateUserResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.USER, id);
+    }
     public static String generateTemplateResourceId(String id) {
         return generateGlobalResourceId(ResourceType.TEMPLATE, id);
     }
@@ -74,6 +77,10 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.BACKGROUND, companyName,employeeId);
 
     }
+    public static String generateCompanyTDSId(String companyName, String startYear, String endYear, String tdsType) {
+        return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
+
+    }
     /**
      * Generate a global resource ID based on the resource type
      *
@@ -92,6 +99,9 @@ public class ResourceIdUtils {
         }
         if (type == ResourceType.EMPLOYEE) {
             prefix = Constants.EMPLOYEE + "-";
+        }
+        if (type == ResourceType.USER) {
+            prefix = Constants.USER + "-";
         }
         if (type == ResourceType.DEPARTMENT) {
             prefix = Constants.DEPARTMENT + "-";
@@ -134,8 +144,10 @@ public class ResourceIdUtils {
             prefix = Constants.COMPANY_CALENDAR + "-";
 
         }
+        if (type == ResourceType.COMPANY_TDS) {
+            prefix = Constants.COMPANY_TDS + "-";
 
-
+        }
 
 
         StringBuilder md5Input = new StringBuilder();
@@ -158,4 +170,5 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
+
 }
