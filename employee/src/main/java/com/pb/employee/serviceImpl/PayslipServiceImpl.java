@@ -142,7 +142,8 @@ public class PayslipServiceImpl implements PayslipService {
 
             for (EmployeeSalaryEntity entity : entities) {
                 String dateStr = entity.getAddSalaryDate();
-                if (dateStr == null || !EmployeeStatus.ACTIVE.getStatus().equalsIgnoreCase(entity.getStatus())) continue;
+                if (dateStr == null || !EmployeeStatus.ACTIVE.getStatus().equalsIgnoreCase(entity.getStatus()))
+                    continue;
 
                 LocalDate addedDate = LocalDate.parse(dateStr, formatter);
                 if (addedDate.isAfter(payslipGenerationDate)) {
@@ -171,8 +172,6 @@ public class PayslipServiceImpl implements PayslipService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ERROR_RETRIEVING_SALARY), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 
     @Override
     public ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException {
