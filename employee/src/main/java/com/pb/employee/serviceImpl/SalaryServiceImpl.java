@@ -93,7 +93,13 @@ public class SalaryServiceImpl implements SalaryService {
                                     HttpStatus.CONFLICT
                             );
                         }
-                            employeeSalaryEntity.setStatus(EmployeeStatus.ACTIVE.getStatus());
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        String presentDate = employeeSalaryRequest.getAddSalaryDate();
+                        LocalDate addedDate = LocalDate.parse(presentDate, formatter);
+                        LocalDate today = LocalDate.now();
+                        if (!addedDate.isAfter(today)) {
+                            employeeSalaryEntity.setStatus(EmployeeStatus.INACTIVE.getStatus());
+                        }
                         openSearchOperations.saveEntity(employeeSalaryEntity, employeeSalaryEntity.getSalaryId(), index);
                     }
                 }
@@ -353,10 +359,10 @@ public class SalaryServiceImpl implements SalaryService {
                 log.error("Employees salaries do not exist in the company");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY), HttpStatus.NOT_FOUND);
             }
+
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate today = LocalDate.now();
-            // Group salaries by employeeId
             Map<String, List<EmployeeSalaryEntity>> salariesByEmployee = allSalaries.stream()
                     .filter(e -> EmployeeStatus.ACTIVE.getStatus().equalsIgnoreCase(e.getStatus()))
                     .collect(Collectors.groupingBy(EmployeeSalaryEntity::getEmployeeId));
@@ -365,24 +371,21 @@ public class SalaryServiceImpl implements SalaryService {
                 String employeeId = entry.getKey();
                 List<EmployeeSalaryEntity> salaryList = entry.getValue();
 
-                // Split into past and future salaries
                 List<EmployeeSalaryEntity> past = salaryList.stream()
                         .filter(s -> !LocalDate.parse(s.getAddSalaryDate(), formatter).isAfter(today))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 List<EmployeeSalaryEntity> future = salaryList.stream()
                         .filter(s -> LocalDate.parse(s.getAddSalaryDate(), formatter).isAfter(today))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 EmployeeSalaryEntity selectedSalary = null;
 
                 if (!future.isEmpty()) {
-                    // Future exists → use latest past
                     selectedSalary = past.stream()
                             .max(Comparator.comparing(s -> LocalDate.parse(s.getAddSalaryDate(), formatter)))
                             .orElse(null);
                 } else {
-                    // No future → use latest available
                     selectedSalary = salaryList.stream()
                             .max(Comparator.comparing(s -> LocalDate.parse(s.getAddSalaryDate(), formatter)))
                             .orElse(null);
