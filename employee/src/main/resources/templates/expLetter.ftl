@@ -51,20 +51,23 @@
 
 <body>
     <div>
-
-        <div class="logo">
-            <#if company[0].imageFile?has_content>
-                <img style="height: 90px; width: 200px;" src="${company[0].imageFile}" alt="Company Logo" />
-            </#if>
-        </div>
+        <#if !request.draft>
+            <div class="logo">
+                <#if company[0].imageFile?has_content>
+                    <img style="height: 90px; width: 200px;" src="${company[0].imageFile}" alt="Company Logo" />
+                </#if>
+            </div>
+        </#if>
     </div>
     <div class="header"><b>EXPERIENCE CERTIFICATE</b></div>
     <div class="date">Date: <b>${request.date}</b></div>
     <div class="title"><b>TO WHOMSOEVER IT MAY CONCERN</b></div>
     <div class="content">
-        <div class="watermark">
-            <img src="${blurredImage}" alt="Blurred Company Logo" />
-        </div>
+        <#if !request.draft && blurredImage??>
+            <div class="watermark">
+                <img src="${blurredImage}" alt="Blurred Company Logo" />
+            </div>
+        </#if>
         <p>This is to certify that <b>${employee.firstName} ${employee.lastName}</b> with an ID
             <b>${employee.employeeId}</b> was employed with our Company <b>${company[0].companyName}</b> from
             <b>${employee.dateOfHiring}</b> to <b>${request.date} </b>
