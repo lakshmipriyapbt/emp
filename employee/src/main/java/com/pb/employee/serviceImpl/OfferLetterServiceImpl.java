@@ -74,6 +74,10 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             dataModel.put(Constants.OFFER_LETTER_REQUEST, offerLetterRequest);
             dataModel.put(Constants.SALARY, salaryComponents);
 
+            // Determine if it's a draft and include that in the model
+            boolean isDraft = offerLetterRequest.getDraft() != null && offerLetterRequest.getDraft();
+            dataModel.put("draft", isDraft); // Add draft condition to data model
+
             // Load the company image from a URL
             String imageUrl = entity.getImageFile();
             BufferedImage originalImage = ImageIO.read(new URL(imageUrl));

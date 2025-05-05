@@ -85,10 +85,13 @@
 </head>
 
 <body>
-    <img src="${blurredImage}" alt="Company Logo" class="watermark" />
-    <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
-    </div>
+ <#-- Render watermark and logo only if draft is defined and false -->
+ <#if draft?? && draft == false>
+     <img src="${blurredImage}" alt="Company Logo" class="watermark" />
+     <div class="logo">
+         <img src="${company.imageFile}" alt="Company Logo" />
+     </div>
+ </#if>
 
     <h5 class="confidential-text">APPRAISAL LETTER</h5>
     <div class = "date-info">
@@ -141,14 +144,20 @@
 
     <p>With Best Wishes</p>
     <br/>
-   <div>
-              <b>Authorized Signature</b>
-             <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
-             <br/>
-             <b>${company.companyName}</b>
+    <div>
+               <b>Authorized Signature</b>
+               <br/>
+                  <#-- Stamp is only included when draft is false -->
+                 <#if draft?? && draft == false>
+                    <img src="${company.stampImage}" style="width: 100px; height: 100px;" />
+                   <#else>
+                    <div style="width: 100px; height: 100px;"></div>
+                 </#if>
+              <br/>
+              <b>${company.companyName}</b>
               <p>${company.mobileNo}|${company.emailId}</p>
               <p>${company.address}</p>
-    </div>
+     </div>
     </div>
 
 </body>

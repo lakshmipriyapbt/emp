@@ -217,10 +217,13 @@
 
 <body>
 
+<#-- Render watermark and logo only if draft is defined and false -->
+<#if draft?? && draft == false>
     <img src="${blurredImage}" alt="Company Logo" class="watermark" />
     <div class="logo">
-            <img src="${company.imageFile}" alt="Company Logo" />
+        <img src="${company.imageFile}" alt="Company Logo" />
     </div>
+</#if>
     <div class="salary-table" style="page-break-after: always;">
 
         <h5 class="confidential-text">Private & Confidential</h5>
@@ -292,9 +295,13 @@
             </p>
         </div>
     </div>
+
+ <#-- company logo is only included when draft is false -->
+  <#if draft?? && draft == false>
     <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
+         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
+  </#if>
     <div class="salary-table" style="page-break-after: always;">
         <div style="margin-top: -50px;">
             <p>
@@ -399,9 +406,12 @@
             </p>
         </div>
     </div>
-    <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
-    </div>
+     <#-- company logo is only included when draft is false -->
+   <#if draft?? && draft == false>
+     <div class="logo">
+             <img src="${company.imageFile}" alt="Company Logo" />
+      </div>
+   </#if>
     <div class="salary-table" style="page-break-after: always;">
         <div style="margin-top: -27px;">
             <p><b>Cessation of Services and Notice Period:</b>
@@ -455,9 +465,12 @@
             </div>
         </div>
     </div>
+     <#-- company logo is only included when draft is false -->
+  <#if draft?? && draft == false>
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
+  </#if>
     <div class="salary-table" style="page-break-after: always;">
         <h5 class="annexure-text">Annexure -1 </h5>
         <p style="text-align: left; font-size: 15px; ">Fixed Salary breakup</p>
@@ -502,9 +515,12 @@
             </div>
     </div>
 
+     <#-- company logo is only included when draft is false -->
+  <#if draft?? && draft == false>
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
+  </#if>
     <div class="salary-table" style="page-break-after: always;">
 
         <div>
@@ -612,9 +628,12 @@
         </div>
     </div>
     <!-- Company Logo Section -->
+     <#-- company logo is only included when draft is false -->
+ <#if draft?? && draft == false>
    <div class="logo">
-           <img src="${company.imageFile}" alt="Company Logo" />
-       </div>
+      <img src="${company.imageFile}" alt="Company Logo" />
+   </div>
+ </#if>
        <h5 style="text-align: left; font-size: medium; ">Please Note: </h5>
        <div class="note">
            <p>

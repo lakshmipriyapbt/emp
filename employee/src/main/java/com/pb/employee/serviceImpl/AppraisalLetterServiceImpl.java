@@ -90,6 +90,10 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
             dataModel.put(Constants.EMPLOYEE, employee);
             dataModel.put(Constants.APPRAISAL_LETTER_REQUEST, appraisalLetterRequest);
 
+            // Determine if it's a draft and include that in the model
+            boolean isDraft = appraisalLetterRequest.getDraft() != null && appraisalLetterRequest.getDraft();
+            dataModel.put("draft", isDraft); // Add draft condition to data model
+
             // Load and watermark company image
             String imageUrl = entity.getImageFile();
             BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
