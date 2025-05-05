@@ -101,25 +101,23 @@ const InternOfferForm = () => {
   
     return true;
   };
-  
-  const validateAssigneeDate = (acceptDate) => {
-    if (!joiningDate) return "Joining Date is required before selecting Assignee Date";
-  
-    const joinDateObj = new Date(joiningDate);
-    const assigneeDateObj = new Date(acceptDate);
-    const maxAssigneeDate = new Date(joinDateObj);
-    maxAssigneeDate.setMonth(maxAssigneeDate.getMonth() + 1); // 1 month ahead
-  
-    if (assigneeDateObj < joinDateObj) {
-      return "Assignee Date cannot be before Joining Date";
+  const normalizeDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // local midnight
+  };
+  const validateAcceptDate = (acceptDateValue, joiningDate) => {
+    if (!acceptDateValue || !joiningDate) return true;
+    const acceptDate = normalizeDate(acceptDateValue);
+    const today = normalizeDate(new Date().toISOString().split("T")[0]);
+    const joining = normalizeDate(joiningDate);
+    if (acceptDate <= today) {
+      return "Accept Date must be after today's date";
     }
-    if (assigneeDateObj > maxAssigneeDate) {
-      return "Assignee Date cannot exceed 1 month from Joining Date";
+    if (acceptDate >= joining) {
+      return "Accept Date must be before the Joining Date";
     }
-  
     return true;
   };
-  
 
   useEffect(() => {
     // Dynamically update the max End Date and Accept Date based on the joiningDate
@@ -131,10 +129,6 @@ const InternOfferForm = () => {
       maxEndDate.setMonth(maxEndDate.getMonth() + 12);
       setValue("endDate", maxEndDate.toISOString().split("T")[0]);
 
-      // Set max Accept Date to 1 month after the joiningDate
-      const maxAcceptDate = new Date(joiningDateObj);
-      maxAcceptDate.setMonth(maxAcceptDate.getMonth() + 1);
-      setValue("acceptDate", maxAcceptDate.toISOString().split("T")[0]);
     }
   }, [joiningDate, setValue]);
 
@@ -783,7 +777,7 @@ const InternOfferForm = () => {
                         onClick={(e) => e.target.showPicker()} 
                         {...register("acceptDate", {
                           required: "Accept Date is required",
-                          validate: validateAssigneeDate,
+                          validate: (value) => validateAcceptDate(value, watch("startDate"))
                         })}
                       />
                       {errors.acceptDate && (
