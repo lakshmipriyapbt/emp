@@ -15,7 +15,7 @@ spring:
   main:
     allow-circular-references: true
   datasource:
-    url: jdbc:mysql://localhost:3307/invoicetest
+    url: jdbc:mysql://localhost:3306/invoicetest
     username: root
     password: Path@2014
     driver-class-name: com.mysql.cj.jdbc.Driver
