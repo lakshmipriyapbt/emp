@@ -21,5 +21,6 @@ public class ExperienceLetterFieldsRequest {
     private String date;
 
     private String aboutEmployee;
+    private boolean draft;
 
 }
