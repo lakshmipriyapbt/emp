@@ -36,4 +36,8 @@ public class AppraisalLetterRequest {
     @Schema(example = "salaryHikePersentage")
     @Pattern(regexp = "^(100(\\.0{1,2})?|[1-9]?\\d(\\.\\d{1,2})?|null|)$", message = "{salaryHikePersentage.format}")
     private String salaryHikePersentage;
+
+    @Schema(example = "true")
+    private boolean draft;
+
 }

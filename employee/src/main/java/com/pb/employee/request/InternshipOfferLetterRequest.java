@@ -108,4 +108,6 @@ public class InternshipOfferLetterRequest {
     @Size(max = 100, min = 2, message = "{companyBranch.notnull.message}")
     private String companyBranch;
 
+    @Schema(example = "true")
+    private boolean draft;
 }
