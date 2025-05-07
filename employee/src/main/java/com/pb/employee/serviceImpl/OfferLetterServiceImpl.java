@@ -169,24 +169,32 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             Map<String, Object> dataModel = new HashMap<>();
             dataModel.put(Constants.COMPANY, companyEntity);
             dataModel.put(Constants.OFFER_LETTER_REQUEST, internshipOfferLetterRequest);
-            // Load the company image from a URL
-            String imageUrl = entity.getImageFile();
-            BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
-            if (originalImage == null) {
-                log.error("Failed to load image from URL: {}", imageUrl);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            // Apply the watermark effect
-            float opacity = 0.5f;
-            double scaleFactor = 1.6d;
-            BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
 
-            // Convert BufferedImage to Base64 string for HTML
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(watermarkedImage, "png", baos);
-            String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
-            dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
+            if (!internshipOfferLetterRequest.isDraft()) {
+                // Load the company image from a URL
+                String imageUrl = entity.getImageFile();
+                BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
+                if (originalImage == null) {
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
+                            HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                // Apply the watermark effect
+                float opacity = 0.5f;
+                double scaleFactor = 1.6d;
+                BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+
+                // Convert BufferedImage to Base64 string for HTML
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(watermarkedImage, "png", baos);
+                String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
+                dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
+            }
+            else {
+                // Ensure the key exists to avoid FreeMarker failure
+                dataModel.put(Constants.BLURRED_IMAGE, "");
+            }
+
             // Get FreeMarker template and process it with the dataModel
             Template template = freeMarkerConfig.getTemplate(Constants.INTERNSHIP_OFFER_LETTER_TEMPLATE);
             StringWriter stringWriter = new StringWriter();
