@@ -1,4 +1,4 @@
-package com.pb.employee.config;
+package com.pb.employee.validations;
 
 import com.pb.employee.request.EmployeeRequest;
 import jakarta.validation.ConstraintValidator;

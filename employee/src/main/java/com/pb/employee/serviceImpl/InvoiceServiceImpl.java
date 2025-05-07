@@ -3,6 +3,7 @@ package com.pb.employee.serviceImpl;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.InvoiceRequest;
+import com.pb.employee.request.InvoiceUpdateRequest;
 import com.pb.employee.service.InvoiceService;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.EntityUtils;
@@ -46,5 +47,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public ResponseEntity<?> downloadInvoice(String authToken, String companyId, String customerId, String invoiceId, HttpServletRequest request) throws EmployeeException {
         return entityUtils.getPdfRequest(authToken, Constants.COMPANY_ADD + companyId  + Constants.CUSTOMER_GET + customerId + Constants.INVOICE_DOWNLOAD + invoiceId);
+    }
+
+    @Override
+    public ResponseEntity<?> updateInvoice(String authToken, String companyId, String customerId, String invoiceId, InvoiceUpdateRequest updateRequest, HttpServletRequest request) throws EmployeeException {
+        return entityUtils.sendPatchRequest(authToken, updateRequest, Constants.COMPANY_ADD + companyId  + Constants.CUSTOMER_GET + customerId + Constants.INVOICE_GET + invoiceId);
     }
 }
