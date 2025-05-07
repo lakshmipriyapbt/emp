@@ -218,7 +218,7 @@
 <body>
 
 <#-- Render watermark and logo only if draft is defined and false -->
-<#if draft?? && draft == false>
+<#if !offerLetter.draft>
     <img src="${blurredImage}" alt="Company Logo" class="watermark" />
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
@@ -297,7 +297,7 @@
     </div>
 
  <#-- company logo is only included when draft is false -->
-  <#if draft?? && draft == false>
+  <#if !offerLetter.draft>
     <div class="logo">
          <img src="${company.imageFile}" alt="Company Logo" />
     </div>
@@ -407,7 +407,7 @@
         </div>
     </div>
      <#-- company logo is only included when draft is false -->
-   <#if draft?? && draft == false>
+   <#if !offerLetter.draft>
      <div class="logo">
              <img src="${company.imageFile}" alt="Company Logo" />
       </div>
@@ -466,7 +466,7 @@
         </div>
     </div>
      <#-- company logo is only included when draft is false -->
-  <#if draft?? && draft == false>
+  <#if !offerLetter.draft>
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
@@ -516,7 +516,7 @@
     </div>
 
      <#-- company logo is only included when draft is false -->
-  <#if draft?? && draft == false>
+  <#if !offerLetter.draft>
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
@@ -629,7 +629,7 @@
     </div>
     <!-- Company Logo Section -->
      <#-- company logo is only included when draft is false -->
- <#if draft?? && draft == false>
+ <#if !offerLetter.draft>
    <div class="logo">
       <img src="${company.imageFile}" alt="Company Logo" />
    </div>

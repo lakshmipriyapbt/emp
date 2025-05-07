@@ -90,28 +90,26 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
             dataModel.put(Constants.EMPLOYEE, employee);
             dataModel.put(Constants.APPRAISAL_LETTER_REQUEST, appraisalLetterRequest);
 
-            // Determine if it's a draft and include that in the model
-            boolean isDraft = appraisalLetterRequest.getDraft() != null && appraisalLetterRequest.getDraft();
-            dataModel.put("draft", isDraft); // Add draft condition to data model
+            if (!appraisalLetterRequest.isDraft()) {
+                // Load and watermark company image
+                String imageUrl = entity.getImageFile();
+                BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
+                if (originalImage == null) {
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
+                            HttpStatus.INTERNAL_SERVER_ERROR);
+                }
 
-            // Load and watermark company image
-            String imageUrl = entity.getImageFile();
-            BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
-            if (originalImage == null) {
-                log.error("Failed to load image from URL: {}", imageUrl);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
+                // Apply the watermark effect
+                float opacity = 0.7f;
+                double scaleFactor = 1.6d;
+                BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+                // Convert BufferedImage to Base64 string for HTML
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(watermarkedImage, "png", baos);
+                String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
+                dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
             }
-
-            // Apply the watermark effect
-            float opacity = 0.7f;
-            double scaleFactor = 1.6d;
-            BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
-            // Convert BufferedImage to Base64 string for HTML
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(watermarkedImage, "png", baos);
-            String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
-            dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
 
             String templateName = switch (Integer.parseInt(templateNo.getAppraisalTemplateNo())) {
                 case 1 -> Constants.APPRAISAL_LETTER_TEMPLATE1;

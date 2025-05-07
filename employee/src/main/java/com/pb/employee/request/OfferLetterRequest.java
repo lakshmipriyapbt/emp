@@ -76,7 +76,4 @@ public class OfferLetterRequest {
     @Schema(example = "true")
     private boolean draft;
 
-    public Boolean getDraft() {
-        return draft;
-    }
 }

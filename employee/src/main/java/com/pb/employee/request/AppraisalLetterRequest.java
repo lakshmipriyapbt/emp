@@ -40,9 +40,4 @@ public class AppraisalLetterRequest {
     @Schema(example = "true")
     private boolean draft;
 
-    public Boolean getDraft() {
-        return draft;
-    }
-
-
 }

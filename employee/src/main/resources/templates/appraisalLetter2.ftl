@@ -86,7 +86,7 @@
 
 <body>
  <#-- Render watermark and logo only if draft is defined and false -->
- <#if draft?? && draft == false>
+ <#if !appraisal.draft>
      <img src="${blurredImage}" alt="Company Logo" class="watermark" />
      <div class="logo">
          <img src="${company.imageFile}" alt="Company Logo" />
@@ -148,7 +148,7 @@
                <b>Authorized Signature</b>
                <br/>
                   <#-- Stamp is only included when draft is false -->
-                 <#if draft?? && draft == false>
+                 <#if !appraisal.draft>
                     <img src="${company.stampImage}" style="width: 100px; height: 100px;" />
                    <#else>
                     <div style="width: 100px; height: 100px;"></div>
