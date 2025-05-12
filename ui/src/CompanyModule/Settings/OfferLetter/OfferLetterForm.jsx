@@ -11,6 +11,8 @@ const OfferLetterForm = () => {
     control,
     formState: { errors },
     reset,
+    setValue,
+    trigger
   } = useForm({ mode: "onChange" });
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -50,7 +52,7 @@ const OfferLetterForm = () => {
   }, []);
 
   const onSubmit = (data) => {
-    console.log("offerLetter",data)
+    console.log("offerLetter", data)
     const previewData = {
       offerDate: data.offerDate,
       referenceNo: data.referenceNo,
@@ -62,8 +64,8 @@ const OfferLetterForm = () => {
       jobLocation: data.jobLocation,
       salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
-      department:data.department,
-      designation:data.designation
+      department: data.department,
+      designation: data.designation
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
@@ -142,6 +144,32 @@ const OfferLetterForm = () => {
     if (e.keyCode === 32) {
       e.preventDefault();
     }
+  };
+  
+  const noTrailingSpaces = (value, fieldName) => {
+    // Check if the value ends with a space
+    if (value.endsWith(' ')) {
+      return "Spaces are not allowed at the end";
+    }
+
+    // Check if the value is less than 3 characters long
+    if (value.length < 3) {
+      return "Minimum 3 characters Required";
+    }
+    // If no error, return true
+    return true;
+  };
+
+  // Capitalize the first letter of each word expect email
+  const handleInputChange = (e, fieldName) => {
+    let value = e.target.value.trimStart().replace(/ {2,}/g, " "); // Remove leading spaces and extra spaces
+
+    if (fieldName !== "email") {
+      value = value.replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize first letter after space
+    }
+
+    setValue(fieldName, value);
+    trigger(fieldName); // Trigger validation
   };
 
   const toInputAddressCase = (e) => {
@@ -392,23 +420,22 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-                    {/* <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                            <label className="form-label">Reference Number</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Enter Reference Number"
-                                                className="form-control"
-                                                name="referenceNo"
-                                                {...register("referenceNo", {
-                                                    required: "Reference Number is required",
-                                                    pattern: {
-                                                        value: /^[a-zA-Z0-9]{1,20}$/, // Regex for alphanumeric reference number
-                                                        message: "Reference Number must be alphanumeric and up to 20 characters"
-                                                    }
-                                                })}
-                                            />
-                                            {errors.referenceNo && <p className="errorMsg">{errors.referenceNo.message}</p>}
-                                        </div> */}
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Reference Number</label>
+                      <input
+                        type="text"
+                        placeholder="Enter Reference Number"
+                        className="form-control"
+                        name="referenceNo"
+                        {...register("referenceNo", {
+                          required: "Reference Number is required",
+                          validate: (value) => noTrailingSpaces(value, "referenceNo"),
+                        })}
+                        onChange={(e) => handleInputChange(e, "referenceNo")}
+                      />
+                      {errors.referenceNo && <p className="errorMsg">{errors.referenceNo.message}</p>}
+                    </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Contact No</label>
                       <input
@@ -461,7 +488,6 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Joining Date</label>
                       <input
@@ -471,7 +497,7 @@ const OfferLetterForm = () => {
                         className="form-control"
                         autoComplete="off"
                         max={threeMonthsFromNow}
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
@@ -493,6 +519,7 @@ const OfferLetterForm = () => {
                         <p className="errorMsg">{errors.joiningDate.message}</p>
                       )}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Job Location</label>
                       <input
@@ -533,33 +560,6 @@ const OfferLetterForm = () => {
                       {errors.jobLocation && (
                         <p className="errorMsg text-danger">
                           {errors.jobLocation.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Salary Package</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        maxLength={10}
-                        placeholder="Enter Salary Package"
-                        name="salaryPackage"
-                        {...register("salaryPackage", {
-                          required: "Saalry Package is required",
-                          min: {
-                            value: 5,
-                            message: "Minimum 5 Numbers Required",
-                          },
-                          pattern: {
-                            value: /^[0-9]+$/,
-                            message: "These field accepts only Integers",
-                          },
-                        })}
-                      />
-                      {errors.salaryPackage && (
-                        <p className="errorMsg">
-                          {errors.salaryPackage.message}
                         </p>
                       )}
                     </div>
@@ -615,6 +615,33 @@ const OfferLetterForm = () => {
                         <p className="errorMsg">Designation is Required</p>
                       )}
                     </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Salary Package</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        maxLength={10}
+                        placeholder="Enter Salary Package"
+                        name="salaryPackage"
+                        {...register("salaryPackage", {
+                          required: "Saalry Package is required",
+                          min: {
+                            value: 5,
+                            message: "Minimum 5 Numbers Required",
+                          },
+                          pattern: {
+                            value: /^[0-9]+$/,
+                            message: "These field accepts only Integers",
+                          },
+                        })}
+                      />
+                      {errors.salaryPackage && (
+                        <p className="errorMsg">
+                          {errors.salaryPackage.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
                       <textarea

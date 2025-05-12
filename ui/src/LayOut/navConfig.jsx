@@ -86,6 +86,7 @@ export const NAV_CONFIG = {
             icon: 'gear', // ⚙️
             items: [
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
+                { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Bank Details', path: '/accountsView' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
@@ -153,6 +154,7 @@ export const NAV_CONFIG = {
             icon: 'gear',
             items: [
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
+                { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },

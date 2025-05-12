@@ -91,7 +91,7 @@ function Profile() {
       await CompanyImagePatchApi(companyId, formData);
       
       setLogoMessage("Logo uploaded successfully!");
-      reset();
+      // reset();
       setLogoPreview(null);
       window.location.reload();
     } catch (error) {
@@ -131,7 +131,7 @@ function Profile() {
         }
         await CompanyStampPatchApi(companyId, formData);
         setStampMessage("Stamp uploaded successfully!");
-        reset();
+        // reset();
         setStampPreview(null);
         window.location.reload();
       } catch (error) {

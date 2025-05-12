@@ -76,6 +76,10 @@ import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLet
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
+import GetTaxSlab from '../CompanyModule/TDS/GetTaxSlab';
+import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
+import TaxSlab from '../CompanyModule/TDS/TaxSlab';
+import CompanyTdsView from '../CompanyModule/TDS/CompanyTdsView';
 
 
 export const allAvailableRoutes = [
@@ -127,6 +131,10 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeSalaryList', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/getTaxSlab', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/addTaxSlab', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/companyTdsView', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/employeeSalaryUpdate', allowedTypes: ['company_admin', 'HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -346,6 +354,22 @@ const Routing = () => {
       <Route
         path="/employeeSalaryList"
         element={<ProtectedRoute element={<EmployeeSalaryList/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/employeeSalaryUpdate"
+        element={<ProtectedRoute element={<EmployeeSalaryUpdate/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/getTaxSlab"
+        element={<ProtectedRoute element={<GetTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/companyTdsView"
+        element={<ProtectedRoute element={<CompanyTdsView/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/addTaxSlab"
+        element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
       />
 
 

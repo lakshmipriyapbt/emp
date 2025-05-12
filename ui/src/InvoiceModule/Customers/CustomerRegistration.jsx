@@ -20,19 +20,22 @@ const CustomersRegistration = () => {
   const location = useLocation();
   const [isUpdating, setIsUpdating] = useState(false);
   const [update, setUpdate] = useState([]);
+  const [isCountryCodesLoading, setIsCountryCodesLoading] = useState(true);
   const [countryCodes, setCountryCodes] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState({ value: "+91",  label: (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <img
-        src="https://flagcdn.com/w40/in.png" 
-        alt="India Flag"
-        width="20"
-        height="15"
-      />
-      India (+91)
-    </div>
-  ),
- });
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    const defaultOption = {
+      value: "+91",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <img src="https://flagcdn.com/w40/in.png" alt="India Flag" width="20" height="15" />
+          India (+91)
+        </div>
+      ),
+      labelText: "India (+91)", // Ensuring it works with search
+    };
+
+    return defaultOption;
+  });
   const {
     register,
     handleSubmit,
@@ -47,6 +50,7 @@ const CustomersRegistration = () => {
 
   useEffect(() => {
     const fetchCountryCodes = async () => {
+      setIsCountryCodesLoading(true); // Start loading
       try {
         const response = await DialCodesListApi();
         const options = (response.data.data || []).map((country) => ({
@@ -61,11 +65,14 @@ const CustomersRegistration = () => {
               {`${country.name} (${country.dialCode})`}
             </div>
           ),
+          labelText: `${country.name} (${country.dialCode})`,
         }));
         setCountryCodes(options);
       } catch (error) {
         console.error("Failed to fetch country codes:", error.message);
         toast.error("Failed to load country codes.");
+      } finally {
+        setIsCountryCodesLoading(false); // End loading
       }
     };
 
@@ -77,19 +84,38 @@ const CustomersRegistration = () => {
       const customerId = location.state.customerId;
       CustomerGetApiById(companyId, customerId)
         .then((response) => {
+          const fullMobileNumber = response.mobileNumber || "";
+
+          // Handle different mobile formats safely
+          let dialCode = "+91";
+          let mobileNumberOnly = "";
+
+          if (fullMobileNumber.includes(" ")) {
+            const parts = fullMobileNumber.split(" ");
+            dialCode = parts[0];
+            mobileNumberOnly = parts.slice(1).join(" ").replace(/\D/g, "");
+          } else {
+            dialCode = countryCodes.find((c) => fullMobileNumber.startsWith(c.value))?.value || "+91";
+            mobileNumberOnly = fullMobileNumber.replace(dialCode, "").replace(/\D/g, "");
+          }
+
+          const matchingOption = countryCodes.find(
+            (option) => option.value === dialCode
+          );
+
           const customerData = {
             ...response,
+            mobileNumber: mobileNumberOnly, // Only mobile number
             status: { value: response.status, label: response.status },
           };
-  
-          const existingCountryCode = response.mobileNumber?.split(" ")[0] || "+91";
-          const matchingOption = countryCodes.find((option) => option.value === existingCountryCode);
-  
+
+          reset(customerData);
+
           setSelectedCountry(
             matchingOption || {
               value: "+91",
               label: (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <img
                     src="https://flagcdn.com/w40/in.png"
                     alt="India Flag"
@@ -98,11 +124,10 @@ const CustomersRegistration = () => {
                   />
                   India (+91)
                 </div>
-              )
+              ),
             }
           );
-  
-          reset(customerData);
+
           setIsUpdating(true);
         })
         .catch((error) => {
@@ -111,7 +136,8 @@ const CustomersRegistration = () => {
         });
     }
   }, [companyId, location.state, reset, countryCodes]);
-  
+
+
   const handleCountryCodeChange = (selectedOption) => {
     setSelectedCountry(selectedOption);
     console.log("Selected Country Code:", selectedOption.value);
@@ -467,32 +493,34 @@ const CustomersRegistration = () => {
                       </label>
                       <div className="input-group">
                         {/* Country Code Dropdown */}
-                        <div className="input-group-prepend">
-                          <Select
-                            options={countryCodes}
-                            value={selectedCountry}
-                            onChange={handleCountryCodeChange}
-                            placeholder="Code"
-                            className="react-select-container"
-                            classNamePrefix="react-select"
-                            isSearchable
-                            menuPortalTarget={document.body}
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                width: "160px", // Set a fixed width
-                              }),
-                              menu: (base) => ({
-                                ...base,
-                                width: "280px", // Ensure dropdown stays the same width
-                              }),
-                              menuPortal: (base) => ({
-                                ...base,
-                                zIndex: 9999,
-                              }),
-                            }}
-                          />
 
+                        <div className="input-group-prepend">
+                          {isCountryCodesLoading ? (
+                            <div className="d-flex align-items-center" style={{ width: "160px", height: "38px", justifyContent: "center" }}>
+                              <div className="spinner-border text-primary" role="status" style={{ width: "1.5rem", height: "1.5rem" }}>
+                                <span className="visually-hidden">Loading...</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <Select
+                              options={countryCodes}
+                              value={selectedCountry}
+                              onChange={handleCountryCodeChange}
+                              placeholder="Code"
+                              className="react-select-container"
+                              classNamePrefix="react-select"
+                              isSearchable
+                              menuPortalTarget={document.body}
+                              getOptionLabel={(option) => option.labelText} // Ensures filtering by text
+                              getOptionValue={(option) => option.value} // Keeps correct values
+                              formatOptionLabel={(option) => option.label} // Restores flag display
+                              styles={{
+                                control: (base) => ({ ...base, width: "160px" }),
+                                menu: (base) => ({ ...base, width: "280px" }),
+                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                              }}
+                            />
+                          )}
                         </div>
 
                         {/* Mobile Number Input Field */}
@@ -513,6 +541,7 @@ const CustomersRegistration = () => {
                               },
                             },
                           })}
+                          onKeyPress={(e) => preventInvalidInput(e, "numeric")}
                         />
                       </div>
                       {errors.mobileNumber && (
