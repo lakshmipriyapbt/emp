@@ -52,7 +52,9 @@ const OfferLetterForm = () => {
   }, []);
 
   const onSubmit = (data) => {
-    console.log("offerLetter", data)
+    const draftValue = data.draft === "true";
+    console.log("offerLetter",data)
+
     const previewData = {
       offerDate: data.offerDate,
       referenceNo: data.referenceNo,
@@ -64,8 +66,10 @@ const OfferLetterForm = () => {
       jobLocation: data.jobLocation,
       salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
-      department: data.department,
-      designation: data.designation
+      department:data.department,
+      designation:data.designation,
+      draft:draftValue,
+
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
@@ -86,6 +90,7 @@ const OfferLetterForm = () => {
       salaryPackage: "",
       salaryConfigurationId: "",
       employeePosition: "",
+      draft: "",
     });
   };
 
@@ -677,6 +682,41 @@ const OfferLetterForm = () => {
                           {errors.employeeAddress.message}
                         </p>
                       )}
+                    </div>
+                    <div className="col-lg-1"></div>
+
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                           <label className="form-label">Select Mode</label>
+                          <div className="form-check">
+                                     <input
+                                        type="radio"
+                                        className="form-check-input"
+                                         id="draft"
+                                        name="draft"
+                                          value={true}
+                                {...register("draft", { required: true })}
+                                />
+                         <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                         </label>
+                          </div>
+                        <div className="form-check">
+                            <input
+                               type="radio"
+                                className="form-check-input"
+                               id="undraft"
+                               name="draft"
+                               value={false}
+                                {...register("draft", { required: true })}
+                              />
+                        <label className="form-check-label" htmlFor="undraft">
+                             Digital Copy
+                           </label>
+                       </div>
+
+                       {errors.draft && (
+                            <p className="errorMsg">Please select draft copy or digital copy</p>
+                       )}
                     </div>
                   </div>
                 </div>

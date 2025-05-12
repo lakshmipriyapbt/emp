@@ -199,8 +199,11 @@ const InternOfferForm = () => {
   const currentDate = new Date().toISOString().split('T')[0]; // Formats date as 'YYYY-MM-DD'
 
   const onSubmit = (data) => {
+    const isDraft = data.draft === "true"; // Convert to boolean
+
     const formData = {
         ...data,
+        draft: isDraft,
         date:currentDate,
         companyId:company.id,
         associateName: selectedAssignee ? selectedAssignee.associateName : '',
@@ -896,6 +899,39 @@ const InternOfferForm = () => {
                         </p>
                       )}
                     </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Select Mode</label>
+                      <div className="form-check">
+                        <input
+                        type="radio"
+                        className="form-check-input"
+                        id="draft"
+                        name="draft"
+                        value={true}
+                        {...register("draft", { required: true })}
+                        />
+                        <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                          </label>
+                          </div>
+                          <div className="form-check">
+                            <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value={false}
+                            {...register("draft", { required: true })}
+                            />
+                            <label className="form-check-label" htmlFor="undraft">
+                               Digital Copy
+                               </label>
+                               </div>
+                               {errors.draft && (
+                                <p className="errorMsg">Please select Draft or  Digital Copy</p>
+                                )}
+                        </div>
+
                   </div>
                 </div>
                 <div className="card-footer" style={{ marginLeft: "80%" }}>

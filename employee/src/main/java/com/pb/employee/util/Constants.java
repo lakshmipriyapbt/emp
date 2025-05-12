@@ -192,4 +192,5 @@ public class Constants {
     public static final String COMPANY_TDS = "company_tds";
     public static final String START_YEAR = "startYear";
     public static final String TDS_TYPE = "tdsType";
+    public static final String DRAFT = "draft";
 }

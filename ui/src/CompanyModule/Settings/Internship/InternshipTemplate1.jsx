@@ -8,6 +8,7 @@ const InternshipTemplate1 = ({
   department,
   startDate,
   endDate,
+  draft,
 }) => {
   return (
     <div
@@ -34,7 +35,7 @@ const InternshipTemplate1 = ({
             <p className="mb-0" style={{marginLeft:"20px"}}>{new Date().toLocaleDateString()}</p>
           </div>
         </div>
-        <img
+        {!draft && ( <img
           src={companyLogo}
           alt={`${companyData?.companyName} Logo`}
           style={{
@@ -46,9 +47,11 @@ const InternshipTemplate1 = ({
             width: "160px",
           }}
         />
+        )}
+        
       </div>
 
-      <div
+      {!draft && (<div
         style={{
           position: "absolute",
           top: "30%",
@@ -63,7 +66,7 @@ const InternshipTemplate1 = ({
           backgroundPosition: "center",
           zIndex: 1,
         }}
-      />
+      />)}
       <h4 className="text-center p-3">INTERNSHIP CERTIFICATION</h4>
 
       {/* Content div */}
@@ -99,10 +102,10 @@ const InternshipTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            <img 
+          {!draft && (<img 
               src={companyData?.stampImage}
               alt="Stamp"
-              style={{ height: "100px", width: "160px" }}/>
+              style={{ height: "100px", width: "160px" }}/>)}
             <h4>{companyData?.companyName},</h4>
             <p>{companyData?.emailId},</p>
             <p>{companyData?.mobileNo},</p>
