@@ -72,6 +72,10 @@ const EmployeeSalaryStructure = () => {
   const [showPfModal, setShowPfModal] = useState(false); // Modal visibility
   const [selectedPF, setSelectedPF] = useState("calculated");
   const [basicAmount, setBasicAmount] = useState(0);
+  const [amountInWords, setAmountInWords] = useState('');
+  const [grossInWords, setGrossInWords] = useState('');
+
+
   const [calculatedPF, setCalculatedPF] = useState({
     pfEmployee: 0,
     pfEmployer: 0,
@@ -100,6 +104,98 @@ const EmployeeSalaryStructure = () => {
 
 
 
+  const numberToWords = (num) => {
+    const units = [
+      "",
+      "One",
+      "Two",
+      "Three",
+      "Four",
+      "Five",
+      "Six",
+      "Seven",
+      "Eight",
+      "Nine",
+      "Ten",
+      "Eleven",
+      "Twelve",
+      "Thirteen",
+      "Fourteen",
+      "Fifteen",
+      "Sixteen",
+      "Seventeen",
+      "Eighteen",
+      "Nineteen",
+    ];
+    const tens = [
+      "",
+      "",
+      "Twenty",
+      "Thirty",
+      "Forty",
+      "Fifty",
+      "Sixty",
+      "Seventy",
+      "Eighty",
+      "Ninety",
+    ];
+    const unitsPlaces = ["", "Lakh", "Thousand", "Hundred"];
+
+    if (num === 0) return "Zero";
+
+    const convertToWords = (n) => {
+      if (n === 0) return "";
+
+      let word = "";
+      if (n >= 100) {
+        word += units[Math.floor(n / 100)] + " Hundred ";
+        n %= 100;
+      }
+      if (n >= 20) {
+        word += tens[Math.floor(n / 10)] + " ";
+        n %= 10;
+      }
+      if (n > 0) {
+        word += units[n] + " ";
+      }
+      return word.trim();
+    };
+
+    let result = "";
+    let integerPart = Math.floor(num);
+
+    // Handle Lakhs and Thousands in the Indian numbering system
+    if (integerPart >= 100000) {
+      const lakhs = Math.floor(integerPart / 100000);
+      result += convertToWords(lakhs) + " Lakh ";
+      integerPart %= 100000;
+    }
+
+    if (integerPart >= 1000) {
+      const thousands = Math.floor(integerPart / 1000);
+      result += convertToWords(thousands) + " Thousand ";
+      integerPart %= 1000;
+    }
+
+    if (integerPart >= 100) {
+      const hundreds = Math.floor(integerPart / 100);
+      result += convertToWords(hundreds) + " Hundred ";
+      integerPart %= 100;
+    }
+
+    if (integerPart > 0) {
+      result += convertToWords(integerPart);
+    }
+
+    // Handle decimal (cents)
+    let decimalPart = Math.round((num % 1) * 100);
+    if (decimalPart > 0) {
+      result += " and " + convertToWords(decimalPart) + " Paise";
+    }
+
+    return result.trim();
+  };
+  
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
   useEffect(() => {
@@ -133,6 +229,7 @@ const EmployeeSalaryStructure = () => {
     }
   }, [employees]);
 
+    
   useEffect(() => {
     if (id && salaryId) {
       EmployeeSalaryGetApiById(id, salaryId)
@@ -572,9 +669,16 @@ const EmployeeSalaryStructure = () => {
     setShowCards(true);
   };
 
+
+
   const calculateNetSalary = () => {
     const net = totalAllowances - totalDeductions;
     setNetSalary(net);
+    if (!isNaN(net)) {
+      setAmountInWords(numberToWords(net));
+    } else {
+      setAmountInWords('');
+    }
   };
 
   useEffect(() => {
@@ -690,7 +794,12 @@ const EmployeeSalaryStructure = () => {
 
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
-    setGrossAmount(newGrossSalary);
+      setGrossAmount(newGrossSalary);
+    if (!isNaN(newGrossSalary)) {
+      setGrossInWords(numberToWords(newGrossSalary));
+    } else {
+      setGrossInWords('');
+    }
     console.log("grossAmount", grossAmount);
   }, [variableAmount, fixedAmount]);
 
@@ -919,8 +1028,10 @@ const EmployeeSalaryStructure = () => {
                             readOnly={isReadOnly}
                             value={fixedAmount}
                             onChange={handleFixedAmountChange}
+                            
                           />
-                          {errors.fixedAmount && (
+                         
+                              {errors.fixedAmount && (
                             <div className="errorMsg">
                               {errors.fixedAmount.message}
                             </div>
@@ -940,6 +1051,11 @@ const EmployeeSalaryStructure = () => {
                             }
                             readOnly
                           />
+                             {grossInWords && (
+                               <div style={{ marginTop: '10px' , color: "green"}}>
+                                <strong>IN WORDS: {grossInWords}</strong>
+                               </div>
+                             )}
                         </div>
                         <div className="col-md-1 mb-3"></div>
                         <div className="col-md-5 mb-3">
@@ -1333,6 +1449,11 @@ const EmployeeSalaryStructure = () => {
                                   data-toggle="tooltip"
                                   title="This is the final salary after all deductions and allowances."
                                 />
+                                 {amountInWords && (
+                               <div style={{ marginTop: '10px' , color: "green"}}>
+                                <strong>IN WORDS: {amountInWords}</strong> 
+                               </div>
+                             )}
                               </div>
                             </div>
                           </div>

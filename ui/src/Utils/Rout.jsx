@@ -359,6 +359,7 @@ const Routing = () => {
         path="/employeeSalaryUpdate"
         element={<ProtectedRoute element={<EmployeeSalaryUpdate/>} allowedTypes={['company_admin', 'HR']} />}
       />
+
       <Route
         path="/getTaxSlab"
         element={<ProtectedRoute element={<GetTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
@@ -371,7 +372,6 @@ const Routing = () => {
         path="/addTaxSlab"
         element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
       />
-
 
       {/* Company Admin & Accountant shared routes */}
       <Route
