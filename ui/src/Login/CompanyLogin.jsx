@@ -8,6 +8,9 @@ import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
 import '../LayOut/NewLogin/Message.css'
 import Loader from "../Utils/Loader";
+import { setAuthDetails } from "../Redux/AuthSlice";
+import { useDispatch } from "react-redux";
+
 
 const CompanyLogin = () => {
   const {
@@ -35,6 +38,7 @@ const CompanyLogin = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [otpTimeLimit, setOtpTimeLimit] = useState(56); 
   const [otpExpired, setOtpExpired] = useState(false); 
+  const dispatch = useDispatch();
 
   useEffect(() => {
     localStorage.setItem("companyName", companyName);
@@ -70,7 +74,16 @@ const CompanyLogin = () => {
         if (token) {
           localStorage.setItem("token", token);
           const decodedToken = jwtDecode(token);
+          console.log("decoded token from company login",decodedToken);
           const { sub: userId, roles: userRole, company, employeeId } = decodedToken;
+          dispatch(setAuthDetails({
+            userId,
+            userRole,
+            company,
+            employeeId,
+            source: 'company',
+          }));
+          console.log("Dispatched User Role:", userRole); // Log this to verify
           setAuthUser({ userId, userRole, company, employeeId });
           toast.success("OTP Sent Successfully");
           setOtpSent(true);

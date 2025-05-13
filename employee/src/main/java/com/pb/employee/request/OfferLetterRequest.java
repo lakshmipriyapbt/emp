@@ -73,4 +73,7 @@ public class OfferLetterRequest {
     @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$", message = "{department.format}")
     private String department;
 
+    @Schema(example = "true")
+    private boolean draft;
+
 }

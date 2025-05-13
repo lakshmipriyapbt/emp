@@ -1,4 +1,5 @@
-package com.pb.employee.config;
+package com.pb.employee.validations;
+
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -8,11 +9,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = AgeValidator.class)
+@Constraint(validatedBy = ValidateDates.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidAge {
-    String message() default "Employee must be 20 to 65 age between.";
+public @interface ValidDateRange {
+
+    String message() default "End date must be after the start date."; // Default message
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

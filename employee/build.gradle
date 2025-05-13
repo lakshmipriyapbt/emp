@@ -85,6 +85,8 @@ dependencies {
     implementation 'org.apache.poi:poi:5.3.0'
     implementation 'org.apache.poi:poi-ooxml:5.3.0'
     implementation 'org.apache.commons:commons-collections4:4.5.0-M2'
+    implementation 'co.elastic.clients:elasticsearch-java:8.13.4' // use latest version if needed
+
 }
 
 dependencies {

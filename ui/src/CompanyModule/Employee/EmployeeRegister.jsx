@@ -603,8 +603,8 @@ const handleClearNewEmployee = () => {
                      >
                       <option value="">Select Status</option>
                       <option value='Active'>Active</option>
-                      <option value='InActive'>In Active</option>
-                      <option value='OnBoard'>OnBoard</option>
+                      <option value='relieved'>Relieved</option>
+                      {/* <option value='OnBoard'>OnBoard</option> */}
                       {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
                       </select>
                     <small className="text-danger">{errors.status?.message}</small>

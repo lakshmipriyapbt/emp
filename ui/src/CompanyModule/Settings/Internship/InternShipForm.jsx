@@ -110,6 +110,8 @@ const InternShipForm = () => {
   }, []);
 
   const onSubmit = (data) => {
+    const draftValue = data.draft === "true"; // Convert string to boolean
+
     const currentDate = new Date().toISOString().split("T")[0]; // "2024-11-15"
     const id = company?.id;
     const lastWorkingDate = data.lastWorkingDate;
@@ -124,6 +126,7 @@ const InternShipForm = () => {
     }
 
     const submissionData = {
+      
       companyId: company?.id,
       employeeName: data.employeeName,
       department: data.departmentName,
@@ -131,6 +134,7 @@ const InternShipForm = () => {
       date: currentDate,
       startDate: data.dateOfHiring,
       endDate: data.lastWorkingDate,
+      draft: draftValue,
     };
     console.log("submissionData", submissionData);
     const preview = {
@@ -145,8 +149,10 @@ const InternShipForm = () => {
       departmentName: data.departmentName || "",
       startDate: data.dateOfHiring || "",
       lastWorkingDate: data.lastWorkingDate || "",
+      draft: draftValue || false,
       companyName: authUser.company,
       companyData: company,
+      
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -513,6 +519,41 @@ const InternShipForm = () => {
                         <p className="errorMsg">Date of Internship Required</p>
                       )}
                     </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                           <label className="form-label">Select Mode</label>
+                          <div className="form-check">
+                                     <input
+                                        type="radio"
+                                        className="form-check-input"
+                                         id="draft"
+                                        name="draft"
+                                          value={true}
+                                {...register("draft", { required: true })}
+                                />
+                         <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                         </label>
+                          </div>
+                        <div className="form-check">
+                            <input
+                               type="radio"
+                                className="form-check-input"
+                               id="undraft"
+                               name="draft"
+                               value={false}
+                                {...register("draft", { required: true })}
+                              />
+                        <label className="form-check-label" htmlFor="undraft">
+                             Digital Copy
+                           </label>
+                       </div>
+
+                       {errors.draft && (
+                            <p className="errorMsg">Please select draft copy or digital copy</p>
+                       )}
+                    </div>
+
+
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (
                         <div className="col-9 alert alert-danger text-center mt-4">

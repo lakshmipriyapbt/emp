@@ -27,4 +27,5 @@ public class RelievingRequest {
 
     @Schema(example = "noticePeriod")
     private String noticePeriod;
+
 }

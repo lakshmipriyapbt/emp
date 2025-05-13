@@ -56,10 +56,12 @@
 </head>
 
 <body>
-    <img src="${blurredImage}" alt="Company Logo" class="watermark" />
-    <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
-    </div>
+    <#if !internship.draft>
+        <img src="${blurredImage}" alt="Company Logo" class="watermark" />
+        <div class="logo">
+            <img src="${company.imageFile}" alt="Company Logo" />
+        </div>
+    </#if>
 
     <h5 class="internship-text">Internship Experience Certificate</h5>
     <div class="date-info">

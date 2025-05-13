@@ -3,8 +3,11 @@ package com.pb.employee.service;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.InvoiceRequest;
+import com.pb.employee.request.InvoiceUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+
+import java.io.IOException;
 
 public interface InvoiceService {
 
@@ -15,5 +18,7 @@ public interface InvoiceService {
     ResponseEntity<?> getCompanyAllInvoices(String authToken,String companyId,String customerId)throws EmployeeException;
 
     ResponseEntity<?> downloadInvoice(String authToken, String companyId, String customerId,String invoiceId,HttpServletRequest request)throws EmployeeException;
+    ResponseEntity<?> updateInvoice(String authToken, String companyId, String customerId, String invoiceId, InvoiceUpdateRequest updateRequest, HttpServletRequest request)  throws EmployeeException;
+
 
 }

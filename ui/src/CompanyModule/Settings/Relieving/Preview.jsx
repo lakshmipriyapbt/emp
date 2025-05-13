@@ -59,6 +59,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           resignationDate={previewData.resignationDate}
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
+          draft={previewData.draft}
         />
       ),
     },
@@ -76,6 +77,8 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           resignationDate={previewData.resignationDate}
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
+          draft={previewData.draft}
+
         />
       ),
     },
@@ -93,6 +96,8 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           resignationDate={previewData.resignationDate}
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
+          draft={previewData.draft}
+
         />
       ),
     },

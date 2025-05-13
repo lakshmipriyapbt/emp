@@ -24,6 +24,9 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateUserResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.USER, id);
+    }
     public static String generateTemplateResourceId(String id) {
         return generateGlobalResourceId(ResourceType.TEMPLATE, id);
     }
@@ -62,12 +65,20 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.BANK, companyId,accountNo);
 
     }
+    public static String generateCompanyCalenderId(String companyName, String year) {
+        return generateGlobalResourceId(ResourceType.COMPANY_CALENDAR, companyName, year);
+
+    }
 
     public static String generateEmployeePersonnelId(String resourceId) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE_PERSONNEL, resourceId);
     }
     public static String generateBackgroundResourceId(String companyName, String employeeId) {
         return generateGlobalResourceId(ResourceType.BACKGROUND, companyName,employeeId);
+
+    }
+    public static String generateCompanyTDSId(String companyName, String startYear, String endYear, String tdsType) {
+        return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
 
     }
     /**
@@ -88,6 +99,9 @@ public class ResourceIdUtils {
         }
         if (type == ResourceType.EMPLOYEE) {
             prefix = Constants.EMPLOYEE + "-";
+        }
+        if (type == ResourceType.USER) {
+            prefix = Constants.USER + "-";
         }
         if (type == ResourceType.DEPARTMENT) {
             prefix = Constants.DEPARTMENT + "-";
@@ -125,6 +139,13 @@ public class ResourceIdUtils {
 
         }   if (type == ResourceType.EMPLOYEE_PERSONNEL) {
             prefix = Constants.EMPLOYEE_PERSONNEL +"-";
+
+        } if (type == ResourceType.COMPANY_CALENDAR) {
+            prefix = Constants.COMPANY_CALENDAR + "-";
+
+        }
+        if (type == ResourceType.COMPANY_TDS) {
+            prefix = Constants.COMPANY_TDS + "-";
 
         }
 

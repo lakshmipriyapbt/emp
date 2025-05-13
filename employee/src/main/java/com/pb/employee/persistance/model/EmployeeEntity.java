@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmployeeEntity implements Entity{
+
     private String id;
     private String employeeType;
     private String companyId;

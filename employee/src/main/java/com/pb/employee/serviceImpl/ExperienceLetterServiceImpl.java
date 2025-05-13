@@ -107,7 +107,7 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
             model.put(Constants.COMPANY, companyEntity);
             model.put(Constants.REQUEST, experienceLetterFieldsRequest);
 
-            if (!companyEntity.getFirst().getImageFile().isEmpty()) {
+            if (!experienceLetterFieldsRequest.isDraft() && !companyEntity.getFirst().getImageFile().isEmpty()) {
                 String imageUrl = companyEntity.getFirst().getImageFile();
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {

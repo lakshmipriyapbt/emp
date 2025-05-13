@@ -6,6 +6,7 @@ import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
+import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.DesignationEntity;
 import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
@@ -35,7 +36,7 @@ public class DesignationServiceImpl implements DesignationService {
     private OpenSearchOperations openSearchOperations;
 
     @Override
-    public ResponseEntity<?> registerDesignation(DesignationRequest designationRequest) throws EmployeeException{
+    public ResponseEntity<?> registerDesignation(DesignationRequest designationRequest, String departmentId) throws EmployeeException, IOException {
         // Check if a company with the same short or company name already exists
         log.debug("validating name {} existed ", designationRequest.getName());
         LocalDateTime currentDateTime = LocalDateTime.now();
@@ -56,6 +57,12 @@ public class DesignationServiceImpl implements DesignationService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(departmentId, null, index);
+        if (departmentEntity== null){
+            log.error("Department is not found");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
+        }
+
         boolean designationEntities = openSearchOperations.isDesignationPresent(designationRequest.getCompanyName(), designationRequest.getName());
         if(designationEntities) {
             log.error("Designation with name {} already existed", designationRequest.getName());
@@ -65,7 +72,7 @@ public class DesignationServiceImpl implements DesignationService {
         try{
 
             Entity designationEntity = DesignationEntity.builder().id(resourceId).name(designationRequest.getName())
-                    .type(Constants.DESIGNATION).build();
+                    .type(Constants.DESIGNATION).departmentId(departmentEntity.getId()).build();
             Entity result = openSearchOperations.saveEntity(designationEntity, resourceId, index);
         } catch (Exception exception) {
             log.error("Unable to save the designation details {} {}", designationRequest.getName(),exception.getMessage());
@@ -100,85 +107,101 @@ public class DesignationServiceImpl implements DesignationService {
     }
 
     @Override
-    public ResponseEntity<?> getDesignationById(String companyName, String designationId) throws EmployeeException {
-        log.info("getting details of {}", designationId);
-        DesignationEntity entity = null;
+    public List<DesignationEntity> getDesignationsByDepartment(String companyName, String departmentId, String designationId) throws EmployeeException {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        List<DesignationEntity> designationEntities = null;
         try {
-            entity = openSearchOperations.getDesignationById(designationId, null, index);
+            DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(departmentId, null, index);
+            if (departmentEntity== null){
+                log.error("Department is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
+            }
+
+            designationEntities = openSearchOperations.getCompanyDesignationByDepartmentId(companyName, departmentId, designationId);
+            if (designationEntities == null || designationEntities.size()<=0){
+                log.error("Designations are Not found");
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DESIGNATION)),
+                        HttpStatus.NOT_FOUND);
+            }
+        }catch (EmployeeException e){
+            log.error("Exception while getting the department designations with departmentId {}", departmentId);
+            throw e;
         } catch (Exception ex) {
-            log.error("Exception while fetching designation details {}", ex);
+            log.error("Exception while fetching designation for company {}: {}", companyName, ex.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        if (entity == null){
-            log.error("Department with id {} is not found", designationId);
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DESIGNATION), designationId),
-                    HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(entity), HttpStatus.OK);
+        return designationEntities;
     }
 
     @Override
-    public ResponseEntity<?> updateDesignationById(String designationId, DesignationUpdateRequest designationUpdateRequest) throws EmployeeException {
+    public ResponseEntity<?> updateDesignationById(String designationId, String departmentId, DesignationUpdateRequest designationUpdateRequest) throws EmployeeException {
         log.info("getting details of {}", designationId);
-        DesignationEntity designationEntity;
         String index = ResourceIdUtils.generateCompanyIndex(designationUpdateRequest.getCompanyName());
         try {
-            designationEntity = openSearchOperations.getDesignationById(designationId, null, index);
+            DesignationEntity designationEntity = openSearchOperations.getDesignationById(designationId, null, index);
             if (designationEntity == null) {
                 log.error("unable to find the designation");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DESIGNATION),
                         HttpStatus.NOT_FOUND);
             }
-        } catch (Exception ex) {
+            if (designationEntity.getDepartmentId() != null){
+                this.getDesignationsByDepartment(designationUpdateRequest.getCompanyName(), departmentId, designationId);
+                List<DesignationEntity> designationEntities = openSearchOperations.getCompanyDesignationByName(designationUpdateRequest.getCompanyName(), designationUpdateRequest.getName());
+                if(designationEntities !=null && designationEntities.size() > 0) {
+                    log.error("Designation with name {} already existed", designationUpdateRequest.getName());
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_ID_ALREADY_EXISTS), designationUpdateRequest.getName()),
+                            HttpStatus.CONFLICT);
+                }
+            }
 
+        }catch (EmployeeException e){
+            log.error("Exception while fetching the departmentDesignations with id: {}, departmentId: {}", designationId, departmentId);
+            throw e;
+        } catch (Exception ex) {
             log.error("Exception while fetching designation details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        List<DesignationEntity> designationEntities = openSearchOperations.getCompanyDesignationByName(designationUpdateRequest.getCompanyName(), designationUpdateRequest.getName());
-        if(designationEntities !=null && designationEntities.size() > 0) {
-            log.error("Designation with name {} already existed", designationUpdateRequest.getName());
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_ID_ALREADY_EXISTS), designationUpdateRequest.getName()),
-                    HttpStatus.CONFLICT);
-        }
-
         Entity entity = DesignationEntity.builder().id(designationId).name(designationUpdateRequest.getName())
-                .type(Constants.DESIGNATION).build();
+                .type(Constants.DESIGNATION).departmentId(departmentId).build();
         openSearchOperations.saveEntity(entity, designationId, index);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<?> deleteDesignation(String companyName, String designationId) throws EmployeeException {
+    public ResponseEntity<?> deleteDesignation(String companyName,String departmentId, String designationId) throws EmployeeException {
         log.info("getting details of {}", designationId);
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         List<EmployeeEntity> employeeEntities;
         try {
-            entity = openSearchOperations.getById(designationId, null, index);
+            DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(departmentId, null, index);
+            if (departmentEntity== null){
+                log.error("Department is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
+            }
+            entity = openSearchOperations.getCompanyDesignationByDepartmentId(companyName, departmentId, designationId);
+            if (entity == null) {
+                log.error("unable to find the designation");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DESIGNATION),
+                        HttpStatus.NOT_FOUND);
+            }
             employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
             for (EmployeeEntity employee: employeeEntities){
                 if (employee.getDesignation()!=null && employee.getDesignation().equals(designationId)) {
                     log.error("Designation details existed in employee{}", designationId);
-                    return new ResponseEntity<>(
-                            ResponseBuilder.builder().build().
-                                    createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler
-                                            .getMessage(EmployeeErrorMessageKey.DESIGNATION_IS_EXIST_EMPLOYEE)))),
-                            HttpStatus.CONFLICT);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_IS_EXIST_EMPLOYEE),
+                            HttpStatus.NOT_FOUND);
                 }
+            }
+            openSearchOperations.deleteEntity(designationId,index);
 
-            }
-            if (entity!=null) {
-                openSearchOperations.deleteEntity(designationId,index);
-            } else {
-                log.error("unable to find designation");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DESIGNATION),
-                        HttpStatus.NOT_FOUND);
-            }
+        }catch (EmployeeException e){
+            log.error("Exception while deleting the designation");
+            throw e;
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_DELETE_DESIGNATION),

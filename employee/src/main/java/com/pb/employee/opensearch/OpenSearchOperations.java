@@ -3,7 +3,6 @@ package com.pb.employee.opensearch;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
-import com.pb.employee.model.UserEntity;
 import com.pb.employee.persistance.model.*;
 
 import com.pb.employee.persistance.model.CompanyEntity;
@@ -99,16 +98,6 @@ public class OpenSearchOperations {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXCEPTION_OCCURRED), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return id;
-    }
-
-    public UserEntity getEMSAdminById(String user) throws IOException {
-        GetRequest getRequest = new GetRequest.Builder().id(Constants.EMS_ADMIN + "_" + user)
-                .index(Constants.INDEX_EMS).build();
-        GetResponse<UserEntity> searchResponse = esClient.get(getRequest, UserEntity.class);
-        if (searchResponse != null && searchResponse.source() != null) {
-            return searchResponse.source();
-        }
-        return null;
     }
 
     public Object getById(String resourceId, String type, String index) throws IOException {
@@ -232,7 +221,7 @@ public class OpenSearchOperations {
         // Exact match on name.keyword
         if (designationName != null && !designationName.trim().isEmpty()) {
             boolQueryBuilder.must(q -> q.term(t ->
-                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(designationName))
+                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(designationName.toLowerCase()))
             ));
         }
 
@@ -373,7 +362,7 @@ public class OpenSearchOperations {
         // Exact match on name.keyword
         if (departmentName != null && !departmentName.trim().isEmpty()) {
             boolQueryBuilder.must(q -> q.term(t ->
-                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(departmentName))
+                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(departmentName.toLowerCase()))
             ));
         }
 
@@ -1067,5 +1056,38 @@ public class OpenSearchOperations {
             return hits.get(0).source();
         }
         return null;
+    }
+
+    public List<DesignationEntity> getCompanyDesignationByDepartmentId(String companyName, String departmentId, String designationId) throws EmployeeException {
+        logger.debug("Getting all the sites ");
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.DESIGNATION)))
+                .filter(q -> q.matchPhrase(t ->t.field(Constants.DEPARTMENT_ID).query(departmentId)));
+        if (designationId != null){
+            boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t ->t.field(Constants.ID).query(designationId)));
+
+        }
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<DesignationEntity> searchResponse = null;
+        try {
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), DesignationEntity.class);
+        } catch (IOException e) {
+            e.getStackTrace();
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        List<Hit<DesignationEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of hits {}", hits.size());
+        List<DesignationEntity> iecObservationEntities = new ArrayList<>();
+        if(hits.size() > 0) {
+            for(Hit<DesignationEntity> hit : hits){
+                iecObservationEntities.add(hit.source());
+            }
+        }
+        return iecObservationEntities;
     }
 }

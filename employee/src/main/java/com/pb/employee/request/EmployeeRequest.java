@@ -1,7 +1,7 @@
 package com.pb.employee.request;
 
 
-import com.pb.employee.config.ValidAge;
+import com.pb.employee.validations.ValidAge;
 import com.pb.employee.persistance.model.EmployeePersonnelEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -47,12 +47,6 @@ public class EmployeeRequest {
     @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
     @NotBlank(message = "{emailId.notnull.message}")
     private String emailId;// "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$"
-
-    /*@Schema(example = "password")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W)(?!.* ).{6,16}$", message = "{invalid.password}")
-    @NotBlank(message = "{password.notnull.message}")*/
-    //password not mandatory
-  //  private String password;
 
     @Schema(example = "designationId")
     @Size(min = 2, max = 100, message = "{designation.size.message}")
@@ -107,7 +101,7 @@ public class EmployeeRequest {
     private String maritalStatus;
 
     @Schema(example = "Active")
-    @Pattern(regexp = "^(Active|InActive|OnBoard)$", message = "{status.format}")
+    @Pattern(regexp = "^(Active|relieved)$", message = "{status.format}")
     @NotBlank(message = "{status.notnull.message}")
     private String status;
 

@@ -710,10 +710,10 @@ export const RelievingPatchApiById = (employeeId,relieveId, data) => {
   return axiosInstance.patch(`/${company}/employee/${employeeId}/relieve/${relieveId}`, data)
 };
 
-export const RelievingLetterDownload = async (employeeId,payload) => {
+export const RelievingLetterDownload = async (employeeId, draft, payload) => {
   const company = localStorage.getItem("companyName")
   try {
-    const response = await axiosInstance.post(`/${company}/employee/${employeeId}/download`,payload, {
+    const response = await axiosInstance.post(`/${company}/employee/${employeeId}/download?draft=${draft}`,payload, {
       responseType: 'blob',
       headers: {
         'Accept': 'application/pdf',
@@ -1068,5 +1068,33 @@ export const InvoiceDownloadById = async (companyId, customerId, invoiceId) => {
     return false;  // Indicate failure
   }
 };
+export const DialCodesListApi = () => {
+  return axiosInstance.get(`/dialcodes/list`);
+}
+export const TdsGetApi = () => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/company/${company}/tds`);
+};
+export const TdsPostApi = (data) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.post(`/company/${company}/tds`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const TdsPatchApi = (id, data) => {
+  const company = localStorage.getItem("companyName"); // Retrieve company name
+  return axiosInstance.patch(`/company/${company}/tds/${id}`, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+export const getCompanyTdsByYear = (year) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/company/${company}/tds/${year}/year`);
+};
+
+
+
+
+
 
 
