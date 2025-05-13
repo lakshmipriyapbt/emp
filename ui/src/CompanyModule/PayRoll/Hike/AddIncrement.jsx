@@ -38,7 +38,7 @@ const AddIncrement = () => {
   } = useForm({
     mode: "onChange",
     defaultValues: {
-      incomeTax: "new",
+      tdsType: "new",
       status: "Active",
     },
   });
@@ -100,6 +100,7 @@ const AddIncrement = () => {
   const dispatch = useDispatch();
   const [amountInWords, setAmountInWords] = useState('');
   const [grossInWords, setGrossInWords] = useState('');
+  const [hikeStartedDate, setHikeStartedDate] = useState('');
 
 
   const numberToWords = (num) => {
@@ -626,7 +627,8 @@ const AddIncrement = () => {
       dateOfHiring,
       months,
       years,
-      grossAmount
+      grossAmount,
+      draft,
     } = getValues(); // Get current form values
     // Check if any required field is missing
     if (
@@ -635,7 +637,8 @@ const AddIncrement = () => {
       !departmentName ||
       !dateOfHiring ||
       !months ||
-      !years||grossAmount
+      !years||grossAmount,
+      !draft||draft
     ) {
       setMessage("Please fill all the required fields.");
       setShowFields(true); // Optionally hide or show some fields based on conditions
@@ -746,7 +749,8 @@ const AddIncrement = () => {
     const netSalaryValue = parseFloat(netSalary) || 0;
     const totalDeductionsValue = parseFloat(totalDeductions) || 0;
     const pfTaxValue = parseFloat(pfTax) || 0;
-    const incomeTax = data.incomeTax || "";
+    const tdsType = data.tdsType || "";
+
     const statusValue = data.status || "";
     if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
       toast.error("All amounts cannot be zero.");
@@ -832,7 +836,8 @@ const AddIncrement = () => {
       netSalary: netSalaryValue.toFixed(2),
       totalDeductions: totalDeductionsValue.toFixed(2),
       pfTax: pfTaxValue.toFixed(2),
-      incomeTax: incomeTax,
+      tdsType: tdsType,
+     addSalaryDate : hikeStartedDate,
       status: statusValue,
     };
     console.log(dataToSubmit);
@@ -851,6 +856,7 @@ const AddIncrement = () => {
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
       grossCompensation: String(grossAmount || ""),
       salaryConfigurationId: salaryStructureId || "",
+      draft: previewData.draft,
       // appraisalTemplateNo: selectedTemplate,
     };
     try {
@@ -933,6 +939,9 @@ const AddIncrement = () => {
 
   // Preview Form Submission (Before submitting for API calls)
   const submitForm = (data) => {
+        const draftValue = data.draft === "true";
+        setHikeStartedDate(data.dateOfSalaryIncrement);
+
     console.log("submitForm", data);
     const selectedMonth = data.months ? data.months.label : "";
     const selectedYear = data.years ? data.years.label : "";
@@ -946,6 +955,8 @@ const AddIncrement = () => {
       companyId: company.id,
       allowances: allowances,
       totalAllowances: totalAllowances,
+      draft: draftValue,
+
     };
     const preview = {
       salaryHikePersentage:hikePercentage,
@@ -961,6 +972,7 @@ const AddIncrement = () => {
       allowances: allowances,
       totalAllowances: totalAllowances,
       basicSalary: basicAmount,
+      draft: draftValue,
       date: new Date().toISOString().split("T")[0],
     };
     setPreviewData(preview);
@@ -1355,9 +1367,9 @@ const AddIncrement = () => {
                               <div className="d-flex justify-content-start align-items-start">
                                 <h5 className="card-title me-2">TDS</h5>
                                 <span className="text-danger">
-                                  {errors.incomeTax && (
+                                  {errors.tdsType && (
                                     <p className="mb-0">
-                                      {errors.incomeTax.message}
+                                      {errors.tdsType.message}
                                     </p>
                                   )}
                                 </span>
@@ -1369,10 +1381,10 @@ const AddIncrement = () => {
                                   <label>
                                     <input
                                       type="radio"
-                                      name="incomeTax"
+                                      name="tdsType"
                                       value="old"
                                       style={{ marginRight: "10px" }}
-                                      {...register("incomeTax", {
+                                      {...register("tdsType", {
                                         required: "Please Select Tax",
                                       })}
                                     />
@@ -1384,11 +1396,11 @@ const AddIncrement = () => {
                                   <label>
                                     <input
                                       type="radio"
-                                      name="incomeTax"
+                                      name="tdsType"
                                       value="new"
                                       defaultChecked
                                       style={{ marginRight: "10px" }}
-                                      {...register("incomeTax", {
+                                      {...register("tdsType", {
                                         required: "Please Select Tax",
                                       })}
                                     />
@@ -1655,6 +1667,41 @@ const AddIncrement = () => {
                                   </p>
                                 )}
                               </div>
+
+                      <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                           <label className="form-label">Select Mode</label>
+                          <div className="form-check">
+                                     <input
+                                        type="radio"
+                                        className="form-check-input"
+                                         id="draft"
+                                        name="draft"
+                                          value={true}
+                                {...register("draft", { required: true })}
+                                />
+                         <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                         </label>
+                          </div>
+                        <div className="form-check">
+                            <input
+                               type="radio"
+                                className="form-check-input"
+                               id="undraft"
+                               name="draft"
+                               value={false}
+                                {...register("draft", { required: true })}
+                              />
+                        <label className="form-check-label" htmlFor="undraft">
+                             Digital Copy
+                           </label>
+                       </div>
+
+                       {errors.draft && (
+                            <p className="errorMsg">Please select draft copy or digital copy</p>
+                       )}
+                    </div>
                             </div>
                             {message && (<span className="text-center text-danger">message</span>)}
                             <div
