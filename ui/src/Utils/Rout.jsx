@@ -5,10 +5,7 @@ import CompanyLogin from '../Login/CompanyLogin';
 import CompanyRegistration from '../EMSModule/Company/CompanyRegistration';
 import Body from '../LayOut/Body';
 import CompanyView from '../EMSModule/Company/CompanyView';
-
 import Department from '../CompanyModule/Department/Department'
-
-
 import EmployeeRegistration from '../CompanyModule/Employee/EmployeeRegistration';
 import EmployeeView from '../CompanyModule/Employee/EmployeeView';
 import ExistsEmpRegistration from '../CompanyModule/ExistingProcess/ExistsEmpRegistration';
@@ -77,9 +74,10 @@ import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLet
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
 import GetTaxSlab from '../CompanyModule/TDS/GetTaxSlab';
-import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
-import TaxSlab from '../CompanyModule/TDS/TaxSlab';
 import CompanyTdsView from '../CompanyModule/TDS/CompanyTdsView';
+import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
+import TotalEmployees from '../EmployeeModule/TotalEmployees';
+import EmployeeList from '../EmployeeModule/EmployeeList';
 
 
 export const allAvailableRoutes = [
@@ -146,7 +144,9 @@ export const allAvailableRoutes = [
   {path: '/payslipDoc1', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc2', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc3', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
-  {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
+  {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/totalEmployees', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/employeeList/:status', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
 ];
 
 const Routing = () => {
@@ -155,7 +155,7 @@ const Routing = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Message />} />
-      <Route path='login' element={<EmsLogin/>}/>
+      <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
       <Route path='/profile' element={<Profile />} />
@@ -428,7 +428,14 @@ const Routing = () => {
         path="/payslipDoc4"
         element={<ProtectedRoute element={<PayslipDoc4/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
       />
-    
+      <Route
+        path="/totalEmployees"
+        element={<ProtectedRoute element={<TotalEmployees/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/employeeList/:status"
+        element={<ProtectedRoute element={<EmployeeList/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
     </Routes>
   );
 };
