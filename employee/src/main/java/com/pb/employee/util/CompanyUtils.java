@@ -438,7 +438,7 @@ public class CompanyUtils {
         Map<String, Object> responseBody = new HashMap<>();
            String cinNo = null, regNo = null, mobileNo = null, landNo =  null,
                    panNo= null, personalMail = null, personalMobile = null,
-                   mailId=null;
+                   mailId=null, gstNo=null;
         for (CompanyEntity companyEntity :companyEntities) {
 
             if (companyRequest.getEmailId() != null && companyEntity.getEmailId() != null) {
@@ -447,13 +447,24 @@ public class CompanyUtils {
                 }
 
             }
+            if (companyRequest.getGstNo() != null && companyEntity.getGstNo() != null && !companyEntity.getGstNo().isEmpty() && !companyRequest.getGstNo().isEmpty()){
+                gstNo = new String(Base64.getDecoder().decode(companyEntity.getGstNo().getBytes()));
+                if (gstNo.equals(companyRequest.getGstNo())){
+                    responseBody.put(Constants.DUPLICATE_GST_NO, companyRequest.getEmailId());
+                }
+            }
             if (companyEntity.getCompanyRegNo() != null && companyRequest.getCompanyRegNo() != null && !companyEntity.getCompanyRegNo().isEmpty()) {
                 regNo = new String(Base64.getDecoder().decode(companyEntity.getCompanyRegNo().getBytes()));
                 if (regNo.equals(companyRequest.getCompanyRegNo())){
                     responseBody.put(Constants.DUPLICATE_REGISTER_NO, companyRequest.getCompanyRegNo());
                 }
+                if (regNo.equals(companyRequest.getCompanyRegNo())){
+                    responseBody.put(Constants.DUPLICATE_REGISTER_NO, companyRequest.getAlternateNo());
 
+                }
             }
+
+
             if (companyRequest.getMobileNo() != null && companyEntity.getMobileNo() != null) {
                 mobileNo = new String(Base64.getDecoder().decode(companyEntity.getMobileNo().getBytes()));
                 if (mobileNo.equals(companyRequest.getMobileNo())){
@@ -504,14 +515,18 @@ public class CompanyUtils {
                 }
 
             }
-
             if (companyEntity.getCinNo() != null && companyRequest.getCinNo() != null && !companyEntity.getCinNo().isEmpty()) {
                 cinNo = new String(Base64.getDecoder().decode(companyEntity.getCinNo().getBytes()));
                 if (cinNo.equals(companyRequest.getCinNo())){
                     responseBody.put(Constants.DUPLICATE_CIN_NO, companyRequest.getCinNo());
                 }
+                if (regNo.equals(companyRequest.getCompanyRegNo())){
+                    responseBody.put(Constants.DUPLICATE_CIN_NO, companyRequest.getCinNo());
+
+                }
 
             }
+
         }
         return responseBody;
     }
