@@ -641,7 +641,7 @@ export default function EmployeeRegister() {
                       >
                         <option value="">Select Status</option>
                         <option value='Active'>Active</option>
-                        <option value='InActive'>Relieved</option>
+                        <option value='relieved'>Relieved</option>
                         {/* <option value='OnBoard'>OnBoard</option> */}
                         {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
                       </select>

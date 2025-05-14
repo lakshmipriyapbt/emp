@@ -273,10 +273,10 @@ public class OpenSearchOperations {
 
     public boolean isDepartmentPresent(String companyName, String departmentName) throws EmployeeException {
         // Fetch all designations from the database
-        List<DepartmentEntity> designationEntities = getCompanyDepartmentByName(companyName,departmentName);
+        List<DepartmentEntity> departmentEntities = getCompanyDepartmentByName(companyName,departmentName);
 
         // Iterate through the designation list to check if the designation already exists
-        for (DepartmentEntity department : designationEntities) {
+        for (DepartmentEntity department : departmentEntities) {
             // Check if the name matches the input designation (case-insensitive)
             if (department.getName().equalsIgnoreCase(departmentName)) {
                 return true; // Designation already exists
@@ -356,28 +356,23 @@ public class OpenSearchOperations {
 
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        // Filter by type = DEPARTMENT
-        boolQueryBuilder.filter(q -> q.term(t -> t.field(Constants.TYPE).value(FieldValue.of(Constants.DEPARTMENT))));
-
-        // Exact match on name.keyword
-        if (departmentName != null && !departmentName.trim().isEmpty()) {
-            boolQueryBuilder.must(q -> q.term(t ->
-                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(departmentName.toLowerCase()))
-            ));
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.DEPARTMENT)));
+        if (departmentName != null && !departmentName.isEmpty()) {
+            boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.NAME).query(departmentName)));
         }
 
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         SearchResponse<DepartmentEntity> searchResponse;
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
 
         try {
-            searchResponse = esClient.search(s -> s
-                            .index(index)
-                            .size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                            .query(boolQueryBuilder.build()._toQuery()),
-                    DepartmentEntity.class
-            );
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), DepartmentEntity.class);
         } catch (IOException e) {
-            logger.error("Error searching in Elasticsearch: {}", e.getMessage());
+            e.getStackTrace();
+            logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
