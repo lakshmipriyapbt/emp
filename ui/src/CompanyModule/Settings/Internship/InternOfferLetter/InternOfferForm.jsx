@@ -14,11 +14,11 @@ const InternOfferForm = () => {
     register,
     handleSubmit,
     control,
-    setValue,watch,
+    setValue, watch,
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  
+
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,17 +28,18 @@ const InternOfferForm = () => {
   const [selectedAssignee, setSelectedAssignee] = useState({
     associateName: "",
     associateDesignation: "",
-  }); 
+  });
   const [selectedHR, setSelectedHR] = useState({
-    hrId:"",
+    hrId: "",
     hrName: "",
     hrEmail: "",
   });
-    const { company } = useAuth();
-    const [showPreview, setShowPreview] = useState(false);
+  const { company } = useAuth();
+  const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { data: employees, status } = useSelector((state) => state.employees);
+  const watchDepartment = watch("department");
 
   useEffect(() => {
     if (status === "loading") {
@@ -50,7 +51,7 @@ const InternOfferForm = () => {
   const handleAssigneeChange = (event) => {
     const selectedId = event.target.value;
     const selectedEmployee = employees.find((emp) => String(emp.id) === selectedId); // Ensure type match
-  
+
     if (selectedEmployee) {
       setSelectedAssignee({
         associateId: selectedEmployee.id,  // Store ID to match the <select> value
@@ -58,11 +59,11 @@ const InternOfferForm = () => {
         associateDesignation: selectedEmployee.designationName,
       });
     }
-  };  
+  };
 
   const handleHRChange = (event) => {
     const selectedId = event.target.value;
-  
+
     if (selectedId === "Company Admin") {
       setSelectedHR({
         hrId: "Company Admin",
@@ -71,7 +72,7 @@ const InternOfferForm = () => {
       });
     } else {
       const selectedHRPerson = hrEmployees.find((emp) => String(emp.id) === selectedId);
-  
+
       if (selectedHRPerson) {
         setSelectedHR({
           hrId: String(selectedHRPerson.id),
@@ -80,25 +81,25 @@ const InternOfferForm = () => {
         });
       }
     }
-  };  
-  
+  };
+
   const joiningDate = watch("startDate");
 
   const validateEndDate = (endDate) => {
     if (!joiningDate) return "Joining Date is required before selecting End Date";
-  
+
     const joinDateObj = new Date(joiningDate);
     const endDateObj = new Date(endDate);
     const maxEndDate = new Date(joinDateObj);
     maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
-  
+
     if (endDateObj < joinDateObj) {
       return "End Date cannot be before Joining Date";
     }
     if (endDateObj > maxEndDate) {
       return "End Date cannot exceed 12 months from Joining Date";
     }
-  
+
     return true;
   };
   
@@ -121,16 +122,16 @@ const InternOfferForm = () => {
     if (acceptDate >= joining) {
       return "Accept Date must be before the Joining Date";
     }
-  
+
     return true;
   };
-  
+
 
   useEffect(() => {
     // Dynamically update the max End Date and Accept Date based on the joiningDate
     if (joiningDate) {
       const joiningDateObj = new Date(joiningDate);
-      
+
       // Set max End Date to 12 months after the joiningDate
       const maxEndDate = new Date(joiningDateObj);
       maxEndDate.setMonth(maxEndDate.getMonth() + 12);
@@ -141,14 +142,14 @@ const InternOfferForm = () => {
 
   useEffect(() => {
     const allEmployeeOptions = employees
-    .filter(emp => emp.status?.toLowerCase() === "active") // ✅ Filter only active employees
-    .map((emp) => ({
-      id: emp.id,
-      name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
-    }));  
-  
+      .filter(emp => emp.status?.toLowerCase() === "active") // ✅ Filter only active employees
+      .map((emp) => ({
+        id: emp.id,
+        name: `${emp.firstName || ""} ${emp.lastName || ""} (${emp.designationName})`.trim(),
+      }));
+
     setEmployeeOptions(allEmployeeOptions);
-  
+
     const hrDepartmentsEmployees = employees.filter(
       (emp) =>
         emp.departmentName &&
@@ -156,10 +157,10 @@ const InternOfferForm = () => {
           emp.departmentName.toLowerCase().endsWith("hr") ||
           emp.departmentName.toLowerCase().startsWith("human resources"))
     );
-  
+
     // ✅ Save full employee objects here
     setHrEmployees(hrDepartmentsEmployees);
-  
+
     // If no HR employees exist, default to Company Admin
     if (hrDepartmentsEmployees.length === 0) {
       setSelectedHR({
@@ -168,8 +169,8 @@ const InternOfferForm = () => {
         hrEmail: company?.emailId || "N/A",
       });
     }
-  }, [employees, company]);  
-  
+  }, [employees, company]);
+
   const fetchDepartments = async () => {
     try {
       const data = await DepartmentGetApi();
@@ -181,14 +182,17 @@ const InternOfferForm = () => {
     }
   };
 
-  const fetchDesignations = async () => {
+  const fetchDesignations = async (departmentId) => {
     try {
-      const data = await DesignationGetApi();
-      setDesignations(data);
+      if (departmentId) {
+        const data = await DesignationGetApi(departmentId); // Pass departmentId to API
+        setDesignations(data);
+      } else {
+        setDesignations([]); // Clear designations if no department selected
+      }
     } catch (error) {
-      // handleApiErrors(error)
-    } finally {
-      setLoading(false);
+      console.error('Error fetching designations:', error);
+      setDesignations([]);
     }
   };
 
@@ -198,6 +202,19 @@ const InternOfferForm = () => {
   }, []);
   const currentDate = new Date().toISOString().split('T')[0]; // Formats date as 'YYYY-MM-DD'
 
+
+  useEffect(() => {
+    if (watchDepartment) {
+      // Find the department object to get its ID
+      const selectedDept = departments.find(dept => dept.name === watchDepartment);
+      if (selectedDept) {
+        fetchDesignations(selectedDept.id);
+      }
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
+  
   const onSubmit = (data) => {
     const isDraft = data.draft === "true"; // Convert to boolean
 
@@ -215,61 +232,61 @@ const InternOfferForm = () => {
     console.log("preview:", formData);
     setShowPreview(true);
   };
-    const handleConfirmSubmission = async () => {
-      try {
-        const success = await InternOfferLetterDownload(previewData);
-        if (success) {
-          setShowPreview(true);
-          reset();
-          setShowPreview(false)
-        }
-      } catch (error) {
-        console.error("Error downloading the PDF:", error);
-        handleError(error);
+  const handleConfirmSubmission = async () => {
+    try {
+      const success = await InternOfferLetterDownload(previewData);
+      if (success) {
+        setShowPreview(true);
+        reset();
+        setShowPreview(false)
       }
-    };
-  
-    const handleError = (errors) => {
-      if (errors.response) {
-        const status = errors.response.status;
-        let errorMessage = "";
-  
-        switch (status) {
-          case 403:
-            errorMessage = "Session Timeout!";
-            navigate("/");
-            break;
-          case 404:
-            errorMessage = "Resource Not Found!";
-            break;
-          case 406:
-            errorMessage = "Invalid Details!";
-            break;
-          case 500:
-            errorMessage = "Server Error!";
-            break;
-          default:
-            errorMessage = "An Error Occurred!";
-            break;
-        }
-  
-        toast.error(errorMessage, {
-          position: "top-right",
-          transition: Bounce,
-          hideProgressBar: true,
-          theme: "colored",
-          autoClose: 3000,
-        });
-      } else {
-        // toast.error("Network Error!", {
-        //   position: "top-right",
-        //   transition: Bounce,
-        //   hideProgressBar: true,
-        //   theme: "colored",
-        //   autoClose: 3000,
-        // });
+    } catch (error) {
+      console.error("Error downloading the PDF:", error);
+      handleError(error);
+    }
+  };
+
+  const handleError = (errors) => {
+    if (errors.response) {
+      const status = errors.response.status;
+      let errorMessage = "";
+
+      switch (status) {
+        case 403:
+          errorMessage = "Session Timeout!";
+          navigate("/");
+          break;
+        case 404:
+          errorMessage = "Resource Not Found!";
+          break;
+        case 406:
+          errorMessage = "Invalid Details!";
+          break;
+        case 500:
+          errorMessage = "Server Error!";
+          break;
+        default:
+          errorMessage = "An Error Occurred!";
+          break;
       }
-    };
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        transition: Bounce,
+        hideProgressBar: true,
+        theme: "colored",
+        autoClose: 3000,
+      });
+    } else {
+      // toast.error("Network Error!", {
+      //   position: "top-right",
+      //   transition: Bounce,
+      //   hideProgressBar: true,
+      //   theme: "colored",
+      //   autoClose: 3000,
+      // });
+    }
+  };
 
   const clearForm = () => {
     reset();
@@ -593,23 +610,24 @@ const InternOfferForm = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
                       <textarea type="text" className="form-control" name="address"
-                   {...register("address", {
-                    required: "Address is required",
-                    pattern: { value: /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/,
-                      message: "Enter a valid Address",
-                    }, minLength: {
-                      value: 3,
-                      message: "Minimum 3 Characters allowed",
-                    },
-                    maxLength: {
-                      value: 200,
-                      message: "Maximum 200 Characters allowed",
-                    },
-                    validate: (value) =>
-                      value.trim().length === value.length ||
-                      "Spaces at the end are not allowed.",
-                  })}
-                  />
+                        {...register("address", {
+                          required: "Address is required",
+                          pattern: {
+                            value: /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/,
+                            message: "Enter a valid Address",
+                          }, minLength: {
+                            value: 3,
+                            message: "Minimum 3 Characters allowed",
+                          },
+                          maxLength: {
+                            value: 200,
+                            message: "Maximum 200 Characters allowed",
+                          },
+                          validate: (value) =>
+                            value.trim().length === value.length ||
+                            "Spaces at the end are not allowed.",
+                        })}
+                      />
                       {errors.address && (
                         <p className="errorMsg">
                           {errors.address.message}
@@ -624,10 +642,10 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         max={threeMonthsFromNow}
                         {...register("startDate", {
-                            required: "Joining Date is required",
+                          required: "Joining Date is required",
                         })}
                       />
                       {errors.startDate && (
@@ -636,19 +654,19 @@ const InternOfferForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                    <label className="form-label">End Date</label>
-                    <input
+                      <label className="form-label">End Date</label>
+                      <input
                         type="date"
                         name="endDate"
                         placeholder="Enter End Date"
                         className="form-control"
                         autoComplete="off"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("endDate", {
-                        required: "End Date is required",
-                        validate:validateEndDate,
+                          required: "End Date is required",
+                          validate: validateEndDate,
                         })}
-                    />
+                      />
                       {errors.endDate && (
                         <p className="errorMsg">{errors.endDate.message}</p>
                       )}
@@ -661,12 +679,23 @@ const InternOfferForm = () => {
                         defaultValue=""
                         rules={{ required: "Department is Required" }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Department
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            onChange={(e) => {
+                              field.onChange(e); // Update form state
+                              // Reset designation when department changes
+                              setValue("designation", "");
+                              // Find department and fetch its designations
+                              const selectedDept = departments.find(dept => dept.name === e.target.value);
+                              if (selectedDept) {
+                                fetchDesignations(selectedDept.id);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Select Department</option>
                             {departments.map((department) => (
-                              <option key={department.id} value={department.departmentName}>
+                              <option key={department.id} value={department.name}>
                                 {department.name}
                               </option>
                             ))}
@@ -677,6 +706,7 @@ const InternOfferForm = () => {
                         <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
+
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Designation</label>
@@ -684,25 +714,29 @@ const InternOfferForm = () => {
                         name="designation"
                         control={control}
                         defaultValue=""
-                        rules={{ required: true }}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: watchDepartment ? "Designation is Required" : "Please select a department first"
+                          }
+                        }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Designation
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            disabled={!watchDepartment}
+                          >
+                            <option value="" disabled>Select Designation</option>
                             {designations.map((designation) => (
-                              <option
-                                key={designation.id}
-                                value={designation.designationName}
-                              >
+                              <option key={designation.id} value={designation.name}>
                                 {designation.name}
                               </option>
                             ))}
                           </select>
                         )}
                       />
-                      {errors && errors.designation && (
-                        <p className="errorMsg">Designation is Required</p>
+                      {errors.designation && (
+                        <p className="errorMsg">{errors.designation.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
@@ -743,7 +777,7 @@ const InternOfferForm = () => {
                           },
                         })}
                       />
-                      {errors.companyBranch  && (
+                      {errors.companyBranch && (
                         <p className="errorMsg text-danger">
                           {errors.companyBranch.message}
                         </p>
@@ -784,7 +818,7 @@ const InternOfferForm = () => {
                         placeholder="Enter Joining Date"
                         className="form-control"
                         autoComplete="off"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("acceptDate", {
                           required: "Accept Date is required",
                           validate: (value) => validateAcceptDate(value, watch("startDate"))
@@ -798,20 +832,20 @@ const InternOfferForm = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Assigned To</label>
                       <select
-                          className="form-select"
-                          onChange={handleAssigneeChange}
-                          name="associateId"
-                          value={selectedAssignee.associateId || ""}
-                        >
-                          <option value="" disabled>
-                            Select Employee
+                        className="form-select"
+                        onChange={handleAssigneeChange}
+                        name="associateId"
+                        value={selectedAssignee.associateId || ""}
+                      >
+                        <option value="" disabled>
+                          Select Employee
+                        </option>
+                        {employeeOptions.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name}
                           </option>
-                          {employeeOptions.map((emp) => (
-                            <option key={emp.id} value={emp.id}>
-                              {emp.name}
-                            </option>
-                          ))}
-                        </select>
+                        ))}
+                      </select>
 
                       {errors.associateName && (
                         <p className="errorMsg">
@@ -822,25 +856,25 @@ const InternOfferForm = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">HR</label>
                       <select
-        id="hrSelect"
-        className="form-select"
-        onChange={handleHRChange}
-        value={selectedHR?.hrId || ""}
-      >
-        <option value="">Select HR</option>
-        {hrEmployees.length > 0 ? (
-          <>
-            {hrEmployees.map((emp) => (
-              <option key={emp.id} value={String(emp.id)}>
-                {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
-              </option>
-            ))}
-            <option value="Company Admin">Company Admin</option>
-          </>
-        ) : (
-          <option value="Company Admin">Company Admin</option>
-        )}
-      </select>
+                        id="hrSelect"
+                        className="form-select"
+                        onChange={handleHRChange}
+                        value={selectedHR?.hrId || ""}
+                      >
+                        <option value="">Select HR</option>
+                        {hrEmployees.length > 0 ? (
+                          <>
+                            {hrEmployees.map((emp) => (
+                              <option key={emp.id} value={String(emp.id)}>
+                                {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
+                              </option>
+                            ))}
+                            <option value="Company Admin">Company Admin</option>
+                          </>
+                        ) : (
+                          <option value="Company Admin">Company Admin</option>
+                        )}
+                      </select>
                       {errors.hrName && (
                         <p className="errorMsg">{errors.hrName.message}</p>
                       )}
@@ -858,40 +892,40 @@ const InternOfferForm = () => {
                         defaultValue="+91 " // Set the initial value to +91 with a space
                         onInput={handlePhoneNumberChange} // Handle input changes
                         {...register("hrMobileNo", {
-                            required: "Hr Contact Number is Required", // Error message when the field is left empty
-                            validate: {
-                              startsWithPlus91: (value) => {
-                                if (!value.startsWith("+91 ")) {
-                                  return " HR Contact Number must start with +91 and a space."; // Custom error for wrong prefix
-                                }
-                                return true;
-                              },
-                              correctLength: (value) => {
-                                if (value.length !== 14) {
-                                  return "Contact Number must be exactly 14 characters (including +91 and space)."; // Custom error for incorrect length
-                                }
-                                return true;
-                              },
-                              startsWithValidDigit: (value) => {
-                                const validStart = /^[+91\s][6789]/.test(value); // Validate that the second digit is between 6-9
-                                if (!validStart) {
-                                  return "Contact Number must start with +91 followed by 6, 7, 8, or 9."; // Custom error for invalid start
-                                }
-                                return true;
-                              },
-                              notRepeatingDigits: (value) => {
-                                const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits (e.g., +91 111111111111)
-                                if (isRepeating) {
-                                  return "Contact Number cannot consist of the same digit repeated."; // Custom error for repeating digits
-                                }
-                                return true;
-                              },
+                          required: "Hr Contact Number is Required", // Error message when the field is left empty
+                          validate: {
+                            startsWithPlus91: (value) => {
+                              if (!value.startsWith("+91 ")) {
+                                return " HR Contact Number must start with +91 and a space."; // Custom error for wrong prefix
+                              }
+                              return true;
                             },
-                            pattern: {
-                              value: /^\+91\s[6789]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                              message: "Invalid format. Contact Number must be like +91 9876543210.", // Custom error for incorrect pattern
+                            correctLength: (value) => {
+                              if (value.length !== 14) {
+                                return "Contact Number must be exactly 14 characters (including +91 and space)."; // Custom error for incorrect length
+                              }
+                              return true;
                             },
-                          })}
+                            startsWithValidDigit: (value) => {
+                              const validStart = /^[+91\s][6789]/.test(value); // Validate that the second digit is between 6-9
+                              if (!validStart) {
+                                return "Contact Number must start with +91 followed by 6, 7, 8, or 9."; // Custom error for invalid start
+                              }
+                              return true;
+                            },
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits (e.g., +91 111111111111)
+                              if (isRepeating) {
+                                return "Contact Number cannot consist of the same digit repeated."; // Custom error for repeating digits
+                              }
+                              return true;
+                            },
+                          },
+                          pattern: {
+                            value: /^\+91\s[6789]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                            message: "Invalid format. Contact Number must be like +91 9876543210.", // Custom error for incorrect pattern
+                          },
+                        })}
                       />
                       {errors.hrMobileNo && (
                         <p className="errorMsg">

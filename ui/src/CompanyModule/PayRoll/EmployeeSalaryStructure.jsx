@@ -41,7 +41,12 @@ const EmployeeSalaryStructure = () => {
     setValue,
     reset,
     formState: { errors },
-  } = useForm({ mode: "onChange" });
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      incomeTax: "new" // Default to new regime
+    }
+  });
   const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -195,7 +200,7 @@ const EmployeeSalaryStructure = () => {
 
     return result.trim();
   };
-  
+
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
   useEffect(() => {
@@ -229,7 +234,7 @@ const EmployeeSalaryStructure = () => {
     }
   }, [employees]);
 
-    
+
   useEffect(() => {
     if (id && salaryId) {
       EmployeeSalaryGetApiById(id, salaryId)
@@ -794,7 +799,7 @@ const EmployeeSalaryStructure = () => {
 
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
-      setGrossAmount(newGrossSalary);
+    setGrossAmount(newGrossSalary);
     if (!isNaN(newGrossSalary)) {
       setGrossInWords(numberToWords(newGrossSalary));
     } else {
@@ -1028,10 +1033,10 @@ const EmployeeSalaryStructure = () => {
                             readOnly={isReadOnly}
                             value={fixedAmount}
                             onChange={handleFixedAmountChange}
-                            
+
                           />
-                         
-                              {errors.fixedAmount && (
+
+                          {errors.fixedAmount && (
                             <div className="errorMsg">
                               {errors.fixedAmount.message}
                             </div>
@@ -1051,11 +1056,11 @@ const EmployeeSalaryStructure = () => {
                             }
                             readOnly
                           />
-                             {grossInWords && (
-                               <div style={{ marginTop: '10px' , color: "green"}}>
-                                <strong>IN WORDS: {grossInWords}</strong>
-                               </div>
-                             )}
+                          {grossInWords && (
+                            <div style={{ marginTop: '10px', color: "green" }}>
+                              <strong>IN WORDS: {grossInWords}</strong>
+                            </div>
+                          )}
                         </div>
                         <div className="col-md-1 mb-3"></div>
                         <div className="col-md-5 mb-3">
@@ -1315,12 +1320,11 @@ const EmployeeSalaryStructure = () => {
                                       <input
                                         className="form-check-input"
                                         type="radio"
-                                        name="incomeTax"
                                         id="newRegime"
                                         value="new"
-                                        checked={selectedTaxRegime === "new"}
-                                        onChange={handleTaxRegimeChange}
-                                        {...register("incomeTax")}
+                                        {...register("incomeTax", {
+                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                        })}
                                       />
                                       <label className="form-check-label" htmlFor="newRegime">
                                         New Tax Regime (Default)
@@ -1330,12 +1334,11 @@ const EmployeeSalaryStructure = () => {
                                       <input
                                         className="form-check-input"
                                         type="radio"
-                                        name="incomeTax"
                                         id="oldRegime"
                                         value="old"
-                                        checked={selectedTaxRegime === "old"}
-                                        onChange={handleTaxRegimeChange}
-                                        {...register("incomeTax")}
+                                        {...register("incomeTax", {
+                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                        })}
                                       />
                                       <label className="form-check-label" htmlFor="oldRegime">
                                         Old Tax Regime
@@ -1449,11 +1452,11 @@ const EmployeeSalaryStructure = () => {
                                   data-toggle="tooltip"
                                   title="This is the final salary after all deductions and allowances."
                                 />
-                                 {amountInWords && (
-                               <div style={{ marginTop: '10px' , color: "green"}}>
-                                <strong>IN WORDS: {amountInWords}</strong> 
-                               </div>
-                             )}
+                                {amountInWords && (
+                                  <div style={{ marginTop: '10px', color: "green" }}>
+                                    <strong>IN WORDS: {amountInWords}</strong>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>

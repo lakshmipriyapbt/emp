@@ -8,10 +8,11 @@ const OfferLetterForm = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     control,
     formState: { errors },
     reset,
-    setValue,
     trigger
   } = useForm({ mode: "onChange" });
   const [designations, setDesignations] = useState([]);
@@ -23,6 +24,7 @@ const OfferLetterForm = () => {
   const nextSixMonths = new Date();
   nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
   const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
+  const watchDepartment = watch("department");
 
   const fetchDepartments = async () => {
     try {
@@ -35,16 +37,32 @@ const OfferLetterForm = () => {
     }
   };
 
-  const fetchDesignations = async () => {
+  const fetchDesignations = async (departmentId) => {
     try {
-      const data = await DesignationGetApi();
-      setDesignations(data);
+      if (departmentId) {
+        const data = await DesignationGetApi(departmentId); // Pass departmentId to API
+        setDesignations(data);
+      } else {
+        setDesignations([]); // Clear designations if no department selected
+      }
     } catch (error) {
-      // handleApiErrors(error)
-    } finally {
-      setLoading(false);
+      console.error('Error fetching designations:', error);
+      setDesignations([]);
     }
   };
+
+
+  useEffect(() => {
+    if (watchDepartment) {
+      // Find the department object to get its ID
+      const selectedDept = departments.find(dept => dept.name === watchDepartment);
+      if (selectedDept) {
+        fetchDesignations(selectedDept.id);
+      }
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
 
   useEffect(() => {
     fetchDepartments();
@@ -165,18 +183,40 @@ const OfferLetterForm = () => {
     return true;
   };
 
+  const isValidReferenceFormat = (value) => {
+    const validPattern = /^[A-Z0-9\-_\/]+$/;
+    if (!validPattern.test(value)) {
+      return "Only letters, numbers, and - _ / are allowed";
+    }
+  
+    const hasLetter = /[A-Z]/.test(value);
+    const hasNumber = /\d/.test(value);
+  
+    if (!hasLetter || !hasNumber) {
+      return "Invalid Reference Number format: Must contain both letters and numbers";
+    }
+  
+    return true;
+  };
+  
+
   // Capitalize the first letter of each word expect email
   const handleInputChange = (e, fieldName) => {
-    let value = e.target.value.trimStart().replace(/ {2,}/g, " "); // Remove leading spaces and extra spaces
-
+    let value = e.target.value;
+  
+    // Allow only letters, numbers, and - _ /
+    value = value.replace(/[^A-Z0-9\-_\/ ]/gi, ""); // keep space for now if needed for uppercase logic
+    value = value.trimStart().replace(/ {2,}/g, " "); // remove leading and multiple spaces
+  
+    // Convert to uppercase
     if (fieldName !== "email") {
-      value = value.replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize first letter after space
+      value = value.toUpperCase();
     }
-
+  
     setValue(fieldName, value);
     trigger(fieldName); // Trigger validation
   };
-
+  
   const toInputAddressCase = (e) => {
     const input = e.target;
     let value = input.value;
@@ -434,7 +474,14 @@ const OfferLetterForm = () => {
                         name="referenceNo"
                         {...register("referenceNo", {
                           required: "Reference Number is required",
-                          validate: (value) => noTrailingSpaces(value, "referenceNo"),
+                          maxLength:{
+                            value : 20,
+                            message : "Maximum 20 Characters allowed"
+                          },
+                          validate: {
+                            noTrailingSpaces: (value) => noTrailingSpaces(value, "referenceNo"),
+                            referenceFormat: isValidReferenceFormat,
+                          },
                         })}
                         onChange={(e) => handleInputChange(e, "referenceNo")}
                       />
@@ -576,10 +623,21 @@ const OfferLetterForm = () => {
                         defaultValue=""
                         rules={{ required: "Department is Required" }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Department
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            onChange={(e) => {
+                              field.onChange(e); // Update form state
+                              // Reset designation when department changes
+                              setValue("designation", "");
+                              // Find department and fetch its designations
+                              const selectedDept = departments.find(dept => dept.name === e.target.value);
+                              if (selectedDept) {
+                                fetchDesignations(selectedDept.id);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Select Department</option>
                             {departments.map((department) => (
                               <option key={department.id} value={department.name}>
                                 {department.name}
@@ -592,6 +650,7 @@ const OfferLetterForm = () => {
                         <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
+
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Designation</label>
@@ -599,25 +658,29 @@ const OfferLetterForm = () => {
                         name="designation"
                         control={control}
                         defaultValue=""
-                        rules={{ required: true }}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: watchDepartment ? "Designation is Required" : "Please select a department first"
+                          }
+                        }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Designation
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            disabled={!watchDepartment}
+                          >
+                            <option value="" disabled>Select Designation</option>
                             {designations.map((designation) => (
-                              <option
-                                key={designation.id}
-                                value={designation.name}
-                              >
+                              <option key={designation.id} value={designation.name}>
                                 {designation.name}
                               </option>
                             ))}
                           </select>
                         )}
                       />
-                      {errors && errors.designation && (
-                        <p className="errorMsg">Designation is Required</p>
+                      {errors.designation && (
+                        <p className="errorMsg">{errors.designation.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
