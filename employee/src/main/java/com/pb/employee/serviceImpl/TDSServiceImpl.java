@@ -90,7 +90,7 @@ public class TDSServiceImpl implements TDSService {
             return tdsResPayloadCollections;
         } catch (Exception e) {
             log.error("Exception while fetching the company TDS details");
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY_TDS), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY_TDS), e), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

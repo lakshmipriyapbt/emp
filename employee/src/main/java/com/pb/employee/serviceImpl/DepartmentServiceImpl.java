@@ -49,13 +49,13 @@ public class DepartmentServiceImpl implements DepartmentService {
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(departmentRequest.getCompanyName());
         try{
-            entity = openSearchOperations.getById(resourceId, null, index);
+            entity = openSearchOperations.getCompanyDepartmentByName(departmentRequest.getCompanyName(), departmentRequest.getName());
             if(entity != null) {
                 log.error("department details existed{}", departmentRequest.getName());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DEPARTMENT_ID_ALREADY_EXISTS), departmentRequest.getName()),
                         HttpStatus.CONFLICT);
             }
-        } catch (IOException e) {
+        } catch (EmployeeException e) {
             log.error("Unable to get the department details {}", departmentRequest.getName());
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), departmentRequest.getName()),
                     HttpStatus.BAD_REQUEST);
@@ -166,7 +166,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 
         try {
             entity = openSearchOperations.getById(departmentId, null, index);
-            if (entity!=null) {
+            if (entity==null) {
                 log.error("department is not exist with id: {}", departmentId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
             }

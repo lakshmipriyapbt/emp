@@ -39,9 +39,7 @@ public class DesignationServiceImpl implements DesignationService {
     public ResponseEntity<?> registerDesignation(DesignationRequest designationRequest, String departmentId) throws EmployeeException, IOException {
         // Check if a company with the same short or company name already exists
         log.debug("validating name {} existed ", designationRequest.getName());
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        String timestamp = currentDateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String resourceId = ResourceIdUtils.generateDesignationResourceId(designationRequest.getName(), timestamp);
+        String resourceId = ResourceIdUtils.generateDesignationResourceId(designationRequest.getName(), departmentId);
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(designationRequest.getCompanyName());
         try{

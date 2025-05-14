@@ -32,6 +32,7 @@ const OfferLetterPreview = () => {
   const [address, setAddress] = useState("Recipient's Address");
   const [contactNumber, setContactNumber] = useState("+91 ");
   const [role, setRole] = useState("[Role]");
+  const [showPreview, setShowPreview] = useState(false);
   const [joiningDate, setJoiningDate] = useState("Joining date");
   const [jobLocation, setJobLocation] = useState("Job Location");
   const [grossAmount, setGrossAmount] = useState(0);
@@ -268,15 +269,15 @@ const OfferLetterPreview = () => {
     }
   };
 
-  const generateRefNo = () => {
-    const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
-    const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
-    return `OFLTR-${randomNumber}${timestamp}`;
-  };
-  useEffect(() => {
-    const newRefNo = generateRefNo();
-    setRefNo(newRefNo);
-  }, []);
+  // const generateRefNo = () => {
+  //   const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
+  //   const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
+  //   return `OFLTR-${randomNumber}${timestamp}`;
+  // };
+  // useEffect(() => {
+  //   const newRefNo = generateRefNo();
+  //   setRefNo(newRefNo);
+  // }, []);
 
   return (
     <LayOut>
@@ -1121,10 +1122,27 @@ const OfferLetterPreview = () => {
           </div>
         </div>
       </div>
+      {showPreview && (
+         <div
+                  className={`modal fade ${showPreview ? "show" : ""}`}
+                  style={{ display: showPreview ? "block" : "none" }}
+                  tabIndex="-1"
+                  role="dialog"
+                  aria-hidden={!showPreview}
+                >
       <div
         className="col-12 mt-4 d-flex justify-content-between"
-        style={{ background: "none" }}
-      >
+        style={{ background: "none" }}>
+        <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => setShowPreview(false)}
+                        >
+                          Close
+                        </button>
+                        </div>
+        
         <button
           type="button"
           className="btn btn-outline-primary" // Button style for download
@@ -1136,6 +1154,8 @@ const OfferLetterPreview = () => {
           <Download size={18} className="ml-1" /> {/* Download icon */}
         </button>
       </div>
+      </div>
+      )}
     </LayOut>
   );
 };
