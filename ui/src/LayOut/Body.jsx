@@ -60,17 +60,9 @@ const Body = () => {
 
     const isAdmin = authUser?.userRole?.includes("ems_admin");
   const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
-<<<<<<< HEAD
-  
-    // Step 2: Display loading or error messages
-    if (!isAdmin && status === "loading") return <Loader/>;
-    if (!isAdmin && status === "failed") return <Loader/>;
-
-=======
   // Step 2: Display loading or error messages
   if (!isAdmin && status === "loading") return <Loader />;
   if (!isAdmin && status === "failed") return <Loader />;
->>>>>>> main
 
   const handleApiErrors = (error) => {
     if (error.response?.data?.error?.message) {
@@ -91,17 +83,6 @@ const Body = () => {
         </h1>
         <div className="row h-100">
           {authUser && authUser.userRole && authUser.userRole.includes("ems_admin") ? (
-<<<<<<< HEAD
-           
-                <div className='card'>
-                  <iframe
-                    src="https://ems.pathbreakertech.in/kibana/s/ems/app/dashboards#/view/b2cd369d-3e89-48bf-b730-ef6c754cb270?embed=true&fullscreen=true"height="1000" width="800"
-                    title="EMS Dashboard"
-                      style={{ border: 'none'}}
-                  ></iframe>
-          </div>
-           
-=======
 
             <div className='card'>
               <iframe
@@ -111,7 +92,6 @@ const Body = () => {
               ></iframe>
             </div>
 
->>>>>>> main
           ) : (
             <>
               {loading ? (
