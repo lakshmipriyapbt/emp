@@ -24,6 +24,8 @@ const InternShipForm = () => {
     control,
     formState: { errors },
     reset,
+    watch,
+    setValue
   } = useForm({ mode: "onChange" });
   const { authUser, company } = useAuth();
   const [emp, setEmp] = useState([]);
@@ -43,28 +45,29 @@ const InternShipForm = () => {
 
   // Fetch employees from Redux store
   const { data: employees, status } = useSelector((state) => state.employees);
+  const watchDepartment = watch("department");
 
   // Fetch employees when the component mounts
   useEffect(() => {
     dispatch(fetchEmployees());
   }, [dispatch]);
-  
+
   useEffect(() => {
-   
-      const filteredData = employees
-        .filter((employee) => employee.firstName !== null)
-        .map(({ referenceId, ...rest }) => rest);
-      setEmp(
-        filteredData.map((employee) => ({
-          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
-          value: `${employee.firstName} ${employee.lastName}`,
-          employeeName: `${employee.firstName} ${employee.lastName}`,
-          employeeId: employee.employeeId,
-          designationName: employee.designationName,
-          departmentName: employee.departmentName,
-          dateOfHiring: employee.dateOfHiring,
-        }))
-      );
+
+    const filteredData = employees
+      .filter((employee) => employee.firstName !== null)
+      .map(({ referenceId, ...rest }) => rest);
+    setEmp(
+      filteredData.map((employee) => ({
+        label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+        value: `${employee.firstName} ${employee.lastName}`,
+        employeeName: `${employee.firstName} ${employee.lastName}`,
+        employeeId: employee.employeeId,
+        designationName: employee.designationName,
+        departmentName: employee.departmentName,
+        dateOfHiring: employee.dateOfHiring,
+      }))
+    );
   }, []);
 
   const fetchDepartments = async () => {
@@ -78,16 +81,31 @@ const InternShipForm = () => {
     }
   };
 
-  const fetchDesignations = async () => {
+  const fetchDesignations = async (departmentId) => {
     try {
-      const data = await DesignationGetApi();
-      setDesignations(data);
+      if (departmentId) {
+        const data = await DesignationGetApi(departmentId); // Pass departmentId to API
+        setDesignations(data);
+      } else {
+        setDesignations([]); // Clear designations if no department selected
+      }
     } catch (error) {
-      // handleApiErrors(error)
-    } finally {
-      setLoading(false);
+      console.error('Error fetching designations:', error);
+      setDesignations([]);
     }
   };
+
+  useEffect(() => {
+    if (watchDepartment) {
+      // Find the department object to get its ID
+      const selectedDept = departments.find(dept => dept.name === watchDepartment);
+      if (selectedDept) {
+        fetchDesignations(selectedDept.id);
+      }
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
 
   useEffect(() => {
     fetchDepartments();
@@ -430,55 +448,67 @@ const InternShipForm = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Department</label>
                       <Controller
-                        name="departmentName"
+                        name="department"
                         control={control}
                         defaultValue=""
                         rules={{ required: "Department is Required" }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Department
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            onChange={(e) => {
+                              field.onChange(e); // Update form state
+                              // Reset designation when department changes
+                              setValue("designation", "");
+                              // Find department and fetch its designations
+                              const selectedDept = departments.find(dept => dept.name === e.target.value);
+                              if (selectedDept) {
+                                fetchDesignations(selectedDept.id);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Select Department</option>
                             {departments.map((department) => (
-                              <option
-                                key={department.id}
-                                value={department.name}
-                              >
+                              <option key={department.id} value={department.name}>
                                 {department.name}
                               </option>
                             ))}
                           </select>
                         )}
                       />
-                      {errors.departmentName && (
-                        <p className="errorMsg">Department Required</p>
+                      {errors.department && (
+                        <p className="errorMsg">{errors.department.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Designation</label>
                       <Controller
-                        name="designationName"
+                        name="designation"
                         control={control}
                         defaultValue=""
-                        rules={{ required: true }}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: watchDepartment ? "Designation is Required" : "Please select a department first"
+                          }
+                        }}
                         render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Designation
-                            </option>
+                          <select
+                            {...field}
+                            className="form-select"
+                            disabled={!watchDepartment}
+                          >
+                            <option value="" disabled>Select Designation</option>
                             {designations.map((designation) => (
-                              <option
-                                key={designation.name}
-                                value={designation.name}
-                              >
+                              <option key={designation.id} value={designation.name}>
                                 {designation.name}
                               </option>
                             ))}
                           </select>
                         )}
                       />
-                      {errors.designationName && (
-                        <p className="errorMsg">Designation Required</p>
+                      {errors.designation && (
+                        <p className="errorMsg">{errors.designation.message}</p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
@@ -488,7 +518,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Date of Joining"
                         name="dateOfHiring"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         max={getCurrentDate()} // This restricts the date to today
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
@@ -505,7 +535,7 @@ const InternShipForm = () => {
                         className="form-control"
                         placeholder="Last Working Date"
                         name="lastWorkingDate"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         max={getCurrentDate()}
                         {...register("lastWorkingDate", { required: true })}
                         onBlur={(e) =>
@@ -561,9 +591,8 @@ const InternShipForm = () => {
                         </div>
                       )}
                       <div
-                        className={`col-${
-                          error ? "3" : "12"
-                        } d-flex justify-content-end mt-4`}
+                        className={`col-${error ? "3" : "12"
+                          } d-flex justify-content-end mt-4`}
                       >
                         <button
                           className="btn btn-secondary me-2"

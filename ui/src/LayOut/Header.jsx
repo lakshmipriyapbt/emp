@@ -6,6 +6,7 @@ import { useAuth } from "../Context/AuthContext";
 import { EmployeeGetApiById } from "../Utils/Axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 
 const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -16,6 +17,7 @@ const Header = ({ toggleSidebar }) => {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { userRole } = useSelector((state) => state.auth);
 
   const token = localStorage.getItem("token");
   const companyName=localStorage.getItem("companyName")
@@ -66,19 +68,26 @@ const Header = ({ toggleSidebar }) => {
     };
   }, []);
 
-  const handleLogOut = (roles) => {
-    const companyName=localStorage.getItem("companyName");
-    localStorage.removeItem("token"); // Clear only the token
+  const handleLogOut = () => {
+    const role = userRole?.[0];
+    const companyName = localStorage.getItem("companyName");
+  
+    localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-    toast.success('Logout Successful');
-    if (roles==="ems_admin") {
-      navigate("/login");
-    } else if (companyName) {
-      navigate(`/${companyName}/login`);
-    }else{
-      navigate("/login");
+  
+    toast.success("Logout Successful", { autoClose: 2000 });
+  
+    if (role === "ems_admin") {
+      navigate("/login", { replace: true }); // Prevents going back
+    } else if (role === "company_admin" && companyName) {
+      navigate(`/${companyName}/login`, { replace: true });
+    } else {
+      navigate("/", { replace: true });
     }
-   };
+  };
+  
+  
+  
 
   const closeModal = () => {
     setShowErrorModal(false);

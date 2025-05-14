@@ -138,58 +138,85 @@ export const DepartmentGetApiById = (departmentId) => {
 }
 
 export const DepartmentDeleteApiById = (departmentId) => {
-  const company = localStorage.getItem("companyName")
-    return axiosInstance.delete(`${company}/department/${departmentId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company name not found in localStorage");
+  }
+  
+  return axiosInstance.delete(`/${company}/department/${departmentId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  })
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Delete Department Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config // This will show the full request details
     });
-}
-
+    throw error;
+  });
+};
 export const DepartmentPutApiById = (departmentId, data) => {
   const company = localStorage.getItem("companyName")
     return axiosInstance.patch(`${company}/department/${departmentId}`, data)
 };
 
-export const DesignationGetApi = () => {
-  const company = localStorage.getItem("companyName")
-    return axiosInstance.get(`${company}/designations`)
-    .then(response => {
-      return response.data.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
+export const DesignationGetApi = async (departmentId) => {
+  const company = localStorage.getItem("companyName");
+  try {
+    const response = await axiosInstance.get(
+      `/${company}/department/${departmentId}/designation`
+    );
+    
+    // Ensure response has expected structure
+    if (!response.data?.data) {
+      throw new Error('Invalid response structure');
+    }
+    
+    return Array.isArray(response.data.data) 
+      ? response.data.data 
+      : [response.data.data]; // Handle single object case
+  } catch (error) {
+    console.error('Designation API Error:', {
+      departmentId,
+      status: error.response?.status,
+      url: error.config?.url,
+      error: error.message
+    });
+    
+    // Return empty array instead of throwing error
+    return [];
+  }
+};
+
+export const DesignationPostApi = (departmentId, data) => {
+  return axiosInstance.post(`/department/${departmentId}/designation`, data);
+};
+
+export const DesignationGetApiById = (departmentId, designationId) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance
+    .get(`/${company}/department/${departmentId}/designation/${designationId}`)
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error('Error fetching designation by ID:', error);
       throw error;
     });
-}
+};
 
-export const DesignationPostApi = (data) => {
-  return axiosInstance.post('/designation', data);
-}
+export const DesignationDeleteApiById = (departmentId, designationId) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.delete(`/${company}/department/${departmentId}/designation/${designationId}`);
+};
 
-export const DesignationGetApiById = (designationId) => {
-  const company = localStorage.getItem("companyName")
-    return axiosInstance.get(`${company}/designation/${designationId}`)
-    .then(response => {
-      return response.data;
-    })
-    .catch(error => {
-      console.error('Error fetching company by ID:', error);
-      throw error;
-    });
-}
-
-export const DesignationDeleteApiById = (designationId) => {
-  const company = localStorage.getItem("companyName")
-    return axiosInstance.delete(`${company}/designation/${designationId}`)
-}
-
-export const DesignationPutApiById = (designationId, data) => {
-   const company = localStorage.getItem("companyName")
-  return axiosInstance.patch(`${company}/designation/${designationId}`, data)
+export const DesignationPutApiById = (departmentId, designationId, data) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.patch(
+    `/${company}/department/${departmentId}/designation/${designationId}`,
+    data
+  );
 };
 
 
