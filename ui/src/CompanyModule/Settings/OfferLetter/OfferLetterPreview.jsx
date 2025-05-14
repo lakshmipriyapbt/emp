@@ -1122,26 +1122,10 @@ const OfferLetterPreview = () => {
           </div>
         </div>
       </div>
-      {showPreview && (
-         <div
-                  className={`modal fade ${showPreview ? "show" : ""}`}
-                  style={{ display: showPreview ? "block" : "none" }}
-                  tabIndex="-1"
-                  role="dialog"
-                  aria-hidden={!showPreview}
-                >
       <div
         className="col-12 mt-4 d-flex justify-content-between"
-        style={{ background: "none" }}>
-        <div className="modal-footer">
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={() => setShowPreview(false)}
-                        >
-                          Close
-                        </button>
-                        </div>
+        style={{ background: "none" }}
+      >
         
         <button
           type="button"
@@ -1154,8 +1138,6 @@ const OfferLetterPreview = () => {
           <Download size={18} className="ml-1" /> {/* Download icon */}
         </button>
       </div>
-      </div>
-      )}
     </LayOut>
   );
 };
