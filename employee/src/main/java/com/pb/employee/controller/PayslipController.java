@@ -1,5 +1,7 @@
 package com.pb.employee.controller;
 
+import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.PayslipRequest;
 import com.pb.employee.request.PayslipUpdateRequest;
@@ -36,8 +38,8 @@ public class PayslipController {
                                         @Parameter(required = true, description = "${api.salaryPayload.description}")
                                         @RequestBody @Valid PayslipRequest payslipRequest,
                                         @PathVariable String employeeId,
-                                        @PathVariable String salaryId) throws EmployeeException, IOException {
-        return payslipService.generatePaySlip(payslipRequest, salaryId, employeeId);
+                                        @PathVariable String salaryId, HttpServletRequest request)throws EmployeeException, IOException {
+        return payslipService.generatePaySlip(payslipRequest, salaryId, employeeId, request);
     }
 
     @RequestMapping(value = "/salary", method = RequestMethod.POST)
@@ -48,8 +50,9 @@ public class PayslipController {
     public ResponseEntity<?> generateEmployeePayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
                                              @Parameter(required = true, description = "${api.salaryPayload.description}")
-                                             @RequestBody @Valid PayslipRequest payslipRequest) throws EmployeeException, IOException {
-        return payslipService.generatePaySlipForAllEmployees(payslipRequest);
+                                             @RequestBody @Valid PayslipRequest payslipRequest,
+                                             HttpServletRequest request)throws EmployeeException, IOException {
+        return payslipService.generatePaySlipForAllEmployees(payslipRequest,request);
     }
 
 
@@ -108,13 +111,14 @@ public class PayslipController {
             summary = "${api.getPayslip.tag}", description = "${api.getPayslip.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<byte[]> downloadPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                  @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                  @PathVariable String companyName,
-                                                  @PathVariable String payslipId,
-                                                  @PathVariable String employeeId,
-                                                  HttpServletRequest request) {
-        return payslipService.downloadPayslip(companyName, payslipId, employeeId, request);
+    public ResponseEntity<ResponseObject<byte[]>> downloadPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                                  @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                                  @PathVariable String companyName,
+                                                                  @PathVariable String payslipId,
+                                                                  @PathVariable String employeeId,
+                                                                  HttpServletRequest request) throws EmployeeException {
+        byte[] pdfBytes = payslipService.downloadPayslip(companyName, payslipId, employeeId, request);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(pdfBytes), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/payslip", method = RequestMethod.POST)
@@ -138,7 +142,8 @@ public class PayslipController {
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
                                          @RequestBody @Valid PayslipUpdateRequest payslipsRequest,
                                          @PathVariable String payslipId,
-                                         @PathVariable String employeeId) throws EmployeeException, IOException{
-        return payslipService.savePayslip(payslipsRequest, payslipId, employeeId);
+                                         @PathVariable String employeeId,
+                                         HttpServletRequest request) throws EmployeeException, IOException{
+        return payslipService.savePayslip(payslipsRequest, payslipId, employeeId, request);
     }
 }

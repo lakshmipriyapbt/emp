@@ -1,4 +1,4 @@
-package com.pb.employee.config;
+package com.pb.employee.validations;
 
 
 import jakarta.validation.Constraint;
@@ -9,12 +9,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = ValidateDates.class)
+@Constraint(validatedBy = ValidateYears.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidDateRange {
+public @interface ValidateYearsRange {
 
-    String message() default "End date must be after the start date."; // Default message
+    String message() default "End year must be after the start year."; // Default message
 
     Class<?>[] groups() default {};
 

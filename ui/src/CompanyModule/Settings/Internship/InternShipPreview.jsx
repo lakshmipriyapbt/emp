@@ -2,7 +2,7 @@ import React, {useMemo} from "react";
 import InternShipTemplate2 from "./InternShipTemplate2";
 import InternshipTemplate1 from "./InternshipTemplate1";
 
-const InternShipPreview = ({ previewData, selectedTemplate }) => { // Accept previewData as a prop
+const InternShipPreview = ({ previewData, selectedTemplate}) => { // Accept previewData as a prop
 
   const templates = useMemo(() => [
     {
@@ -18,6 +18,7 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => { // Accept pre
           department={previewData.departmentName}
           startDate={previewData.startDate}
           endDate={previewData.lastWorkingDate}
+          draft={previewData.draft}
         />
       ),
     },
@@ -35,6 +36,7 @@ const InternShipPreview = ({ previewData, selectedTemplate }) => { // Accept pre
           joiningDate={previewData.dateOfHiring}
           startDate={previewData.startDate}
           endDate={previewData.lastWorkingDate}
+          draft={previewData.draft}
         />
       ),
     },

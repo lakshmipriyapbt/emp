@@ -59,6 +59,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
         salaryIncrease={previewData.grossCompensation} 
         totalAllowances= {previewData.totalAllowances}
         basicSalary= {previewData.basicSalary}
+        draft={previewData.draft}
         />
       ),
     },
@@ -79,6 +80,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
           salaryIncrease={previewData.grossCompensation} 
           totalAllowances= {previewData.totalAllowances}
           basicSalary= {previewData.basicSalary}
+          draft={previewData.draft}
          />
       ),
     },    

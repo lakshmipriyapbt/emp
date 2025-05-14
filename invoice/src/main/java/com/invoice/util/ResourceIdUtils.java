@@ -8,8 +8,8 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.PRODUCT, hsnNo,productName, productCategory);
     }
 
-    public static String generateCustomerResourceId(String email, String mobileNumber) {
-        return generateGlobalResourceId(ResourceType.CUSTOMER, email,mobileNumber);
+    public static String generateCustomerResourceId(String email, String companyId, String time) {
+        return generateGlobalResourceId(ResourceType.CUSTOMER, email, companyId, time);
     }
 
     public static String generateInvoiceResourceId(String companyId, String customerId,String timeStamp) {

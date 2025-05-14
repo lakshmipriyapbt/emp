@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Download } from "react-bootstrap-icons";
 import { toast } from "react-toastify";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 import {
@@ -40,6 +40,8 @@ const OfferLetterPreview = () => {
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
   const [department,setDepartment] =useState("");
   const [designation,setDesignation]=useState("");
+  const [draft,setDraft]=useState("");
+
   const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
@@ -59,6 +61,7 @@ const OfferLetterPreview = () => {
       setRefNo(previewData.referenceNo || " ");
       setDepartment(previewData.department || " ");
       setDesignation(previewData.designation|| "")
+      setDraft(previewData.draft|| false)
     }
   }, [previewData]);
 
@@ -246,7 +249,8 @@ const OfferLetterPreview = () => {
       salaryPackage: grossAmount,
       companyId: company?.id,
       department:department,
-      designation:designation
+      designation:designation,
+      draft:previewData.draft
     };
 
     try {
@@ -280,7 +284,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+       {!draft &&( <div
           style={{
             position: "absolute",
             top: "30%",
@@ -296,7 +300,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -307,7 +311,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&( <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -318,7 +322,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div>)}
             <h1
               style={{
                 textAlign: "center",
@@ -465,7 +469,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -481,7 +485,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -492,7 +496,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(    <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -503,7 +507,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div> )}
             <p style={{ paddingTop: "30px" }}>
               <strong>Place of Employment and Transfer:</strong>
               You acknowledge and agree that you may be assigned or liable to be
@@ -622,7 +626,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -638,7 +642,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -649,7 +653,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(  <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -660,7 +664,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div>)}
             <h3
               style={{
                 textAlign: "center",
@@ -925,7 +929,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -941,7 +945,7 @@ const OfferLetterPreview = () => {
             zIndex: 3,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -952,7 +956,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(  <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -963,7 +967,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div> )}
             <h3
               style={{
                 textAlign: "center",

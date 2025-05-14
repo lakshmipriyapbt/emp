@@ -8,6 +8,7 @@ const RelievingTemplate1 = ({
   designation,
   resignationDate,
   lastWorkingDate,
+  draft,
 }) => {
   const formatDate = (date) => {
     const d = new Date(date);
@@ -28,21 +29,22 @@ const RelievingTemplate1 = ({
         overflow: "hidden",
       }}
     >
+      
       {/* Company Logo */}
-      <div className="d-flex justify-content-start p-1">
+        {!draft && ( <div className="d-flex justify-content-start p-1">
         <img
           src={companyLogo}
           alt="Company Logo"
           style={{ height: "100px", width: "160px" }}
         />
-      </div>
+      </div>)}
 
       {/* Title */}
       <h4 className="text-center">RELIEVING LETTER</h4>
 
       <h4 className="text-center p-2">TO WHOMSOEVER IT MAY CONCERN</h4>
       {/* Background Image (Watermark) */}
-      <div
+        {!draft && ( <div
         style={{
           position: "absolute",
           top: "40%",
@@ -58,7 +60,7 @@ const RelievingTemplate1 = ({
           //  filter: 'blur(2px)', // Optional: adjust blur as needed
           zIndex: 1, // Ensure it's behind the content
         }}
-      />
+      />)}
       {/* Content */}
       <div
         style={{
@@ -96,10 +98,10 @@ const RelievingTemplate1 = ({
         <div className="mt-3">
           <p>Sincerely,</p>
           <h4>{companyData?.companyName}</h4>
-          <img 
+           {!draft && (  <img 
            src={companyData?.stampImage}
            alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/>
+           style={{ height: "100px", width: "160px" }}/>)}
           <p>Authorized Signature</p>
           <p>{companyData?.companyAddress}</p>
           <p>{companyData?.cityStatePin}</p>

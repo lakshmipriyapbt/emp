@@ -180,7 +180,7 @@ public class RelievingServiceImpl implements RelievingService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadRelievingLetter(HttpServletRequest request, String companyName, String employeeId) {
+    public ResponseEntity<byte[]> downloadRelievingLetter(HttpServletRequest request, String companyName, String employeeId, boolean draft) {
         List<CompanyEntity> companyEntity = null;
         EmployeeEntity employee = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
@@ -235,8 +235,9 @@ public class RelievingServiceImpl implements RelievingService {
             model.put(Constants.EMPLOYEE, employee);
             model.put(Constants.COMPANY, companyEntity);
             model.put(Constants.RELIEVING, relievingEntity);
+            model.put(Constants.DRAFT, draft);
 
-            if (!companyEntity.getFirst().getImageFile().isEmpty()) {
+            if (!draft && !companyEntity.getFirst().getImageFile().isEmpty()) {
                 String imageUrl = companyEntity.getFirst().getImageFile();
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {

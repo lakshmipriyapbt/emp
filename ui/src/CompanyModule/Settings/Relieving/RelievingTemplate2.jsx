@@ -11,6 +11,7 @@ const RelievingTemplate2 = ({
   noticePeriod,
   resignationDate,
   lastWorkingDate,
+  draft,
 }) => {
   const formatDate = (date) => {
     const d = new Date(date);
@@ -33,7 +34,7 @@ const RelievingTemplate2 = ({
       }}
     >
       {/* Company Logo positioned at the top right */}
-      <img
+       {!draft && (  <img
         src={companyLogo}
         alt={`${companyData.companyName} Logo`}
         style={{
@@ -44,12 +45,12 @@ const RelievingTemplate2 = ({
           height: "100px",
           width: "160px",
         }}
-      />
+      />)}
       <p className="mb-2">{date}</p>
 
       <h4 className="text-center mt-2">Relieving Letter</h4>
       {/* Background Image (Watermark) */}
-      <div
+        {!draft && (  <div
         style={{
           position: "absolute",
           top: "40%",
@@ -65,7 +66,7 @@ const RelievingTemplate2 = ({
           //  filter: 'blur(2px)', // Optional: adjust blur as needed
           zIndex: 1, // Ensure it's behind the content
         }}
-      />
+      />)}
       <div
         style={{
           position: "relative",
@@ -105,10 +106,10 @@ const RelievingTemplate2 = ({
         <div className="mt-5">
           <p className="mb-5">Best Regards,</p>
           <p className="mt-5">Authorized Signature,</p>
-          <img 
+           {!draft && (  <img 
            src={companyData?.stampImage}
            alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/>
+           style={{ height: "100px", width: "160px" }}/> )}
           <h5>{companyData.companyName}</h5>
           <p>{companyData.companyAddress}</p>
           <p>{companyData.cityStatePin}</p>

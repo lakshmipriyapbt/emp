@@ -14,6 +14,7 @@ const AppraisalTemplate2 = ({
   allowances,
   date,
   basicSalary,
+  draft,
 }) => {
     const { logoFileName } = useAuth();
   return (
@@ -26,7 +27,8 @@ const AppraisalTemplate2 = ({
         overflow: "hidden",
       }}
     >
-      <div style={{ textAlign: "left" }}>
+      {!draft &&(
+       <div style={{ textAlign: "left" }}>
         {companyData ? (
           <img
             className="align-middle"
@@ -37,9 +39,9 @@ const AppraisalTemplate2 = ({
         ) : (
           <p>Logo</p>
         )}
-      </div>
+      </div> )}
 
-      <div
+       {!draft &&(<div
         style={{
           position: "absolute",
           top: "30%",
@@ -54,7 +56,7 @@ const AppraisalTemplate2 = ({
           backgroundPosition: "center",
           zIndex: 1,
         }}
-      />
+      /> )}
       <h4 className="text-center p-3">APPRAISAL LETTER</h4>
 
       <div className="row d-flex justify-content-between p-1">
@@ -194,10 +196,10 @@ const AppraisalTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            <img 
+            {!draft &&( <img 
            src={companyData?.stampImage}
            alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/>
+           style={{ height: "100px", width: "160px" }}/> )}
             <h4>{companyData.companyName},</h4>
             <p>
               {companyData.mobileNo} | {companyData.emailId},

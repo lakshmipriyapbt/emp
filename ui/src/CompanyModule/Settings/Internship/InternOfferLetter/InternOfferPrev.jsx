@@ -9,15 +9,17 @@ const InternOfferPrev = ({
       const [companyData, setCompanyData] = useState({});
       const [loading, setLoading] = useState(false);
       const { company } = useAuth();
+      const draft = previewData.draft;
+      console.log("previre ", draft)
 
   return (
     <div className="p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
       <div className="logo text-end me-5">
-        <img src={company?.imageFile} alt="Company Logo" 
+        {!draft && (<img src={company?.imageFile} alt="Company Logo" 
                    style={{ height: "100px", width: "160px" }}
-         />
+         />)}
       </div>
       <p>Date: {previewData.date}</p>
       <p>
@@ -62,9 +64,9 @@ const InternOfferPrev = ({
       </div>
 
       <div className="logo text-end me-5">
-        <img src={company?.stampImage} alt="stamp"  
+        {!draft && (<img src={company?.stampImage} alt="stamp"  
            style={{ height: "100px", width: "160px" }}
-        />
+        />)}
         <p>Authorized Signature</p>
       </div>
       </div>

@@ -2,6 +2,7 @@ package com.invoice.service;
 
 import com.invoice.exception.InvoiceException;
 import com.invoice.request.InvoiceRequest;
+import com.invoice.request.InvoiceUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -16,4 +17,6 @@ public interface InvoiceService {
     ResponseEntity<?> getInvoiceById(String companyId,String customerId,String invoiceId,HttpServletRequest request)throws InvoiceException, IOException;
 
     ResponseEntity<?> downloadInvoice(String companyId, String customerId,String invoiceId,HttpServletRequest request) throws Exception;
+
+    ResponseEntity<?> updateInvoice(String companyId, String customerId, String invoiceId, InvoiceUpdateRequest updateRequest, HttpServletRequest request) throws InvoiceException,IOException;
 }

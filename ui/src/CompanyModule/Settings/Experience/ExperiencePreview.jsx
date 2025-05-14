@@ -39,6 +39,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           experienceDate={previewData.experienceDate}
           date={previewData.date}
           aboutEmployee={previewData.aboutEmployee}
+          draft={previewData.draft}
         />
       ),
     },
@@ -57,6 +58,8 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           experienceDate={previewData.experienceDate}
           date={previewData.date}
           aboutEmployee={previewData.aboutEmployee}
+          draft={previewData.draft}
+
         />
       ),
     },

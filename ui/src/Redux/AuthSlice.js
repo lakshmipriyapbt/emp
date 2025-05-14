@@ -1,37 +1,48 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
+import { jwtDecode } from "jwt-decode";
 
-// Initial state for the authentication slice
+// Decode token from localStorage once when this file loads
+let decodedToken = null;
+const token = localStorage.getItem("token");
+
+if (token) {
+  try {
+    decodedToken = jwtDecode(token);
+  } catch (error) {
+    console.error("❌ Invalid token:", error);
+  }
+}
+
+// Extract values from decoded token
 const initialState = {
-  userId: null,
-  userRole: null,
-  company: null,
-  employeeId: null,
-  token: null,
+  userId: decodedToken?.sub || null,
+  userRole: decodedToken?.roles || [],
+  company: decodedToken?.company || null,
+  employee: decodedToken?.employee || null,
+  source: decodedToken ? "company" : null, // or 'ems' based on context
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    // Action to set the decoded token data
-    setAuthUser: (state, action) => {
-      const { userId, userRole, company, employeeId, token } = action.payload;
-      state.userId = userId;
-      state.userRole = userRole;
-      state.company = company;
-      state.employeeId = employeeId;
-      state.token = token;
+    setAuthDetails: (state, action) => {
+      console.log("🟢 Setting Auth Details in Redux:", action.payload);
+      state.userId = action.payload.userId;
+      state.userRole = action.payload.userRole;
+      state.company = action.payload.company;
+      state.employee = action.payload.employee;
+      state.source = action.payload.source;
     },
-    // Action to clear the user data when logging out
-    logout: (state) => {
+    clearAuthDetails: (state) => {
       state.userId = null;
-      state.userRole = null;
+      state.userRole = [];
       state.company = null;
-      state.employeeId = null;
-      state.token = null;
+      state.employee = null;
+      state.source = null;
     },
   },
 });
 
-export const { setAuthUser, logout } = authSlice.actions;
+export const { setAuthDetails, clearAuthDetails } = authSlice.actions;
 export default authSlice.reducer;

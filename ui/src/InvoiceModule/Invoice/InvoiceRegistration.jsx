@@ -36,6 +36,7 @@ const InvoiceRegistration = () => {
       { key: "service", title: "Service", type: "text" },
       { key: "quantity", title: "Quantity", type: "number" },
       { key: "unitCost", title: "Unit Cost", type: "number" },
+      { key: "gstPercentage", title: "GST (%)", type: "number" },
       { key: "totalCost", title: "Total Cost", type: "number" },
     ]);
 
@@ -97,24 +98,26 @@ const InvoiceRegistration = () => {
       const updatedData = [...prevData];
       updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
   
-      // Check if quantity column exists
       const quantityColumnExists = productColumns.some((col) => col.key.toLowerCase() === "quantity");
   
-      if (normalizedKey === "quantity" || normalizedKey === "unitCost") {
-        const quantity = parseFloat(updatedData[index].quantity) || 0;
-        const unitCost = parseFloat(updatedData[index].unitCost) || 0;
+      const quantity = parseFloat(updatedData[index].quantity) || 0;
+      const unitCost = parseFloat(updatedData[index].unitCost) || 0;
+      const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
   
-        // 🛑 If backspace clears input, ensure totalCost clears correctly
+      if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
+        // 🛑 If input is cleared
         if (value === "") {
           updatedData[index].totalCost = "";
-        } else if (!quantityColumnExists || isNaN(quantity) || quantity === 0) {
-          updatedData[index].totalCost = unitCost.toFixed(2);
         } else {
-          updatedData[index].totalCost = (quantity * unitCost).toFixed(2);
+          const subTotal = quantityColumnExists ? quantity * unitCost : unitCost;
+          const gstAmount = (subTotal * gstPercentage) / 100;
+          const totalCost = subTotal + gstAmount;
+  
+          updatedData[index].totalCost = totalCost.toFixed(2);
         }
       }
   
-      return updatedData; // Ensure React processes the state change correctly
+      return updatedData;
     });
   
     // Clear error when input is valid
@@ -285,7 +288,7 @@ const InvoiceRegistration = () => {
       const response = await InvoicePostApi(companyId, customerId, invoiceDataToSend);
       console.log("✅ API Response:", response);
       setTimeout(() => {
-        toast.success("Client added successfully");
+        toast.success("Invoice created successfully");
         navigate("/invoiceView");
       }, 1000); 
       setInvoiceData(data);
@@ -880,199 +883,6 @@ const InvoiceRegistration = () => {
           </div>
         </div>
       </div>
-       {/* <div className="row">
-                    <div className="col-sm-6">
-                      <h4 className="ml-3" style={{ marginTop: "20px" }}>
-                        <b>Product Details</b>
-                      </h4>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="card-body">
-                        <button
-                          type="button"
-                          onClick={AddProductsInfo}
-                          className="btn btn-secondary"
-                          style={{ marginLeft: "63%" }}
-                        >
-                          Add More{" "}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <div className="col-sm-12">
-                      {productsInfo &&
-                        productsInfo.length > 0 &&
-                        productsInfo.map((item, index) => (
-                          <div key={index} className="row">
-                            <div className="form-group col-sm-2 ml-2 mt-2">
-                              <div className="row">
-                                <label
-                                  htmlFor="productId"
-                                  className="text-right control-label col-form-label pb-2"
-                                >
-                                  Product Name{" "}
-                                  <span style={{ color: "red" }}>*</span>
-                                </label>
-                              </div>
-                              <Controller
-                                name={`productsInfo[${index}].productId`}
-                                control={control}
-                                rules={{ required: "Product is required" }}
-                                render={({ field }) => (
-                                  <Select
-                                    {...field}
-                                    options={formattedProducts}
-                                    value={
-                                      formattedProducts.find(
-                                        (product) =>
-                                          product.value === field.value
-                                      ) || null
-                                    } // Find the selected product by matching value
-                                    onChange={(selectedOption) => {
-                                      handleProductChange(
-                                        selectedOption,
-                                        index
-                                      );
-                                      field.onChange(
-                                        selectedOption
-                                          ? selectedOption.value
-                                          : null
-                                      ); // Pass only productId (value)
-                                    }}
-                                    getOptionLabel={(e) => e.label}
-                                    getOptionValue={(e) => e.value}
-                                  />
-                                )}
-                              />
-                            </div>
-                            <div className="form-group col-sm-2 ml-2 mt-2">
-                              <label
-                                htmlFor={`hsnNo-${index}`}
-                                className="text-right control-label col-form-label"
-                              >
-                                HSN No
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control"
-                                id={`hsnNo-${index}`}
-                                name={`productsInfo[${index}].hsnNo`}
-                                value={productsInfo[index]?.hsnNo || ""}
-                                {...register(`productsInfo[${index}].hsnNo`)}
-                                readOnly
-                              />
-                            </div>
-
-                            <div className="form-group col-sm-2 ml-2 mt-2">
-                              <label
-                                htmlFor={`purchaseDate-${index}`}
-                                className="text-right control-label col-form-label"
-                              >
-                                Purchase Date{" "}
-                                <span style={{ color: "red" }}>*</span>
-                              </label>
-                              <input
-                                className="form-control"
-                                id={`purchaseDate-${index}`}
-                                name={`productsInfo[${index}].purchaseDate`}
-                                type="date"
-                                autoComplete="off"
-                                {...register(
-                                  `productsInfo[${index}].purchaseDate`,
-                                  {
-                                    required: "Purchase Date is required",
-                                  }
-                                )}
-                              />
-                            </div>
-
-                            <div className="form-group col-sm-2 ml-2 mt-2">
-                              <label
-                                htmlFor={`quantity-${index}`}
-                                className="text-right control-label col-form-label"
-                              >
-                                Quantity <span style={{ color: "red" }}>*</span>
-                              </label>
-                              <input
-                                className="form-control"
-                                id={`quantity-${index}`}
-                                name={`productsInfo[${index}].quantity`}
-                                type="text"
-                                onKeyDown={allowNumbersOnly}
-                                placeholder="Enter Quantity"
-                                maxLength={4}
-                                {...register(
-                                  `productsInfo[${index}].quantity`,
-                                  {
-                                    required: "Quantity is required",
-                                  }
-                                )}
-                              />
-                            </div>
-
-                            <div className="form-group col-sm-2 ml-2 mt-2">
-                              {errors.productsInfo?.[index]?.productCost && (
-                                <p className="errorMsgs">*</p>
-                              )}
-                              <label
-                                htmlFor={`productCost-${index}`}
-                                className=" text-right control-label col-form-label"
-                              >
-                                Unit Cost
-                              </label>
-                              <input
-                                className="form-control"
-                                type="text"
-                                id={`productCost-${index}`}
-                                name={`productsInfo[${index}].productCost`}
-                                value={productsInfo[index]?.productCost || ""}
-                                {...register(
-                                  `productsInfo[${index}].productCost`
-                                )}
-                                readOnly
-                              />
-                            </div>
-
-                            <div
-                              className="form-group col-sm-2 ml-2"
-                              style={{ marginTop: "40px" }}
-                            >
-                              <button
-                                className="btn btn-danger"
-                                onClick={() => handleDelete(index)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                            {errors?.productsInfo?.[index]?.productId && (
-                              <p className="errorMsg">
-                                {errors.productsInfo[index].productId.message}
-                              </p>
-                            )}
-                            {errors?.productsInfo?.[index]?.purchaseDate && (
-                              <p
-                                className="errorMsg"
-                                style={{ marginLeft: "333px" }}
-                              >
-                                {
-                                  errors.productsInfo[index].purchaseDate
-                                    .message
-                                }
-                              </p>
-                            )}
-                            {errors?.productsInfo?.[index]?.quantity && (
-                              <p
-                                className="errorMsg"
-                                style={{ marginLeft: "500px" }}
-                              >
-                                {errors.productsInfo[index].quantity.message}{" "}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                    </div>
-                  </div> */}
     </LayOut>
   );
 };

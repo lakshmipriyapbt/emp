@@ -8,6 +8,8 @@ import { useAuth } from "../Context/AuthContext";
 import Loader from "../Utils/Loader";
 import { Modal, ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import '../LayOut/NewLogin/Message.css';
+import { useDispatch } from "react-redux";
+import { setAuthDetails } from "../Redux/AuthSlice";
 
 const EmsLogin = () => {
   const {
@@ -24,6 +26,7 @@ const EmsLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useDispatch();
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
@@ -50,6 +53,13 @@ const EmsLogin = () => {
             company,
             employeeId,
           } = decodedToken;
+          dispatch(setAuthDetails({
+            userId,
+            userRole,
+            company,
+            employeeId,
+            source: 'ems',
+          }));
           setAuthUser({ userId, userRole, company, employeeId });
           toast.success("Login Successful");
           setTimeout(() => {

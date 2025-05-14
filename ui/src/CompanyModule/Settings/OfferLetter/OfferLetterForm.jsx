@@ -8,9 +8,12 @@ const OfferLetterForm = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     control,
     formState: { errors },
     reset,
+    trigger
   } = useForm({ mode: "onChange" });
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -21,6 +24,7 @@ const OfferLetterForm = () => {
   const nextSixMonths = new Date();
   nextSixMonths.setMonth(nextSixMonths.getMonth() + 6);
   const sixMonthsFromNow = nextSixMonths.toISOString().split("T")[0];
+  const watchDepartment = watch("department");
 
   const fetchDepartments = async () => {
     try {
@@ -33,16 +37,32 @@ const OfferLetterForm = () => {
     }
   };
 
-  const fetchDesignations = async () => {
+  const fetchDesignations = async (departmentId) => {
     try {
-      const data = await DesignationGetApi();
-      setDesignations(data);
+      if (departmentId) {
+        const data = await DesignationGetApi(departmentId); // Pass departmentId to API
+        setDesignations(data);
+      } else {
+        setDesignations([]); // Clear designations if no department selected
+      }
     } catch (error) {
-      // handleApiErrors(error)
-    } finally {
-      setLoading(false);
+      console.error('Error fetching designations:', error);
+      setDesignations([]);
     }
   };
+
+
+  useEffect(() => {
+    if (watchDepartment) {
+      // Find the department object to get its ID
+      const selectedDept = departments.find(dept => dept.name === watchDepartment);
+      if (selectedDept) {
+        fetchDesignations(selectedDept.id);
+      }
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
 
   useEffect(() => {
     fetchDepartments();
@@ -50,7 +70,9 @@ const OfferLetterForm = () => {
   }, []);
 
   const onSubmit = (data) => {
+    const draftValue = data.draft === "true";
     console.log("offerLetter",data)
+
     const previewData = {
       offerDate: data.offerDate,
       referenceNo: data.referenceNo,
@@ -63,7 +85,9 @@ const OfferLetterForm = () => {
       salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
       department:data.department,
-      designation:data.designation
+      designation:data.designation,
+      draft:draftValue,
+
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
@@ -84,6 +108,7 @@ const OfferLetterForm = () => {
       salaryPackage: "",
       salaryConfigurationId: "",
       employeePosition: "",
+      draft: "",
     });
   };
 
@@ -143,7 +168,55 @@ const OfferLetterForm = () => {
       e.preventDefault();
     }
   };
+  
+  const noTrailingSpaces = (value, fieldName) => {
+    // Check if the value ends with a space
+    if (value.endsWith(' ')) {
+      return "Spaces are not allowed at the end";
+    }
 
+    // Check if the value is less than 3 characters long
+    if (value.length < 3) {
+      return "Minimum 3 characters Required";
+    }
+    // If no error, return true
+    return true;
+  };
+
+  const isValidReferenceFormat = (value) => {
+    const validPattern = /^[A-Z0-9\-_\/]+$/;
+    if (!validPattern.test(value)) {
+      return "Only letters, numbers, and - _ / are allowed";
+    }
+  
+    const hasLetter = /[A-Z]/.test(value);
+    const hasNumber = /\d/.test(value);
+  
+    if (!hasLetter || !hasNumber) {
+      return "Invalid Reference Number format: Must contain both letters and numbers";
+    }
+  
+    return true;
+  };
+  
+
+  // Capitalize the first letter of each word expect email
+  const handleInputChange = (e, fieldName) => {
+    let value = e.target.value;
+  
+    // Allow only letters, numbers, and - _ /
+    value = value.replace(/[^A-Z0-9\-_\/ ]/gi, ""); // keep space for now if needed for uppercase logic
+    value = value.trimStart().replace(/ {2,}/g, " "); // remove leading and multiple spaces
+  
+    // Convert to uppercase
+    if (fieldName !== "email") {
+      value = value.toUpperCase();
+    }
+  
+    setValue(fieldName, value);
+    trigger(fieldName); // Trigger validation
+  };
+  
   const toInputAddressCase = (e) => {
     const input = e.target;
     let value = input.value;
@@ -392,23 +465,29 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-                    {/* <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                            <label className="form-label">Reference Number</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Enter Reference Number"
-                                                className="form-control"
-                                                name="referenceNo"
-                                                {...register("referenceNo", {
-                                                    required: "Reference Number is required",
-                                                    pattern: {
-                                                        value: /^[a-zA-Z0-9]{1,20}$/, // Regex for alphanumeric reference number
-                                                        message: "Reference Number must be alphanumeric and up to 20 characters"
-                                                    }
-                                                })}
-                                            />
-                                            {errors.referenceNo && <p className="errorMsg">{errors.referenceNo.message}</p>}
-                                        </div> */}
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Reference Number</label>
+                      <input
+                        type="text"
+                        placeholder="Enter Reference Number"
+                        className="form-control"
+                        name="referenceNo"
+                        {...register("referenceNo", {
+                          required: "Reference Number is required",
+                          maxLength:{
+                            value : 20,
+                            message : "Maximum 20 Characters allowed"
+                          },
+                          validate: {
+                            noTrailingSpaces: (value) => noTrailingSpaces(value, "referenceNo"),
+                            referenceFormat: isValidReferenceFormat,
+                          },
+                        })}
+                        onChange={(e) => handleInputChange(e, "referenceNo")}
+                      />
+                      {errors.referenceNo && <p className="errorMsg">{errors.referenceNo.message}</p>}
+                    </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Contact No</label>
                       <input
@@ -461,7 +540,6 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Joining Date</label>
                       <input
@@ -471,7 +549,7 @@ const OfferLetterForm = () => {
                         className="form-control"
                         autoComplete="off"
                         max={threeMonthsFromNow}
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("joiningDate", {
                           required: "Joining Date is required",
                           validate: {
@@ -493,6 +571,7 @@ const OfferLetterForm = () => {
                         <p className="errorMsg">{errors.joiningDate.message}</p>
                       )}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Job Location</label>
                       <input
@@ -536,7 +615,74 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Department</label>
+                      <Controller
+                        name="department"
+                        control={control}
+                        defaultValue=""
+                        rules={{ required: "Department is Required" }}
+                        render={({ field }) => (
+                          <select
+                            {...field}
+                            className="form-select"
+                            onChange={(e) => {
+                              field.onChange(e); // Update form state
+                              // Reset designation when department changes
+                              setValue("designation", "");
+                              // Find department and fetch its designations
+                              const selectedDept = departments.find(dept => dept.name === e.target.value);
+                              if (selectedDept) {
+                                fetchDesignations(selectedDept.id);
+                              }
+                            }}
+                          >
+                            <option value="" disabled>Select Department</option>
+                            {departments.map((department) => (
+                              <option key={department.id} value={department.name}>
+                                {department.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      />
+                      {errors.department && (
+                        <p className="errorMsg">{errors.department.message}</p>
+                      )}
+                    </div>
+
                     <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Designation</label>
+                      <Controller
+                        name="designation"
+                        control={control}
+                        defaultValue=""
+                        rules={{
+                          required: {
+                            value: true,
+                            message: watchDepartment ? "Designation is Required" : "Please select a department first"
+                          }
+                        }}
+                        render={({ field }) => (
+                          <select
+                            {...field}
+                            className="form-select"
+                            disabled={!watchDepartment}
+                          >
+                            <option value="" disabled>Select Designation</option>
+                            {designations.map((designation) => (
+                              <option key={designation.id} value={designation.name}>
+                                {designation.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      />
+                      {errors.designation && (
+                        <p className="errorMsg">{errors.designation.message}</p>
+                      )}
+                    </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Salary Package</label>
                       <input
@@ -563,58 +709,7 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Department</label>
-                      <Controller
-                        name="department"
-                        control={control}
-                        defaultValue=""
-                        rules={{ required: "Department is Required" }}
-                        render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Department
-                            </option>
-                            {departments.map((department) => (
-                              <option key={department.id} value={department.name}>
-                                {department.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      />
-                      {errors.department && (
-                        <p className="errorMsg">{errors.department.message}</p>
-                      )}
-                    </div>
                     <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Designation</label>
-                      <Controller
-                        name="designation"
-                        control={control}
-                        defaultValue=""
-                        rules={{ required: true }}
-                        render={({ field }) => (
-                          <select {...field} className="form-select">
-                            <option value="" disabled>
-                              Select Designation
-                            </option>
-                            {designations.map((designation) => (
-                              <option
-                                key={designation.id}
-                                value={designation.name}
-                              >
-                                {designation.name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      />
-                      {errors && errors.designation && (
-                        <p className="errorMsg">Designation is Required</p>
-                      )}
-                    </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
                       <textarea
@@ -650,6 +745,41 @@ const OfferLetterForm = () => {
                           {errors.employeeAddress.message}
                         </p>
                       )}
+                    </div>
+                    <div className="col-lg-1"></div>
+
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                           <label className="form-label">Select Mode</label>
+                          <div className="form-check">
+                                     <input
+                                        type="radio"
+                                        className="form-check-input"
+                                         id="draft"
+                                        name="draft"
+                                          value={true}
+                                {...register("draft", { required: true })}
+                                />
+                         <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                         </label>
+                          </div>
+                        <div className="form-check">
+                            <input
+                               type="radio"
+                                className="form-check-input"
+                               id="undraft"
+                               name="draft"
+                               value={false}
+                                {...register("draft", { required: true })}
+                              />
+                        <label className="form-check-label" htmlFor="undraft">
+                             Digital Copy
+                           </label>
+                       </div>
+
+                       {errors.draft && (
+                            <p className="errorMsg">Please select draft copy or digital copy</p>
+                       )}
                     </div>
                   </div>
                 </div>

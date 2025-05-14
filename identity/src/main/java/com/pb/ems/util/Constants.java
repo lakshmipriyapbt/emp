@@ -35,6 +35,7 @@ public class Constants {
     public static final String ASSOCIATE = "Associate";
     public static final String HR = "HR";
     public static final String DEPARTMENT = "department";
+    public static final String USER = "user";
 }
 
 

@@ -101,16 +101,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         try{
             DepartmentEntity departmentEntity =null;
             DesignationEntity designationEntity = null;
-                departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
-                if (departmentEntity == null){
+            departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
+            if (departmentEntity == null){
 
-                }
-                designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-                if (designationEntity == null){
-                    return new ResponseEntity<>(
+            }
+            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
+            if (designationEntity == null){
+                return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
-                }
+            }
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
             defaultPassword = PasswordUtils.generateStrongPassword();
@@ -190,7 +190,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                         if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) && currentDate.isBefore(endDate)) {
                             status = Constants.NOTICE_PERIOD;
                         } else if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
-                            status = Constants.INACTIVE;
+                            status = Constants.RELIEVED;
                         }
 
                         if (status != null && !status.equals(employee.getStatus())) {
@@ -291,7 +291,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId);
 
         } catch (Exception ex) {
-
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -320,13 +319,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         BeanUtils.copyProperties(employeeUpdateRequest.getPersonnelEntity(), employeePersonnelEntity, getNullPropertyNames(employeeUpdateRequest.getPersonnelEntity()));
         openSearchOperations.saveEntity(employeePersonnelEntity, employeePersonnelEntity.getId(), index);
         openSearchOperations.saveEntity(entity, employeeId, index);
-        // Step 7: Deactivate Salaries if Employee is Made Inactive
-        if (Constants.INACTIVE.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
+        // Step 7: Deactivate Salaries if Employee is Made Relieved
+        if (Constants.RELIEVED.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                salaryEntity.setStatus(Constants.INACTIVE);
+                salaryEntity.setStatus(Constants.RELIEVED);
                 openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
             }
-            log.info("Salaries set to inactive for employee: {}", employeeId);
+            log.info("Salaries set to Relieved for employee: {}", employeeId);
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);

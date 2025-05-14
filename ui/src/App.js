@@ -1,10 +1,10 @@
 import React from 'react'
-import Rout from './Utils/Rout'
 import './App.css';
+import Routing from './Utils/Rout';
 
 const App = () => {
   return (
-   <Rout/>
+   <Routing/>
   )
 }
 

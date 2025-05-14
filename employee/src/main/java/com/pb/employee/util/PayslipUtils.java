@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.PayslipRequest;
 import com.pb.employee.request.PayslipUpdateRequest;
+import com.pb.employee.request.TDSPayload.TDSResPayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.*;
 @Slf4j
 public class PayslipUtils {
 
-    public static PayslipEntity unMaskEmployeePayslipProperties(EmployeeSalaryEntity salaryRequest, PayslipRequest payslipRequest, String id, String employeeId, AttendanceEntity attendanceEntity) {
+    public static PayslipEntity unMaskEmployeePayslipProperties(EmployeeSalaryEntity salaryRequest, PayslipRequest payslipRequest, String id, String employeeId, AttendanceEntity attendanceEntity, TDSResPayload tdsResPayload) {
         Double var = null, fix = null, bas, gross = null;
         Double te = null, pfE = null, pfEmployer = null, lop = null, tax = null, itax = null, ttax = null, tded = null, net = null;
         int totalWorkingDays = 0, noOfWorkingDays=0;
@@ -90,8 +91,7 @@ public class PayslipUtils {
                 salary.setPfTax(String.valueOf(Math.round(tax)));
             }
             if (salaryRequest.getIncomeTax() != null) {
-                byte[] decodedItax = Base64.getDecoder().decode(salaryRequest.getIncomeTax());
-                itax = Double.parseDouble(new String(decodedItax));
+                itax = TaxCalculatorUtils.getTax(gross, tdsResPayload);
                 itax = itax / 12.0;
                 salary.setIncomeTax(String.valueOf(Math.round(itax)));
 
