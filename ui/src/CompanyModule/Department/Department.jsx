@@ -403,7 +403,7 @@ const Department = () => {
                       title="Edit"
                       aria-label={`Edit ${dept.name}`}
                     >
-                      <PencilSquare size={22} color="#2255a4" />
+                      <PencilSquare size={22} color="#FFFFFF" />
                     </button>
                     <button
                       className="btn btn-sm"
@@ -425,9 +425,9 @@ const Department = () => {
                       aria-label={`${expandedId === dept.id ? 'Collapse' : 'Expand'} ${dept.name}`}
                     >
                       {expandedId === dept.id ? (
-                        <ChevronUp size={22} />
+                        <ChevronUp size={22} color="#FFFFFF" />
                       ) : (
-                        <ChevronDown size={22} />
+                        <ChevronDown size={22} color="#FFFFFF" />
                       )}
                     </button>
                   </div>

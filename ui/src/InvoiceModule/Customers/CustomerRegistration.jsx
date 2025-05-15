@@ -44,6 +44,8 @@ const CustomersRegistration = () => {
     trigger,
     setValue,
     getValues,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
@@ -140,7 +142,8 @@ const CustomersRegistration = () => {
 
   const handleCountryCodeChange = (selectedOption) => {
     setSelectedCountry(selectedOption);
-    console.log("Selected Country Code:", selectedOption.value);
+    setValue("mobileNumber", ""); // Reset mobile number field when country changes
+    trigger("mobileNumber"); // Trigger validation
   };
 
 
@@ -157,6 +160,8 @@ const CustomersRegistration = () => {
         status: data.status.value, // Assuming status is a select option object
         customerGstNo: data.customerGstNo,
         stateCode: data.stateCode,
+        email: data.email,
+        customerName: data.customerName
       };
 
       console.log("Update Payload:", updatePayload);
@@ -209,86 +214,19 @@ const CustomersRegistration = () => {
     }
   };
 
-
-  const handleEmailChange = (e) => {
-    // Get the current value of the input field
-    const value = e.target.value;
-    // Check if the value is empty
-    if (value.trim() !== "") {
-      return; // Allow space button
-    }
-    // Prevent space character entry if the value is empty
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
+  const mobileValidationRules = {
+    "+91": /^[6-9]\d{9}$/, // India: 10-digit number, starts with 6-9
+    "+1": /^\d{10}$/, // USA: 10-digit number
+    "+44": /^\d{10,11}$/, // UK: 10 or 11-digit number
+    "+81": /^\d{10,11}$/, // Japan: 10 or 11-digit number
+    "+971": /^\d{9}$/, // UAE: 9-digit number
   };
 
-  const toInputTitleCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Ensure only allowed characters (alphabets, numbers, and some special chars)
-    const allowedCharsRegex = /^[a-zA-Z\s]+$/;
-    value = value
-      .split("")
-      .filter((char) => allowedCharsRegex.test(char))
-      .join("");
-
-    // Capitalize the first letter of each word
-    const words = value.split(" ");
-
-    // Capitalize the first letter of each word and leave the rest of the characters as they are
-    const capitalizedWords = words.map((word) => {
-      if (word.length > 0) {
-        // Capitalize the first letter, keep the rest as is
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return "";
-    });
-
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(" ");
-
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 1) {
-      formattedValue =
-        formattedValue.slice(0, 1) +
-        formattedValue.slice(1).replace(/\s+/g, " ");
-    }
-
-    // Update input value
-    input.value = formattedValue;
-
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
+  const validateMobileNumber = (value) => {
+    const numericValue = value.replace(/\D/g, ""); // Remove non-numeric characters
+    const regex = mobileValidationRules[selectedCountry.value] || /^\d{7,15}$/; // Default fallback
+    return regex.test(numericValue) || "Invalid mobile number format for selected country";
   };
-  // Function to handle input formatting
-  function handlePhoneNumberChange(event) {
-    let value = event.target.value;
-
-    // Ensure the value starts with +91 and one space
-    if (value.startsWith("+91") && value.charAt(3) !== " ") {
-      value = "+91 " + value.slice(3); // Ensure one space after +91
-    }
-
-    // Allow only numeric characters after +91 and the space
-    const numericValue = value.slice(4).replace(/[^0-9]/g, ""); // Remove any non-numeric characters after +91
-    if (numericValue.length <= 10) {
-      value = "+91 " + numericValue; // Keep the +91 with a space
-    }
-
-    // Limit the total length to 14 characters (including +91 space)
-    if (value.length > 14) {
-      value = value.slice(0, 14); // Truncate if the length exceeds 14 characters
-    }
-
-    // Update the input field's value
-    event.target.value = value;
-  }
 
   const validateField = (value, type) => {
     switch (type) {
@@ -331,6 +269,21 @@ const CustomersRegistration = () => {
         )
       default:
         return true;
+    }
+  };
+
+  const handleStateCodeChange = (e) => {
+    const stateCodeValue = e.target.value.trim();
+    const gstNumber = getValues("customerGstNo"); // Get current GST number
+    const expectedStateCode = gstNumber.slice(0, 2); // Extract first two characters
+
+    if (stateCodeValue !== expectedStateCode) {
+      setError("stateCode", {
+        type: "manual",
+        message: "State Code must match the first two characters of the GST Number."
+      });
+    } else {
+      clearErrors("stateCode"); // Clear errors if valid
     }
   };
 
@@ -531,15 +484,7 @@ const CustomersRegistration = () => {
                           autoComplete="off"
                           {...register("mobileNumber", {
                             required: "Mobile Number is Required",
-                            validate: {
-                              correctLength: (value) => {
-                                const numericValue = value.replace(/\D/g, "");
-                                if (numericValue.length < 7 || numericValue.length > 15) {
-                                  return "Mobile Number must be between 7 and 15 digits.";
-                                }
-                                return true;
-                              },
-                            },
+                            validate: validateMobileNumber,
                           })}
                           onKeyPress={(e) => preventInvalidInput(e, "numeric")}
                         />
@@ -672,22 +617,16 @@ const CustomersRegistration = () => {
                         name="stateCode"
                         placeholder="Enter State Code"
                         className="form-control"
-                        autoComplete="off"
                         {...register("stateCode", {
-                          // required: "State Code is Required",
-                          validate: (value) =>
-                            !value || validateField(value, "stateCode"), // Validate only if the field is not empty
-                          minLength: {
-                            value: 2,
-                            message: "State Code must be exactly 2 digits.",
-                          },
-                          maxLength: {
-                            value: 2,
-                            message: "State Code must not exceed 2 digits.",
-                          },
+                          required: "State Code is Required",
+                          validate: (value) => {
+                            const gstNumber = getValues("customerGstNo");
+                            return !gstNumber || value === gstNumber.slice(0, 2)
+                              ? true
+                              : "State Code must match the first two characters of GST Number.";
+                          }
                         })}
-                        onChange={(e) => handleInputChange(e, "stateCode")}
-                        onKeyPress={(e) => preventInvalidInput(e, "numeric")}
+                        onChange={handleStateCodeChange}
                       />
                       {errors.stateCode && (
                         <p className="errorMsg">
