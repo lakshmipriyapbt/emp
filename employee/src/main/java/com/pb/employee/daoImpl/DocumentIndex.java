@@ -24,7 +24,7 @@ public class DocumentIndex {
     }
 
     public static DocumentIndex getCompanyIndex(String companyName) {
-        String shortName = companyName.length() > 5 ? companyName.substring(0, 5).toLowerCase() : companyName.toLowerCase();
+        String shortName = companyName.length() > 16 ? companyName.substring(0, 16).toLowerCase() : companyName.toLowerCase();
         String indexName = "ems_" + shortName;
 
         if (!indexMap.containsKey(indexName)) {

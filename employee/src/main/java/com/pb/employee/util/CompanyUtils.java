@@ -458,7 +458,7 @@ public class CompanyUtils {
                 if (regNo.equals(companyRequest.getCompanyRegNo())){
                     responseBody.put(Constants.DUPLICATE_REGISTER_NO, companyRequest.getCompanyRegNo());
                 }
-                if (regNo.equals(companyRequest.getCompanyRegNo())){
+                if (regNo.equals(companyRequest.getCinNo())){
                     responseBody.put(Constants.DUPLICATE_REGISTER_NO, companyRequest.getAlternateNo());
 
                 }
@@ -520,7 +520,7 @@ public class CompanyUtils {
                 if (cinNo.equals(companyRequest.getCinNo())){
                     responseBody.put(Constants.DUPLICATE_CIN_NO, companyRequest.getCinNo());
                 }
-                if (regNo.equals(companyRequest.getCompanyRegNo())){
+                if (cinNo.equals(companyRequest.getCompanyRegNo())){
                     responseBody.put(Constants.DUPLICATE_CIN_NO, companyRequest.getCinNo());
 
                 }

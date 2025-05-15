@@ -87,6 +87,7 @@ const OfferLetterForm = () => {
       department:data.department,
       designation:data.designation,
       draft:draftValue,
+      generatedDate:data.generatedDate,
 
     };
     setPreviewData(previewData);
@@ -109,6 +110,7 @@ const OfferLetterForm = () => {
       salaryConfigurationId: "",
       employeePosition: "",
       draft: "",
+      generatedDate: "",
     });
   };
 
@@ -745,6 +747,34 @@ const OfferLetterForm = () => {
                           {errors.employeeAddress.message}
                         </p>
                       )}
+                    </div>
+
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Latter Genarated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Genatated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Genatated Date is required",
+                          validate: {
+                           notAfterJoiningDate: (value) => {
+                             const joiningDate = watch("joiningDate");
+                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                          return (
+                            new Date(value) <= new Date(joiningDate) ||
+                             "Generated Date cannot be after Joining Date"
+                            ); }
+                          },
+                        })}
+                      />
+                     {errors.generatedDate && (
+  <p className="errorMsg">{errors.generatedDate.message}</p>
+)}
                     </div>
                     <div className="col-lg-1"></div>
 
