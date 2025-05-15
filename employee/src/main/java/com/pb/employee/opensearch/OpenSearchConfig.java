@@ -1,17 +1,14 @@
 package com.pb.employee.opensearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
+import co.elastic.clients.elasticsearch._types.mapping.*;
+import co.elastic.clients.elasticsearch._types.mapping.ObjectProperty;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.pb.employee.util.Constants;
 import org.apache.http.HttpHost;
-import org.opensearch.client.RestClient;
-import org.opensearch.client.json.jackson.JacksonJsonpMapper;
-import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.mapping.KeywordProperty;
-import org.opensearch.client.opensearch._types.mapping.ObjectProperty;
-import org.opensearch.client.opensearch._types.mapping.Property;
-import org.opensearch.client.opensearch._types.mapping.TypeMapping;
-import org.opensearch.client.opensearch.indices.CreateIndexRequest;
-import org.opensearch.client.transport.OpenSearchTransport;
-import org.opensearch.client.transport.rest_client.RestClientTransport;
+import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,74 +24,18 @@ import java.util.Map;
 @ConfigurationProperties("es")
 public class OpenSearchConfig {
 
-  @Autowired
-  private Environment environment;
-  @Autowired
-  private OpenSearchOperations openSearchOperations;
-  private static Logger logger = LoggerFactory.getLogger(OpenSearchConfig.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenSearchConfig.class);
 
   private String clusterName;
-
   private String esHost;
-
   private String esPort;
 
   public String getClusterName() {
-        return clusterName;
-    }
+    return clusterName;
+  }
 
   public void setClusterName(String clusterName) {
-        this.clusterName = clusterName;
-    }
-
-  @Bean
-  public OpenSearchClient esClient() {
-    logger.debug("Intializing opensearch");
-    // Create the low-level client
-    RestClient restClient = RestClient.builder(
-            new HttpHost(getEsHost(), Integer.parseInt(getEsPort()))).build();
-// Create the transport with a Jackson mapper
-    OpenSearchTransport transport = new RestClientTransport(
-            restClient, new JacksonJsonpMapper());
-    Map<String, Property> allowancesProperties = new HashMap<>();
-    allowancesProperties.put("name", new Property.Builder().keyword(new KeywordProperty.Builder().build()).build());
-    allowancesProperties.put("amount", new Property.Builder().text(new org.opensearch.client.opensearch._types.mapping.TextProperty.Builder().build()).build());
-
-    Map<String, Property> deductionsProperties = new HashMap<>();
-    deductionsProperties.put("name", new Property.Builder().keyword(new KeywordProperty.Builder().build()).build());
-    deductionsProperties.put("amount", new Property.Builder().text(new org.opensearch.client.opensearch._types.mapping.TextProperty.Builder().build()).build());
-
-    TypeMapping mapping = new TypeMapping.Builder()
-            .properties(Constants.RESOURCE_ID, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties(Constants.SHORT_NAME, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties(Constants.NAME, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties(Constants.DESIGNATION, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties(Constants.DEPARTMENT, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties(Constants.TYPE, new Property.Builder().keyword(new KeywordProperty.Builder().build()).build())
-            .properties("allowances", new Property.Builder()
-                    .object(new ObjectProperty.Builder()
-                            .properties(allowancesProperties)
-                            .build())
-                    .build())
-            .properties("deductions", new Property.Builder()
-                    .object(new ObjectProperty.Builder()
-                            .properties(deductionsProperties)
-                            .build())
-                    .build())
-            .build();
-    CreateIndexRequest createIndexRequest = new CreateIndexRequest.Builder()
-            .index(Constants.INDEX_EMS)
-            .mappings(mapping)
-            .build();
-
-    // And create the API client
-    OpenSearchClient esClient = new OpenSearchClient(transport);
-    try {
-      esClient.indices().create(createIndexRequest);
-    } catch (Exception e) {
-      logger.warn("Not able to create index {} " , e.getCause());
-    }
-    return esClient;
+    this.clusterName = clusterName;
   }
 
   public String getEsHost() {
@@ -111,5 +52,50 @@ public class OpenSearchConfig {
 
   public void setEsPort(String esPort) {
     this.esPort = esPort;
+  }
+
+  @Bean
+  public ElasticsearchClient esClient() {
+    logger.debug("Initializing Elasticsearch client");
+
+    RestClient restClient = RestClient.builder(
+            new HttpHost(getEsHost(), Integer.parseInt(getEsPort()))
+    ).build();
+
+    RestClientTransport transport = new RestClientTransport(
+            restClient, new JacksonJsonpMapper()
+    );
+
+    ElasticsearchClient client = new ElasticsearchClient(transport);
+
+    try {
+      Map<String, Property> allowancesProps = new HashMap<>();
+      allowancesProps.put("name", Property.of(p -> p.keyword(k -> k)));
+      allowancesProps.put("amount", Property.of(p -> p.text(t -> t)));
+
+      Map<String, Property> deductionsProps = new HashMap<>();
+      deductionsProps.put("name", Property.of(p -> p.keyword(k -> k)));
+      deductionsProps.put("amount", Property.of(p -> p.text(t -> t)));
+
+      TypeMapping mapping = new TypeMapping.Builder()
+              .properties(Constants.RESOURCE_ID, Property.of(p -> p.keyword(k -> k)))
+              .properties(Constants.SHORT_NAME, Property.of(p -> p.keyword(k -> k)))
+              .properties(Constants.NAME, Property.of(p -> p.keyword(k -> k)))
+              .properties(Constants.DESIGNATION, Property.of(p -> p.keyword(k -> k)))
+              .properties(Constants.DEPARTMENT, Property.of(p -> p.keyword(k -> k)))
+              .properties(Constants.TYPE, Property.of(p -> p.keyword(k -> k)))
+              .properties("allowances", Property.of(p -> p.object(o -> o.properties(allowancesProps))))
+              .properties("deductions", Property.of(p -> p.object(o -> o.properties(deductionsProps))))
+              .build();
+
+      // Create index if not exists
+      if (!client.indices().exists(e -> e.index(Constants.INDEX_EMS)).value()) {
+        client.indices().create(c -> c.index(Constants.INDEX_EMS).mappings(mapping));
+      }
+    } catch (Exception e) {
+      logger.warn("Failed to create index: {}", e.getMessage());
+    }
+
+    return client;
   }
 }

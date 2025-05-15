@@ -11,15 +11,15 @@ import {
 import LayOut from "../../../LayOut/LayOut";
 
 const OfferLetterPreview = () => {
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  // const formatDate = (date) => {
+  //   const d = new Date(date);
+  //   const year = d.getFullYear();
+  //   const month = String(d.getMonth() + 1).padStart(2, "0");
+  //   const day = String(d.getDate()).padStart(2, "0");
+  //   return `${year}-${month}-${day}`;
+  // };
 
-  const date = formatDate(new Date());
+  // const date = formatDate(new Date());
 
   const [error, setError] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
@@ -34,6 +34,7 @@ const OfferLetterPreview = () => {
   const [role, setRole] = useState("[Role]");
   const [showPreview, setShowPreview] = useState(false);
   const [joiningDate, setJoiningDate] = useState("Joining date");
+  const [generatedDate, setGeneratedDate] = useState("generated date");
   const [jobLocation, setJobLocation] = useState("Job Location");
   const [grossAmount, setGrossAmount] = useState(0);
   const [companyName, setCompanyName] = useState("Company Name");
@@ -62,7 +63,9 @@ const OfferLetterPreview = () => {
       setRefNo(previewData.referenceNo || " ");
       setDepartment(previewData.department || " ");
       setDesignation(previewData.designation|| "")
-      setDraft(previewData.draft|| false)
+      setDraft(previewData.draft|| false) 
+      setGeneratedDate(previewData.generatedDate || "Generated date");
+
     }
   }, [previewData]);
 
@@ -238,7 +241,7 @@ const OfferLetterPreview = () => {
 
   const handleDownload = async () => {
     const payload = {
-      offerDate: date,
+      offerDate: generatedDate,
       referenceNo: refNo,
       employeeName: recipientName,
       employeeFatherName: fatherName,
@@ -335,7 +338,7 @@ const OfferLetterPreview = () => {
               Private & Confidential
             </h1>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <p>Date: {date}</p>
+              <p>Date: {generatedDate}</p>
               <p>
                 Ref No:
                 <b>{refNo}</b>

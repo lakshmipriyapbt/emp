@@ -1,10 +1,26 @@
 package com.pb.employee.opensearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.mapping.KeywordProperty;
+import co.elastic.clients.elasticsearch._types.mapping.Property;
+import co.elastic.clients.elasticsearch._types.mapping.TypeMapping;
+import co.elastic.clients.elasticsearch.core.*;
+import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
+import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexResponse;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.persistance.model.*;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.Result;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.DepartmentEntity;
 import com.pb.employee.persistance.model.DesignationEntity;
@@ -13,16 +29,16 @@ import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.ResourceIdUtils;
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.FieldValue;
-import org.opensearch.client.opensearch._types.Result;
-import org.opensearch.client.opensearch._types.mapping.KeywordProperty;
-import org.opensearch.client.opensearch._types.mapping.Property;
-import org.opensearch.client.opensearch._types.mapping.TypeMapping;
-import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
-import org.opensearch.client.opensearch._types.query_dsl.Query;
-import org.opensearch.client.opensearch.core.*;
-import org.opensearch.client.opensearch.core.search.Hit;
-import org.opensearch.client.opensearch.indices.*;
+//import org.opensearch.client.opensearch._types.FieldValue;
+//import org.opensearch.client.opensearch._types.Result;
+//import org.opensearch.client.opensearch._types.mapping.KeywordProperty;
+//import org.opensearch.client.opensearch._types.mapping.Property;
+//import org.opensearch.client.opensearch._types.mapping.TypeMapping;
+//import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+//import org.opensearch.client.opensearch._types.query_dsl.Query;
+//import org.opensearch.client.opensearch.core.*;
+//import org.opensearch.client.opensearch.core.search.Hit;
+//import org.opensearch.client.opensearch.indices.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +59,7 @@ public class OpenSearchOperations {
 
 
     @Autowired
-    private OpenSearchClient esClient;
+    private ElasticsearchClient esClient;
 
     public String createIndex(String name) throws EmployeeException {
         String index = ResourceIdUtils.generateCompanyIndex(name);
@@ -68,7 +84,7 @@ public class OpenSearchOperations {
     public Entity saveEntity(Entity entity, String Id, String index) throws EmployeeException {
         IndexResponse indexResponse = null;
         try {
-            synchronized (entity) {
+            synchronized (entity){
                 indexResponse = esClient.index(builder -> builder.index(index)
                         .id(Id)
                         .document(entity));
@@ -84,14 +100,15 @@ public class OpenSearchOperations {
 
     public String deleteEntity(String id, String index) throws EmployeeException {
         logger.debug("Deleting the Entity {}", id);
-        DeleteResponse deleteResponse = null;
+        co.elastic.clients.elasticsearch.core.DeleteResponse deleteResponse = null;
         try {
-            synchronized (id) {
+            synchronized (id){
                 deleteResponse = esClient.delete(b -> b.index(index)
                         .id(id));
+
             }
-            if (deleteResponse.result() == Result.NotFound) {
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE), HttpStatus.NOT_FOUND);
+            if(deleteResponse.result() == Result.NotFound) {
+                throw new EmployeeException(String.format("Entity Id not found",id), HttpStatus.NOT_FOUND);
             }
             logger.debug("Deleted the Entity {}, Delete response {}", id, deleteResponse);
         } catch (IOException e) {
@@ -497,7 +514,7 @@ public class OpenSearchOperations {
         try {
             // Adjust the type or field according to your index structure
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), SalaryEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), SalaryEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -596,7 +613,7 @@ public class OpenSearchOperations {
 
         try {
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), AttendanceEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), AttendanceEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -627,7 +644,7 @@ public class OpenSearchOperations {
 
         try {
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), AttendanceEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), AttendanceEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -660,7 +677,7 @@ public class OpenSearchOperations {
 
         try {
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), PayslipEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), PayslipEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -736,7 +753,7 @@ public class OpenSearchOperations {
         try {
             // Adjust the type or field according to your index structure
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), EmployeeSalaryEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), EmployeeSalaryEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -793,7 +810,7 @@ public class OpenSearchOperations {
         try {
             // Set size to 1 to get a single entity
             searchResponse = esClient.search(t -> t.index(index).size(1)
-                    .query(finalBoolQueryBuilder.build().toQuery()), RelievingEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), RelievingEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -969,7 +986,7 @@ public class OpenSearchOperations {
         try {
             // Adjust the type or field according to your index structure
             searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                    .query(finalBoolQueryBuilder.build().toQuery()), BackgroundEntity.class);
+                    .query(finalBoolQueryBuilder.build()._toQuery()), BackgroundEntity.class);
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);

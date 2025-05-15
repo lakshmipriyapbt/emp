@@ -42,7 +42,7 @@ const Body = () => {
     if (employees?.length > 0) {
       const totalEmployeesCount = employees.length;
       const activeEmployeesCount = employees.filter(emp => emp.status === 'Active').length;
-      const RelievedEmployeesCount = employees.filter(emp => emp.status === 'Relieved').length;
+      const RelievedEmployeesCount = employees.filter(emp => emp.status === 'relieved').length;
 
       setData({
         totalEmployeesCount,
