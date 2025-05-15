@@ -115,9 +115,9 @@ const InternOfferForm = () => {
     const today = normalizeDate(new Date().toISOString().split("T")[0]);
     const joining = normalizeDate(joiningDate);
   
-    if (acceptDate <= today) {
-      return "Accept Date must be after today's date";
-    }
+    // if (acceptDate <= today) {
+    //   return "Accept Date must be after today's date";
+    // }
   
     if (acceptDate >= joining) {
       return "Accept Date must be before the Joining Date";
