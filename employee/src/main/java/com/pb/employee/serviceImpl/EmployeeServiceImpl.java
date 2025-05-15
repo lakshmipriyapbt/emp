@@ -187,9 +187,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                     if (startDate != null && endDate != null) {
                         String status = null;
-                        if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) && currentDate.isBefore(endDate)) {
-                            status = Constants.NOTICE_PERIOD;
-                        } else if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
+                        if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
                             status = Constants.RELIEVED;
                         }
 
