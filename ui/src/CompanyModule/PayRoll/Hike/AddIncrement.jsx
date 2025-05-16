@@ -8,6 +8,7 @@ import {
   EmployeeGetApi,
   EmployeeSalaryGetApiById,
   EmployeeSalaryPostApi,
+  TdsGetApi,
   TemplateGetAPI,
 } from "../../../Utils/Axios";
 import { useAuth } from "../../../Context/AuthContext";
@@ -42,7 +43,7 @@ const AddIncrement = () => {
       status: "Active",
     },
   });
-  const { authUser, company,employee } = useAuth();
+  const { authUser, company, employee } = useAuth();
   const date = new Date().toLocaleDateString();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -93,110 +94,104 @@ const AddIncrement = () => {
   const [loading, setLoading] = useState(false);
   const [previousGrossAmount, setPreviousGrossAmount] = useState(0);
   const [hikePercentage, setHikePercentage] = useState(0);
-  const [hikeErrorMessage,setHikeErrorMessage]=useState("")
-  const [download, setDownload]=useState(false);
+  const [hikeErrorMessage, setHikeErrorMessage] = useState("")
+  const [download, setDownload] = useState(false);
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
   const dispatch = useDispatch();
   const [amountInWords, setAmountInWords] = useState('');
   const [grossInWords, setGrossInWords] = useState('');
   const [hikeStartedDate, setHikeStartedDate] = useState('');
+  const [selectedTaxRegime, setSelectedTaxRegime] = useState("new");
+  const [tdsSlabs, setTdsSlabs] = useState({
+    old: [],
+    new: []
+  });
+  const [applicableSlab, setApplicableSlab] = useState(null);
+  const [tdsAmount, setTdsAmount] = useState(0);
+  const [selectedTdsSlabs, setSelectedTdsSlabs] = useState([]);
 
+  const getCurrentFinancialYear = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    return month >= 4 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+  };
 
   const numberToWords = (num) => {
     const units = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
+      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+      "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen",
+      "Eighteen", "Nineteen"
     ];
     const tens = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
+      "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
     ];
-    const unitsPlaces = ["", "Lakh", "Thousand", "Hundred"];
 
-    if (num === 0) return "Zero";
+    if (num === 0) return "Zero Rupees Only";
 
-    const convertToWords = (n) => {
-      if (n === 0) return "";
-
-      let word = "";
-      if (n >= 100) {
-        word += units[Math.floor(n / 100)] + " Hundred ";
-        n %= 100;
-      }
-      if (n >= 20) {
-        word += tens[Math.floor(n / 10)] + " ";
-        n %= 10;
-      }
-      if (n > 0) {
-        word += units[n] + " ";
-      }
-      return word.trim();
+    const convertLessThanHundred = (n) => {
+      if (n < 20) return units[n];
+      return tens[Math.floor(n / 10)] + (n % 10 ? " " + units[n % 10] : "");
     };
 
-    let result = "";
+    const convertLessThanThousand = (n) => {
+      const hundred = Math.floor(n / 100);
+      const remainder = n % 100;
+      return (hundred ? units[hundred] + " Hundred" : "") +
+        (remainder ? (hundred ? " " : "") + convertLessThanHundred(remainder) : "");
+    };
+
+    const convertLessThanLakh = (n) => {
+      const thousand = Math.floor(n / 1000);
+      const remainder = n % 1000;
+      return (thousand ? convertLessThanThousand(thousand) + " Thousand" : "") +
+        (remainder ? (thousand ? " " : "") + convertLessThanThousand(remainder) : "");
+    };
+
+    const convertLessThanCrore = (n) => {
+      const lakh = Math.floor(n / 100000);
+      const remainder = n % 100000;
+      return (lakh ? convertLessThanThousand(lakh) + " Lakh" : "") +
+        (remainder ? (lakh ? " " : "") + convertLessThanLakh(remainder) : "");
+    };
+
+    const convertLessThanHundredCrore = (n) => {
+      const crore = Math.floor(n / 10000000);
+      const remainder = n % 10000000;
+      return (crore ? convertLessThanThousand(crore) + " Crore" : "") +
+        (remainder ? (crore ? " " : "") + convertLessThanCrore(remainder) : "");
+    };
+
+    const convertLessThanThousandCrore = (n) => {
+      const hundredCrore = Math.floor(n / 1000000000);
+      const remainder = n % 1000000000;
+      return (hundredCrore ? convertLessThanHundred(hundredCrore) + " Hundred" : "") +
+        (remainder ? (hundredCrore ? " " : "") + convertLessThanHundredCrore(remainder) : "");
+    };
+
     let integerPart = Math.floor(num);
+    let result = convertLessThanThousandCrore(integerPart);
 
-    // Handle Lakhs and Thousands in the Indian numbering system
-    if (integerPart >= 100000) {
-      const lakhs = Math.floor(integerPart / 100000);
-      result += convertToWords(lakhs) + " Lakh ";
-      integerPart %= 100000;
-    }
-
-    if (integerPart >= 1000) {
-      const thousands = Math.floor(integerPart / 1000);
-      result += convertToWords(thousands) + " Thousand ";
-      integerPart %= 1000;
-    }
-
-    if (integerPart >= 100) {
-      const hundreds = Math.floor(integerPart / 100);
-      result += convertToWords(hundreds) + " Hundred ";
-      integerPart %= 100;
-    }
-
-    if (integerPart > 0) {
-      result += convertToWords(integerPart);
-    }
-
-    // Handle decimal (cents)
+    // Handle decimal (paise)
     let decimalPart = Math.round((num % 1) * 100);
     if (decimalPart > 0) {
-      result += " and " + convertToWords(decimalPart) + " Paise";
+      result += " and " + convertLessThanHundred(decimalPart) + " Paise";
+    }
+
+    // Add currency suffix
+    result += decimalPart === 0 ? " Rupees Only" : " Rupees";
+
+    // Handle edge case where number is between 0 and 1 (only paise)
+    if (integerPart === 0 && decimalPart > 0) {
+      result = result.replace(" and ", ""); // Remove "and" when no rupees
     }
 
     return result.trim();
   };
 
   // Fetch employees from Redux store
-  const { data: employees} = useSelector((state) => state.employees);
+  const { data: employees } = useSelector((state) => state.employees);
 
   // Fetch employees when the component mounts
   useEffect(() => {
@@ -224,7 +219,7 @@ const AddIncrement = () => {
           designationName: employee.designationName,
           departmentName: employee.departmentName,
           dateOfHiring: employee.dateOfHiring,
-          currentGross:employee.currentGross
+          currentGross: employee.currentGross
         }));
       setEmployes(activeEmployees);
     }
@@ -263,12 +258,110 @@ const AddIncrement = () => {
   const validateAppraisalDate = (value) => {
     const hikeDate = watch("dateOfHiring"); // Ensure this field contains the correct hike date
     if (!hikeDate) return "Hike Date is required to validate the Appraisal Date.";
-    
+
     if (new Date(value) < new Date(hikeDate)) {
       return "Appraisal Date cannot be before the Hike Date.";
     }
     return true;
   };
+
+  // ✅ Fetch TDS slabs based on financial year and regime
+useEffect(() => {
+  const fetchTds = async () => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const financialYear = getCurrentFinancialYear();
+      const [startYear, endYear] = financialYear.split('-').map(Number);
+
+      // Fetch all TDS data
+      const response = await TdsGetApi();
+      const allTdsData = response.data.data;
+
+      // Filter for current financial year
+      const currentYearTds = allTdsData.filter(tds =>
+        parseInt(tds.startYear) === startYear &&
+        parseInt(tds.endYear) === endYear
+      );
+
+      // Separate old and new regime slabs
+      const newRegimeSlabs = currentYearTds
+        .filter(tds => tds.tdsType === "new")
+        .flatMap(tds => tds.persentageEntityList);
+
+      const oldRegimeSlabs = currentYearTds
+        .filter(tds => tds.tdsType === "old")
+        .flatMap(tds => tds.persentageEntityList);
+
+      setTdsSlabs({
+        new: newRegimeSlabs,
+        old: oldRegimeSlabs
+      });
+
+      // Set initial selected slabs based on current regime
+      setSelectedTdsSlabs(
+        selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
+      );
+    } catch (error) {
+      console.error("Error fetching TDS slabs:", error);
+      setTdsSlabs({
+        new: [],
+        old: []
+      });
+      setSelectedTdsSlabs([]);
+    }
+  };
+  fetchTds();
+}, [selectedTaxRegime]);
+
+// ✅ Calculate TDS based on selected tax regime
+const calculateTds = (annualSalary, regime) => {
+  const slabs = regime === "new" ? tdsSlabs.new : tdsSlabs.old;
+  const sortedSlabs = [...slabs].sort((a, b) => parseFloat(a.min) - parseFloat(b.min));
+
+  let applicable = null;
+  for (const slab of sortedSlabs) {
+    const min = parseFloat(slab.min);
+    const max = parseFloat(slab.max) || Infinity;
+
+    if (annualSalary >= min && annualSalary <= max) {
+      applicable = slab;
+      break;
+    }
+  }
+
+  setApplicableSlab(applicable || sortedSlabs[sortedSlabs.length - 1]);
+
+  let tdsAmount = 0;
+  if (applicable) {
+    const rate = parseFloat(applicable.taxPercentage) / 100;
+    tdsAmount = annualSalary * rate;
+  }
+
+  // Update deductions with the new TDS value
+  setUpdatedDeductions(prev => ({
+    ...prev,
+    "TDS": tdsAmount.toFixed(2)
+  }));
+
+  return tdsAmount;
+};
+
+useEffect(() => {
+  if (grossAmount > 0 && selectedTaxRegime) {
+    const calculatedTds = calculateTds(grossAmount, selectedTaxRegime);
+    setTdsAmount(calculatedTds);
+  }
+}, [grossAmount, selectedTaxRegime]);
+
+const handleTaxRegimeChange = (e) => {
+  const regime = e.target.value;
+  setSelectedTaxRegime(regime);
+  setValue("tdsType", regime);
+
+  // Recalculate TDS with new regime
+  const newTds = calculateTds(grossAmount, regime);
+  setTdsAmount(newTds);
+};
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -446,17 +539,20 @@ const AddIncrement = () => {
   // Function to calculate the total deductions including PF
   const calculateTotalDeductions = () => {
     let total = 0;
-
-    // Loop through the updated deductions
-    Object.entries(updatedDeductions).forEach(([key, value]) => {
-      if (typeof value === "string" && value.endsWith("%")) {
-        const percentageValue = parseFloat(value.slice(0, -1)); // Remove '%' and parse as number
-        total += (percentageValue / 100) * grossAmount; // Apply percentage to gross amount
+    
+    Object.entries({
+      ...updatedDeductions,
+      "TDS": tdsAmount.toFixed(2)
+    }).forEach(([key, value]) => {
+      if (!value) return;
+      
+      if (typeof value === "string" && value.includes("%")) {
+        // percentage calculation
       } else {
-        total += parseFloat(value) || 0; // Add fixed deduction amount
+        total += parseFloat(value) || 0;
       }
     });
-
+    
     return isNaN(total) ? 0 : total;
   };
 
@@ -637,8 +733,8 @@ const AddIncrement = () => {
       !departmentName ||
       !dateOfHiring ||
       !months ||
-      !years||grossAmount,
-      !draft||draft
+      !years || grossAmount,
+      !draft || draft
     ) {
       setMessage("Please fill all the required fields.");
       setShowFields(true); // Optionally hide or show some fields based on conditions
@@ -677,7 +773,7 @@ const AddIncrement = () => {
     } else {
       setGrossInWords('');
     }
-    }, [variableAmount, fixedAmount]);
+  }, [variableAmount, fixedAmount]);
 
   useEffect(() => {
     const monthlySalaryValue = parseFloat(grossAmount || 0) / 12;
@@ -691,14 +787,14 @@ const AddIncrement = () => {
   useEffect(() => {
     console.log("Previous Gross Amount:", previousGrossAmount);
     console.log("Current Gross Amount:", grossAmount);
-  
+
     const prevSalary = parseFloat(previousGrossAmount) || 0;
     const newSalary = parseFloat(grossAmount) || 0;
-  
+
     if (prevSalary > 0) {
       if (newSalary > prevSalary) {
         const hike = ((newSalary - prevSalary) / prevSalary) * 100;
-        console.log("hike",hike);
+        console.log("hike", hike);
         setHikePercentage(hike.toFixed(2));
         if (hike < 0) {
           setHikeErrorMessage("Warning: Hike percentage is negative.");
@@ -708,11 +804,11 @@ const AddIncrement = () => {
           setHikeErrorMessage(""); // No error
         }
         setHikePercentage(hike.toFixed(2)); // Store actual hike, even if negative
-      } 
+      }
     }
   }, [grossAmount, previousGrossAmount]); // Ensure previousGrossAmount is included
-  
-  
+
+
   const fetchSalary = async () => {
     try {
       const response = await CompanySalaryStructureGetApi();
@@ -741,7 +837,7 @@ const AddIncrement = () => {
       toast.error(error);
       return;
     }
-    console.log("data",data)
+    console.log("data", data)
     const fixedAmount = parseFloat(data.fixedAmount) || 0;
     const variableAmount = parseFloat(data.variableAmount) || 0;
     const grossAmountValue = parseFloat(grossAmount) || 0;
@@ -815,7 +911,7 @@ const AddIncrement = () => {
     });
 
     const dataToSubmit = {
-      salaryHikePersentage:hikePercentage,
+      salaryHikePersentage: hikePercentage,
       companyName: authUser.company,
       fixedAmount: fixedAmount.toFixed(2),
       variableAmount: variableAmount.toFixed(2),
@@ -837,7 +933,7 @@ const AddIncrement = () => {
       totalDeductions: totalDeductionsValue.toFixed(2),
       pfTax: pfTaxValue.toFixed(2),
       tdsType: tdsType,
-     addSalaryDate : hikeStartedDate,
+      addSalaryDate: hikeStartedDate,
       status: statusValue,
     };
     console.log(dataToSubmit);
@@ -849,7 +945,7 @@ const AddIncrement = () => {
     const salaryStructureId =
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
-      salaryHikePersentage:hikePercentage,
+      salaryHikePersentage: hikePercentage,
       companyId: company.id,
       employeeId: employeeId,
       date: new Date().toISOString().split("T")[0],
@@ -904,9 +1000,9 @@ const AddIncrement = () => {
     let calculatedHike = 0;
     if (previousGrossAmount > 0) {
       calculatedHike = ((grossAmount - previousGrossAmount) / previousGrossAmount) * 100;
-      
+
       if (calculatedHike < 0) {
-        setHikeErrorMessage ("Hike percentage cannot be negative.")
+        setHikeErrorMessage("Hike percentage cannot be negative.")
         setShowCards(false);
         setShowPfModal(false)
       } else if (calculatedHike > 100) {
@@ -919,7 +1015,7 @@ const AddIncrement = () => {
     const netSalary = grossAmount + finalAllowances - totalDeductions;
 
     // Set the calculated values to state
-    setHikePercentage(calculatedHike.toFixed(2));  
+    setHikePercentage(calculatedHike.toFixed(2));
     setFinalAllowances(finalAllowances);
     setTotalDeductions(totalDeductions);
     setNetSalary(netSalary);
@@ -939,8 +1035,8 @@ const AddIncrement = () => {
 
   // Preview Form Submission (Before submitting for API calls)
   const submitForm = (data) => {
-        const draftValue = data.draft === "true";
-        setHikeStartedDate(data.dateOfSalaryIncrement);
+    const draftValue = data.draft === "true";
+    setHikeStartedDate(data.dateOfSalaryIncrement);
 
     console.log("submitForm", data);
     const selectedMonth = data.months ? data.months.label : "";
@@ -950,7 +1046,7 @@ const AddIncrement = () => {
       : data.employeeId;
     setEmployeeId(employeeId);
     const submissionData = {
-      salaryHikePersentage:hikePercentage,
+      salaryHikePersentage: hikePercentage,
       employeeId: data.employeeId,
       companyId: company.id,
       allowances: allowances,
@@ -959,7 +1055,7 @@ const AddIncrement = () => {
 
     };
     const preview = {
-      salaryHikePersentage:hikePercentage,
+      salaryHikePersentage: hikePercentage,
       employeeId: data.id,
       employeeName: data.employeeName || "",
       designationName: data.designationName || "",
@@ -985,7 +1081,7 @@ const AddIncrement = () => {
     reset();
     setShowFields(false);
   };
-  
+
 
   if (!templateAvailable) {
     return (
@@ -1013,792 +1109,851 @@ const AddIncrement = () => {
   return (
     <LayOut>
       <div className="container-fluid p-0">
-          <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-            <div className="col">
-              <h1 className="h3 mb-3">
-                <strong>Appraisal Form</strong>
-              </h1>
-            </div>
-            <div className="col-auto" style={{ paddingBottom: "20px" }}>
-              <nav aria-label="breadcrumb">
-                <ol className="breadcrumb mb-0">
-                  <li className="breadcrumb-item">
-                    <a href="/main">Home</a>
-                  </li>
-                  <li className="breadcrumb-item active">Appraisal From</li>
-                </ol>
-              </nav>
-            </div>
+        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+          <div className="col">
+            <h1 className="h3 mb-3">
+              <strong>Appraisal Form</strong>
+            </h1>
           </div>
-          <div className="row">
-            {showFields ? (
-              <form onSubmit={handleSubmit(submitForm)}> 
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h5 className="card-title"> Salary Details </h5>
+          <div className="col-auto" style={{ paddingBottom: "20px" }}>
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb mb-0">
+                <li className="breadcrumb-item">
+                  <a href="/main">Home</a>
+                </li>
+                <li className="breadcrumb-item active">Appraisal From</li>
+              </ol>
+            </nav>
+          </div>
+        </div>
+        <div className="row">
+          {showFields ? (
+            <form onSubmit={handleSubmit(submitForm)}>
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-header">
+                    <h5 className="card-title"> Salary Details </h5>
+                  </div>
+                  <div className="card-body">
+                    <div className="row">
+                      <div className="col-md-5 mb-3">
+                        <label className="form-label">Variable Amount</label>
+                        <input
+                          id="variableAmount"
+                          type="text"
+                          className="form-control"
+                          autoComplete="off"
+                          maxLength={10}
+                          {...register("variableAmount", {
+                            required: "Variable amount is required",
+                            pattern: {
+                              value: /^[0-9]+$/,
+                              message: "These filed accepcts only Integers",
+                            },
+                            maxLength: {
+                              value: 10,
+                              message: "Maximum 10 Numbers Allowed",
+                            },
+                          })}
+                          readOnly={isReadOnly}
+                          value={variableAmount}
+                          onChange={handleVariableAmountChange}
+                        />
+                        {errors.variableAmount && (
+                          <div className="errorMsg">
+                            {errors.variableAmount.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-1 mb-3"></div>
+                      <div className="col-md-5 mb-3">
+                        <label className="form-label">
+                          Fixed Amount<span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          autoComplete="off"
+                          maxLength={10}
+                          {...register("fixedAmount", {
+                            required: "Fixed amount is required",
+                            pattern: {
+                              value: /^[0-9]+$/,
+                              message: "These filed accepcts only Integers",
+                            },
+                            minLength: {
+                              value: 5,
+                              message: "Minimum 5 Numbers Required",
+                            },
+                            maxLength: {
+                              value: 10,
+                              message: "Maximum 10 Numbers Allowed",
+                            },
+                            validate: {
+                              notZero: (value) =>
+                                value !== "0" || "Value cannot be 0",
+                            },
+                          })}
+                          readOnly={isReadOnly}
+                          value={fixedAmount}
+                          onChange={handleFixedAmountChange}
+                        />
+                        {errors.fixedAmount && (
+                          <div className="errorMsg">
+                            {errors.fixedAmount.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-5 mb-3">
+                        <label className="form-label">
+                          Gross Amount<span style={{ color: "red" }}>*</span> ({hikePercentage !== null && (<span className="text-success">{hikePercentage}% </span>)})
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          autoComplete="off"
+                          value={grossAmount}
+                          onChange={(e) =>
+                            setGrossAmount(parseFloat(e.target.value))
+                          }
+                          readOnly
+                        />
+                        {grossInWords && (
+                          <div style={{ marginTop: '10px', color: "green" }}>
+                            <strong>IN WORDS: {grossInWords}</strong>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="col-md-1 mb-3"></div>
+                      <div className="col-md-5 mb-3">
+                        <label className="form-label">
+                          Monthly Salary
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={monthlySalary}
+                          readOnly
+                        />
+                      </div>
+                      {hikeErrorMessage && (<span className="text-center text-danger">{hikeErrorMessage}</span>)}
+                      <div className="col-12 text-end mt-2">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={handleSubmitButtonClick}
+                        >
+                          Submit
+                        </button>
+                      </div>
                     </div>
-                    <div className="card-body">
-                      <div className="row">
-                        <div className="col-md-5 mb-3">
-                          <label className="form-label">Variable Amount</label>
-                          <input
-                            id="variableAmount"
-                            type="text"
-                            className="form-control"
-                            autoComplete="off"
-                            maxLength={10}
-                            {...register("variableAmount", {
-                              required: "Variable amount is required",
-                              pattern: {
-                                value: /^[0-9]+$/,
-                                message: "These filed accepcts only Integers",
-                              },
-                              maxLength: {
-                                value: 10,
-                                message: "Maximum 10 Numbers Allowed",
-                              },
-                            })}
-                            readOnly={isReadOnly}
-                            value={variableAmount}
-                            onChange={handleVariableAmountChange}
-                          />
-                          {errors.variableAmount && (
-                            <div className="errorMsg">
-                              {errors.variableAmount.message}
+                  </div>
+                </div>
+              </div>
+              {loading ? (
+                <Loader /> // Show loader while loading
+              ) : (
+                showCards && (
+                  <>
+                    <div className="row d-flex">
+                      <div className="col-6 mb-4">
+                        <div className="card">
+                          <div className="card-header">
+                            <h5 className="card-title">Allowances</h5>
+                          </div>
+                          <div className="card-body">
+                            {Object.entries(allowances).map(
+                              ([key, value]) => {
+                                let displayValue = value;
+
+                                // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
+                                if (
+                                  typeof value === "string" &&
+                                  value.includes("%")
+                                ) {
+                                  const percentage = parseFloat(
+                                    value.replace("%", "")
+                                  );
+                                  if (!isNaN(percentage)) {
+                                    // Calculate based on grossAmount or basicAmount
+                                    if (key === "HRA") {
+                                      displayValue =
+                                        (percentage / 100) * basicAmount; // For HRA, use basicAmount
+                                    } else {
+                                      displayValue =
+                                        (percentage / 100) * grossAmount; // For other allowances, use grossAmount
+                                    }
+                                  }
+                                } else if (typeof value === "number") {
+                                  // If it's a number (fixed value), just display that value
+                                  displayValue = value;
+                                }
+
+                                // Update the state with the calculated value for allowance
+
+                                return (
+                                  <div key={key} className="mb-3">
+                                    <label>{key}</label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      maxLength={7}
+                                      value={Math.round(displayValue)} // Display the calculated value
+                                      onChange={(e) =>
+                                        handleAllowanceChange(
+                                          key,
+                                          e.target.value
+                                        )
+                                      } // Handle change
+                                      readOnly={
+                                        key === "Basic Salary" ||
+                                        key === "HRA"
+                                      }
+                                    />
+                                  </div>
+                                );
+                              }
+                            )}
+
+                            <div className="mb-3">
+                              <label>Total Allowances:</label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="totalAllowance"
+                                value={Math.round(totalAllowances)}
+                                readOnly
+                                data-toggle="tooltip"
+                                title="This is the total of all allowances."
+                              />
+                              {errorMessage && (
+                                <p className="text-danger">{errorMessage}</p>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
-                        <div className="col-md-1 mb-3"></div>
-                        <div className="col-md-5 mb-3">
-                          <label className="form-label">
-                            Fixed Amount<span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            autoComplete="off"
-                            maxLength={10}
-                            {...register("fixedAmount", {
-                              required: "Fixed amount is required",
-                              pattern: {
-                                value: /^[0-9]+$/,
-                                message: "These filed accepcts only Integers",
-                              },
-                              minLength: {
-                                value: 5,
-                                message: "Minimum 5 Numbers Required",
-                              },
-                              maxLength: {
-                                value: 10,
-                                message: "Maximum 10 Numbers Allowed",
-                              },
-                              validate: {
-                                notZero: (value) =>
-                                  value !== "0" || "Value cannot be 0",
-                              },
-                            })}
-                            readOnly={isReadOnly}
-                            value={fixedAmount}
-                            onChange={handleFixedAmountChange}
-                          />
-                          {errors.fixedAmount && (
-                            <div className="errorMsg">
-                              {errors.fixedAmount.message}
+                        <div className="card">
+                          <div className="card-header">
+                            <div className="d-flex justify-content-start align-items-start">
+                              <h5 className="card-title me-2">Status</h5>
+                              <span className="text-danger">
+                                {errors.status && (
+                                  <p className="mb-0">
+                                    {errors.status.message}
+                                  </p>
+                                )}
+                              </span>
                             </div>
-                          )}
+                          </div>
+                          <div className="card-body">
+                            <div className="row">
+                              <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                <label>
+                                  <input
+                                    type="radio"
+                                    name="status"
+                                    defaultChecked
+                                    value="Active"
+                                    style={{ marginRight: "10px" }}
+                                    {...register("status", {
+                                      required: "Please Select Status",
+                                    })}
+                                  />
+                                  Active
+                                </label>
+                              </div>
+                              <div className="col-lg-1"></div>
+                              <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                <label>
+                                  <input
+                                    type="radio"
+                                    name="status"
+                                    value="InActive"
+                                    style={{ marginRight: "10px" }}
+                                    {...register("status", {
+                                      required: "Please Select Status",
+                                    })}
+                                  />
+                                  InActive
+                                </label>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="col-md-5 mb-3">
-                          <label className="form-label">
-                            Gross Amount<span style={{ color: "red" }}>*</span> ({hikePercentage !== null && (<span className="text-success">{hikePercentage}% </span>)})
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            autoComplete="off"
-                            value={grossAmount}
-                            onChange={(e) =>
-                              setGrossAmount(parseFloat(e.target.value))
-                            }
-                            readOnly
-                          />
-                           {grossInWords && (
-                               <div style={{ marginTop: '10px' , color: "green"}}>
-                                <strong>IN WORDS: {grossInWords}</strong>
-                               </div>
-                             )}
+                      </div>
+                      {/* Deductions Card */}
+                      <div className="col-6 mb-4">
+                        <div className="card">
+                          <div className="card-header">
+                            <h5 className="card-title">Deductions</h5>
+                          </div>
+                          <div className="card-body">
+                          {Object.entries({
+  ...updatedDeductions,
+  "TDS": tdsAmount.toFixed(2) // Ensure TDS is always included
+}).map(([key, value]) => {
+  let displayValue = parseFloat(value) || value;
+
+  if (typeof value === "string" && value.includes("%")) {
+    const percentage = parseFloat(value.replace("%", ""));
+    if (!isNaN(percentage)) {
+      const baseAmount = key.includes("Provident Fund") ? basicAmount : grossAmount;
+      displayValue = (percentage / 100) * baseAmount;
+    }
+  }
+
+  return (
+    <div key={key} className="mb-3">
+      <label>{key}</label>
+      <input
+        className="form-control"
+        type="text"
+        readOnly={[
+          "Provident Fund Employee", 
+          "Provident Fund Employer", 
+          "TDS"
+        ].includes(key)}
+        value={Math.round(displayValue)}
+        onChange={(e) => handleDeductionChange(key, e.target.value)}
+      />
+    </div>
+  );
+})}
+                            <div className="mb-3">
+                              <label>Total Deductions</label>
+                              <input
+                                className="form-control"
+                                type="number"
+                                value={Math.round(totalDeductions)} // Format as string here
+                                readOnly
+                                data-toggle="tooltip"
+                                title="This is the total of all deductions."
+                              />
+                              {errorMessage && (
+                                <p className="text-danger">{errorMessage}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="card">
+  <div className="card-header">
+    <div className="d-flex justify-content-start align-items-start">
+      <h5 className="card-title me-2">Tax Deduction at Source (TDS)</h5>
+      <span className="text-danger">
+        {errors.tdsType && (
+          <p className="mb-0">{errors.tdsType.message}</p>
+        )}
+      </span>
+    </div>
+  </div>
+  <div className="card-body">
+    <div className="row">
+      {/* Tax Regime Selection */}
+      <div className="col-md-12 mb-4">
+        <h6 className="mb-3">Select Tax Regime:</h6>
+        <div className="d-flex flex-wrap gap-4">
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="newRegime"
+              value="new"
+              {...register("tdsType", {
+                onChange: (e) => setSelectedTaxRegime(e.target.value)
+              })}
+            />
+            <label className="form-check-label" htmlFor="newRegime">
+              New Tax Regime (Default)
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="oldRegime"
+              value="old"
+              {...register("tdsType", {
+                onChange: (e) => setSelectedTaxRegime(e.target.value)
+              })}
+            />
+            <label className="form-check-label" htmlFor="oldRegime">
+              Old Tax Regime
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Salary and Slab Information */}
+      <div className="col-md-6 mb-3">
+        <label className="form-label">Applicable Tax Rate</label>
+        <div className="p-2 bg-white rounded">
+          {applicableSlab ? (
+            <div className="d-flex align-items-center">
+              <span className="badge bg-primary me-2">
+                {applicableSlab.taxPercentage}%
+              </span>
+              <span>
+                For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
+                ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
+              </span>
+            </div>
+          ) : (
+            <span className="text-muted">No applicable slab found</span>
+          )}
+        </div>
+      </div>
+
+      {/* TDS Calculation Results */}
+      <div className="col-md-12 mt-4">
+        <div className="row">
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Tax Rate Applied</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
+              readOnly
+            />
+          </div>
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Annual TDS</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={`₹${tdsAmount.toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+              })}`}
+              readOnly
+            />
+          </div>
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Monthly TDS</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+              })}`}
+              readOnly
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Calculation Explanation */}
+      <div className="col-md-12 mt-3">
+        <div className="alert alert-info">
+          <h6>Calculation Method:</h6>
+          <ul className="mb-0">
+            <li>Entire salary taxed at single rate based on which bracket it falls into</li>
+            <li>
+              Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong> |
+              Financial Year: <strong>{getCurrentFinancialYear()}</strong>
+            </li>
+            {applicableSlab && (
+              <li>
+                Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+                        <div className="card">
+                          <div className="card-header">
+                            <h5 className="card-title">Net Salary</h5>
+                          </div>
+                          <div className="card-body">
+                            <div className="mb-3">
+                              <label>Net Salary</label>
+                              <input
+                                className="form-control"
+                                type="text"
+                                name="netSalary"
+                                value={netSalary.toFixed(2)}
+                                readOnly
+                                data-toggle="tooltip"
+                                title="This is the final salary after all deductions and allowances."
+                              />
+                              {amountInWords && (
+                                <div style={{ marginTop: '10px', color: "green" }}>
+                                  <strong>IN WORDS: {amountInWords}</strong>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="col-md-1 mb-3"></div>
-                        <div className="col-md-5 mb-3">
-                          <label className="form-label">
-                            Monthly Salary
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={monthlySalary}
-                            readOnly
-                          />
-                        </div>
-                        {hikeErrorMessage&& (<span className="text-center text-danger">{hikeErrorMessage}</span>)}
-                        <div className="col-12 text-end mt-2">
+                        <div className="text-end">
                           <button
-                            type="button"
+                            className="btn btn-secondary me-2"
+                            onClick={clearForm}
+                          >
+                            Close
+                          </button>
+                          <button
+                            type="submit"
                             className="btn btn-primary"
-                            onClick={handleSubmitButtonClick}
+                            disabled={!!errorMessage}
                           >
                             Submit
                           </button>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    {error && (
+                      <div
+                        className="error-message"
+                        style={{
+                          color: "red",
+                          marginBottom: "10px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <b>{error}</b>
+                      </div>
+                    )}
+                  </>
+                )
+              )}
+            </form>
+          ) : (
+            <div className="col-12">
+              <div className="card ">
+                <div className="card-header">
+                  <h5 className="card-title ">Add Employee Increament </h5>
+                  <div
+                    className="dropdown-divider"
+                    style={{ borderTopColor: "#d7d9dd" }}
+                  />
                 </div>
-                {loading ? (
-                  <Loader /> // Show loader while loading
-                ) : (
-                  showCards && (
-                    <>
-                      <div className="row d-flex">
-                        <div className="col-6 mb-4">
-                          <div className="card">
-                            <div className="card-header">
-                              <h5 className="card-title">Allowances</h5>
-                            </div>
-                            <div className="card-body">
-                              {Object.entries(allowances).map(
-                                ([key, value]) => {
-                                  let displayValue = value;
+                <div className="card-body ">
+                  <div className="row">
+                    <div className="col-lg-12">
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        {/* Salary Details */}
+                        <div>
+                          <div className="row">
+                            <div className="col-md-5 mb-3">
+                              <label className="form-label">
+                                Select Employee
+                              </label>
+                              <Controller
+                                name="employeeId"
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field }) => (
+                                  <Select
+                                    {...field}
+                                    options={employes}
+                                    value={employes.find(
+                                      (option) => option.value === field.value
+                                    )}
+                                    onChange={(selectedOption) => {
+                                      field.onChange(selectedOption.value);
 
-                                  // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
-                                  if (
-                                    typeof value === "string" &&
-                                    value.includes("%")
-                                  ) {
-                                    const percentage = parseFloat(
-                                      value.replace("%", "")
-                                    );
-                                    if (!isNaN(percentage)) {
-                                      // Calculate based on grossAmount or basicAmount
-                                      if (key === "HRA") {
-                                        displayValue =
-                                          (percentage / 100) * basicAmount; // For HRA, use basicAmount
-                                      } else {
-                                        displayValue =
-                                          (percentage / 100) * grossAmount; // For other allowances, use grossAmount
-                                      }
-                                    }
-                                  } else if (typeof value === "number") {
-                                    // If it's a number (fixed value), just display that value
-                                    displayValue = value;
-                                  }
-
-                                  // Update the state with the calculated value for allowance
-
-                                  return (
-                                    <div key={key} className="mb-3">
-                                      <label>{key}</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        maxLength={7}
-                                        value={Math.round(displayValue)} // Display the calculated value
-                                        onChange={(e) =>
-                                          handleAllowanceChange(
-                                            key,
-                                            e.target.value
-                                          )
-                                        } // Handle change
-                                        readOnly={
-                                          key === "Basic Salary" ||
-                                          key === "HRA"
-                                        }
-                                      />
-                                    </div>
-                                  );
-                                }
-                              )}
-
-                              <div className="mb-3">
-                                <label>Total Allowances:</label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="totalAllowance"
-                                  value={Math.round(totalAllowances)}
-                                  readOnly
-                                  data-toggle="tooltip"
-                                  title="This is the total of all allowances."
-                                />
-                                {errorMessage && (
-                                  <p className="text-danger">{errorMessage}</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="card">
-                            <div className="card-header">
-                              <div className="d-flex justify-content-start align-items-start">
-                                <h5 className="card-title me-2">Status</h5>
-                                <span className="text-danger">
-                                  {errors.status && (
-                                    <p className="mb-0">
-                                      {errors.status.message}
-                                    </p>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="card-body">
-                              <div className="row">
-                                <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                  <label>
-                                    <input
-                                      type="radio"
-                                      name="status"
-                                      defaultChecked
-                                      value="Active"
-                                      style={{ marginRight: "10px" }}
-                                      {...register("status", {
-                                        required: "Please Select Status",
-                                      })}
-                                    />
-                                    Active
-                                  </label>
-                                </div>
-                                <div className="col-lg-1"></div>
-                                <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                  <label>
-                                    <input
-                                      type="radio"
-                                      name="status"
-                                      value="InActive"
-                                      style={{ marginRight: "10px" }}
-                                      {...register("status", {
-                                        required: "Please Select Status",
-                                      })}
-                                    />
-                                    InActive
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {/* Deductions Card */}
-                        <div className="col-6 mb-4">
-                          <div className="card">
-                            <div className="card-header">
-                              <h5 className="card-title">Deductions</h5>
-                            </div>
-                            <div className="card-body">
-                              {Object.entries(updatedDeductions).map(
-                                ([key, value]) => {
-                                  let displayValue = value;
-                                  // If the deduction is a percentage, apply it to the gross amount
-                                  if (
-                                    typeof value === "string" &&
-                                    value.includes("%")
-                                  ) {
-                                    const percentage = parseFloat(
-                                      value.replace("%", "")
-                                    );
-                                    if (!isNaN(percentage)) {
-                                      // Calculate based on grossAmount or basicAmount
-                                      if (
-                                        key === "Provident Fund Employee" ||
-                                        key === "Provident Fund Employer"
-                                      ) {
-                                        displayValue =
-                                          (percentage / 100) * basicAmount; // For HRA, use basicAmount
-                                      } else {
-                                        displayValue =
-                                          (percentage / 100) * grossAmount; // For other allowances, use grossAmount
-                                      }
-                                    }
-                                  } else if (typeof value === "number") {
-                                    // If it's a number (fixed value), just display that value
-                                    displayValue = value;
-                                  }
-
-                                  return (
-                                    <div key={key} className="mb-3">
-                                      <label>{key}</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        readOnly={
-                                          key === "Provident Fund Employee" ||
-                                          key === "Provident Fund Employer"
-                                        }
-                                        value={Math.round(displayValue)} // Display the value (either percentage or calculated value)
-                                        maxLength={7}
-                                        onChange={(e) =>
-                                          handleDeductionChange(
-                                            key,
-                                            e.target.value
-                                          )
-                                        } // Handle change
-                                      />
-                                    </div>
-                                  );
-                                }
-                              )}
-                              <div className="mb-3">
-                                <label>Total Deductions</label>
-                                <input
-                                  className="form-control"
-                                  type="number"
-                                  value={Math.round(totalDeductions)} // Format as string here
-                                  readOnly
-                                  data-toggle="tooltip"
-                                  title="This is the total of all deductions."
-                                />
-                                {errorMessage && (
-                                  <p className="text-danger">{errorMessage}</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="card">
-                            <div className="card-header ">
-                              <div className="d-flex justify-content-start align-items-start">
-                                <h5 className="card-title me-2">TDS</h5>
-                                <span className="text-danger">
-                                  {errors.tdsType && (
-                                    <p className="mb-0">
-                                      {errors.tdsType.message}
-                                    </p>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="card-body">
-                              <div className="row">
-                                <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                  <label>
-                                    <input
-                                      type="radio"
-                                      name="tdsType"
-                                      value="old"
-                                      style={{ marginRight: "10px" }}
-                                      {...register("tdsType", {
-                                        required: "Please Select Tax",
-                                      })}
-                                    />
-                                    Old Regime
-                                  </label>
-                                </div>
-                                <div className="col-lg-1"></div>
-                                <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                  <label>
-                                    <input
-                                      type="radio"
-                                      name="tdsType"
-                                      value="new"
-                                      defaultChecked
-                                      style={{ marginRight: "10px" }}
-                                      {...register("tdsType", {
-                                        required: "Please Select Tax",
-                                      })}
-                                    />
-                                    new Regime
-                                  </label>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="card">
-                            <div className="card-header">
-                              <h5 className="card-title">Net Salary</h5>
-                            </div>
-                            <div className="card-body">
-                              <div className="mb-3">
-                                <label>Net Salary</label>
-                                <input
-                                  className="form-control"
-                                  type="text"
-                                  name="netSalary"
-                                  value={netSalary.toFixed(2)}
-                                  readOnly
-                                  data-toggle="tooltip"
-                                  title="This is the final salary after all deductions and allowances."
-                                />
-                                   {amountInWords && (
-                               <div style={{ marginTop: '10px' , color: "green"}}>
-                                <strong>IN WORDS: {amountInWords}</strong> 
-                               </div>
-                             )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="text-end">
-                            <button
-                              className="btn btn-secondary me-2"
-                              onClick={clearForm}
-                            >
-                              Close
-                            </button>
-                            <button
-                              type="submit"
-                              className="btn btn-primary"
-                              disabled={!!errorMessage}
-                             >
-                              Submit
-                            </button>                         
-                          </div>
-                        </div>
-                      </div>
-                      {error && (
-                        <div
-                          className="error-message"
-                          style={{
-                            color: "red",
-                            marginBottom: "10px",
-                            textAlign: "center",
-                          }}
-                        >
-                          <b>{error}</b>
-                        </div>
-                      )}
-                    </>
-                  )
-                )}
-              </form>
-            ) : (
-              <div className="col-12">
-                <div className="card ">
-                  <div className="card-header">
-                    <h5 className="card-title ">Add Employee Increament </h5>
-                    <div
-                      className="dropdown-divider"
-                      style={{ borderTopColor: "#d7d9dd" }}
-                    />
-                  </div>
-                  <div className="card-body ">
-                    <div className="row">
-                      <div className="col-lg-12">
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                          {/* Salary Details */}
-                          <div>
-                            <div className="row">
-                              <div className="col-md-5 mb-3">
-                                <label className="form-label">
-                                  Select Employee
-                                </label>
-                                <Controller
-                                  name="employeeId"
-                                  control={control}
-                                  rules={{ required: true }}
-                                  render={({ field }) => (
-                                    <Select
-                                      {...field}
-                                      options={employes}
-                                      value={employes.find(
-                                        (option) => option.value === field.value
-                                      )}
-                                      onChange={(selectedOption) => {
-                                        field.onChange(selectedOption.value);
-
-                                        // Get selected employee details
-                                        const selectedEmp = employes.find(
-                                          (emp) =>
-                                            emp.value === selectedOption.value
+                                      // Get selected employee details
+                                      const selectedEmp = employes.find(
+                                        (emp) =>
+                                          emp.value === selectedOption.value
+                                      );
+                                      if (selectedEmp) {
+                                        console.log(
+                                          "Selected Employee Details: ",
+                                          selectedEmp
                                         );
-                                        if (selectedEmp) {
-                                          console.log(
-                                            "Selected Employee Details: ",
-                                            selectedEmp
-                                          );
 
-                                          // Use setValue to populate form fields with selected employee's info
-                                          setValue(
-                                            "employeeName",
-                                            selectedEmp.employeeName
-                                          ); // Add employeeName to form
-                                          setValue(
-                                            "designationName",
-                                            selectedEmp.designationName
-                                          );
-                                          setValue(
-                                            "departmentName",
-                                            selectedEmp.departmentName
-                                          );
-                                          setValue(
-                                            "dateOfHiring",
-                                            selectedEmp.dateOfHiring
-                                          );
-                                          setValue(
-                                            "currentGross",
-                                            selectedEmp.currentGross
-                                          );
-                                          setValue(
-                                            "id",
-                                            selectedEmp.employeeId
-                                          );
-                                          setPreviousGrossAmount(Number(selectedEmp.currentGross) || 0);
-                                        }
-                                      }}
-                                      placeholder="Select Employee Name"
-                                    />
-                                  )}
-                                />
-                                {errors.employeeId && (
-                                  <p className="errorMsg">
-                                    Employee Name Required
-                                  </p>
+                                        // Use setValue to populate form fields with selected employee's info
+                                        setValue(
+                                          "employeeName",
+                                          selectedEmp.employeeName
+                                        ); // Add employeeName to form
+                                        setValue(
+                                          "designationName",
+                                          selectedEmp.designationName
+                                        );
+                                        setValue(
+                                          "departmentName",
+                                          selectedEmp.departmentName
+                                        );
+                                        setValue(
+                                          "dateOfHiring",
+                                          selectedEmp.dateOfHiring
+                                        );
+                                        setValue(
+                                          "currentGross",
+                                          selectedEmp.currentGross
+                                        );
+                                        setValue(
+                                          "id",
+                                          selectedEmp.employeeId
+                                        );
+                                        setPreviousGrossAmount(Number(selectedEmp.currentGross) || 0);
+                                      }
+                                    }}
+                                    placeholder="Select Employee Name"
+                                  />
                                 )}
-                              </div>
-                              <input
-                                type="hidden"
-                                className="form-control"
-                                placeholder="Resignation Date"
-                                name="id"
-                                readOnly
-                                {...register("id")}
                               />
-                              <input
-                                type="hidden"
-                                className="form-control"
-                                placeholder="Resignation Date"
-                                name="employeeName"
-                                readOnly
-                                {...register("id")}
-                              />
-                              <div className="col-lg-1"></div>
-                              <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                <label className="form-label">
-                                  Date of Hired
-                                </label>
-                                <input
-                                  type="date"
-                                  className="form-control"
-                                  placeholder="Resignation Date"
-                                  name="dateOfHiring"
-                                  readOnly
-                                  {...register("dateOfHiring")}
-                                />
-                                {errors.dateOfHiring && (
-                                  <p className="errorMsg">
-                                    Date of Hiring Required
-                                  </p>
-                                )}
-                              </div>
-                              <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                <label className="form-label">
-                                  Designation
-                                </label>
-                                <input
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Designation"
-                                  name="designationName"
-                                  readOnly
-                                  {...register("designationName")}
-                                />
-                                {errors.designationName && (
-                                  <p className="errorMsg">
-                                    Designation Required
-                                  </p>
-                                )}
-                              </div>
-                              <div className="col-lg-1"></div>
-                              <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                <label className="form-label">Department</label>
-                                <input
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Department"
-                                  name="departmentName"
-                                  readOnly
-                                  {...register("departmentName")}
-                                />
-                                {errors.departmentName && (
-                                  <p className="errorMsg">
-                                    Department Required
-                                  </p>
-                                )}
-                              </div>
-                              <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                <label className="form-label">
-                                  Current Gross Salary
-                                </label>
-                                <input
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="Current Gross Salary"
-                                  name="currentGross"
-                                  readOnly
-                                  {...register("currentGross")}
-                                />
-                                {errors.currentGross && (
-                                  <p className="errorMsg">
-                                    Current Gross Amount Required
-                                  </p>
-                                )}
-                              </div>
-                              <div className="col-lg-1"></div>
-                              <div className="col-md-5 mb-3">
-                                <label className="form-label">
-                                  Appraisal Date (Hike Start Date)
-                                </label>
-                                <input
-                                  type="date"
-                                  className="form-control"
-                                  max={(() => {
-                                    const maxDate = new Date();
-                                    maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
-                                    return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
-                                  })()}
-                                  onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
-                                  {...register("dateOfSalaryIncrement", {
-                                    required: "Appraisal Date is required",
-                                    validate: validateAppraisalDate, // Apply custom validation
-                                  })}
-                                />
-
-                                {errors.dateOfSalaryIncrement && (
-                                  <p className="errorMsg">
-                                    {errors.dateOfSalaryIncrement.message}
-                                  </p>
-                                )}
-                              </div>
-
-                      <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                           <label className="form-label">Select Mode</label>
-                          <div className="form-check">
-                                     <input
-                                        type="radio"
-                                        className="form-check-input"
-                                         id="draft"
-                                        name="draft"
-                                          value={true}
-                                {...register("draft", { required: true })}
-                                />
-                         <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
-                         </label>
-                          </div>
-                        <div className="form-check">
+                              {errors.employeeId && (
+                                <p className="errorMsg">
+                                  Employee Name Required
+                                </p>
+                              )}
+                            </div>
                             <input
-                               type="radio"
-                                className="form-check-input"
-                               id="undraft"
-                               name="draft"
-                               value={false}
-                                {...register("draft", { required: true })}
+                              type="hidden"
+                              className="form-control"
+                              placeholder="Resignation Date"
+                              name="id"
+                              readOnly
+                              {...register("id")}
+                            />
+                            <input
+                              type="hidden"
+                              className="form-control"
+                              placeholder="Resignation Date"
+                              name="employeeName"
+                              readOnly
+                              {...register("id")}
+                            />
+                            <div className="col-lg-1"></div>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">
+                                Date of Hired
+                              </label>
+                              <input
+                                type="date"
+                                className="form-control"
+                                placeholder="Resignation Date"
+                                name="dateOfHiring"
+                                readOnly
+                                {...register("dateOfHiring")}
                               />
-                        <label className="form-check-label" htmlFor="undraft">
-                             Digital Copy
-                           </label>
-                       </div>
-
-                       {errors.draft && (
-                            <p className="errorMsg">Please select draft copy or digital copy</p>
-                       )}
-                    </div>
+                              {errors.dateOfHiring && (
+                                <p className="errorMsg">
+                                  Date of Hiring Required
+                                </p>
+                              )}
                             </div>
-                            {message && (<span className="text-center text-danger">message</span>)}
-                            <div
-                              className="col-12  d-flex justify-content-end mt-5 "
-                              style={{ background: "none" }}
-                            >
-                              <button
-                                className="btn btn-primary btn-lg"
-                                style={{ marginRight: "65px" }}
-                                type="submit"
-                              >
-                                Update Salary Structure
-                              </button>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">
+                                Designation
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Designation"
+                                name="designationName"
+                                readOnly
+                                {...register("designationName")}
+                              />
+                              {errors.designationName && (
+                                <p className="errorMsg">
+                                  Designation Required
+                                </p>
+                              )}
+                            </div>
+                            <div className="col-lg-1"></div>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">Department</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Department"
+                                name="departmentName"
+                                readOnly
+                                {...register("departmentName")}
+                              />
+                              {errors.departmentName && (
+                                <p className="errorMsg">
+                                  Department Required
+                                </p>
+                              )}
+                            </div>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">
+                                Current Gross Salary
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Current Gross Salary"
+                                name="currentGross"
+                                readOnly
+                                {...register("currentGross")}
+                              />
+                              {errors.currentGross && (
+                                <p className="errorMsg">
+                                  Current Gross Amount Required
+                                </p>
+                              )}
+                            </div>
+                            <div className="col-lg-1"></div>
+                            <div className="col-md-5 mb-3">
+                              <label className="form-label">
+                                Appraisal Date (Hike Start Date)
+                              </label>
+                              <input
+                                type="date"
+                                className="form-control"
+                                max={(() => {
+                                  const maxDate = new Date();
+                                  maxDate.setMonth(maxDate.getMonth() + 3); // Set max to 3 months ahead
+                                  return maxDate.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
+                                })()}
+                                onClick={(e) => e.target.showPicker()} // Use onClick instead of onFocus
+                                {...register("dateOfSalaryIncrement", {
+                                  required: "Appraisal Date is required",
+                                  validate: validateAppraisalDate, // Apply custom validation
+                                })}
+                              />
+
+                              {errors.dateOfSalaryIncrement && (
+                                <p className="errorMsg">
+                                  {errors.dateOfSalaryIncrement.message}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="col-lg-1"></div>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">Select Mode</label>
+                              <div className="form-check">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  id="draft"
+                                  name="draft"
+                                  value={true}
+                                  {...register("draft", { required: true })}
+                                />
+                                <label className="form-check-label" htmlFor="draft">
+                                  Draft Copy
+                                </label>
+                              </div>
+                              <div className="form-check">
+                                <input
+                                  type="radio"
+                                  className="form-check-input"
+                                  id="undraft"
+                                  name="draft"
+                                  value={false}
+                                  {...register("draft", { required: true })}
+                                />
+                                <label className="form-check-label" htmlFor="undraft">
+                                  Digital Copy
+                                </label>
+                              </div>
+
+                              {errors.draft && (
+                                <p className="errorMsg">Please select draft copy or digital copy</p>
+                              )}
                             </div>
                           </div>
-                        </form>
-                        <Modal
-                          show={showPfModal}
-                          onHide={() => setShowPfModal(false)}
-                          centered
-                          style={{ zIndex: "1050" }}
-                          className="custom-modal"
-                        >
-                          <ModalHeader closeButton>
-                            <ModalTitle className="text-center">
-                              Confirm Provident Fund Option
-                            </ModalTitle>
-                          </ModalHeader>
-                          <ModalBody className="text-center fs-bold">
-                            <p>
-                              The Total Provident Fund is ₹
+                          {message && (<span className="text-center text-danger">message</span>)}
+                          <div
+                            className="col-12  d-flex justify-content-end mt-5 "
+                            style={{ background: "none" }}
+                          >
+                            <button
+                              className="btn btn-primary btn-lg"
+                              style={{ marginRight: "65px" }}
+                              type="submit"
+                            >
+                              Update Salary Structure
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+                      <Modal
+                        show={showPfModal}
+                        onHide={() => setShowPfModal(false)}
+                        centered
+                        style={{ zIndex: "1050" }}
+                        className="custom-modal"
+                      >
+                        <ModalHeader closeButton>
+                          <ModalTitle className="text-center">
+                            Confirm Provident Fund Option
+                          </ModalTitle>
+                        </ModalHeader>
+                        <ModalBody className="text-center fs-bold">
+                          <p>
+                            The Total Provident Fund is ₹
+                            {calculatedPF.pfEmployee +
+                              calculatedPF.pfEmployer}
+                            . Please choose your preferred option:
+                          </p>
+                          <div className="d-flex align-items-center mb-3">
+                            <input
+                              className="form-check-input me-2"
+                              type="radio"
+                              name="pfOption"
+                              value="calculated"
+                              checked={selectedPF === "calculated"}
+                              onChange={() => setSelectedPF("calculated")}
+                            />
+                            <label className="mb-0">
+                              As per Calculated PF: ₹
                               {calculatedPF.pfEmployee +
-                                calculatedPF.pfEmployer}
-                              . Please choose your preferred option:
-                            </p>
-                            <div className="d-flex align-items-center mb-3">
-                              <input
-                                className="form-check-input me-2"
-                                type="radio"
-                                name="pfOption"
-                                value="calculated"
-                                checked={selectedPF === "calculated"}
-                                onChange={() => setSelectedPF("calculated")}
-                              />
-                              <label className="mb-0">
-                                As per Calculated PF: ₹
-                                {calculatedPF.pfEmployee +
-                                  calculatedPF.pfEmployer}{" "}
-                                per year
-                              </label>
-                            </div>
-
-                            <div className="d-flex align-items-center mb-3">
-                              <input
-                                className="form-check-input me-2"
-                                type="radio"
-                                name="pfOption"
-                                value="fixed"
-                                checked={selectedPF === "fixed"}
-                                onChange={() => setSelectedPF("fixed")}
-                              />
-                              <label className="mb-0 ml-2">
-                                Base PF: ₹43,200 per year
-                                <span
-                                  className="d-inline-block"
-                                  data-bs-toggle="tooltip"
-                                  data-bs-placement="top"
-                                  title="₹43,200 is the standard PF for an employee (₹3,600 per month)"
-                                >
-                                  <i className="bi bi-info-circle text-primary"></i>{" "}
-                                  {/* Info icon from Bootstrap Icons */}
-                                </span>
-                              </label>
-                            </div>
-                          </ModalBody>
-                          <div className="text-center">
-                            <Button
-                              variant="primary ml-2"
-                              onClick={handleModalClose}
-                            >
-                              Confirm
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              onClick={() => setShowPfModal(false)}
-                            >
-                              Cancel
-                            </Button>
+                                calculatedPF.pfEmployer}{" "}
+                              per year
+                            </label>
                           </div>
-                        </Modal>
-                      </div>
+
+                          <div className="d-flex align-items-center mb-3">
+                            <input
+                              className="form-check-input me-2"
+                              type="radio"
+                              name="pfOption"
+                              value="fixed"
+                              checked={selectedPF === "fixed"}
+                              onChange={() => setSelectedPF("fixed")}
+                            />
+                            <label className="mb-0 ml-2">
+                              Base PF: ₹43,200 per year
+                              <span
+                                className="d-inline-block"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="top"
+                                title="₹43,200 is the standard PF for an employee (₹3,600 per month)"
+                              >
+                                <i className="bi bi-info-circle text-primary"></i>{" "}
+                                {/* Info icon from Bootstrap Icons */}
+                              </span>
+                            </label>
+                          </div>
+                        </ModalBody>
+                        <div className="text-center">
+                          <Button
+                            variant="primary ml-2"
+                            onClick={handleModalClose}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => setShowPfModal(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </Modal>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
         {showPreview && (
           <div
             className={`modal fade ${showPreview ? "show" : ""}`}
@@ -1844,7 +1999,7 @@ const AddIncrement = () => {
                       onClick={() => setShowPreview(false)}
                     >
                       Close
-                    </button>                   
+                    </button>
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -1923,11 +2078,11 @@ const AddIncrement = () => {
             >
               Confirm
             </Button>
-            <Button variant="secondary" 
-                onClick={() => {
-                  setShowPfModal(false);
-                  setShowCards(false);
-                }}            
+            <Button variant="secondary"
+              onClick={() => {
+                setShowPfModal(false);
+                setShowCards(false);
+              }}
             >
               Cancel
             </Button>

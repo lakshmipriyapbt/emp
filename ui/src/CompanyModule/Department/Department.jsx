@@ -308,35 +308,50 @@ const Department = () => {
     console.error(error.response);
   };
 
-  const validateName = (value) => {
+  const validateName = (value, type) => {
     const trimmedValue = value.trim();
     if (trimmedValue.length === 0) {
-      return "Department Name is Required.";
+      return type === "department" ? "Department Name is Required." : "Designation Name is Required.";
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
-      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
+      return type === "department"
+        ? "Only Alphabetic Characters, Spaces, and '/' are Allowed in Department Name."
+        : "Only Alphabetic Characters, Spaces, and '/' are Allowed in Designation Name.";
     } else {
       const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 2 && words.length === 1) {
-          return "Minimum Length 2 Characters Required.";
+          return type === "department"
+            ? "Department Name Must Have a Minimum of 2 Characters."
+            : "Designation Name Must Have a Minimum of 2 Characters.";
         } else if (word.length > 40) {
-          return "Max Length 40 Characters Required.";
+          return type === "department"
+            ? "Department Name Must Not Exceed 40 Characters."
+            : "Designation Name Must Not Exceed 40 Characters.";
         }
       }
       if (trimmedValue.length > 40) {
-        return "Department name must not exceed 40 characters.";
+        return type === "department"
+          ? "Department Name Must Not Exceed 40 Characters."
+          : "Designation Name Must Not Exceed 40 Characters.";
       }
       if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
+        return type === "department"
+          ? "No Multiple Spaces Allowed in Department Name."
+          : "No Multiple Spaces Allowed in Designation Name.";
       }
       if (/^\s/.test(value)) {
-        return "Leading space not allowed.";
+        return type === "department"
+          ? "Leading Space Not Allowed in Department Name."
+          : "Leading Space Not Allowed in Designation Name.";
       } else if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed.";
+        return type === "department"
+          ? "Spaces at the end are not allowed."
+          : "Spaces at the end are not allowed.";
       }
     }
     return true;
   };
+  
 
   return (
     <LayOut>
@@ -540,7 +555,7 @@ const Department = () => {
                             {...register("name", {
                               required: "Department is Required",
                               validate: {
-                                validateName,
+                                validateName: (value) => validateName(value, "department"),
                               },
                             })}
                           />
@@ -614,8 +629,8 @@ const Department = () => {
                             {...registerDesignation("name", {
                               required: "Designation is Required",
                               validate: {
-                                validateName,
-                              },
+                                validateName: (value) => validateName(value, "designation"),
+                              },                              
                             })}
                           />
                           {errorsDesignation.name && (
