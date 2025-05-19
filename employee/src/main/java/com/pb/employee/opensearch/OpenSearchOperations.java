@@ -736,7 +736,7 @@ public class OpenSearchOperations {
         return salaryConfigurationEntities;
     }
 
-    public List<EmployeeSalaryEntity> getEmployeeSalaries(String companyName, String employeeId) throws EmployeeException {
+    public List<EmployeeSalaryEntity> getEmployeeSalaries(String companyName, String employeeId, String status) throws EmployeeException {
 
         logger.debug("Getting employees for salary details {}", companyName);
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
@@ -745,6 +745,10 @@ public class OpenSearchOperations {
         if (employeeId != null) {
             boolQueryBuilder
                 .filter(q -> q.matchPhrase(t -> t.field(Constants.EMPLOYEE_ID).query(employeeId)));
+        }
+        if (status != null){
+            boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.STATUS).query(status)));
         }
         BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
         SearchResponse<EmployeeSalaryEntity> searchResponse = null;
