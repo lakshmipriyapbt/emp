@@ -135,7 +135,9 @@ public enum EmployeeErrorMessageKey {
     UNABLE_GET_USER("unable.to.get.user"),
     USER_NOT_FOUND("user.not.found"),
     UNABLE_DELETE_USER("unable.delete.user"),
-    ERROR_RETRIEVING_SALARY("error.retrieving.salary");
+    ERROR_RETRIEVING_SALARY("error.retrieving.salary"),
+    INVALID_ADD_SALARY_DATE("invalid.add.salary.date"),
+    APPRAISAL_IS_ALREADY_EXIST("appraisal.is.already.exist");
 
     private final String key;
 
