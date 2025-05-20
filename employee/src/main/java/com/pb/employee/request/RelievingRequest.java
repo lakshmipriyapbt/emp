@@ -16,7 +16,12 @@ public class RelievingRequest {
 
 
     @Schema(example = "yyyy-mm-dd")
-    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{dateOfBirth.format}")
+    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{date.format}")
+    @NotBlank(message = "{date.notnull.message}")
+    private String date;
+
+    @Schema(example = "yyyy-mm-dd")
+    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{dateOfRelieving.format}")
     @NotBlank(message = "{dateOfRelieving.notnull.message}")
     private String relievingDate;
 

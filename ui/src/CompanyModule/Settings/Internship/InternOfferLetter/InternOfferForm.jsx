@@ -200,7 +200,7 @@ const InternOfferForm = () => {
     fetchDepartments();
     fetchDesignations();
   }, []);
-  const currentDate = new Date().toISOString().split('T')[0]; // Formats date as 'YYYY-MM-DD'
+  // const currentDate = new Date().toISOString().split('T')[0]; // Formats date as 'YYYY-MM-DD'
 
 
   useEffect(() => {
@@ -221,7 +221,7 @@ const InternOfferForm = () => {
     const formData = {
         ...data,
         draft: isDraft,
-        date:currentDate,
+        date:data.generatedDate,
         companyId:company.id,
         associateName: selectedAssignee ? selectedAssignee.associateName : '',
         associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
@@ -933,6 +933,35 @@ const InternOfferForm = () => {
                         </p>
                       )}
                     </div>
+
+                     <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Latter Genarated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Genatated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Genatated Date is required",
+                          validate: {
+                           notAfterJoiningDate: (value) => {
+                             const joiningDate = watch("startDate");
+                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                          return (
+                            new Date(value) <= new Date(joiningDate) ||
+                             "Generated Date cannot be after Joining Date"
+                            ); }
+                          },
+                        })}
+                      />
+                     {errors.generatedDate && (
+                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                      )}
+                    </div>
+
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Select Mode</label>
                       <div className="form-check">

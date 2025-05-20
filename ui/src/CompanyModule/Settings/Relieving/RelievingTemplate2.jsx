@@ -12,6 +12,7 @@ const RelievingTemplate2 = ({
   resignationDate,
   lastWorkingDate,
   draft,
+  date,
 }) => {
   const formatDate = (date) => {
     const d = new Date(date);
@@ -21,7 +22,7 @@ const RelievingTemplate2 = ({
     return `${year}-${month}-${day}`;
   };
 
-  const date = formatDate(new Date());
+  // const date = formatDate(new Date());
   
   const { logoFileName } = useAuth();
 

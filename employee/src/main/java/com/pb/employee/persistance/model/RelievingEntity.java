@@ -13,6 +13,7 @@ public class RelievingEntity implements Entity{
 
     private String id;
     private String employeeId;
+    private String date;
     private String relievingDate;
     private String resignationDate;
     private String noticePeriod;

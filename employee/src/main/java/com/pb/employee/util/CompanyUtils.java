@@ -450,7 +450,7 @@ public class CompanyUtils {
             if (companyRequest.getGstNo() != null && companyEntity.getGstNo() != null && !companyEntity.getGstNo().isEmpty() && !companyRequest.getGstNo().isEmpty()){
                 gstNo = new String(Base64.getDecoder().decode(companyEntity.getGstNo().getBytes()));
                 if (gstNo.equals(companyRequest.getGstNo())){
-                    responseBody.put(Constants.DUPLICATE_GST_NO, companyRequest.getEmailId());
+                    responseBody.put(Constants.DUPLICATE_GST_NO, companyRequest.getGstNo());
                 }
             }
             if (companyEntity.getCompanyRegNo() != null && companyRequest.getCompanyRegNo() != null && !companyEntity.getCompanyRegNo().isEmpty()) {

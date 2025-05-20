@@ -65,7 +65,7 @@
              </#if>
     <!-- Letter Content -->
     <div class="container">
-        <p><strong>Date: ${relieving.relievingDate}</strong></p>
+        <p><strong>Date: ${relieving.date}</strong></p>
         <h4 class="title">Relieving Letter</h4>
 
         <p>To,</p>

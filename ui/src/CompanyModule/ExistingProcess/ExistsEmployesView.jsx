@@ -424,6 +424,7 @@ const handleConfirmSubmission = async () => {
                         <p className="errorMsg">Last Working Date Required</p>
                       )}
                     </div>
+                    
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Notice Period (Months)</label>
                       <input

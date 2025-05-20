@@ -227,33 +227,33 @@ public class OpenSearchOperations {
         return null;
     }
 
-    public List<DesignationEntity> getCompanyDesignationByName(String companyName, String designationName) throws EmployeeException {
+    public List<DesignationEntity> getCompanyDesignationByName(String companyName, String designationName, String departmentId) throws EmployeeException {
         logger.debug("Getting the Designation by company '{}' and designation '{}'", companyName, designationName);
 
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
-        // Filter by type = DESIGNATION
-        boolQueryBuilder.filter(q -> q.term(t -> t.field(Constants.TYPE).value(FieldValue.of(Constants.DESIGNATION))));
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.DESIGNATION)));
+        if (designationName != null && !designationName.isEmpty()) {
+            boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.NAME).query(designationName)));
+        }
 
-        // Exact match on name.keyword
-        if (designationName != null && !designationName.trim().isEmpty()) {
-            boolQueryBuilder.must(q -> q.term(t ->
-                    t.field(Constants.NAME + ".keyword").value(FieldValue.of(designationName.toLowerCase()))
-            ));
+        if (departmentId != null && !departmentId.isEmpty()) {
+            boolQueryBuilder
+                    .filter(q -> q.matchPhrase(t -> t.field(Constants.DEPARTMENT_ID).query(departmentId)));
         }
 
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         SearchResponse<DesignationEntity> searchResponse;
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
 
         try {
-            searchResponse = esClient.search(s -> s
-                            .index(index)
-                            .size(SIZE_ELASTIC_SEARCH_MAX_VAL)
-                            .query(boolQueryBuilder.build()._toQuery()),
-                    DesignationEntity.class
-            );
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), DesignationEntity.class);
         } catch (IOException e) {
-            logger.error("Error searching in Elasticsearch: {}", e.getMessage());
+            e.getStackTrace();
+            logger.error(e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -265,18 +265,12 @@ public class OpenSearchOperations {
             designationEntities.add(hit.source());
         }
 
-        if (designationEntities.isEmpty()) {
-            logger.info("No exact match found for '{}'. Size: 0", designationName);
-        } else {
-            logger.info("Found {} exact match(es) for '{}'", designationEntities.size(), designationName);
-        }
-
         return designationEntities;
     }
 
-    public boolean isDesignationPresent(String companyName, String designationName) throws EmployeeException {
+    public boolean isDesignationPresent(String companyName, String designationName, String departmentId) throws EmployeeException {
         // Fetch all designations from the database
-        List<DesignationEntity> designationEntities = getCompanyDesignationByName(companyName,designationName);
+        List<DesignationEntity> designationEntities = getCompanyDesignationByName(companyName, designationName, departmentId);
 
         // Iterate through the designation list to check if the designation already exists
         for (DesignationEntity designation : designationEntities) {
