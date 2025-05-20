@@ -60,6 +60,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
+          date={previewData.date}
         />
       ),
     },
@@ -78,6 +79,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
+          date={previewData.date}
 
         />
       ),
@@ -97,6 +99,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           lastWorkingDate={previewData.lastWorkingDate}
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
+          date={previewData.date}
 
         />
       ),

@@ -119,7 +119,7 @@ public class CompanyCalendarServiceImpl implements CompanyCalenderService {
             try {
                 CompanyCalendarEntity calendarSrc = objectMapper.convertValue(updatePayload, CompanyCalendarEntity.class);
                 BeanUtils.copyProperties(calendarSrc, companyCalendarEntity, getNullPropertyNames(calendarSrc));
-                dao.save(calendarSrc, companyName);
+                dao.save(companyCalendarEntity, companyName);
             } catch (Exception exception) {
                 log.error("Unable to update the company calendar details for id {} with the reason of {}", id, exception.getMessage());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPDATE_COMPANY_CALENDAR), HttpStatus.INTERNAL_SERVER_ERROR);

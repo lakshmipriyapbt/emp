@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Download } from "react-bootstrap-icons";
 import { toast } from "react-toastify";
 import { set, useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 import {
   CompanySalaryStructureGetApi,
@@ -47,6 +47,7 @@ const OfferLetterPreview = () => {
   const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
+  const navigate= useNavigate();  
 
   useEffect(() => {
     if (previewData) {
@@ -1125,22 +1126,19 @@ const OfferLetterPreview = () => {
           </div>
         </div>
       </div>
-      <div
-        className="col-12 mt-4 d-flex justify-content-between"
-        style={{ background: "none" }}
-      >
-        
-        <button
-          type="button"
-          className="btn btn-outline-primary" // Button style for download
-          onClick={handleDownload} // Trigger download on click
-          style={{ marginLeft: "86%" }}
-          disabled={error}
-        >
-          <span className="m-2">Download</span> {/* Text for the button */}
-          <Download size={18} className="ml-1" /> {/* Download icon */}
-        </button>
-      </div>
+     <div className="d-flex justify-content-end align-items-center me-4">
+          <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+                  ← Back
+                </button>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleDownload}
+            >
+              <span className="m-2">Download</span>{" "}
+              <Download size={18} className="ml-1" />
+            </button>
+          </div>
     </LayOut>
   );
 };

@@ -72,14 +72,22 @@ const Reset = ({ companyName, onClose, show }) => {
       setLoading(true);
       const response = await resetPassword(formData, authUser.userId);
       console.log("Password Reset Successful:", response.data);
-      setLoading(false);
-      onClose(); 
+      
+      // Show success message
       toast.success("Password Reset Successful");
-      navigate(`/${companyName}/login`);
-      } catch (error) {
+    
+      // Delay pop-up message slightly to ensure smooth UI experience
+      setTimeout(() => {
+        toast.info("Login using new password"); // Show additional prompt
+        navigate(`/${companyName}/login`);
+      }, 1000); // 1-second delay before redirect
+    
+      setLoading(false);
+      onClose();
+    } catch (error) {
       handleApiErrors(error);
       setLoading(false);
-    }
+    }    
   };
 
   const handleApiErrors = (error) => {

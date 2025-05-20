@@ -29,12 +29,8 @@ const ExperienceTemplate2 = ({
           <h4 className="text-center">EXPERIENCE CERTIFICATE</h4>
           <div className="row d-flex align-items-center p-1">
             <div className="col-6 d-flex align-items-center">
-                <p className="mb-0">
-                  {new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                <p className="mb-0">Date: 
+                  {experienceDate}
                 </p>
             </div>
             <div className="col-6 d-flex justify-content-end">
