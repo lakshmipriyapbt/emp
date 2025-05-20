@@ -179,26 +179,24 @@ const Department = () => {
         name: data.name,
       };
 
+      let response;
       if (editingId) {
-        await DepartmentPutApiById(editingId, formData);
-        setDepartments(prev =>
-          prev.map(dept =>
-            dept.id === editingId ? { ...dept, name: data.name } : dept
-          )
-        );
+        response = await DepartmentPutApiById(editingId, formData);
         toast.success("Department Updated Successfully");
       } else {
-        await DepartmentPostApi(formData);
-
-        // Temporary solution - refetch all departments
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setDepartments(sortedDepartments);
-
+        response = await DepartmentPostApi(formData);
         toast.success("Department Created Successfully");
       }
+
+      // Explicitly fetch latest data after update
+      const updatedDepartments = await DepartmentGetApi();
+
+      // ✅ Force a UI update by setting a new reference
+      setDepartments([]);
+      setTimeout(() => {
+        setDepartments([...updatedDepartments.data.data]);
+        console.log("Updated Departments from API:", updatedDepartments.data.data);
+      }, 50);
 
       handleCloseAddDepartmentModal();
       reset();
@@ -208,66 +206,55 @@ const Department = () => {
     } finally {
       setLoading(false);
     }
-  };
+};
 
-  const onSubmitDesignation = async (data) => {
-    try {
-      const formData = {
-        companyName: authUser.company,
-        name: data.name,
-      };
 
-      if (editingDesignationId) {
-        await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: prev[currentDepartmentId].map(desig =>
-            desig.id === editingDesignationId ? { ...desig, name: data.name } : desig
-          )
-        }));
-        toast.success("Designation Updated Successfully");
-      } else {
-        const response = await DesignationPostApi(currentDepartmentId, formData);
-        // Immediately add the new designation to the state
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: [...(prev[currentDepartmentId] || []), response.data.data]
-        }));
-        toast.success("Designation Created Successfully");
-      }
+const onSubmitDesignation = async (data) => {
+  try {
+    const formData = {
+      companyName: authUser.company,
+      name: data.name,
+    };
 
-      handleCloseAddDesignationModal();
-      resetDesignation();
-    } catch (error) {
-      handleApiErrors(error);
+    let response;
+    if (editingDesignationId) {
+      response = await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
+      toast.success("Designation Updated Successfully");
+    } else {
+      response = await DesignationPostApi(currentDepartmentId, formData);
+      toast.success("Designation Created Successfully");
     }
-  };
+
+    // Fetch updated designation list
+    await fetchDesignations(currentDepartmentId);
+
+    // ✅ Force a UI update
+    setDesignations(prev => ({ ...prev, [currentDepartmentId]: [] }));
+    setTimeout(() => {
+      setDesignations(prev => ({
+        ...prev,
+        [currentDepartmentId]: [...prev[currentDepartmentId]]
+      }));
+    }, 50);
+
+    handleCloseAddDesignationModal();
+    resetDesignation();
+  } catch (error) {
+    handleApiErrors(error);
+  }
+};
+
 
   const handleConfirmDelete = async () => {
     if (selectedItemId) {
       try {
         await DepartmentDeleteApiById(selectedItemId);
-        toast.success("Department Deleted Successfully", {
-          position: "top-right",
-          transition: Bounce,
-          hideProgressBar: true,
-          theme: "colored",
-          autoClose: 1000,
-        });
-
-        // Update local state immediately
+        toast.success("Department Deleted Successfully");
         setDepartments(prev => prev.filter(dept => dept.id !== selectedItemId));
-
-        // Reset selection and close modal
         setSelectedItemId(null);
         setShowDeleteModal(false);
       } catch (error) {
-        console.error("Delete Department Error:", {
-          departmentId: selectedItemId,
-          error: error.response?.data || error.message
-        });
-
-        toast.error(error.response?.data?.error?.message || "Failed to delete department");
+        handleApiErrors(error);
       }
     }
   };
@@ -283,17 +270,14 @@ const Department = () => {
     try {
       await DesignationDeleteApiById(departmentId, designationId);
       toast.success("Designation Deleted Successfully");
-
-      // Update local state
       setDesignations(prev => ({
         ...prev,
         [departmentId]: prev[departmentId].filter(desig => desig.id !== designationId)
       }));
-    } catch (error) {
-      handleApiErrors(error);
-    } finally {
       setShowDeleteDesignationModal(false);
       setSelectedDesignationInfo({ departmentId: null, designationId: null });
+    } catch (error) {
+      handleApiErrors(error);
     }
   };
 
@@ -351,7 +335,7 @@ const Department = () => {
     }
     return true;
   };
-  
+
 
   return (
     <LayOut>
@@ -383,7 +367,7 @@ const Department = () => {
             >
               <option value="">-- Select Department --</option>
               {departments?.map((dept) => (
-                <option key={dept.id} value={dept.id}>
+                <option key={`dept-option-${dept.id}`} value={dept.id}>
                   {dept.name}
                 </option>
               ))}
@@ -630,7 +614,7 @@ const Department = () => {
                               required: "Designation is Required",
                               validate: {
                                 validateName: (value) => validateName(value, "designation"),
-                              },                              
+                              },
                             })}
                           />
                           {errorsDesignation.name && (
@@ -673,15 +657,15 @@ const Department = () => {
           pageName="Department"
         />
         <DeletePopup
-        show={showDeleteDesignationModal}
-        handleClose={() => {
-          setShowDeleteDesignationModal(false);
-          setSelectedDesignationInfo({ departmentId: null, designationId: null });
-        }}
-        handleConfirm={handleConfirmDesignationDelete}
-        id={selectedDesignationInfo.designationId}
-        pageName="Designation"
-      />
+          show={showDeleteDesignationModal}
+          handleClose={() => {
+            setShowDeleteDesignationModal(false);
+            setSelectedDesignationInfo({ departmentId: null, designationId: null });
+          }}
+          handleConfirm={handleConfirmDesignationDelete}
+          id={selectedDesignationInfo.designationId}
+          pageName="Designation"
+        />
       </div>
     </LayOut>
   );
