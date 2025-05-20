@@ -751,7 +751,7 @@ const OfferLetterForm = () => {
 
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Latter Genarated Date</label>
+                      <label className="form-label">Letter Genarated Date</label>
                       <input
                         type="date"
                         name="generatedDate"

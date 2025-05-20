@@ -25,6 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
@@ -160,13 +161,10 @@ public class SalaryServiceImpl implements SalaryService {
     @Override
     public List<EmployeeSalaryResPayload> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
         try {
-           List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName);
-            if (employeeId != null) {
-                 return employeeSalaryResPayload.stream()
-                        .filter(employee -> employee.getEmployeeId().equalsIgnoreCase(employeeId))
-                        .collect(Collectors.toList());
+           List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName, employeeId);
+            if (employeeId == null) {
+                return employeeSalaryResPayload.stream().filter(employeeSalaryRes -> employeeSalaryRes.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList());
             }
-            filterPresentActiveSalaries(employeeSalaryResPayload);
             return employeeSalaryResPayload;
 
         } catch (EmployeeException ex){
@@ -264,9 +262,8 @@ public class SalaryServiceImpl implements SalaryService {
             }
             SSLUtil.disableSSLVerification();
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
-            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity.getShortName());
-            List<EmployeeSalaryResPayload> employeesSalaries = filterPresentActiveSalaries(employeeSalaryResPayloads);
-            List<EmployeeSalaryResPayload> activeEmployeeSalaryResPayloads = employeesSalaries.stream()
+            List<EmployeeSalaryResPayload> employeeSalaryResPayloads = validateEmployeesSalaries(companyEntity.getShortName(), null);
+            List<EmployeeSalaryResPayload> activeEmployeeSalaryResPayloads = employeeSalaryResPayloads.stream()
                     .filter(employee -> "active".equalsIgnoreCase(employee.getStatus()))
                     .collect(Collectors.toList());
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
@@ -329,10 +326,10 @@ public class SalaryServiceImpl implements SalaryService {
         }
     }
 
-    private List<EmployeeSalaryResPayload> validateEmployeesSalaries(String companyName) throws EmployeeException {
+    private List<EmployeeSalaryResPayload> validateEmployeesSalaries(String companyName, String employeeId) throws EmployeeException {
         try {
             List<EmployeeSalaryResPayload> employeeSalaryResPayloads = new ArrayList<>();
-            List<EmployeeSalaryEntity> allSalaries = openSearchOperations.getEmployeeSalaries(companyName, null, null);
+            List<EmployeeSalaryEntity> allSalaries = openSearchOperations.getEmployeeSalaries(companyName, employeeId, null);
 
             if (allSalaries == null || allSalaries.isEmpty()) {
                 log.error("Employees salaries do not exist in the company");
@@ -359,30 +356,49 @@ public class SalaryServiceImpl implements SalaryService {
         }
     }
 
-    private List<EmployeeSalaryResPayload> filterPresentActiveSalaries(List<EmployeeSalaryResPayload> employeeSalaryResPayloads) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate today = LocalDate.now();
 
-        for (EmployeeSalaryResPayload salary : employeeSalaryResPayloads) {
-            if (Constants.APPRAISAL.equalsIgnoreCase(salary.getStatus())) {
-                LocalDate addDate = LocalDate.parse(salary.getAddSalaryDate(), formatter);
-                if (!addDate.isAfter(today)) {
-                    salary.setStatus(Constants.ACTIVE);
-                    for (EmployeeSalaryResPayload other : employeeSalaryResPayloads) {
-                        if (!other.getEmployeeId().equals(salary.getEmployeeId())) {
-                            other.setStatus(Constants.IN_ACTIVE);
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateSalariesByAddDate() throws EmployeeException {
+        log.info("Running scheduled salary update...");
+
+        List<CompanyEntity> companyEntities = openSearchOperations.getCompanies();
+        for (CompanyEntity companyEntity :companyEntities) {
+            String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
+            List<EmployeeSalaryEntity> allSalaries = openSearchOperations.getEmployeeSalaries(companyEntity.getShortName(), null, null);
+
+            Map<String, List<EmployeeSalaryEntity>> groupedByEmployee = allSalaries.stream()
+                    .collect(Collectors.groupingBy(EmployeeSalaryEntity::getEmployeeId));
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate today = LocalDate.now();
+
+            for (Map.Entry<String, List<EmployeeSalaryEntity>> entry : groupedByEmployee.entrySet()) {
+                List<EmployeeSalaryEntity> employeeSalaries = entry.getValue();
+
+                for (EmployeeSalaryEntity salary : employeeSalaries) {
+                    if (Constants.APPRAISAL.equalsIgnoreCase(salary.getStatus())) {
+                        LocalDate addDate = LocalDate.parse(salary.getAddSalaryDate(), formatter);
+                        if (!addDate.isAfter(today)) {
+                            salary.setStatus(Constants.ACTIVE);
+                            // Set others to IN_ACTIVE
+                            openSearchOperations.saveEntity(salary, salary.getSalaryId(), index);
+                            for (EmployeeSalaryEntity other : employeeSalaries) {
+                                if (!other.equals(salary)) {
+                                    other.setStatus(Constants.IN_ACTIVE);
+                                    openSearchOperations.saveEntity(other, other.getSalaryId(), index);
+
+                                }
+                            }
+                            break; // Process only the first valid appraisal
                         }
                     }
                 }
-                break; // Only process first appraisal per employee
             }
-
         }
-        return employeeSalaryResPayloads.stream().filter(employeeSalaryResPayload -> employeeSalaryResPayload.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList());
     }
 
 
-private byte[] generatePdfFromHtml(String html) throws IOException {
+    private byte[] generatePdfFromHtml(String html) throws IOException {
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");  // Fix potential HTML issues
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {

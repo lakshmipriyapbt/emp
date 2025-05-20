@@ -47,7 +47,7 @@
 
     <div class="header">
       <h4>Relieving Letter</h4>
-      <h5 class= "date"><strong>${relieving.relievingDate}</strong></h5>
+      <h5 class= "date"><strong>${relieving.date}</strong></h5>
                         <#if !draft>
 
      <div class="logo">

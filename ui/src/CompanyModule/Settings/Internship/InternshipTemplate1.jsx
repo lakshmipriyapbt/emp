@@ -9,6 +9,7 @@ const InternshipTemplate1 = ({
   startDate,
   endDate,
   draft,
+  generatedDate,
 }) => {
   return (
     <div
@@ -32,7 +33,7 @@ const InternshipTemplate1 = ({
       >
         <div className="row d-flex justify-content p-1">
           <div className="col-6">
-            <p className="mb-0" style={{marginLeft:"20px"}}>{new Date().toLocaleDateString()}</p>
+            <p className="mb-0" style={{marginLeft:"20px"}}>{generatedDate}</p>
           </div>
         </div>
         {!draft && ( <img
