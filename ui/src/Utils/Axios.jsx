@@ -1098,10 +1098,10 @@ export const TodayCalendarGetApi=()=>{
   return axiosInstance.get(`/company/${company}/calendar/today`);
 }
 
-export const calendarPatchAPIById=async (data)=>{
+export const calendarPatchAPIById=async (data,id)=>{
   const company = localStorage.getItem("companyName")
     try {
-    const response = await axiosInstance.post(`/company/${company}/calendar`, data);
+    const response = await axiosInstance.patch(`/company/${company}/calendar/${id}`, data);
     return response.data;
   } catch (error) {
     console.error('Error creating product:', error);
@@ -1111,5 +1111,5 @@ export const calendarPatchAPIById=async (data)=>{
 
 export const CalendarDeleteByIdApi = async (id) => {
   const company = localStorage.getItem("companyName")
-  return axiosInstance.get(`/company/${company}/calendar/${id}`);
+  return axiosInstance.delete(`/company/${company}/calendar/${id}`);
 };

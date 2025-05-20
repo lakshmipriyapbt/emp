@@ -16905,7 +16905,6 @@ ul.navbar-nav.navbar-align span.mt-3{color: #000;}
 .sidebar-item.active .sidebar-link:hover, .sidebar-item.active>.sidebar-link{background: #3e487a; color: #fff;}
 
 .card-title{color: #fff; text-shadow: none; font-weight: 550;}
-.card-header:first-child{background: #1e2a5e;}
 .dropdown-divider{border-top:1px solid #1e2a5e !important;}
 .card-header .form-control {background: #fff; border: 1px solid #9b9898 !important;}
 
@@ -16918,7 +16917,6 @@ ul.navbar-nav.navbar-align span.mt-3{color: #000;}
     content: "";
     position: absolute;
     top: -47px;
-    background: red;
     overflow: hidden;
     right: -66px;
 }
@@ -17218,5 +17216,46 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	text-decoration: underline;
   }
   
+  .calendar-container {
+	background-color: #f8f9fa;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
   
+  .calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 0.1rem;
+	margin-top: 1rem;
+  }
+  
+  .calendar-day {
+	background-color: white;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	padding: 10px;
+	min-height: 80px;
+	position: relative;
+  }
+  
+  .calendar-day.empty {
+	background-color: transparent;
+	border: none;
+  }
+  
+  .calendar-day span {
+	font-weight: bold;
+	display: block;
+	margin-bottom: 5px;
+  }
+  
+  .event-badge {
+	font-size: 0.75rem;
+	padding: 3px 6px;
+	border-radius: 12px;
+	color: white;
+	margin-top: 5px;
+	display: inline-block;
+  } 
 /* Pre Loadder css End */

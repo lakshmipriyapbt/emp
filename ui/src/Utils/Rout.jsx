@@ -72,13 +72,12 @@ import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalary
 import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
 import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
-import Calender from '../Calender/Calender';
-import HRCalendar from '../Calender/HrCalender';
 import AddTaxSlab from '../CompanyModule/TaxSlab/AddTaxSlab';
 import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
 import GetCalendar from '../Calender/GetCalendar';
+import EventForm from '../Calender/EventForm';
 
 
 export const allAvailableRoutes = [
@@ -130,7 +129,7 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate2', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
-  {path: '/HrCalendar', allowedTypes: ['company_admin','HR'] },
+  {path: '/AddEvent', allowedTypes: ['company_admin', 'HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -354,9 +353,9 @@ const Routing = () => {
         path="/payslipUpdate4"
         element={<ProtectedRoute element={<PayslipUpdate4/>} allowedTypes={['company_admin', 'HR']} />}
       />
-      <Route
-        path="/HrCalendar"
-        element={<ProtectedRoute element={<HRCalendar/>} allowedTypes={['company_admin', 'HR']} />}
+       <Route
+        path="/AddEvent"
+        element={<ProtectedRoute element={<EventForm/>} allowedTypes={['company_admin', 'HR']} />}
       />
 
       {/* Company Admin & Accountant shared routes */}
@@ -417,10 +416,6 @@ const Routing = () => {
        <Route
         path="/getcalendar"
         element={<ProtectedRoute element={<GetCalendar/>} allowedTypes={['company_admin', 'HR','employee', 'Accountant']} />}
-      />
-       <Route
-        path="/calendar"
-        element={<ProtectedRoute element={<Calender/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
       />
        <Route 
        path='/taxSlab'

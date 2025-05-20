@@ -87,7 +87,7 @@ export const NAV_CONFIG = {
             items: [
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Bank Details', path: '/accountsView' },
-                { title: 'Calendar', path:'/HrCalendar'},
+                { title: 'Calendar', path:'/AddEvent'},
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
@@ -99,7 +99,6 @@ export const NAV_CONFIG = {
             ]
         }
     ],
-
     HR: [
         {
             title: 'Dashboard',
@@ -123,7 +122,7 @@ export const NAV_CONFIG = {
         },
         {
             title:'Calendar',
-            path:'/HrCalendar',
+            path:'/AddEvent',
             icon:'calendar'
         },
         {

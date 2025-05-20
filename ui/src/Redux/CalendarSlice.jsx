@@ -8,7 +8,7 @@ export const fetchCalendarData = createAsyncThunk(
     async (_, { rejectWithValue }) => {
       try {
         const res = await CalendarGetApi();
-        console.log("🌐 Raw API response:", res.data); // Debug full response
+        console.log("🌐 Raw API response:", res.data.data); // Debug full response
         return res.data.data; // only return the "data" array
       } catch (error) {
         return rejectWithValue(error.response?.data || "Error fetching calendar data");
