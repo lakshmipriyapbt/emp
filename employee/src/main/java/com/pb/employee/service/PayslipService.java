@@ -21,7 +21,7 @@ public interface PayslipService {
     ResponseEntity<?> getAllEmployeesPayslips(String companyName, String month, String year)throws EmployeeException;
     byte[] downloadPayslip(String companyName, String payslipId, String employeeId, HttpServletRequest request);
 
-    ResponseEntity<?> generatePaySlipForEmployees(String salaryId ,PayslipRequest payslipRequest) throws EmployeeException, IOException;
+    ResponseEntity<?> generatePaySlipForEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException;
 
     ResponseEntity<?> savePayslip(PayslipUpdateRequest payslipsRequest, String payslipId, String employeeId,HttpServletRequest request) throws EmployeeException, IOException;
 

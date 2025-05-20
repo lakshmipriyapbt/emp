@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -59,7 +60,7 @@ public class SalaryController {
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                @PathVariable String companyName) throws  EmployeeException {
         List<EmployeeSalaryResPayload> salaryResPayloads = salaryService.getEmployeeSalary(companyName, null);
-        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(salaryResPayloads), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(salaryResPayloads.stream().filter(salary -> salary.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList())), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{companyName}/employee/{employeeId}/salary/{salaryId}", method = RequestMethod.GET)
