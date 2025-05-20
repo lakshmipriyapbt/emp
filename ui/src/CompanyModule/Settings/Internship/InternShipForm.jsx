@@ -553,7 +553,7 @@ const InternShipForm = () => {
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Latter Generated Date</label>
+                      <label className="form-label">Letter Generated Date</label>
                     <input
                        type="date"
                        name="generatedDate"

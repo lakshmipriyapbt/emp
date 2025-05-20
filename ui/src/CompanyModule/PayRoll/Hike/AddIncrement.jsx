@@ -43,7 +43,7 @@ const AddIncrement = () => {
     },
   });
   const { authUser, company,employee } = useAuth();
-  const date = new Date().toLocaleDateString();
+  // const date = new Date().toLocaleDateString();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -852,7 +852,7 @@ const AddIncrement = () => {
       salaryHikePersentage:hikePercentage,
       companyId: company.id,
       employeeId: employeeId,
-      date: previewData.generatedDate || "",
+      date: previewData.date,
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
       grossCompensation: String(grossAmount || ""),
       salaryConfigurationId: salaryStructureId || "",
@@ -1668,7 +1668,7 @@ const AddIncrement = () => {
                                 )}
                               </div>
 
-                              <div className="col-lg-1"></div>
+                               <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Letter Genarated Date</label>
                       <input
@@ -1682,11 +1682,11 @@ const AddIncrement = () => {
                           required: "Genatated Date is required",
                           validate: {
                            notAfterJoiningDate: (value) => {
-                             const joiningDate = watch("joiningDate");
+                             const joiningDate = watch("dateOfSalaryIncrement");
                             if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
                           return (
-                            new Date(value) <= new Date(date) ||
-                             "Generated Date cannot be after Appraisal Date"
+                            new Date(value) <= new Date(joiningDate) ||
+                             "Generated Date cannot be after date of salary increement"
                             ); }
                           },
                         })}
@@ -1694,7 +1694,7 @@ const AddIncrement = () => {
                      {errors.generatedDate && (
   <p className="errorMsg">{errors.generatedDate.message}</p>
 )}
-                    </div>
+                    </div> 
 
                       <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
