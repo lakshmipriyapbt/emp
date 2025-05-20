@@ -47,12 +47,15 @@
 
     <div class="header">
       <h4>Relieving Letter</h4>
-      <h5 class= "date"><strong>${relieving.relievingDate}</strong></h5>
+      <h5 class= "date"><strong>${relieving.date}</strong></h5>
+                        <#if !draft>
+
      <div class="logo">
          <#if company[0].imageFile?has_content>
          <img style="height: 70px; width: 160px; margin-top: -200px;" src="${company[0].imageFile}" alt="Company Logo" />
          </#if>
      </div>
+     </#if>
      </div>
 
 
@@ -64,9 +67,12 @@
     <div class="content mt-3">
 
         <div class="para">
+                                <#if !draft>
+
           <div class="watermark">
                         <img src="${blurredImage}" alt="Blurred Company Logo" />
              </div>
+             </#if>
             <p><strong>${employee.firstName} ${employee.lastName}</strong></p>
             <p>
                 I am writing in response to your resignation letter dated ${relieving.resignationDate}, in which you requested to resign from your position as ${employee.designationName}, serving a notice period of ${relieving.noticePeriod}. Your services with our organization will be concluded on ${relieving.relievingDate}.
@@ -82,8 +88,11 @@
         <div>
            <b>Authorized Signature</b>
                   <br/>
+                                          <#if !draft>
+
           <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
 
+</#if>
         </div>
              <h5>${company[0].companyName}</h5>
 

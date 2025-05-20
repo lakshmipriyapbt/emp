@@ -14,7 +14,9 @@ public class PasswordUtils {
         password.append((char) (random.nextInt(26) + 97));//a-z
         password.append((char) (random.nextInt(10) + 48));//0-9
         password.append((char) (random.nextInt(26) + 65));//A-Z
-        String remainingChars = random.ints(5, 33, 127) // Generate 7 random ASCII characters (33 to 126)
+        String special = "!@#$%^&*()-_=+[]{}|;:,.<>?/";
+        password.append(special.charAt(random.nextInt(special.length())));
+        String remainingChars = random.ints(4, 33, 127) // Generate 7 random ASCII characters (33 to 126)
                 .mapToObj(i -> String.valueOf((char) i))
                 .collect(Collectors.joining());
         password.append(remainingChars);

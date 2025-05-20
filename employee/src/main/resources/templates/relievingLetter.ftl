@@ -44,11 +44,13 @@
 <body>
     <div class="watermarked">
         <!-- Company Logo -->
+         <#if !draft>
         <div class="logo">
                  <#if company[0].imageFile?has_content>
                  <img style="height: 70px; width: 160px;" src="${company[0].imageFile}" alt="Company Logo" />
                  </#if>
              </div>
+        </#if>
 
 
         <h4 class="header">RELIEVING LETTER</h4>
@@ -56,14 +58,16 @@
         <div class="content">
             <div class="row d-flex align-items-center p-1">
                 <div>
-                    <p class="mb-2">${relieving.relievingDate}</p>
+                    <p class="mb-2">${relieving.date}</p>
                     <p style= "font-size: 15px;"><h4>${employee.firstName} ${employee.lastName},</h4></p>
                     <h5>${employee.employeeId}.</h5>
                 </div>
             </div>
+             <#if !draft>
              <div class="watermark">
-                                    <img src="${blurredImage}" alt="Blurred Company Logo" />
-                         </div>
+                   <img src="${blurredImage}" alt="Blurred Company Logo" />
+             </div>
+             </#if>
             <p>
 
                 This is in reference to your resignation dated <strong>${relieving.resignationDate}</strong>, where you requested to be relieved from your services on <strong>${employee.dateOfHiring}</strong>. We wish to inform you that your resignation has been accepted, and you shall be relieved from your duties as <strong>${employee.designationName}</strong>, post serving notice period, with effect from <strong>${relieving.relievingDate}</strong>.
@@ -76,8 +80,9 @@
             <div>
                    <b>Authorized Signature</b>
                           <br/>
+                  <#if !draft>
                   <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
-
+                   </#if>
             </div>
 
 

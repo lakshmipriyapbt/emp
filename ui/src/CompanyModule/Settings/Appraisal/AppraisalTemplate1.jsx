@@ -13,6 +13,8 @@ const AppraisalTemplate1 = ({
   salaryIncrease,
   basicSalary,
   allowances,
+  draft,
+  date,
 }) => {
   console.log("Basic Salary: ", basicSalary);
 
@@ -28,7 +30,7 @@ const AppraisalTemplate1 = ({
         overflow: "hidden",
       }}
     >
-      <div style={{ textAlign: "right" }}>
+      {!draft && (<div style={{ textAlign: "right" }}>
         {companyData ? (
           <img
             className="align-middle"
@@ -39,9 +41,9 @@ const AppraisalTemplate1 = ({
         ) : (
           <p>Logo</p>
         )}
-      </div>
+      </div> )}
 
-      <div
+      {!draft && (<div
         style={{
           position: "absolute",
           top: "30%",
@@ -56,7 +58,7 @@ const AppraisalTemplate1 = ({
           backgroundPosition: "center",
           zIndex: 1,
         }}
-      />
+      /> )}
 
       <h4 className="text-center p-3">APPRAISAL LETTER</h4>
 
@@ -77,7 +79,7 @@ const AppraisalTemplate1 = ({
         </div>
         <div className="col-6">
           <p className="mb-0 text-end">
-            {new Date().toISOString().split("T")[0]}
+            {date}
           </p>
         </div>
       </div>
@@ -205,10 +207,10 @@ const AppraisalTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            <img 
+           {!draft && ( <img 
            src={companyData?.stampImage}
            alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/>
+           style={{ height: "100px", width: "160px" }}/> )}
             <h6>{companyName}</h6>
             <h6>
               PH: {companyData?.mobileNo}, Email: {companyData?.emailId}{" "}

@@ -56,7 +56,7 @@ const EmployeeSalaryList = () => {
           pfEmployee: data.deductions?.pfEmployee,
           pfEmployer: data.deductions?.pfEmployer,
           pfTax: data.deductions?.pfTax,
-          incomeTax: data.deductions?.incomeTax,
+          tdsType: data.deductions?.tdsType,
           totalTax: data.deductions?.totalTax
         },
         status: data.status,
@@ -276,7 +276,7 @@ const EmployeeSalaryList = () => {
                       <div className="col mb-3">
                         <div className="form-group">
                           <label>Income Tax:</label>
-                          <input type="text" className="form-control" defaultValue={editingData?.deductions?.incomeTax || ''} readOnly />
+                          <input type="text" className="form-control" defaultValue={editingData?.deductions?.tdsType || ''} readOnly />
                         </div>
                       </div>
                       <div className="col mb-3">

@@ -11,7 +11,8 @@ const ExperienceTemplate2 = ({
     department,
     joiningDate,
     experienceDate,
-    aboutEmployee
+    aboutEmployee,
+    draft,
 }) => {
   const {company} = useAuth();
 
@@ -28,25 +29,21 @@ const ExperienceTemplate2 = ({
           <h4 className="text-center">EXPERIENCE CERTIFICATE</h4>
           <div className="row d-flex align-items-center p-1">
             <div className="col-6 d-flex align-items-center">
-                <p className="mb-0">
-                  {new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                <p className="mb-0">Date: 
+                  {experienceDate}
                 </p>
             </div>
             <div className="col-6 d-flex justify-content-end">
-                <img
+               {!draft && ( <img
                 src={companyLogo}
                 alt="Logo"
                 style={{ height: "100px", width: "160px" }}
-                />
+                />)}
             </div>
             </div>
           <h5 className="text-center">To Whom It May Concern,</h5>
           {/* Background image div */}
-          <div
+          {!draft && (  <div
        style={{
         position: 'absolute',
         top: '30%',
@@ -62,7 +59,7 @@ const ExperienceTemplate2 = ({
       //  filter: 'blur(2px)', // Optional: adjust blur as needed
         zIndex: 1, // Ensure it's behind the content
       }}
-          />
+          />)}
           <div
             style={{
               position: "relative",

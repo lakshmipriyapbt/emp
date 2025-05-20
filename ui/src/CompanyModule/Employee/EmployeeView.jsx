@@ -86,7 +86,7 @@ const EmployeeView = () => {
         </b>
       ),
     },
-    InActive: {
+    relieved: {
       label: (
         <b
           style={{
@@ -96,7 +96,7 @@ const EmployeeView = () => {
           }}
            className="bg-danger"
         >
-          InActive
+          Relieved
         </b>
       ),
     },

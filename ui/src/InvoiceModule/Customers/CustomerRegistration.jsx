@@ -20,19 +20,22 @@ const CustomersRegistration = () => {
   const location = useLocation();
   const [isUpdating, setIsUpdating] = useState(false);
   const [update, setUpdate] = useState([]);
+  const [isCountryCodesLoading, setIsCountryCodesLoading] = useState(true);
   const [countryCodes, setCountryCodes] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState({ value: "+91",  label: (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <img
-        src="https://flagcdn.com/w40/in.png" 
-        alt="India Flag"
-        width="20"
-        height="15"
-      />
-      India (+91)
-    </div>
-  ),
- });
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    const defaultOption = {
+      value: "+91",
+      label: (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <img src="https://flagcdn.com/w40/in.png" alt="India Flag" width="20" height="15" />
+          India (+91)
+        </div>
+      ),
+      labelText: "India (+91)", // Ensuring it works with search
+    };
+
+    return defaultOption;
+  });
   const {
     register,
     handleSubmit,
@@ -41,12 +44,15 @@ const CustomersRegistration = () => {
     trigger,
     setValue,
     getValues,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
 
   useEffect(() => {
     const fetchCountryCodes = async () => {
+      setIsCountryCodesLoading(true); // Start loading
       try {
         const response = await DialCodesListApi();
         const options = (response.data.data || []).map((country) => ({
@@ -61,11 +67,14 @@ const CustomersRegistration = () => {
               {`${country.name} (${country.dialCode})`}
             </div>
           ),
+          labelText: `${country.name} (${country.dialCode})`,
         }));
         setCountryCodes(options);
       } catch (error) {
         console.error("Failed to fetch country codes:", error.message);
         toast.error("Failed to load country codes.");
+      } finally {
+        setIsCountryCodesLoading(false); // End loading
       }
     };
 
@@ -77,19 +86,38 @@ const CustomersRegistration = () => {
       const customerId = location.state.customerId;
       CustomerGetApiById(companyId, customerId)
         .then((response) => {
+          const fullMobileNumber = response.mobileNumber || "";
+
+          // Handle different mobile formats safely
+          let dialCode = "+91";
+          let mobileNumberOnly = "";
+
+          if (fullMobileNumber.includes(" ")) {
+            const parts = fullMobileNumber.split(" ");
+            dialCode = parts[0];
+            mobileNumberOnly = parts.slice(1).join(" ").replace(/\D/g, "");
+          } else {
+            dialCode = countryCodes.find((c) => fullMobileNumber.startsWith(c.value))?.value || "+91";
+            mobileNumberOnly = fullMobileNumber.replace(dialCode, "").replace(/\D/g, "");
+          }
+
+          const matchingOption = countryCodes.find(
+            (option) => option.value === dialCode
+          );
+
           const customerData = {
             ...response,
+            mobileNumber: mobileNumberOnly, // Only mobile number
             status: { value: response.status, label: response.status },
           };
-  
-          const existingCountryCode = response.mobileNumber?.split(" ")[0] || "+91";
-          const matchingOption = countryCodes.find((option) => option.value === existingCountryCode);
-  
+
+          reset(customerData);
+
           setSelectedCountry(
             matchingOption || {
               value: "+91",
               label: (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <img
                     src="https://flagcdn.com/w40/in.png"
                     alt="India Flag"
@@ -98,11 +126,10 @@ const CustomersRegistration = () => {
                   />
                   India (+91)
                 </div>
-              )
+              ),
             }
           );
-  
-          reset(customerData);
+
           setIsUpdating(true);
         })
         .catch((error) => {
@@ -111,10 +138,12 @@ const CustomersRegistration = () => {
         });
     }
   }, [companyId, location.state, reset, countryCodes]);
-  
+
+
   const handleCountryCodeChange = (selectedOption) => {
     setSelectedCountry(selectedOption);
-    console.log("Selected Country Code:", selectedOption.value);
+    setValue("mobileNumber", ""); // Reset mobile number field when country changes
+    trigger("mobileNumber"); // Trigger validation
   };
 
 
@@ -131,6 +160,8 @@ const CustomersRegistration = () => {
         status: data.status.value, // Assuming status is a select option object
         customerGstNo: data.customerGstNo,
         stateCode: data.stateCode,
+        email: data.email,
+        customerName: data.customerName
       };
 
       console.log("Update Payload:", updatePayload);
@@ -183,86 +214,19 @@ const CustomersRegistration = () => {
     }
   };
 
-
-  const handleEmailChange = (e) => {
-    // Get the current value of the input field
-    const value = e.target.value;
-    // Check if the value is empty
-    if (value.trim() !== "") {
-      return; // Allow space button
-    }
-    // Prevent space character entry if the value is empty
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
+  const mobileValidationRules = {
+    "+91": /^[6-9]\d{9}$/, // India: 10-digit number, starts with 6-9
+    "+1": /^\d{10}$/, // USA: 10-digit number
+    "+44": /^\d{10,11}$/, // UK: 10 or 11-digit number
+    "+81": /^\d{10,11}$/, // Japan: 10 or 11-digit number
+    "+971": /^\d{9}$/, // UAE: 9-digit number
   };
 
-  const toInputTitleCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-
-    // Remove leading spaces
-    value = value.replace(/^\s+/g, "");
-
-    // Ensure only allowed characters (alphabets, numbers, and some special chars)
-    const allowedCharsRegex = /^[a-zA-Z\s]+$/;
-    value = value
-      .split("")
-      .filter((char) => allowedCharsRegex.test(char))
-      .join("");
-
-    // Capitalize the first letter of each word
-    const words = value.split(" ");
-
-    // Capitalize the first letter of each word and leave the rest of the characters as they are
-    const capitalizedWords = words.map((word) => {
-      if (word.length > 0) {
-        // Capitalize the first letter, keep the rest as is
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return "";
-    });
-
-    // Join the words back into a string
-    let formattedValue = capitalizedWords.join(" ");
-
-    // Remove spaces not allowed (before the first two characters)
-    if (formattedValue.length > 1) {
-      formattedValue =
-        formattedValue.slice(0, 1) +
-        formattedValue.slice(1).replace(/\s+/g, " ");
-    }
-
-    // Update input value
-    input.value = formattedValue;
-
-    // Restore the cursor position
-    input.setSelectionRange(cursorPosition, cursorPosition);
+  const validateMobileNumber = (value) => {
+    const numericValue = value.replace(/\D/g, ""); // Remove non-numeric characters
+    const regex = mobileValidationRules[selectedCountry.value] || /^\d{7,15}$/; // Default fallback
+    return regex.test(numericValue) || "Invalid mobile number format for selected country";
   };
-  // Function to handle input formatting
-  function handlePhoneNumberChange(event) {
-    let value = event.target.value;
-
-    // Ensure the value starts with +91 and one space
-    if (value.startsWith("+91") && value.charAt(3) !== " ") {
-      value = "+91 " + value.slice(3); // Ensure one space after +91
-    }
-
-    // Allow only numeric characters after +91 and the space
-    const numericValue = value.slice(4).replace(/[^0-9]/g, ""); // Remove any non-numeric characters after +91
-    if (numericValue.length <= 10) {
-      value = "+91 " + numericValue; // Keep the +91 with a space
-    }
-
-    // Limit the total length to 14 characters (including +91 space)
-    if (value.length > 14) {
-      value = value.slice(0, 14); // Truncate if the length exceeds 14 characters
-    }
-
-    // Update the input field's value
-    event.target.value = value;
-  }
 
   const validateField = (value, type) => {
     switch (type) {
@@ -305,6 +269,21 @@ const CustomersRegistration = () => {
         )
       default:
         return true;
+    }
+  };
+
+  const handleStateCodeChange = (e) => {
+    const stateCodeValue = e.target.value.trim();
+    const gstNumber = getValues("customerGstNo"); // Get current GST number
+    const expectedStateCode = gstNumber.slice(0, 2); // Extract first two characters
+
+    if (stateCodeValue !== expectedStateCode) {
+      setError("stateCode", {
+        type: "manual",
+        message: "State Code must match the first two characters of the GST Number."
+      });
+    } else {
+      clearErrors("stateCode"); // Clear errors if valid
     }
   };
 
@@ -467,32 +446,34 @@ const CustomersRegistration = () => {
                       </label>
                       <div className="input-group">
                         {/* Country Code Dropdown */}
-                        <div className="input-group-prepend">
-                          <Select
-                            options={countryCodes}
-                            value={selectedCountry}
-                            onChange={handleCountryCodeChange}
-                            placeholder="Code"
-                            className="react-select-container"
-                            classNamePrefix="react-select"
-                            isSearchable
-                            menuPortalTarget={document.body}
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                width: "160px", // Set a fixed width
-                              }),
-                              menu: (base) => ({
-                                ...base,
-                                width: "280px", // Ensure dropdown stays the same width
-                              }),
-                              menuPortal: (base) => ({
-                                ...base,
-                                zIndex: 9999,
-                              }),
-                            }}
-                          />
 
+                        <div className="input-group-prepend">
+                          {isCountryCodesLoading ? (
+                            <div className="d-flex align-items-center" style={{ width: "160px", height: "38px", justifyContent: "center" }}>
+                              <div className="spinner-border text-primary" role="status" style={{ width: "1.5rem", height: "1.5rem" }}>
+                                <span className="visually-hidden">Loading...</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <Select
+                              options={countryCodes}
+                              value={selectedCountry}
+                              onChange={handleCountryCodeChange}
+                              placeholder="Code"
+                              className="react-select-container"
+                              classNamePrefix="react-select"
+                              isSearchable
+                              menuPortalTarget={document.body}
+                              getOptionLabel={(option) => option.labelText} // Ensures filtering by text
+                              getOptionValue={(option) => option.value} // Keeps correct values
+                              formatOptionLabel={(option) => option.label} // Restores flag display
+                              styles={{
+                                control: (base) => ({ ...base, width: "160px" }),
+                                menu: (base) => ({ ...base, width: "280px" }),
+                                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                              }}
+                            />
+                          )}
                         </div>
 
                         {/* Mobile Number Input Field */}
@@ -503,16 +484,9 @@ const CustomersRegistration = () => {
                           autoComplete="off"
                           {...register("mobileNumber", {
                             required: "Mobile Number is Required",
-                            validate: {
-                              correctLength: (value) => {
-                                const numericValue = value.replace(/\D/g, "");
-                                if (numericValue.length < 7 || numericValue.length > 15) {
-                                  return "Mobile Number must be between 7 and 15 digits.";
-                                }
-                                return true;
-                              },
-                            },
+                            validate: validateMobileNumber,
                           })}
+                          onKeyPress={(e) => preventInvalidInput(e, "numeric")}
                         />
                       </div>
                       {errors.mobileNumber && (
@@ -643,22 +617,16 @@ const CustomersRegistration = () => {
                         name="stateCode"
                         placeholder="Enter State Code"
                         className="form-control"
-                        autoComplete="off"
                         {...register("stateCode", {
-                          // required: "State Code is Required",
-                          validate: (value) =>
-                            !value || validateField(value, "stateCode"), // Validate only if the field is not empty
-                          minLength: {
-                            value: 2,
-                            message: "State Code must be exactly 2 digits.",
-                          },
-                          maxLength: {
-                            value: 2,
-                            message: "State Code must not exceed 2 digits.",
-                          },
+                          required: "State Code is Required",
+                          validate: (value) => {
+                            const gstNumber = getValues("customerGstNo");
+                            return !gstNumber || value === gstNumber.slice(0, 2)
+                              ? true
+                              : "State Code must match the first two characters of GST Number.";
+                          }
                         })}
-                        onChange={(e) => handleInputChange(e, "stateCode")}
-                        onKeyPress={(e) => preventInvalidInput(e, "numeric")}
+                        onChange={handleStateCodeChange}
                       />
                       {errors.stateCode && (
                         <p className="errorMsg">

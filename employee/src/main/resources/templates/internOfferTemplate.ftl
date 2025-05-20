@@ -47,10 +47,11 @@
         <body>
 
         <div class="content">
+              <#if !offerLetter.draft>
                 <div class="logo">
                     <img src="${company.imageFile}" alt="Company Logo" />
                 </div>
-
+              </#if>
                 <div class="title">OFFER LETTER INTERN</div>
 
                 <p>Date: ${offerLetter.date}</p>
@@ -90,7 +91,12 @@
 
             </div>
             <div style="position: absolute; right: 20px; bottom: 60px; text-align: center;">
+                  <#if !offerLetter.draft>
                     <img src="${company.stampImage}" style="width: 100px; height: 100px;"/>
+                  <#else>
+                    <div style="width: 100px; height: 100px;"></div>
+                  </#if>
+
                     <br/>
                     <b>Authorized Signature</b>
             </div>

@@ -78,6 +78,10 @@ import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
 import GetCalendar from '../Calender/GetCalendar';
 import EventForm from '../Calender/EventForm';
+import GetTaxSlab from '../CompanyModule/TDS/GetTaxSlab';
+import CompanyTdsView from '../CompanyModule/TDS/CompanyTdsView';
+import TotalEmployees from '../EmployeeModule/TotalEmployees';
+import EmployeeList from '../EmployeeModule/EmployeeList';
 
 
 export const allAvailableRoutes = [
@@ -130,6 +134,11 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'HR'] },
   {path: '/AddEvent', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/employeeSalaryList', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/getTaxSlab', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/addTaxSlab', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/companyTdsView', allowedTypes: ['company_admin', 'HR'] },
+  {path: '/employeeSalaryUpdate', allowedTypes: ['company_admin', 'HR'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Accountant'] },
@@ -144,7 +153,9 @@ export const allAvailableRoutes = [
   {path: '/payslipDoc4', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/calendar', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
   {path: '/getcalendar', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
-  {path: '/tds', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
+  {path: '/tds', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/totalEmployees', allowedTypes: ['company_admin','HR','employee', 'Accountant'] },
+  {path: '/employeeList/:status', allowedTypes: ['company_admin','HR','employee', 'Accountant'] }
 ];
 
 const Routing = () => {
@@ -153,7 +164,7 @@ const Routing = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Message />} />
-      <Route path='login' element={<EmsLogin/>}/>
+      <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
       <Route path='/profile' element={<Profile />} />
@@ -357,6 +368,23 @@ const Routing = () => {
         path="/AddEvent"
         element={<ProtectedRoute element={<EventForm/>} allowedTypes={['company_admin', 'HR']} />}
       />
+      <Route
+        path="/employeeSalaryUpdate"
+        element={<ProtectedRoute element={<EmployeeSalaryUpdate/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+
+      <Route
+        path="/getTaxSlab"
+        element={<ProtectedRoute element={<GetTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/companyTdsView"
+        element={<ProtectedRoute element={<CompanyTdsView/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/addTaxSlab"
+        element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
+      />
 
       {/* Company Admin & Accountant shared routes */}
       <Route
@@ -421,6 +449,14 @@ const Routing = () => {
        path='/taxSlab'
        element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin','HR','employee', 'Accountant']}/> }
        />
+      <Route
+        path="/totalEmployees"
+        element={<ProtectedRoute element={<TotalEmployees/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/employeeList/:status"
+        element={<ProtectedRoute element={<EmployeeList/>} allowedTypes={['company_admin','HR','employee', 'Accountant']} />}
+      />
     </Routes>
   );
 };

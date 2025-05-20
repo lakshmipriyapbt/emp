@@ -165,7 +165,9 @@ const ExistsEmpRegistration = () => {
   }, []);
 
   const onSubmit = (data) => {
+    const draftValue = data.draft === "true";
     const submissionData = {
+      date: data.generatedDate,
       resignationDate: data.resignationDate,
       relievingDate: data.relievingDate,
       noticePeriod: noticePeriod,
@@ -182,8 +184,10 @@ const ExistsEmpRegistration = () => {
       departmentName: data.departmentName || "",
       resignationDate: data.resignationDate || "",
       lastWorkingDate: data.relievingDate || "",
+      date: data.generatedDate || "",
       noticePeriod,
       companyName: authUser.company,
+      draft: draftValue,
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -223,7 +227,8 @@ const ExistsEmpRegistration = () => {
           await new Promise((resolve) => setTimeout(resolve, DOWNLOAD_DELAY)); // 30 second delay
 
           // Now, call the download API after the delay
-          const downloadResponse = await RelievingLetterDownload(employeeId);
+             const isDraft = previewData.draft;
+          const downloadResponse = await RelievingLetterDownload(employeeId, isDraft);
           downloadCompleted = true; // Mark download as completed
           return downloadResponse; // Return the download response if successful
         } catch (error) {
@@ -548,6 +553,70 @@ const ExistsEmpRegistration = () => {
                         value={noticePeriod}
                         readOnly
                       />
+                    </div>
+
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                    <input
+                       type="date"
+                       name="generatedDate"
+                       placeholder="Enter Generated Date"
+                       className="form-control"
+                       autoComplete="off"
+                       onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                       required: "Generated Date is required",
+                        validate: {
+                       
+                       notBeforeLastWorkingDate: (value) => {
+                        const lastWorkingDate = watch("relievingDate");
+                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
+                     return (
+                      new Date(value) >= new Date(lastWorkingDate) ||
+                      "Generated Date cannot be before Last Working Date"
+                       );
+                      },
+                    },
+                  })}
+                 />
+                      {errors.generatedDate && (
+                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                         )}
+
+                </div>
+
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                           <label className="form-label">Select Mode</label>
+                          <div className="form-check">
+                                     <input
+                                        type="radio"
+                                        className="form-check-input"
+                                         id="draft"
+                                        name="draft"
+                                          value={true}
+                                {...register("draft", { required: true })}
+                                />
+                         <label className="form-check-label" htmlFor="draft">
+                          Draft Copy
+                         </label>
+                          </div>
+                        <div className="form-check">
+                            <input
+                               type="radio"
+                                className="form-check-input"
+                               id="undraft"
+                               name="draft"
+                               value={false}
+                                {...register("draft", { required: true })}
+                              />
+                        <label className="form-check-label" htmlFor="undraft">
+                             Digital Copy
+                           </label>
+                       </div>
+
+                       {errors.draft && (
+                            <p className="errorMsg">Please select draft copy or digital copy</p>
+                       )}
                     </div>
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (

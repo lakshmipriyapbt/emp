@@ -25,10 +25,11 @@ import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,10 +43,12 @@ public class PayslipServiceImpl implements PayslipService {
     private Configuration freeMarkerConfig;
 
     @Autowired
+    private EmailUtils emailUtils;
+    @Autowired
     private TDSService tdsService;
 
     @Override
-    public ResponseEntity<?> generatePaySlip(PayslipRequest payslipRequest, String salaryId, String employeeId) throws EmployeeException, IOException {
+    public ResponseEntity<?> generatePaySlip(PayslipRequest payslipRequest, String salaryId, String employeeId,HttpServletRequest request) throws EmployeeException, IOException {
         String paySlipId = ResourceIdUtils.generatePayslipId(payslipRequest.getMonth(), payslipRequest.getYear(), employeeId);
         EmployeeSalaryEntity entity = null;
         Object payslipEntity = null;
@@ -64,7 +67,7 @@ public class PayslipServiceImpl implements PayslipService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_PAYSLIP_ALREADY_EXISTS),employeeId),
                     HttpStatus.BAD_REQUEST);
         }
-        employee = openSearchOperations.getEmployeeById(employeeId, null, index);
+       employee = openSearchOperations.getEmployeeById(employeeId, null, index);
         if(employee ==null){
             log.error("Employee with this {}, is not found", employeeId);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
@@ -79,15 +82,10 @@ public class PayslipServiceImpl implements PayslipService {
                                     .getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE_TYPE)))),
                     HttpStatus.CONFLICT);
         }
-        entity = openSearchOperations.getSalaryById(salaryId, null, index);
+        entity = this.getApplicableSalaryDate(payslipRequest.getCompanyName(), employeeId);
         if (entity==null){
             log.error("Exception while fetching employee for salary {}", employeeId);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        if (!entity.getEmployeeId().equals(employeeId)) {
-            log.error("Employee ID mismatch for salary {}: expected {}, found", salaryId, employeeId);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_MATCHING),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (entity.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
@@ -116,6 +114,22 @@ public class PayslipServiceImpl implements PayslipService {
             payslipProperties.setDepartment(departmentEntity.getName());
             payslipProperties.setDesignation(designationEntity.getName());
             openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
+
+            EmployeeEntity finalEmployee = employee;
+            CompletableFuture.runAsync(()->{
+                try {
+                    byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employeeId, request);
+
+                    File tempPdf = File.createTempFile("payslip", ".pdf");
+                    try (FileOutputStream fos = new FileOutputStream(tempPdf)) {
+                        fos.write(pdfBytes);
+                    }
+                    emailUtils.sendPDFEmail(finalEmployee.getEmailId(), finalEmployee.getFirstName(), finalEmployee.getLastName(), payslipRequest.getMonth(), payslipRequest.getYear(), tempPdf);
+
+                } catch (Exception e) {
+                    log.error("Error while sending payslip email to employee: {}", e.getMessage(), e);
+                }
+            });
         } catch (EmployeeException e){
             log.error("Exception while generating the payslip", e);
             throw e;
@@ -128,8 +142,22 @@ public class PayslipServiceImpl implements PayslipService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
 
+
+    public EmployeeSalaryEntity getApplicableSalaryDate(String companyName, String employeeId) throws EmployeeException {
+        try {
+            List<EmployeeSalaryEntity> entities = openSearchOperations.getEmployeeSalaries(companyName, employeeId, Constants.ACTIVE);
+            if (!entities.isEmpty()) {
+                return entities.get(0);
+            }
+            return null;
+        } catch (Exception ex) {
+            log.error("Exception while getting applicable salary for company [{}], employee [{}]: {}", companyName, employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.ERROR_RETRIEVING_SALARY), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Override
-    public ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException {
+    public ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest,HttpServletRequest request) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         AttendanceEntity attendanceEntities = null;
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
@@ -153,7 +181,7 @@ public class PayslipServiceImpl implements PayslipService {
             }
 
             for (EmployeeEntity employee : employeeEntities) {
-                List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
+                List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId(), Constants.ACTIVE);
 
                 // Check if employee is CompanyAdmin
                 if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
@@ -188,8 +216,6 @@ public class PayslipServiceImpl implements PayslipService {
                 // Generate and save payslip for the current employee
                 List<PayslipEntity> payslipPropertiesList = new ArrayList<>();
                 for (EmployeeSalaryEntity salary : salaryEntities) {
-                    // Process only active salary entities
-                    if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
                         // Iterate through the active salary configurations
                         for (SalaryConfigurationEntity salaryConfig : activeSalaryConfigurations) {
 
@@ -223,7 +249,7 @@ public class PayslipServiceImpl implements PayslipService {
                                         HttpStatus.INTERNAL_SERVER_ERROR);
                             }
                         }
-                    }
+
                 }
                 if (employeesWithoutAttendance.size() == employeeEntities.size()){
                     log.error("Employee Attendance are not added of the month {}, year {}", payslipRequest.getMonth(), payslipRequest.getYear());
@@ -232,6 +258,20 @@ public class PayslipServiceImpl implements PayslipService {
                 // Save all payslips for the current employee
                 for (PayslipEntity payslipProperties : payslipPropertiesList) {
                     openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
+                    CompletableFuture.runAsync(()-> {
+                        try {
+                            byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employee.getEmployeeId(), request);
+
+                            File tempPdf = File.createTempFile("payslip", ".pdf");
+                            try (FileOutputStream fos = new FileOutputStream(tempPdf)) {
+                                fos.write(pdfBytes);
+                            }
+                            emailUtils.sendPDFEmail(employee.getEmailId(), employee.getFirstName(), employee.getLastName(), payslipRequest.getMonth(), payslipRequest.getYear(), tempPdf);
+
+                        } catch (Exception e) {
+                            log.error("Error while sending payslip email to employee: {}", e.getMessage(), e);
+                        }
+                    });
                 }
             }
 
@@ -400,7 +440,7 @@ public class PayslipServiceImpl implements PayslipService {
 
     }
 
-    public ResponseEntity<byte[]> downloadPayslip(String companyName, String payslipId, String employeeId, HttpServletRequest request) {
+    public byte[] downloadPayslip(String companyName, String payslipId, String employeeId, HttpServletRequest request) {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         EmployeeEntity employee;
         PayslipEntity entity;
@@ -484,11 +524,8 @@ public class PayslipServiceImpl implements PayslipService {
                     .build());
 
             // Return response
-            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            return pdfBytes;
 
-        } catch (IOException e) {
-            log.error("IO exception occurred while processing the payslip: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (EmployeeException e) {
             log.error("Employee exception occurred: {}", e.getMessage());
             throw new RuntimeException(e);
@@ -680,13 +717,13 @@ public class PayslipServiceImpl implements PayslipService {
             throw new IOException(e.getMessage());
         }
     }
+
     @Override
-    public ResponseEntity<?> generatePaySlipForEmployees(String salaryId, PayslipRequest payslipRequest) throws EmployeeException, IOException {
+    public ResponseEntity<?> generatePaySlipForEmployees(PayslipRequest payslipRequest) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(payslipRequest.getCompanyName());
         List<PayslipEntity> generatedPayslips = new ArrayList<>();
-        int inactiveEmployeeCount = 1;
         List<String> employeesWithoutAttendance = new ArrayList<>();
-
+        List<String> employeesWithoutSalary = new ArrayList<>();
         try {
             List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(payslipRequest.getCompanyName(), null, payslipRequest.getMonth(), payslipRequest.getYear());
             if (attendanceEntities == null || attendanceEntities.size()==0){
@@ -695,36 +732,22 @@ public class PayslipServiceImpl implements PayslipService {
                         HttpStatus.NOT_FOUND);
             }
             List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(payslipRequest.getCompanyName());
-            
             for (EmployeeEntity employee : employeeEntities) {
                 // Skip attendance check if the employee is a CompanyAdmin
                 if (Constants.ADMIN.equals(employee.getEmployeeType())) {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
-                if (employee.getStatus().equalsIgnoreCase(Constants.INACTIVE)){
-                    log.info("Employee is inactive " + employee.getFirstName());
-                    inactiveEmployeeCount +=1;
+                if (employee.getStatus().equalsIgnoreCase(Constants.RELIEVED)){
+                    log.info("Employee is Relieved " + employee.getFirstName());
                     continue;
                 }
-                List<EmployeeSalaryEntity> salaryEntities = openSearchOperations.getEmployeeSalaries(payslipRequest.getCompanyName(), employee.getId());
-                if (salaryEntities == null) {
-                    log.error("Employee Salary with employeeId {} is not found", employee.getId());
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES_SALARY),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
+                EmployeeSalaryEntity applicableSalary = this.getApplicableSalaryDate(payslipRequest.getCompanyName(), employee.getId());
+                if (applicableSalary == null){
+                    log.error("Employee Salary is not found for employee {} ", employee.getId());
+                    employeesWithoutSalary.add(employee.getEmployeeId() + "  " + employee.getFirstName() + " " + employee.getLastName());
+                    continue; // Skip to the next employee
                 }
-
-                // If salaryId is provided, filter the relevant salary entity
-                if (salaryId != null && !salaryId.isEmpty()) {
-                    salaryEntities = salaryEntities.stream()
-                            .filter(salary -> salary.getSalaryId().equals(salaryId))
-                            .collect(Collectors.toList());
-                    if (salaryEntities.isEmpty()) {
-                        log.error("SalaryId {} not found for employee {}", salaryId, employee.getId());
-                        continue; // Skip if salaryId doesn't match
-                    }
-                }
-
                 // Generate attendance ID for the specific month and year
                 String attendanceId = ResourceIdUtils.generateAttendanceId(payslipRequest.getCompanyName(), employee.getId(), payslipRequest.getYear(), payslipRequest.getMonth());
 
@@ -747,7 +770,6 @@ public class PayslipServiceImpl implements PayslipService {
                     continue;
                 }
 
-
                 // Retrieve department and designation details
                 DepartmentEntity departmentEntity = null;
                 DesignationEntity designationEntity = null;
@@ -756,24 +778,23 @@ public class PayslipServiceImpl implements PayslipService {
                     designationEntity = openSearchOperations.getDesignationById(employee.getDesignation(), null, index);
                 }
 
-                // Generate and save payslip for the current employee
-                List<PayslipEntity> payslipPropertiesList = new ArrayList<>();
-                for (EmployeeSalaryEntity salary : salaryEntities) {
-                    if (salary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
-                        TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntity.getYear(), salary.getTdsType());
-                        PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(salary, payslipRequest, paySlipId, employee.getId(), attendanceEntity, tdsResPayload);
-                        assert designationEntity != null;
-                        payslipProperties.setDesignation(designationEntity.getName());
-                        payslipProperties.setDepartment(departmentEntity.getName());
-                        generatedPayslips.add(payslipProperties);
-                        payslipPropertiesList.add(payslipProperties);
-                    }
+                // Generate and save payslip using only applicableSalary
+                if (applicableSalary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
+                    TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntity.getYear(),applicableSalary.getTdsType());
+                    PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(applicableSalary, payslipRequest, paySlipId, employee.getId(), attendanceEntity,tdsResPayload);
+                    assert designationEntity != null;
+                    payslipProperties.setDesignation(designationEntity.getName());
+                    payslipProperties.setDepartment(departmentEntity.getName());
+                    generatedPayslips.add(payslipProperties);
+
                 }
             }
 
             Map<String, Object> responseBody = new HashMap<>();
             responseBody.put(Constants.EMPLOYEE_WITHOUT_ATTENDANCE, employeesWithoutAttendance);
             responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
+            responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
+
 
             if (employeesWithoutAttendance.size() != 0){
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
@@ -797,7 +818,7 @@ public class PayslipServiceImpl implements PayslipService {
         }
 
 
-    public ResponseEntity<?> savePayslip(PayslipUpdateRequest payslipsRequest, String payslipId, String employeeId) throws EmployeeException,IOException {
+    public ResponseEntity<?> savePayslip(PayslipUpdateRequest payslipsRequest, String payslipId, String employeeId, HttpServletRequest request) throws EmployeeException,IOException {
         PayslipEntity payslipEntity = null;
         String index = ResourceIdUtils.generateCompanyIndex(payslipsRequest.getCompanyName());
         try{
@@ -838,6 +859,21 @@ public class PayslipServiceImpl implements PayslipService {
 
             PayslipEntity payslipProperties = PayslipUtils.maskEmployeePayslipUpdateProperties(payslipsRequest, payslipId, employeeId);
             openSearchOperations.saveEntity(payslipProperties, payslipId, index);
+            CompletableFuture.runAsync(()-> {
+                try {
+                    byte[] pdfBytes = downloadPayslip(payslipsRequest.getCompanyName(), payslipId, employeeId, request);
+
+                    File tempPdf = File.createTempFile("payslip", ".pdf");
+                    try (FileOutputStream fos = new FileOutputStream(tempPdf)) {
+                        fos.write(pdfBytes);
+                    }
+                    emailUtils.sendPDFEmail(employee.getEmailId(), employee.getFirstName(), employee.getLastName(), payslipsRequest.getMonth(), payslipsRequest.getYear(), tempPdf);
+
+                } catch (Exception e) {
+                    log.error("Error while sending payslip email to employee: {}", e.getMessage(), e);
+                }
+            });
+
         }catch (Exception ex){
             log.error("Unexpected error generating payslips: {}", ex.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE),

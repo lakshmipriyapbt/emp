@@ -164,11 +164,14 @@ const ExperienceForm = () => {
 
   const onSubmit = (data) => {
     console.log(data);
+    const draftValue = data.draft === "true"; // Convert string to boolean
     const submissionData = {
       employeeId: data.employeeId,
       companyName: authUser.company,
       date: data.experienceDate,
-      aboutEmployee:data.aboutEmployee
+      aboutEmployee:data.aboutEmployee,
+      draft:draftValue,
+
     };
     // Format the date fields to dd-mm-yyyy format
     const formattedLastWorkingDate = formatDate(data.relievingDate);
@@ -190,6 +193,8 @@ const ExperienceForm = () => {
       noticePeriod,
       companyName: authUser.company,
       companyData: companyData,
+      draft:draftValue,
+
     };
    console.log("previewData",preview)
     setPreviewData(preview);
@@ -295,6 +300,7 @@ const ExperienceForm = () => {
       dateOfHiring: "",
       experienceDate: "",
       aboutEmployee:"",
+      draft:"",
     });
   };
 
@@ -496,6 +502,7 @@ const ExperienceForm = () => {
                         </p>
                       )}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-6 mb-3">
                       <label className="form-label">About Employee</label>
                       <textarea
@@ -532,6 +539,39 @@ const ExperienceForm = () => {
                         </p>
                       )}
                     </div>
+
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Select Mode</label>
+                       <div className="form-check">
+                         <input
+                          type="radio"
+                           className="form-check-input"
+                            id="draft"
+                              name="draft"
+                               value={true}
+                                {...register("draft", { required: true })}
+                                 />
+                                    <label className="form-check-label" htmlFor="draft">
+                                      Draft Copy
+                                      </label>
+                                      </div>
+                                      <div className="form-check">
+                                          <input
+                                           type="radio"
+                                           className="form-check-input"
+                                           id="undraft"
+                                           name="draft"
+                                           value={false}
+                                           {...register("draft", { required: true })}
+                                           />
+                                           <label className="form-check-label" htmlFor="undraft">
+                                            Digital Copy
+                                            </label>
+                                            </div>
+                                            {errors.draft && (
+                                               <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
+                                                )}
+                                                </div>
 
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (

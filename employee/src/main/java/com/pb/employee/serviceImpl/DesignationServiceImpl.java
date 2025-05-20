@@ -39,9 +39,7 @@ public class DesignationServiceImpl implements DesignationService {
     public ResponseEntity<?> registerDesignation(DesignationRequest designationRequest, String departmentId) throws EmployeeException, IOException {
         // Check if a company with the same short or company name already exists
         log.debug("validating name {} existed ", designationRequest.getName());
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        String timestamp = currentDateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String resourceId = ResourceIdUtils.generateDesignationResourceId(designationRequest.getName(), timestamp);
+        String resourceId = ResourceIdUtils.generateDesignationResourceId(designationRequest.getName(),departmentId);
         Object entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(designationRequest.getCompanyName());
         try{
@@ -63,7 +61,7 @@ public class DesignationServiceImpl implements DesignationService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_DEPARTMENT), HttpStatus.NOT_FOUND);
         }
 
-        boolean designationEntities = openSearchOperations.isDesignationPresent(designationRequest.getCompanyName(), designationRequest.getName());
+        boolean designationEntities = openSearchOperations.isDesignationPresent(designationRequest.getCompanyName(), designationRequest.getName(), departmentId);
         if(designationEntities) {
             log.error("Designation with name {} already existed", designationRequest.getName());
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_ID_ALREADY_EXISTS), designationRequest.getName()),
@@ -90,7 +88,7 @@ public class DesignationServiceImpl implements DesignationService {
 
         List<DesignationEntity> designationEntities = null;
         try {
-            designationEntities = openSearchOperations.getCompanyDesignationByName(companyName, null);
+            designationEntities = openSearchOperations.getCompanyDesignationByName(companyName, null, null);
 
         } catch (Exception ex) {
             log.error("Exception while fetching designation for company {}: {}", companyName, ex.getMessage());
@@ -148,8 +146,8 @@ public class DesignationServiceImpl implements DesignationService {
             }
             if (designationEntity.getDepartmentId() != null){
                 this.getDesignationsByDepartment(designationUpdateRequest.getCompanyName(), departmentId, designationId);
-                List<DesignationEntity> designationEntities = openSearchOperations.getCompanyDesignationByName(designationUpdateRequest.getCompanyName(), designationUpdateRequest.getName());
-                if(designationEntities !=null && designationEntities.size() > 0) {
+                boolean designationEntities = openSearchOperations.isDesignationPresent(designationUpdateRequest.getCompanyName(), designationUpdateRequest.getName(), departmentId);
+                if(designationEntities) {
                     log.error("Designation with name {} already existed", designationUpdateRequest.getName());
                     throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DESIGNATION_ID_ALREADY_EXISTS), designationUpdateRequest.getName()),
                             HttpStatus.CONFLICT);

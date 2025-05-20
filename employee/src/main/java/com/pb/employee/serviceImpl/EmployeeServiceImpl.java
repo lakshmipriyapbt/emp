@@ -165,19 +165,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
                 EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
 
-                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId());
-
-                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
-                    employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
-                    String grossAmounts = employeeSalaryEntity.stream()
-                            .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
-                            .map(EmployeeSalaryEntity::getGrossAmount)
-                            .findFirst()
-                            .map(String::valueOf) // Convert the value inside the Optional to a String
-                            .orElse("0");
-
-                    employee.setCurrentGross(grossAmounts);
+                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), Constants.ACTIVE);
+                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()) {
+                    EmployeeSalaryEntity activeSalary = employeeSalaryEntity.get(0);
+                    EmployeeUtils.unMaskEmployeeSalaryProperties(activeSalary);
+                    employee.setCurrentGross(activeSalary.getGrossAmount());
                 }
+
                 RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
                 // Set status only if relieving details are found
                 if (relievingDetails != null) {
@@ -186,10 +180,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                     if (startDate != null && endDate != null) {
                         String status = null;
-                        if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) && currentDate.isBefore(endDate)) {
-                            status = Constants.NOTICE_PERIOD;
-                        } else if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
-                            status = Constants.INACTIVE;
+                        if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
+                            status = Constants.RELIEVED;
                         }
 
                         if (status != null && !status.equals(employee.getStatus())) {
@@ -288,10 +280,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
                         HttpStatus.BAD_REQUEST);
             }
-            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId);
+            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId, null);
 
         } catch (Exception ex) {
-
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -320,13 +311,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         BeanUtils.copyProperties(employeeUpdateRequest.getPersonnelEntity(), employeePersonnelEntity, getNullPropertyNames(employeeUpdateRequest.getPersonnelEntity()));
         openSearchOperations.saveEntity(employeePersonnelEntity, employeePersonnelEntity.getId(), index);
         openSearchOperations.saveEntity(entity, employeeId, index);
-        // Step 7: Deactivate Salaries if Employee is Made Inactive
-        if (Constants.INACTIVE.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
+        // Step 7: Deactivate Salaries if Employee is Made Relieved
+        if (Constants.RELIEVED.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                salaryEntity.setStatus(Constants.INACTIVE);
+                salaryEntity.setStatus(Constants.RELIEVED);
                 openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
             }
-            log.info("Salaries set to inactive for employee: {}", employeeId);
+            log.info("Salaries set to Relieved for employee: {}", employeeId);
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);

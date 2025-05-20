@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Download } from "react-bootstrap-icons";
 import { toast } from "react-toastify";
-import { useForm } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { set, useForm } from "react-hook-form";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 import {
   CompanySalaryStructureGetApi,
@@ -11,15 +11,15 @@ import {
 import LayOut from "../../../LayOut/LayOut";
 
 const OfferLetterPreview = () => {
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  // const formatDate = (date) => {
+  //   const d = new Date(date);
+  //   const year = d.getFullYear();
+  //   const month = String(d.getMonth() + 1).padStart(2, "0");
+  //   const day = String(d.getDate()).padStart(2, "0");
+  //   return `${year}-${month}-${day}`;
+  // };
 
-  const date = formatDate(new Date());
+  // const date = formatDate(new Date());
 
   const [error, setError] = useState(false);
   const [calculatedValues, setCalculatedValues] = useState({});
@@ -32,7 +32,9 @@ const OfferLetterPreview = () => {
   const [address, setAddress] = useState("Recipient's Address");
   const [contactNumber, setContactNumber] = useState("+91 ");
   const [role, setRole] = useState("[Role]");
+  const [showPreview, setShowPreview] = useState(false);
   const [joiningDate, setJoiningDate] = useState("Joining date");
+  const [generatedDate, setGeneratedDate] = useState("generated date");
   const [jobLocation, setJobLocation] = useState("Job Location");
   const [grossAmount, setGrossAmount] = useState(0);
   const [companyName, setCompanyName] = useState("Company Name");
@@ -40,9 +42,12 @@ const OfferLetterPreview = () => {
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
   const [department,setDepartment] =useState("");
   const [designation,setDesignation]=useState("");
+  const [draft,setDraft]=useState("");
+
   const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
+  const navigate= useNavigate();  
 
   useEffect(() => {
     if (previewData) {
@@ -59,6 +64,9 @@ const OfferLetterPreview = () => {
       setRefNo(previewData.referenceNo || " ");
       setDepartment(previewData.department || " ");
       setDesignation(previewData.designation|| "")
+      setDraft(previewData.draft|| false) 
+      setGeneratedDate(previewData.generatedDate || "Generated date");
+
     }
   }, [previewData]);
 
@@ -234,7 +242,7 @@ const OfferLetterPreview = () => {
 
   const handleDownload = async () => {
     const payload = {
-      offerDate: date,
+      offerDate: generatedDate,
       referenceNo: refNo,
       employeeName: recipientName,
       employeeFatherName: fatherName,
@@ -246,7 +254,8 @@ const OfferLetterPreview = () => {
       salaryPackage: grossAmount,
       companyId: company?.id,
       department:department,
-      designation:designation
+      designation:designation,
+      draft:previewData.draft
     };
 
     try {
@@ -264,15 +273,15 @@ const OfferLetterPreview = () => {
     }
   };
 
-  const generateRefNo = () => {
-    const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
-    const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
-    return `OFLTR-${randomNumber}${timestamp}`;
-  };
-  useEffect(() => {
-    const newRefNo = generateRefNo();
-    setRefNo(newRefNo);
-  }, []);
+  // const generateRefNo = () => {
+  //   const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)
+  //   const timestamp = Date.now().toString().slice(-4); // Uses last 4 digits of timestamp
+  //   return `OFLTR-${randomNumber}${timestamp}`;
+  // };
+  // useEffect(() => {
+  //   const newRefNo = generateRefNo();
+  //   setRefNo(newRefNo);
+  // }, []);
 
   return (
     <LayOut>
@@ -280,7 +289,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+       {!draft &&( <div
           style={{
             position: "absolute",
             top: "30%",
@@ -296,7 +305,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -307,7 +316,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&( <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -318,7 +327,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div>)}
             <h1
               style={{
                 textAlign: "center",
@@ -330,7 +339,7 @@ const OfferLetterPreview = () => {
               Private & Confidential
             </h1>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <p>Date: {date}</p>
+              <p>Date: {generatedDate}</p>
               <p>
                 Ref No:
                 <b>{refNo}</b>
@@ -465,7 +474,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -481,7 +490,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -492,7 +501,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(    <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -503,7 +512,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div> )}
             <p style={{ paddingTop: "30px" }}>
               <strong>Place of Employment and Transfer:</strong>
               You acknowledge and agree that you may be assigned or liable to be
@@ -622,7 +631,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -638,7 +647,7 @@ const OfferLetterPreview = () => {
             zIndex: 1,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -649,7 +658,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(  <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -660,7 +669,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div>)}
             <h3
               style={{
                 textAlign: "center",
@@ -925,7 +934,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-        <div
+         {!draft &&(  <div
           style={{
             position: "absolute",
             top: "30%",
@@ -941,7 +950,7 @@ const OfferLetterPreview = () => {
             zIndex: 3,
             pointerEvents: "none",
           }}
-        />
+        />)}
         <div
           className="card-body"
           style={{
@@ -952,7 +961,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            <div style={{ textAlign: "right" }}>
+          {!draft &&(  <div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -963,7 +972,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div>
+            </div> )}
             <h3
               style={{
                 textAlign: "center",
@@ -1117,21 +1126,19 @@ const OfferLetterPreview = () => {
           </div>
         </div>
       </div>
-      <div
-        className="col-12 mt-4 d-flex justify-content-between"
-        style={{ background: "none" }}
-      >
-        <button
-          type="button"
-          className="btn btn-outline-primary" // Button style for download
-          onClick={handleDownload} // Trigger download on click
-          style={{ marginLeft: "86%" }}
-          disabled={error}
-        >
-          <span className="m-2">Download</span> {/* Text for the button */}
-          <Download size={18} className="ml-1" /> {/* Download icon */}
-        </button>
-      </div>
+     <div className="d-flex justify-content-end align-items-center me-4">
+          <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
+                  ← Back
+                </button>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleDownload}
+            >
+              <span className="m-2">Download</span>{" "}
+              <Download size={18} className="ml-1" />
+            </button>
+          </div>
     </LayOut>
   );
 };

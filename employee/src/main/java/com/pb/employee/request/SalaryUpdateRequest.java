@@ -49,10 +49,6 @@ public class SalaryUpdateRequest {
     @Schema(example = "incomeTax")
     private String incomeTax;
 
-    @Schema(example = "yyyy-mm-dd")
-    @Pattern(regexp =  "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$", message = "{addSalaryDate.format}")
-    @NotBlank(message = "{addSalaryDate.notnull.message}")
-    private String addSalaryDate;
 
     @Schema(example = "status")
     @Pattern(regexp = "^[A-Za-z]+(?:\\s[A-Za-z]+)*$", message = "{status.format}")

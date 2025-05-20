@@ -1,6 +1,7 @@
 package com.pb.employee.request.TDSPayload;
 
 import com.pb.employee.persistance.model.TDSPercentageEntity;
+import jakarta.validation.Valid;
 import lombok.*;
 
 import java.util.List;
@@ -12,5 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TDSUpdatePayload {
 
+    @Valid
     private List<TDSPercentageEntity> persentageEntityList;
 }

@@ -114,6 +114,7 @@ public class Constants {
     public static final String ATTACHMENT = "attachment";
     public static final String OFFER_LETTER = "offer_letter.pdf";
     public static final String ACTIVE = "Active";
+    public static final String IN_ACTIVE = "InActive";
     public static final String RELIEVING = "relieving";
     public static final String STAMP = "stamp";
     public static final String EXPERIENCE_LETTER_PDF = "experience_letter.pdf";
@@ -138,7 +139,7 @@ public class Constants {
     public static final String APPRAISAL_LETTER_TEMPLATE2 = "appraisalLetter2.ftl";
 
     public static final String NOTICE_PERIOD = "NoticePeriod";
-    public static final String INACTIVE = "InActive";
+    public static final String RELIEVED = "relieved";
     public static final String STATUS = "status";
     public static final String PF_EMPLOYEE = "Provident Fund Employee";
     public static final String PF_EMPLOYER = "Provident Fund Employer";
@@ -192,4 +193,7 @@ public class Constants {
     public static final String COMPANY_TDS = "company_tds";
     public static final String START_YEAR = "startYear";
     public static final String TDS_TYPE = "tdsType";
+    public static final String DRAFT = "draft";
+    public static final String APPRAISAL = "Appraisal";
+    public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
 }
