@@ -111,93 +111,73 @@ const EmployeeSalaryStructure = () => {
 
   const numberToWords = (num) => {
     const units = [
-      "",
-      "One",
-      "Two",
-      "Three",
-      "Four",
-      "Five",
-      "Six",
-      "Seven",
-      "Eight",
-      "Nine",
-      "Ten",
-      "Eleven",
-      "Twelve",
-      "Thirteen",
-      "Fourteen",
-      "Fifteen",
-      "Sixteen",
-      "Seventeen",
-      "Eighteen",
-      "Nineteen",
+      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+      "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen",
+      "Eighteen", "Nineteen"
     ];
     const tens = [
-      "",
-      "",
-      "Twenty",
-      "Thirty",
-      "Forty",
-      "Fifty",
-      "Sixty",
-      "Seventy",
-      "Eighty",
-      "Ninety",
+      "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
     ];
-    const unitsPlaces = ["", "Lakh", "Thousand", "Hundred"];
-
-    if (num === 0) return "Zero";
-
-    const convertToWords = (n) => {
-      if (n === 0) return "";
-
-      let word = "";
-      if (n >= 100) {
-        word += units[Math.floor(n / 100)] + " Hundred ";
-        n %= 100;
-      }
-      if (n >= 20) {
-        word += tens[Math.floor(n / 10)] + " ";
-        n %= 10;
-      }
-      if (n > 0) {
-        word += units[n] + " ";
-      }
-      return word.trim();
+  
+    if (num === 0) return "Zero Rupees Only";
+  
+    const convertLessThanHundred = (n) => {
+      if (n < 20) return units[n];
+      return tens[Math.floor(n / 10)] + (n % 10 ? " " + units[n % 10] : "");
     };
-
-    let result = "";
+  
+    const convertLessThanThousand = (n) => {
+      const hundred = Math.floor(n / 100);
+      const remainder = n % 100;
+      return (hundred ? units[hundred] + " Hundred" : "") + 
+             (remainder ? (hundred ? " " : "") + convertLessThanHundred(remainder) : "");
+    };
+  
+    const convertLessThanLakh = (n) => {
+      const thousand = Math.floor(n / 1000);
+      const remainder = n % 1000;
+      return (thousand ? convertLessThanThousand(thousand) + " Thousand" : "") + 
+             (remainder ? (thousand ? " " : "") + convertLessThanThousand(remainder) : "");
+    };
+  
+    const convertLessThanCrore = (n) => {
+      const lakh = Math.floor(n / 100000);
+      const remainder = n % 100000;
+      return (lakh ? convertLessThanThousand(lakh) + " Lakh" : "") + 
+             (remainder ? (lakh ? " " : "") + convertLessThanLakh(remainder) : "");
+    };
+  
+    const convertLessThanHundredCrore = (n) => {
+      const crore = Math.floor(n / 10000000);
+      const remainder = n % 10000000;
+      return (crore ? convertLessThanThousand(crore) + " Crore" : "") + 
+             (remainder ? (crore ? " " : "") + convertLessThanCrore(remainder) : "");
+    };
+  
+    const convertLessThanThousandCrore = (n) => {
+      const hundredCrore = Math.floor(n / 1000000000);
+      const remainder = n % 1000000000;
+      return (hundredCrore ? convertLessThanHundred(hundredCrore) + " Hundred" : "") + 
+             (remainder ? (hundredCrore ? " " : "") + convertLessThanHundredCrore(remainder) : "");
+    };
+  
     let integerPart = Math.floor(num);
-
-    // Handle Lakhs and Thousands in the Indian numbering system
-    if (integerPart >= 100000) {
-      const lakhs = Math.floor(integerPart / 100000);
-      result += convertToWords(lakhs) + " Lakh ";
-      integerPart %= 100000;
-    }
-
-    if (integerPart >= 1000) {
-      const thousands = Math.floor(integerPart / 1000);
-      result += convertToWords(thousands) + " Thousand ";
-      integerPart %= 1000;
-    }
-
-    if (integerPart >= 100) {
-      const hundreds = Math.floor(integerPart / 100);
-      result += convertToWords(hundreds) + " Hundred ";
-      integerPart %= 100;
-    }
-
-    if (integerPart > 0) {
-      result += convertToWords(integerPart);
-    }
-
-    // Handle decimal (cents)
+    let result = convertLessThanThousandCrore(integerPart);
+  
+    // Handle decimal (paise)
     let decimalPart = Math.round((num % 1) * 100);
     if (decimalPart > 0) {
-      result += " and " + convertToWords(decimalPart) + " Paise";
+      result += " and " + convertLessThanHundred(decimalPart) + " Paise";
     }
-
+  
+    // Add currency suffix
+    result += decimalPart === 0 ? " Rupees Only" : " Rupees";
+  
+    // Handle edge case where number is between 0 and 1 (only paise)
+    if (integerPart === 0 && decimalPart > 0) {
+      result = result.replace(" and ", ""); // Remove "and" when no rupees
+    }
+  
     return result.trim();
   };
 

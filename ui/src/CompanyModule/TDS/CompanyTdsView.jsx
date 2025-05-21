@@ -17,18 +17,90 @@ const CompanyTdsView = () => {
   const [selectedYear, setSelectedYear] = useState(getCurrentFinancialYear());
   const { authUser } = useAuth();
   const [isEditing, setIsEditing] = useState(null);
-  const [editValues, setEditValues] = useState([]); // ✅ Initialized as an array
+  const [editValues, setEditValues] = useState([]);
   const [showAddSlabForm, setShowAddSlabForm] = useState(false);
   const [newSlab, setNewSlab] = useState({ min: "", max: "", taxPercentage: "" });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedSlabIndex, setSelectedSlabIndex] = useState(null);
-  const [selectedTdsType, setSelectedTdsType] = useState(""); // Track selected TDS Type
-  const [tdsTypes, setTdsTypes] = useState([]); // Store unique TDS Types
+  const [selectedTdsType, setSelectedTdsType] = useState("");
+  const [tdsTypes, setTdsTypes] = useState([]);
+  const [errors, setErrors] = useState({}); // State to track validation errors
+  const [touchedFields, setTouchedFields] = useState({});
+
+  // Validate new slab inputs
+  const validateNewSlab = () => {
+    const newErrors = {};
+
+    if (!newSlab.min || isNaN(newSlab.min)) {
+      newErrors.min = "Please enter a valid minimum amount";
+    } else if (parseInt(newSlab.min) < 0) {
+      newErrors.min = "Minimum amount cannot be negative";
+    }
+
+    if (!newSlab.max || isNaN(newSlab.max)) {
+      newErrors.max = "Please enter a valid maximum amount";
+    } else if (parseInt(newSlab.max) < 0) {
+      newErrors.max = "Maximum amount cannot be negative";
+    } else if (parseInt(newSlab.max) <= parseInt(newSlab.min)) {
+      newErrors.max = "Maximum must be greater than minimum";
+    }
+
+    if (!newSlab.taxPercentage || isNaN(newSlab.taxPercentage)) {
+      newErrors.taxPercentage = "Please enter a valid percentage";
+    } else if (parseFloat(newSlab.taxPercentage) < 0) {
+      newErrors.taxPercentage = "Percentage cannot be negative";
+    } else if (parseFloat(newSlab.taxPercentage) > 100) {
+      newErrors.taxPercentage = "Percentage cannot exceed 100%";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Validate edited slab inputs
+  const validateEditSlab = (index) => {
+    const newErrors = {};
+    const slab = editValues[index] || {};
+
+    // Validate min field
+    if (!slab.min) {
+      newErrors[`min_${index}`] = "Minimum amount is required";
+    } else if (!/^\d{1,9}$/.test(slab.min)) {
+      newErrors[`min_${index}`] = "Enter a valid number (up to 9 digits)";
+    } else if (parseInt(slab.min, 10) < 0) {
+      newErrors[`min_${index}`] = "Cannot be negative";
+    }
+
+    // Validate max field
+    if (!slab.max) {
+      newErrors[`max_${index}`] = "Maximum amount is required";
+    } else if (!/^\d{1,9}$/.test(slab.max)) {
+      newErrors[`max_${index}`] = "Enter a valid number (up to 9 digits)";
+    } else if (parseInt(slab.max, 10) < 0) {
+      newErrors[`max_${index}`] = "Cannot be negative";
+    } else if (slab.min && parseInt(slab.max, 10) <= parseInt(slab.min, 10)) {
+      newErrors[`max_${index}`] = "Must be greater than minimum";
+    }
+
+    // Validate taxPercentage field
+    if (!slab.taxPercentage) {
+      newErrors[`taxPercentage_${index}`] = "Tax percentage is required";
+    } else if (!/^\d{1,2}$/.test(slab.taxPercentage)) {
+      newErrors[`taxPercentage_${index}`] = "Enter a number between 0-99";
+    } else {
+      const percentage = parseInt(slab.taxPercentage, 10);
+      if (percentage < 0 || percentage > 99) {
+        newErrors[`taxPercentage_${index}`] = "Must be between 0-99";
+      }
+    }
+
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
 
   useEffect(() => {
     fetchTdsByYear(selectedYear.split("-")[0]);
   }, [selectedYear]);
-
 
   const fetchTdsByYear = async () => {
     try {
@@ -58,10 +130,16 @@ const CompanyTdsView = () => {
     }
   };
 
-  console.log("filteredData Response", filteredData);
-
   const handleYearChange = (event) => {
     setSelectedYear(event.target.value);
+  };
+
+  const handleFieldBlur = (index, field) => {
+    setTouchedFields(prev => ({
+      ...prev,
+      [`${field}_${index}`]: true
+    }));
+    validateEditSlab(index, field);
   };
 
   const handleEditClick = (index, entity) => {
@@ -86,12 +164,37 @@ const CompanyTdsView = () => {
   };
 
   const handleSave = async (index, tdsId) => {
+    // Mark all fields as touched and validate
+    const newTouchedFields = {
+      [`min_${index}`]: true,
+      [`max_${index}`]: true,
+      [`taxPercentage_${index}`]: true
+    };
+    setTouchedFields(newTouchedFields);
+  
+    // Perform validation
+    const isValid = validateEditSlab(index);
+  
+    if (!isValid) {
+      toast.error("Please fill all required fields with valid values");
+      return;
+    }
+  
     try {
-      const existingTds = filteredData[0];
+      // Find the TDS entry being edited
+      const tdsIndex = filteredData.findIndex(tds => tds.id === tdsId);
+      if (tdsIndex === -1) return;
+  
+      const existingTds = filteredData[tdsIndex];
       const originalSlab = existingTds.persentageEntityList[index];
       const editedSlab = editValues[index];
   
-      // ✅ Check if any value has changed
+      // Check if values are empty
+      if (!editedSlab.min || !editedSlab.max || !editedSlab.taxPercentage) {
+        toast.error("All fields are required");
+        return;
+      }
+  
       if (
         originalSlab.min === editedSlab.min &&
         originalSlab.max === editedSlab.max &&
@@ -101,7 +204,7 @@ const CompanyTdsView = () => {
         return;
       }
   
-      // ✅ Proceed with API request if changes are detected
+      // Create updated slabs array
       const updatedSlabs = existingTds.persentageEntityList.map((entity, i) =>
         i === index ? { ...entity, ...editValues[i] } : entity
       );
@@ -109,8 +212,17 @@ const CompanyTdsView = () => {
       const response = await TdsPatchApi(tdsId, { persentageEntityList: updatedSlabs });
   
       if (response.status === 200) {
-        setFilteredData([{ ...existingTds, persentageEntityList: updatedSlabs }]);
+        // Update only the specific TDS entry while preserving others
+        setFilteredData(prevData => 
+          prevData.map(tds => 
+            tds.id === tdsId 
+              ? { ...tds, persentageEntityList: updatedSlabs } 
+              : tds
+          )
+        );
         setIsEditing(null);
+        setTouchedFields({});
+        setErrors({});
         toast.success("TDS slab updated successfully!");
       } else {
         toast.error("Failed to update slab.");
@@ -120,24 +232,43 @@ const CompanyTdsView = () => {
       toast.error("An error occurred while updating TDS.");
     }
   };
-  
 
   const handleAddSlab = async () => {
+    if (!validateNewSlab()) {
+      toast.error("Please fix validation errors before adding slab");
+      return;
+    }
+  
     try {
-      const existingTds = filteredData[0];
-
+      // Find the first TDS entry (or modify this to target a specific one)
+      const tdsIndex = 0; // or find the correct index based on your logic
+      const existingTds = filteredData[tdsIndex];
+  
       if (!existingTds) {
-        alert("TDS Structure not found for this year.");
+        toast.error("TDS Structure not found for this year.");
         return;
       }
-
-      const updatedSlabs = [...existingTds.persentageEntityList, newSlab];
+  
+      const updatedSlabs = [...existingTds.persentageEntityList, {
+        min: newSlab.min,
+        max: newSlab.max,
+        taxPercentage: newSlab.taxPercentage
+      }];
+  
       const response = await TdsPatchApi(existingTds.id, { persentageEntityList: updatedSlabs });
-
+  
       if (response.status === 200) {
-        setFilteredData([{ ...existingTds, persentageEntityList: updatedSlabs }]);
+        // Update only the specific TDS entry while preserving others
+        setFilteredData(prevData => 
+          prevData.map((tds, idx) => 
+            idx === tdsIndex 
+              ? { ...tds, persentageEntityList: updatedSlabs } 
+              : tds
+          )
+        );
         setShowAddSlabForm(false);
         setNewSlab({ min: "", max: "", taxPercentage: "" });
+        setErrors({});
         toast.success("New tax slab added successfully!");
       } else {
         toast.error("Failed to add tax slab.");
@@ -202,77 +333,142 @@ const CompanyTdsView = () => {
                       <h5>TDS Slabs</h5>
                       {tds.persentageEntityList.length > 0 ? (
                         <div className="row">
-                          {tds.persentageEntityList
-                            .slice()
-                            .sort((a, b) => parseInt(a.min) - parseInt(b.min))
-                            .map((entity, i) => (
-                              <div key={i} className="col-md-6 mb-3">
-                                <div className="border p-3 bg-light">
-                                  <h5>Slab {i + 1}</h5>
+
+                          {tds.persentageEntityList.map((entity, i) => (
+                            <div key={i} className="col-md-6 mb-3">
+                              <div className="border p-3 bg-light">
+                                <h5>Slab {i + 1}</h5>
+
+                                {/* Minimum Amount Field */}
+                                <div className="form-group">
+                                  <label>Minimum Amount</label>
                                   <input
                                     type="text"
-                                    className="form-control"
-                                    readOnly={isEditing !== i}
+                                    className={`form-control ${touchedFields[`min_${i}`] && errors[`min_${i}`] ? 'is-invalid' : ''}`}
+                                    inputMode="numeric"
                                     value={isEditing === i ? editValues[i]?.min ?? "" : entity.min}
                                     onChange={(e) => {
-                                      if (/^\d{0,9}$/.test(e.target.value)) { // ✅ Allows only 9 digits
-                                        setEditValues((prev) => {
+                                      const value = e.target.value.replace(/[^0-9]/g, '');
+                                      if (value.length <= 9) {
+                                        setEditValues(prev => {
                                           const updated = [...prev];
-                                          updated[i] = { ...updated[i], min: e.target.value };
+                                          updated[i] = { ...updated[i], min: value };
                                           return updated;
                                         });
+                                        // Clear error when user starts typing
+                                        if (errors[`min_${i}`]) {
+                                          setErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors[`min_${i}`];
+                                            return newErrors;
+                                          });
+                                        }
                                       }
                                     }}
+                                    onBlur={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`min_${i}`]: true }));
+                                      validateEditSlab(i);
+                                    }}
+                                    onFocus={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`min_${i}`]: true }));
+                                    }}
                                   />
+                                  {touchedFields[`min_${i}`] && errors[`min_${i}`] && (
+                                    <div className="invalid-feedback">{errors[`min_${i}`]}</div>
+                                  )}
+                                </div>
 
+                                {/* Maximum Amount Field */}
+                                <div className="form-group mt-2">
+                                  <label>Maximum Amount</label>
                                   <input
                                     type="text"
-                                    className="form-control mt-2"
-                                    readOnly={isEditing !== i}
+                                    className={`form-control ${touchedFields[`max_${i}`] && errors[`max_${i}`] ? 'is-invalid' : ''}`}
+                                    inputMode="numeric"
                                     value={isEditing === i ? editValues[i]?.max ?? "" : entity.max}
                                     onChange={(e) => {
-                                      if (/^\d{0,9}$/.test(e.target.value)) { // ✅ Allows only 9 digits
-                                        setEditValues((prev) => {
+                                      const value = e.target.value.replace(/[^0-9]/g, '');
+                                      if (value.length <= 9) {
+                                        setEditValues(prev => {
                                           const updated = [...prev];
-                                          updated[i] = { ...updated[i], max: e.target.value };
+                                          updated[i] = { ...updated[i], max: value };
                                           return updated;
                                         });
+                                        // Clear error when user starts typing
+                                        if (errors[`max_${i}`]) {
+                                          setErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors[`max_${i}`];
+                                            return newErrors;
+                                          });
+                                        }
                                       }
                                     }}
+                                    onBlur={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`max_${i}`]: true }));
+                                      validateEditSlab(i);
+                                    }}
+                                    onFocus={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`max_${i}`]: true }));
+                                    }}
                                   />
+                                  {touchedFields[`max_${i}`] && errors[`max_${i}`] && (
+                                    <div className="invalid-feedback">{errors[`max_${i}`]}</div>
+                                  )}
+                                </div>
 
+                                {/* Tax Percentage Field */}
+                                <div className="form-group mt-2">
+                                  <label>Tax Percentage</label>
                                   <input
                                     type="text"
-                                    className="form-control mt-2"
-                                    readOnly={isEditing !== i}
+                                    className={`form-control ${touchedFields[`taxPercentage_${i}`] && errors[`taxPercentage_${i}`] ? 'is-invalid' : ''}`}
+                                    inputMode="numeric"
                                     value={isEditing === i ? editValues[i]?.taxPercentage ?? "" : entity.taxPercentage}
-                                    min="0"
-                                    max="99"
+                                    maxLength={2}
                                     onChange={(e) => {
-                                      const value = e.target.value;
-                                      if (value >= 0 && value <= 99) { // ✅ Restricts values between 0 and 99
-                                        setEditValues((prev) => {
+                                      const value = e.target.value.replace(/[^0-9]/g, '');
+                                      if (value.length <= 2) {
+                                        setEditValues(prev => {
                                           const updated = [...prev];
                                           updated[i] = { ...updated[i], taxPercentage: value };
                                           return updated;
                                         });
+                                        // Clear error when user starts typing
+                                        if (errors[`taxPercentage_${i}`]) {
+                                          setErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors[`taxPercentage_${i}`];
+                                            return newErrors;
+                                          });
+                                        }
                                       }
                                     }}
+                                    onBlur={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`taxPercentage_${i}`]: true }));
+                                      validateEditSlab(i);
+                                    }}
+                                    onFocus={() => {
+                                      setTouchedFields(prev => ({ ...prev, [`taxPercentage_${i}`]: true }));
+                                    }}
                                   />
-
-                                  {authUser?.userRole?.includes("company_admin") &&
-                                    (isEditing === i ? (
-                                      <button className="btn btn-success mt-2" onClick={() => handleSave(i, tds.id)}>
-                                        Save
-                                      </button>
-                                    ) : (
-                                      <button className="btn btn-warning mt-2" onClick={() => handleEditClick(i, entity)}>
-                                        Edit
-                                      </button>
-                                    ))}
+                                  {touchedFields[`taxPercentage_${i}`] && errors[`taxPercentage_${i}`] && (
+                                    <div className="invalid-feedback">{errors[`taxPercentage_${i}`]}</div>
+                                  )}
                                 </div>
+                                {authUser?.userRole?.includes("company_admin") &&
+                                  (isEditing === i ? (
+                                    <button className="btn btn-success mt-2" onClick={() => handleSave(i, tds.id)}>
+                                      Save
+                                    </button>
+                                  ) : (
+                                    <button className="btn btn-warning mt-2" onClick={() => handleEditClick(i, entity)}>
+                                      Edit
+                                    </button>
+                                  ))}
                               </div>
-                            ))}
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <p>No slabs available.</p>
@@ -287,27 +483,71 @@ const CompanyTdsView = () => {
                           {showAddSlabForm && (
                             <div className="border p-3 mt-3 bg-light">
                               <h5>Add New Tax Slab</h5>
-                              <input
-                                className="form-control"
-                                placeholder="Min Value"
-                                value={newSlab.min}
-                                onChange={(e) => setNewSlab({ ...newSlab, min: e.target.value })}
-                              />
-                              <input
-                                className="form-control mt-2"
-                                placeholder="Max Value"
-                                value={newSlab.max}
-                                onChange={(e) => setNewSlab({ ...newSlab, max: e.target.value })}
-                              />
-                              <input
-                                className="form-control mt-2"
-                                placeholder="Tax Percentage"
-                                value={newSlab.taxPercentage}
-                                onChange={(e) => setNewSlab({ ...newSlab, taxPercentage: e.target.value })}
-                              />
-                              <button className="btn btn-primary mt-3" onClick={handleAddSlab}>
-                                Save Slab
-                              </button>
+                              <div className="form-group">
+                                <label>Minimum Amount</label>
+                                <input
+                                  type="number"
+                                  className={`form-control ${errors.min ? 'is-invalid' : ''}`}
+                                  placeholder="Min Value"
+                                  value={newSlab.min}
+                                  onChange={(e) => {
+                                    setNewSlab({ ...newSlab, min: e.target.value });
+                                    validateNewSlab();
+                                  }}
+                                />
+                                {errors.min && (
+                                  <div className="invalid-feedback">{errors.min}</div>
+                                )}
+                              </div>
+
+                              <div className="form-group mt-2">
+                                <label>Maximum Amount</label>
+                                <input
+                                  type="number"
+                                  className={`form-control ${errors.max ? 'is-invalid' : ''}`}
+                                  placeholder="Max Value"
+                                  value={newSlab.max}
+                                  onChange={(e) => {
+                                    setNewSlab({ ...newSlab, max: e.target.value });
+                                    validateNewSlab();
+                                  }}
+                                />
+                                {errors.max && (
+                                  <div className="invalid-feedback">{errors.max}</div>
+                                )}
+                              </div>
+
+                              <div className="form-group mt-2">
+                                <label>Tax Percentage</label>
+                                <input
+                                  type="number"
+                                  className={`form-control ${errors.taxPercentage ? 'is-invalid' : ''}`}
+                                  placeholder="Tax Percentage"
+                                  value={newSlab.taxPercentage}
+                                  min="0"
+                                  max="100"
+                                  step="0.01"
+                                  onChange={(e) => {
+                                    setNewSlab({ ...newSlab, taxPercentage: e.target.value });
+                                    validateNewSlab();
+                                  }}
+                                />
+                                {errors.taxPercentage && (
+                                  <div className="invalid-feedback">{errors.taxPercentage}</div>
+                                )}
+                              </div>
+
+                              <div className="d-flex gap-2 mt-3">
+                                <button className="btn btn-primary" onClick={handleAddSlab}>
+                                  Save Slab
+                                </button>
+                                <button className="btn btn-secondary" onClick={() => {
+                                  setShowAddSlabForm(false);
+                                  setErrors({});
+                                }}>
+                                  Cancel
+                                </button>
+                              </div>
                             </div>
                           )}
                         </>

@@ -597,7 +597,7 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     const response = await axiosInstance.get(`/${companyName}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
-        'Accept': 'application/pdf', // Accept PDF format
+        'Accept': 'application/json', // Change from application/pdf to application/json
       }
     });
 
@@ -605,19 +605,19 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `payslip_${employeeId}.pdf`; // Customize file name as needed
+    a.download = `payslip_${employeeId}.pdf`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
 
-    return true; // Indicate success
-
+    return true;
   } catch (error) {
     console.error('Download error:', error);
-    throw error; // Rethrow error for handling in the calling function
+    throw error;
   }
 };
+
 
 export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
   const company = localStorage.getItem("comapnyName")
