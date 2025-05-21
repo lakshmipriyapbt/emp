@@ -1852,7 +1852,6 @@ const handleTaxRegimeChange = (e) => {
                                   Digital Copy
                                 </label>
                               </div>
-
                               {errors.draft && (
                                 <p className="errorMsg">Please select draft copy or digital copy</p>
                               )}
