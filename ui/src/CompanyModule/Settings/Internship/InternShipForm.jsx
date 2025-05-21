@@ -145,7 +145,7 @@ const InternShipForm = () => {
     }
 
     const submissionData = {
-      
+
       companyId: company?.id,
       employeeName: data.employeeName,
       department: data.department,
@@ -172,7 +172,7 @@ const InternShipForm = () => {
       draft: draftValue || false,
       companyName: authUser.company,
       companyData: company,
-      
+
     };
     console.log("preview data : ", preview)
     setPreviewData(preview);
@@ -276,32 +276,18 @@ const InternShipForm = () => {
   };
 
   const validateDatePeriod = (lastWorkingDate, dateOfHiring) => {
-    // Reset the error before starting validation
-    setError("");
-    if (lastWorkingDate && dateOfHiring) {
-      const lastWorking = new Date(lastWorkingDate);
-      const hiringDate = new Date(dateOfHiring);
-
-      // Check if last working date is before date of hiring
-      if (lastWorking < hiringDate) {
-        setError("Internship date cannot be before the date of Joining.");
-        return false; // Return false if validation fails
-      }
-
-      // Clear any previous error if validation passes
-      setError("");
-      return true; // Return true if validation passes
-    } else {
-      setError("Please provide all the required dates.");
-      return false; // Return false if required dates are missing
+    if (!lastWorkingDate || !dateOfHiring) {
+      return "Please provide both dates.";
     }
-  };
-  const getCurrentDate = () => {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = (today.getMonth() + 1).toString().padStart(2, "0");
-    const dd = today.getDate().toString().padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+
+    const lastWorking = new Date(lastWorkingDate);
+    const hiringDate = new Date(dateOfHiring);
+
+    if (lastWorking < hiringDate) {
+      return "Internship date cannot be before the date of joining";
+    }
+
+    return true; // Return true if validation passes
   };
 
   const handleEmailChange = (e) => {
@@ -522,15 +508,17 @@ const InternShipForm = () => {
                         placeholder="Date of Joining"
                         name="dateOfHiring"
                         onClick={(e) => e.target.showPicker()}
-                        max={getCurrentDate()} // This restricts the date to today
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
-                        })} // Required validation
+                        })}
                       />
                       {errors.dateOfHiring && (
-                        <p className="errorMsg">Date of Joining Required</p>
+                        <p className="errorMsg">
+                          {errors.dateOfHiring.message}
+                        </p>
                       )}
                     </div>
+
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Date of Internship</label>
                       <input
@@ -539,80 +527,52 @@ const InternShipForm = () => {
                         placeholder="Last Working Date"
                         name="lastWorkingDate"
                         onClick={(e) => e.target.showPicker()}
-                        max={getCurrentDate()}
-                        {...register("lastWorkingDate", { required: true })}
-                        onBlur={(e) =>
-                          validateDatePeriod(
-                            e.target.value,
-                            e.target.form.dateOfHiring.value
-                          )
-                        } // Validate onBlur
+                        {...register("lastWorkingDate", {
+                          required: "Date of Internship is required",
+                          validate: (value) => {
+                            const dateOfHiring = watch("dateOfHiring");
+                            return validateDatePeriod(value, dateOfHiring);
+                          },
+                        })}
                       />
                       {errors.lastWorkingDate && (
-                        <p className="errorMsg">Date of Internship Required</p>
+                        <p className="errorMsg">
+                          {errors.lastWorkingDate.message}
+                        </p>
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Generated Date</label>
-                    <input
-                       type="date"
-                       name="generatedDate"
-                       placeholder="Enter Generated Date"
-                       className="form-control"
-                       autoComplete="off"
-                       onClick={(e) => e.target.showPicker()}
-                        {...register("generatedDate", {
-                       required: "Generated Date is required",
-                        validate: {
-                       
-                       notBeforeLastWorkingDate: (value) => {
-                        const lastWorkingDate = watch("lastWorkingDate");
-                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
-                     return (
-                      new Date(value) >= new Date(lastWorkingDate) ||
-                      "Generated Date cannot be before Last Working Date"
-                       );
-                      },
-                    },
-                  })}
-                 />
-                      {errors.generatedDate && (
-                     <p className="errorMsg">{errors.generatedDate.message}</p>
-                         )}
-
-                </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                           <label className="form-label">Select Mode</label>
-                          <div className="form-check">
-                                     <input
-                                        type="radio"
-                                        className="form-check-input"
-                                         id="draft"
-                                        name="draft"
-                                          value={true}
-                                {...register("draft", { required: true })}
-                                />
-                         <label className="form-check-label" htmlFor="draft">
+                      <label className="form-label">Select Mode</label>
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          className="form-check-input"
+                          id="draft"
+                          name="draft"
+                          value={true}
+                          {...register("draft", { required: true })}
+                        />
+                        <label className="form-check-label" htmlFor="draft">
                           Draft Copy
-                         </label>
-                          </div>
-                        <div className="form-check">
-                            <input
-                               type="radio"
-                                className="form-check-input"
-                               id="undraft"
-                               name="draft"
-                               value={false}
-                                {...register("draft", { required: true })}
-                              />
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          className="form-check-input"
+                          id="undraft"
+                          name="draft"
+                          value={false}
+                          {...register("draft", { required: true })}
+                        />
                         <label className="form-check-label" htmlFor="undraft">
-                             Digital Copy
-                           </label>
-                       </div>
+                          Digital Copy
+                        </label>
+                      </div>
 
-                       {errors.draft && (
-                            <p className="errorMsg">Please select draft copy or digital copy</p>
-                       )}
+                      {errors.draft && (
+                        <p className="errorMsg">Please select draft copy or digital copy</p>
+                      )}
                     </div>
 
 
