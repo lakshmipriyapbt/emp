@@ -599,15 +599,14 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
       }
     });
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `payslip_${employeeId}.pdf`;
+    a.download = `payslip.pdf`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-
     return true;
   } catch (error) {
     console.error('Download error:', error);
