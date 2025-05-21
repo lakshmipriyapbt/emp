@@ -148,9 +148,9 @@ const InternShipForm = () => {
 
       companyId: company?.id,
       employeeName: data.employeeName,
-      department: data.departmentName,
-      designation: data.designationName,
-      date: currentDate,
+      department: data.department,
+      designation: data.designation,
+      date: data.generatedDate,
       startDate: data.dateOfHiring,
       endDate: data.lastWorkingDate,
       draft: draftValue,
@@ -164,15 +164,17 @@ const InternShipForm = () => {
       employeeId: selectedEmployee
         ? selectedEmployee.employeeId
         : data.employeeId,
-      designationName: data.designationName || "",
-      departmentName: data.departmentName || "",
+      designationName: data.designation || "",
+      departmentName: data.department || "",
       startDate: data.dateOfHiring || "",
       lastWorkingDate: data.lastWorkingDate || "",
+      generatedDate: data.generatedDate || "",
       draft: draftValue || false,
       companyName: authUser.company,
       companyData: company,
 
     };
+    console.log("preview data : ", preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);

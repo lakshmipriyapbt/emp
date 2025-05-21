@@ -85,20 +85,20 @@ export const NAV_CONFIG = {
             title: 'Settings',
             icon: 'gear', // ⚙️
             items: [
-                { title: 'Company Salary Structure', path: '/companySalaryView' },
-                { title: 'Add TDS', path: '/companyTdsView' },
-                { title: 'Bank Details', path: '/accountsView' },
-                { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
+                { title: 'Bank Details', path: '/accountsView' },
+                { title: 'Calendar', path:'/AddEvent'},
+                { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
-                { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Offer Letter Templates', path: '/offerLetters' },
+                { title: 'Relieving Template', path: '/relievingTemplates' },
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+
             ]
         }
     ],
-
     HR: [
         {
             title: 'Dashboard',
@@ -119,6 +119,11 @@ export const NAV_CONFIG = {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people'
+        },
+        {
+            title:'Calendar',
+            path:'/AddEvent',
+            icon:'calendar'
         },
         {
             title: 'Letters',
@@ -154,7 +159,6 @@ export const NAV_CONFIG = {
             icon: 'gear',
             items: [
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
-                { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },

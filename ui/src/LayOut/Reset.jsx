@@ -45,10 +45,8 @@ const Reset = ({ companyName, onClose, show }) => {
     const fetchData = async () => {
       try {
         const response = await EmployeeGetApiById(authUser.userId);
-        console.log("Fetched employee data:", response);
         if (response && response.data && response.data.employeeId) {
           setEmployeeId(response.data.employeeId);
-          console.log("Employee ID:", response.data.employeeId);
         } else {
           console.error("Employee ID is missing in the response");
         }
@@ -70,10 +68,9 @@ const Reset = ({ companyName, onClose, show }) => {
 
     try {
       setLoading(true);
-      const response = await resetPassword(formData, authUser.userId);
-      console.log("Password Reset Successful:", response.data);
-      
-      // Show success message
+      await resetPassword(formData, authUser.userId);
+      setLoading(false);
+      onClose(); 
       toast.success("Password Reset Successful");
     
       // Delay pop-up message slightly to ensure smooth UI experience

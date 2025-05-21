@@ -948,7 +948,7 @@ const handleTaxRegimeChange = (e) => {
       salaryHikePersentage: hikePercentage,
       companyId: company.id,
       employeeId: employeeId,
-      date: new Date().toISOString().split("T")[0],
+      date: previewData.date,
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
       grossCompensation: String(grossAmount || ""),
       salaryConfigurationId: salaryStructureId || "",
@@ -1069,7 +1069,7 @@ const handleTaxRegimeChange = (e) => {
       totalAllowances: totalAllowances,
       basicSalary: basicAmount,
       draft: draftValue,
-      date: new Date().toISOString().split("T")[0],
+      date: data.generatedDate,
     };
     setPreviewData(preview);
     setShowPreview(true);
@@ -1852,7 +1852,6 @@ const handleTaxRegimeChange = (e) => {
                                   Digital Copy
                                 </label>
                               </div>
-
                               {errors.draft && (
                                 <p className="errorMsg">Please select draft copy or digital copy</p>
                               )}

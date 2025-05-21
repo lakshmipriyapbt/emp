@@ -19,6 +19,7 @@ const InternShipPreview = ({ previewData, selectedTemplate}) => { // Accept prev
           startDate={previewData.startDate}
           endDate={previewData.lastWorkingDate}
           draft={previewData.draft}
+          generatedDate={previewData.generatedDate}
         />
       ),
     },
@@ -37,6 +38,7 @@ const InternShipPreview = ({ previewData, selectedTemplate}) => { // Accept prev
           startDate={previewData.startDate}
           endDate={previewData.lastWorkingDate}
           draft={previewData.draft}
+          generatedDate={previewData.generatedDate}
         />
       ),
     },
