@@ -165,19 +165,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
                 EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
 
-                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId());
-
-                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
-                    employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
-                    String grossAmounts = employeeSalaryEntity.stream()
-                            .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
-                            .map(EmployeeSalaryEntity::getGrossAmount)
-                            .findFirst()
-                            .map(String::valueOf) // Convert the value inside the Optional to a String
-                            .orElse("0");
-
-                    employee.setCurrentGross(grossAmounts);
+                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), Constants.ACTIVE);
+                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()) {
+                    EmployeeSalaryEntity activeSalary = employeeSalaryEntity.get(0);
+                    EmployeeUtils.unMaskEmployeeSalaryProperties(activeSalary);
+                    employee.setCurrentGross(activeSalary.getGrossAmount());
                 }
+
                 RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
                 // Set status only if relieving details are found
                 if (relievingDetails != null) {
@@ -286,7 +280,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
                         HttpStatus.BAD_REQUEST);
             }
-            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId);
+            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId, null);
 
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);

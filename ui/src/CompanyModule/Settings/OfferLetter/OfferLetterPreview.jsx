@@ -47,7 +47,8 @@ const OfferLetterPreview = () => {
 
   const { company } = useAuth();
   const location = useLocation();
-  const { previewData, formData } = location.state || {};
+  const { previewData } = location.state || {};
+   
 
   useEffect(() => {
     if (previewData) {
@@ -1134,28 +1135,24 @@ const OfferLetterPreview = () => {
           </div>
         </div>
       </div>
-      <div
-        className="col-12 mt-4 d-flex justify-content-end" // Changed to "justify-content-end"
-        style={{ background: "none", gap: "10px" }} // Added gap for spacing
-      >
-        <button
-          type="button"
-          className="btn btn-outline-secondary"
-          onClick={handleClose}
-        >
-          Close
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-outline-primary"
-          onClick={handleDownload}
-          disabled={error}
-        >
-          <span className="m-2">Download</span>
-          <Download size={18} className="ml-1" />
-        </button>
-      </div>
+     <div className="col-12 mt-4 d-flex justify-content-end"
+     style={{background: "none", gap: "10px"}}
+     >
+      <button
+      type="button"
+      className="btn btn-outline-secondary"
+      onClick={handleClose}>
+        Close
+      </button>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleDownload}
+            >
+              <span className="m-2">Download</span>{" "}
+              <Download size={18} className="ml-1" />
+            </button>
+          </div>
     </LayOut>
   );
 };

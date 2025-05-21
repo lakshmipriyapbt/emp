@@ -32,7 +32,7 @@ const OfferLetterForm = () => {
       salaryConfigurationId: "",
       department: "",
       designation: "",
-      draft: false, 
+      draft: false,
       generatedDate: "",
     }
   });
@@ -754,6 +754,34 @@ const OfferLetterForm = () => {
                     </div>
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Genatated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Genatated Date is required",
+                          validate: {
+                            notAfterJoiningDate: (value) => {
+                              const joiningDate = watch("joiningDate");
+                              if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                              return (
+                                new Date(value) <= new Date(joiningDate) ||
+                                "Generated Date cannot be after Joining Date"
+                              );
+                            }
+                          },
+                        })}
+                      />
+                      {errors.generatedDate && (
+                        <p className="errorMsg">{errors.generatedDate.message}</p>
+                      )}
+                    </div>
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Address</label>
                       <textarea
                         type="text"
@@ -789,74 +817,46 @@ const OfferLetterForm = () => {
                         </p>
                       )}
                     </div>
-
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Genarated Date</label>
-                      <input
-                        type="date"
-                        name="generatedDate"
-                        placeholder="Enter Genatated Date"
-                        className="form-control"
-                        autoComplete="off"
-                        onClick={(e) => e.target.showPicker()}
-                        {...register("generatedDate", {
-                          required: "Genatated Date is required",
-                          validate: {
-                            notAfterJoiningDate: (value) => {
-                              const joiningDate = watch("joiningDate");
-                              if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
-                              return (
-                                new Date(value) <= new Date(joiningDate) ||
-                                "Generated Date cannot be after Joining Date"
-                              );
+                      <label className="form-label mb-3">Select Mode</label>
+                      <div className="d-flex">
+                        <div className="form-check me-3">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="draft"
+                            name="draft"
+                            value="true"
+                            checked={
+                              watch("draft") === true ||
+                              watch("draft") === "true" ||
+                              (initialFormData?.draft === true || initialFormData?.draft === "true")
                             }
-                          },
-                        })}
-                      />
-                      {errors.generatedDate && (
-                        <p className="errorMsg">{errors.generatedDate.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
-
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Select Mode</label>
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="draft"
-                          name="draft"
-                          value="true"
-                          checked={
-                            watch("draft") === true ||
-                            watch("draft") === "true" ||
-                            (initialFormData?.draft === true || initialFormData?.draft === "true")
-                          }
-                          {...register("draft", { required: true })}
-                        />
-                        <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="undraft"
-                          name="draft"
-                          value="false"
-                          checked={
-                            watch("draft") === false ||
-                            watch("draft") === "false" ||
-                            (initialFormData?.draft === false || initialFormData?.draft === "false")
-                          }
-                          {...register("draft", { required: true })}
-                        />
-                        <label className="form-check-label" htmlFor="undraft">
-                          Digital Copy
-                        </label>
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value="false"
+                            checked={
+                              watch("draft") === false ||
+                              watch("draft") === "false" ||
+                              (initialFormData?.draft === false || initialFormData?.draft === "false")
+                            }
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
                       </div>
                       {errors.draft && (
                         <p className="errorMsg">Please select draft copy or digital copy</p>

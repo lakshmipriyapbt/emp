@@ -139,10 +139,13 @@ const Reset = ({ companyName, onClose, show }) => {
 
   const handlePaste = (e) => {
     const pastedText = e.clipboardData.getData('Text');
-    const sanitizedText = pastedText.replace(/[^A-Za-z0-9]/g, ''); // Keep only alphanumeric characters
-    e.preventDefault(); // Prevent the default paste action
-    e.target.value = sanitizedText; // Insert the sanitized text back into the input
-  };
+    
+    // Allow numbers, letters, and special characters while removing spaces
+    const sanitizedText = pastedText.replace(/[^A-Za-z0-9!@#$%^&*()_+={}[\]:;"'<>,.?/\\|-]/g, ''); 
+    
+    e.preventDefault(); // Prevent default paste action
+    e.target.value = sanitizedText; // Insert sanitized text into the input
+};
 
   const validatePassword = (value) => {
     const errors = [];
