@@ -591,31 +591,30 @@ export const AllEmployeePayslipsGet = (month, year) => {
 export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
   const company = localStorage.getItem("companyName");
   try {
-    // Make the API request with specific headers for this request
     const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`, {
-      responseType: 'blob', // Handle the response as a binary blob
+      responseType: 'blob', // Keep this to handle binary data
+      // Remove Accept header or set it to application/json
       headers: {
-        'Accept': 'application/pdf', // Accept PDF format
+        'Accept': 'application/json', // Change from application/pdf to application/json
       }
     });
 
-    // Create a URL for the blob and trigger the download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `payslip_${employeeId}.pdf`; // Customize file name as needed
+    a.download = `payslip_${employeeId}.pdf`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
 
-    return true; // Indicate success
-
+    return true;
   } catch (error) {
     console.error('Download error:', error);
-    throw error; // Rethrow error for handling in the calling function
+    throw error;
   }
 };
+
 
 export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
   const company = localStorage.getItem("comapnyName")

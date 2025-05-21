@@ -1,9 +1,10 @@
-import React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import React, { useEffect } from "react";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import LayOut from "../../LayOut/LayOut";
 import { TdsPostApi } from "../../Utils/Axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Select from "react-select";
 
 const generateYearOptions = (start = 2020, end = 2050) =>
   Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -14,13 +15,14 @@ const AddTaxSlab = () => {
     handleSubmit,
     reset,
     control,
+    trigger,
     formState: { errors },
     watch,
   } = useForm({
     defaultValues: {
-      startYear: "",
-      endYear: "",
-      tdsType: "", // Added TDS Type field
+      startYear: null,
+      endYear: null,
+      tdsType: null,
       persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
     },
   });
@@ -32,16 +34,38 @@ const AddTaxSlab = () => {
 
   const startYear = watch("startYear");
   const navigate = useNavigate();
-  const years = generateYearOptions();
+  const years = generateYearOptions().map(year => ({ value: year, label: year }));
+  const tdsTypeOptions = [
+    { value: "old", label: "Old" },
+    { value: "new", label: "New" }
+  ];
+
+  // Only allow numeric input
+  const handleNumericInput = (e) => {
+    const value = e.target.value;
+    if (value === "" || /^[0-9\b]+$/.test(value)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Only allow percentage input (numbers and %)
+  const handlePercentageInput = (e) => {
+    const value = e.target.value;
+    if (value === "" || /^[0-9%\b]+$/.test(value)) {
+      return true;
+    }
+    return false;
+  };
 
   const onSubmit = async (data) => {
     try {
       console.log("Submitting Data:", data);
 
       const formattedData = {
-        startYear: Number(data.startYear),
-        endYear: Number(data.endYear),
-        tdsType: data.tdsType.toString(), // Ensure TDS Type is a string
+        startYear: Number(data.startYear.value),
+        endYear: Number(data.endYear.value),
+        tdsType: data.tdsType.value.toString(),
         persentageEntityList: data.persentageEntityList.map((entry) => ({
           min: entry.min.toString(),
           max: entry.max.toString(),
@@ -75,6 +99,11 @@ const AddTaxSlab = () => {
       }
     }
   };
+  useEffect(() => {
+    if (startYear && watch("endYear")) {
+      trigger("endYear");
+    }
+  }, [startYear, watch("endYear")]);
 
   return (
     <LayOut>
@@ -87,19 +116,18 @@ const AddTaxSlab = () => {
               <div className="row">
                 <div className="col-md-4">
                   <label className="form-label">Start Year</label>
-                  <select
-                    className="form-control"
-                    {...register("startYear", {
-                      required: "Start year is required",
-                    })}
-                  >
-                    <option value="">Select Start Year</option>
-                    {years.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    name="startYear"
+                    control={control}
+                    rules={{ required: "Start year is required" }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={years}
+                        placeholder="Select Start Year"
+                      />
+                    )}
+                  />
                   {errors.startYear && (
                     <p className="text-danger">{errors.startYear.message}</p>
                   )}
@@ -107,23 +135,31 @@ const AddTaxSlab = () => {
 
                 <div className="col-md-4">
                   <label className="form-label">End Year</label>
-                  <select
-                    className="form-control"
-                    {...register("endYear", {
+                  <Controller
+                    name="endYear"
+                    control={control}
+                    rules={{
                       required: "End year is required",
-                      validate: (val) =>
-                        !startYear || parseInt(val) > parseInt(startYear)
-                          ? true
-                          : "End year must be greater than start year",
-                    })}
-                  >
-                    <option value="">Select End Year</option>
-                    {years.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
+                      validate: (val) => {
+                        if (!startYear) return true; // No validation if start year not selected
+                        return val.value > startYear.value || "End year must be greater than start year";
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={years}
+                        placeholder="Select End Year"
+                        onChange={(val) => {
+                          field.onChange(val);
+                          // Trigger validation immediately on change
+                          if (startYear) {
+                            trigger("endYear");
+                          }
+                        }}
+                      />
+                    )}
+                  />
                   {errors.endYear && (
                     <p className="text-danger">{errors.endYear.message}</p>
                   )}
@@ -131,16 +167,18 @@ const AddTaxSlab = () => {
 
                 <div className="col-md-4">
                   <label className="form-label">TDS Type</label>
-                  <select
-                    className="form-control"
-                    {...register("tdsType", {
-                      required: "TDS Type is required",
-                    })}
-                  >
-                    <option value="">Select TDS Type</option>
-                    <option value="old">Old</option>
-                    <option value="new">New</option>
-                  </select>
+                  <Controller
+                    name="tdsType"
+                    control={control}
+                    rules={{ required: "TDS Type is required" }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={tdsTypeOptions}
+                        placeholder="Select TDS Type"
+                      />
+                    )}
+                  />
                   {errors.tdsType && (
                     <p className="text-danger">{errors.tdsType.message}</p>
                   )}
@@ -152,14 +190,24 @@ const AddTaxSlab = () => {
             {fields.map((field, index) => (
               <div className="row mb-2" key={field.id}>
                 <div className="col-md-4">
-                  <label className="form-label">Min Value</label>
+                  <label className="form-label">Minimum Amount</label>
                   <input
-                    type="number"
+                    type="text"
                     className="form-control"
                     placeholder="Min"
+                    maxLength={9}
+                    onKeyDown={(e) => {
+                      if (!handleNumericInput(e)) {
+                        e.preventDefault();
+                      }
+                    }}
                     {...register(`persentageEntityList.${index}.min`, {
                       required: "Min value is required",
                       min: { value: 0, message: "Min must be >= 0" },
+                      pattern: {
+                        value: /^\d+$/,
+                        message: "Only numbers are allowed"
+                      }
                     })}
                   />
                   {errors.persentageEntityList?.[index]?.min && (
@@ -168,40 +216,74 @@ const AddTaxSlab = () => {
                 </div>
 
                 <div className="col-md-4">
-                  <label className="form-label">Max Value</label>
+                  <label className="form-label">Maximum Amount</label>
                   <input
-                    type="number"
+                    type="text"
                     className="form-control"
                     placeholder="Max"
+                    maxLength={9}
+                    onKeyDown={(e) => {
+                      if (!handleNumericInput(e)) {
+                        e.preventDefault();
+                      }
+                    }}
                     {...register(`persentageEntityList.${index}.max`, {
                       required: "Max value is required",
-                      validate: (val) => parseInt(val) > 0 || "Max must be greater than 0",
+                      validate: (val) => {
+                        if (parseInt(val) <= 0) return "Max must be greater than 0";
+                        if (watch(`persentageEntityList.${index}.min`) && 
+                            parseInt(val) <= parseInt(watch(`persentageEntityList.${index}.min`))) {
+                          return "Max must be greater than Min";
+                        }
+                        return true;
+                      },
+                      pattern: {
+                        value: /^\d+$/,
+                        message: "Only numbers are allowed"
+                      }
                     })}
                   />
                   {errors.persentageEntityList?.[index]?.max && (
                     <p className="text-danger">{errors.persentageEntityList[index].max.message}</p>
                   )}
                 </div>
-
                 <div className="col-md-4">
                   <label className="form-label">Tax Percentage</label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Enter Tax Percentage"
+                    placeholder="Enter Tax Percentage (0-99)"
+                    maxLength={2}
+                    onKeyDown={(e) => {
+                      // Allow only numbers (0-9) and control keys
+                      if (!/[0-9]|Backspace|Delete|ArrowLeft|ArrowRight/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onInput={(e) => {
+                      // Ensure value stays within 0-99 range
+                      let value = e.target.value;
+                      if (value > 99) e.target.value = 99;
+                      if (value < 0) e.target.value = 0;
+                    }}
                     {...register(`persentageEntityList.${index}.taxPercentage`, {
                       required: "Tax Percentage is required",
                       pattern: {
-                        value: /^\d+(\.\d+)?%?$/,
-                        message: "Enter a valid percentage (e.g., 10%)",
+                        value: /^[0-9]{1,2}$/,
+                        message: "Enter a number between 0-99"
                       },
+                      validate: (val) => {
+                        const num = parseInt(val, 10);
+                        if (isNaN(num)) return "Enter a valid number";
+                        if (num < 0 || num > 99) return "Must be between 0-99";
+                        return true;
+                      }
                     })}
                   />
                   {errors.persentageEntityList?.[index]?.taxPercentage && (
                     <p className="text-danger">{errors.persentageEntityList[index].taxPercentage.message}</p>
                   )}
                 </div>
-
                 <div className="col-md-12 d-flex justify-content-end mt-2">
                   {index > 0 && (
                     <button
@@ -223,9 +305,18 @@ const AddTaxSlab = () => {
               + Add Slab
             </button>
             <br />
-            <button type="submit" className="btn btn-primary">
-              Save TDS Structure
-            </button>
+            <div className="d-flex justify-content-between">
+              <button type="submit" className="btn btn-primary">
+                Save TDS Structure
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={() => navigate("/companyTdsView")}
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       </div>

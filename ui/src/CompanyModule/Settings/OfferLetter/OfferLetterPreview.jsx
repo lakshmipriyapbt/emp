@@ -40,14 +40,15 @@ const OfferLetterPreview = () => {
   const [companyName, setCompanyName] = useState("Company Name");
   const [hasCinNo, setHasCinNo] = useState(false);
   const [hasCompanyRegNo, setHasCompanyRegNo] = useState(false);
-  const [department,setDepartment] =useState("");
-  const [designation,setDesignation]=useState("");
-  const [draft,setDraft]=useState("");
+  const [department, setDepartment] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [draft, setDraft] = useState("");
+  const navigate = useNavigate();
 
   const { company } = useAuth();
   const location = useLocation();
   const { previewData } = location.state || {};
-  const navigate= useNavigate();  
+   
 
   useEffect(() => {
     if (previewData) {
@@ -63,14 +64,14 @@ const OfferLetterPreview = () => {
       setGrossAmount(previewData.salaryPackage || 0);
       setRefNo(previewData.referenceNo || " ");
       setDepartment(previewData.department || " ");
-      setDesignation(previewData.designation|| "")
-      setDraft(previewData.draft|| false) 
+      setDesignation(previewData.designation || "")
+      setDraft(previewData.draft || false)
       setGeneratedDate(previewData.generatedDate || "Generated date");
 
     }
   }, [previewData]);
 
-  console.log("preview Data",previewData)
+  console.log("preview Data", previewData)
 
 
   const fetchSalary = async () => {
@@ -114,6 +115,14 @@ const OfferLetterPreview = () => {
       .join(" ");
   };
 
+  const handleClose = () => {
+    navigate("/offerLetterForm", { 
+      state: { 
+        formData: location.state?.formData || {} 
+      } 
+    });
+  }
+  
   useEffect(() => {
     fetchSalary();
   }, []); // Initially fetch the salary structures
@@ -253,9 +262,9 @@ const OfferLetterPreview = () => {
       salaryConfigurationId: salaryConfigurationId,
       salaryPackage: grossAmount,
       companyId: company?.id,
-      department:department,
-      designation:designation,
-      draft:previewData.draft
+      department: department,
+      designation: designation,
+      draft: previewData.draft
     };
 
     try {
@@ -289,7 +298,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-       {!draft &&( <div
+        {!draft && (<div
           style={{
             position: "absolute",
             top: "30%",
@@ -316,7 +325,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-          {!draft &&( <div style={{ textAlign: "right" }}>
+            {!draft && (<div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -453,8 +462,8 @@ const OfferLetterPreview = () => {
                 {hasCinNo
                   ? `CIN:- ${company?.cinNo} `
                   : hasCompanyRegNo
-                  ? `Registration:- ${company?.companyRegNo}`
-                  : null}
+                    ? `Registration:- ${company?.companyRegNo}`
+                    : null}
               </p>
               <hr />
               <div style={{ padding: "2px", textAlign: "center" }}>
@@ -463,7 +472,7 @@ const OfferLetterPreview = () => {
                 <h6>
                   PH: {company?.mobileNo}, Email:{" "}
                   {company?.emailId}
-                  
+
                 </h6>
               </div>
             </div>
@@ -474,7 +483,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-         {!draft &&(  <div
+        {!draft && (<div
           style={{
             position: "absolute",
             top: "30%",
@@ -501,7 +510,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-          {!draft &&(    <div style={{ textAlign: "right" }}>
+            {!draft && (<div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -512,7 +521,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div> )}
+            </div>)}
             <p style={{ paddingTop: "30px" }}>
               <strong>Place of Employment and Transfer:</strong>
               You acknowledge and agree that you may be assigned or liable to be
@@ -612,8 +621,8 @@ const OfferLetterPreview = () => {
               {hasCinNo
                 ? `CIN:- ${company?.cinNo}`
                 : hasCompanyRegNo
-                ? ` Registration:- ${company?.companyRegNo}`
-                : null}
+                  ? ` Registration:- ${company?.companyRegNo}`
+                  : null}
             </p>
             <hr />
             <div style={{ padding: "2px", textAlign: "center" }}>
@@ -621,7 +630,7 @@ const OfferLetterPreview = () => {
               <h6>{company?.companyAddress}</h6>
               <h6>
                 PH: {company?.mobileNo}, Email: {company?.emailId}{" "}
-                
+
               </h6>
             </div>
           </div>
@@ -631,7 +640,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-         {!draft &&(  <div
+        {!draft && (<div
           style={{
             position: "absolute",
             top: "30%",
@@ -658,7 +667,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-          {!draft &&(  <div style={{ textAlign: "right" }}>
+            {!draft && (<div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -752,7 +761,7 @@ const OfferLetterPreview = () => {
                         <td>
                           {Math.round(
                             (grossAmount - calculatedValues.totalAllowances) /
-                              12
+                            12
                           ) < 0 ? (
                             <span style={{ color: "red" }}>
                               0 {/* Display 0 if negative */}
@@ -760,7 +769,7 @@ const OfferLetterPreview = () => {
                           ) : (
                             Math.round(
                               (grossAmount - calculatedValues.totalAllowances) /
-                                12
+                              12
                             )
                           )}
                         </td>
@@ -916,16 +925,16 @@ const OfferLetterPreview = () => {
             {hasCinNo
               ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${company?.companyRegNo}`
-              : null}
+                ? `Registration:- ${company?.companyRegNo}`
+                : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
             <h6>{company?.companyName}</h6>
             <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {company?.mobileNo}, Email: {company?.emailId} 
-             
+              PH: {company?.mobileNo}, Email: {company?.emailId}
+
             </h6>
           </div>
         </div>
@@ -934,7 +943,7 @@ const OfferLetterPreview = () => {
         className="card"
         style={{ position: "relative", overflow: "hidden" }}
       >
-         {!draft &&(  <div
+        {!draft && (<div
           style={{
             position: "absolute",
             top: "30%",
@@ -961,7 +970,7 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-          {!draft &&(  <div style={{ textAlign: "right" }}>
+            {!draft && (<div style={{ textAlign: "right" }}>
               {company?.imageFile ? (
                 <img
                   className="align-middle"
@@ -972,7 +981,7 @@ const OfferLetterPreview = () => {
               ) : (
                 <p>Logo</p>
               )}
-            </div> )}
+            </div>)}
             <h3
               style={{
                 textAlign: "center",
@@ -1112,24 +1121,29 @@ const OfferLetterPreview = () => {
             {hasCinNo
               ? ` CIN:- ${company?.cinNo} `
               : hasCompanyRegNo
-              ? `Registration:- ${company?.companyRegNo}`
-              : null}
+                ? `Registration:- ${company?.companyRegNo}`
+                : null}
           </p>
           <hr />
           <div style={{ padding: "2px", textAlign: "center" }}>
             <h6>{company?.companyName}</h6>
             <h6>{company?.companyAddress}</h6>
             <h6>
-              PH: {company?.mobileNo}, Email: {company?.emailId} 
-             
+              PH: {company?.mobileNo}, Email: {company?.emailId}
+
             </h6>
           </div>
         </div>
       </div>
-     <div className="d-flex justify-content-end align-items-center me-4">
-          <button onClick={() => navigate(-1)} className="btn btn-secondary me-3">
-                  ← Back
-                </button>
+     <div className="col-12 mt-4 d-flex justify-content-end"
+     style={{background: "none", gap: "10px"}}
+     >
+      <button
+      type="button"
+      className="btn btn-outline-secondary"
+      onClick={handleClose}>
+        Close
+      </button>
             <button
               type="button"
               className="btn btn-outline-primary"

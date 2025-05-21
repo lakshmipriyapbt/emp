@@ -102,6 +102,29 @@ const InternOfferForm = () => {
 
     return true;
   };
+
+  const validateYearFormat = (dateStr) => {
+    if (!dateStr) return true; // Skip validation if empty
+    
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return false; // Invalid format
+    
+    const year = parts[0]; // Assuming format is YYYY-MM-DD (adjust if needed)
+    
+    // Check if year has exactly 4 digits and is a valid number
+    return /^\d{4}$/.test(year) && parseInt(year) >= 1000 && parseInt(year) <= 9999;
+  };
+  
+  const validateDateInput = (value) => {
+    if (!value) return true; // Skip if empty
+    
+    // Check year format (4 digits)
+    if (!validateYearFormat(value)) {
+      return "Year must be exactly 4 digits (DD-MM-YYYY format)";
+    }
+    
+    return true;
+  };
   
   const normalizeDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -115,9 +138,9 @@ const InternOfferForm = () => {
     const today = normalizeDate(new Date().toISOString().split("T")[0]);
     const joining = normalizeDate(joiningDate);
   
-    if (acceptDate <= today) {
-      return "Accept Date must be after today's date";
-    }
+    // if (acceptDate <= today) {
+    //   return "Accept Date must be after today's date";
+    // }
   
     if (acceptDate >= joining) {
       return "Accept Date must be before the Joining Date";
@@ -646,6 +669,9 @@ const InternOfferForm = () => {
                         max={threeMonthsFromNow}
                         {...register("startDate", {
                           required: "Joining Date is required",
+                          validate: {
+                            validYear: (value) => validateDateInput(value),
+                          },
                         })}
                       />
                       {errors.startDate && (
@@ -664,7 +690,10 @@ const InternOfferForm = () => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("endDate", {
                           required: "End Date is required",
-                          validate: validateEndDate,
+                          validate: {
+                            validYear: (value) => validateDateInput(value),
+                            validEndDate: (value) => validateEndDate(value, watch("startDate")),
+                          },                        
                         })}
                       />
                       {errors.endDate && (
@@ -821,7 +850,10 @@ const InternOfferForm = () => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("acceptDate", {
                           required: "Accept Date is required",
-                          validate: (value) => validateAcceptDate(value, watch("startDate"))
+                          validate: {
+                            validYear: (value) => validateDateInput(value),
+                            validAcceptDate: (value) => validateAcceptDate(value, watch("startDate")),
+                          },
                         })}
                       />
                       {errors.acceptDate && (
