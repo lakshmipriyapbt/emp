@@ -23,6 +23,8 @@ public class OfferLetterRequest {
     private String offerDate;
 
     @Schema(example = "referenceNo")
+    @Pattern(regexp =  "^[A-Z0-9_\\-/]+$", message = "{referenceNo.format}")
+    @Size(min = 3, max = 20, message = "{referenceNo.size.message}")
     private String referenceNo;
 
     @Schema(example = "employeeName")
