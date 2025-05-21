@@ -59,10 +59,10 @@ const LayOut = ({ children }) => {
 
   return (
     <div className="wrapper">
-      <div className={`fixed-sideNav ${isSidebarVisible ? "" : "hidden"}`}>
+      <div className={`fixed-sideNav ${isSidebarVisible ? "" : "collapsed"}`}>
         <SideNav />
       </div>
-      <div className={`main ${isSidebarVisible ? "" : "full-width"}`}>
+      <div className={`main ${isSidebarVisible ? "" : "sidebar-collapsed"}`}>
         <Header toggleSidebar={toggleSidebar} />
         <main className="content">{children}</main>
         <footer className="footer">
