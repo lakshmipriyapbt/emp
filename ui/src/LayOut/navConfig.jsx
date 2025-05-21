@@ -27,11 +27,6 @@ export const NAV_CONFIG = {
             icon: 'building' // 🏢
         },
         {
-            title: 'Designation',
-            path: '/designation',
-            icon: 'person-badge' // 🏷️
-        },
-        {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people' // 👥
@@ -66,7 +61,7 @@ export const NAV_CONFIG = {
             ]
         },
         {
-            title: 'Clients',
+            title: 'Client View',
             icon: 'person-lines-fill', // 👤📃
             items: [
                 { title: 'Client View', path: '/customersView' },
@@ -85,20 +80,21 @@ export const NAV_CONFIG = {
             title: 'Settings',
             icon: 'gear', // ⚙️
             items: [
-                { title: 'Appraisal Templates', path: '/appraisalTemplates' },
+                { title: 'Company Salary Structure', path: '/companySalaryView' },
+                { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Bank Details', path: '/accountsView' },
                 { title: 'Calendar', path:'/AddEvent'},
-                { title: 'Company Salary Structure', path: '/companySalaryView' },
+                { title: 'Offer Letter Templates', path: '/offerLetters' },
+                { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
+                { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Offer Letter Templates', path: '/offerLetters' },
-                { title: 'Relieving Template', path: '/relievingTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' },
-
+                { title: 'Payslip Template', path: '/payslipTemplates' }
             ]
         }
     ],
+
     HR: [
         {
             title: 'Dashboard',
@@ -109,11 +105,6 @@ export const NAV_CONFIG = {
             title: 'Department',
             path: '/department',
             icon: 'building'
-        },
-        {
-            title: 'Designation',
-            path: '/designation',
-            icon: 'person-badge'
         },
         {
             title: 'Employees',
@@ -159,6 +150,7 @@ export const NAV_CONFIG = {
             icon: 'gear',
             items: [
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
+                { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
