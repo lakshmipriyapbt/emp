@@ -388,7 +388,7 @@ const onSubmitDesignation = async (data) => {
             <div key={`dept-${dept.id}`} className="mb-3">
               <div className="card">
                 <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0 card-title">{dept.name}</h5>
+                  <h5 className="mb-0 text-dark card-title">{dept.name}</h5>
                   <div className="d-flex align-items-center">
                     <button
                       className="btn btn-sm"
@@ -402,7 +402,7 @@ const onSubmitDesignation = async (data) => {
                       title="Edit"
                       aria-label={`Edit ${dept.name}`}
                     >
-                      <PencilSquare size={22} color="#FFFFFF" />
+                      <PencilSquare size={22} color="#2255a4" />
                     </button>
                     <button
                       className="btn btn-sm"
@@ -424,9 +424,9 @@ const onSubmitDesignation = async (data) => {
                       aria-label={`${expandedId === dept.id ? 'Collapse' : 'Expand'} ${dept.name}`}
                     >
                       {expandedId === dept.id ? (
-                        <ChevronUp size={22} color="#FFFFFF" />
+                        <ChevronUp size={22} color="#DDDDD" />
                       ) : (
-                        <ChevronDown size={22} color="#FFFFFF" />
+                        <ChevronDown size={22} color="#DDDDD" />
                       )}
                     </button>
                   </div>

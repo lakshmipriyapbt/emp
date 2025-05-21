@@ -148,9 +148,9 @@ const InternShipForm = () => {
 
       companyId: company?.id,
       employeeName: data.employeeName,
-      department: data.departmentName,
-      designation: data.designationName,
-      date: currentDate,
+      department: data.department,
+      designation: data.designation,
+      date: data.generatedDate,
       startDate: data.dateOfHiring,
       endDate: data.lastWorkingDate,
       draft: draftValue,
@@ -164,15 +164,17 @@ const InternShipForm = () => {
       employeeId: selectedEmployee
         ? selectedEmployee.employeeId
         : data.employeeId,
-      designationName: data.designationName || "",
-      departmentName: data.departmentName || "",
+      designationName: data.designation || "",
+      departmentName: data.department || "",
       startDate: data.dateOfHiring || "",
       lastWorkingDate: data.lastWorkingDate || "",
+      generatedDate: data.generatedDate || "",
       draft: draftValue || false,
       companyName: authUser.company,
       companyData: company,
 
     };
+    console.log("preview data : ", preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);
@@ -277,14 +279,14 @@ const InternShipForm = () => {
     if (!lastWorkingDate || !dateOfHiring) {
       return "Please provide both dates.";
     }
-  
+
     const lastWorking = new Date(lastWorkingDate);
     const hiringDate = new Date(dateOfHiring);
-  
+
     if (lastWorking < hiringDate) {
       return "Internship date cannot be before the date of joining";
     }
-  
+
     return true; // Return true if validation passes
   };
 
@@ -499,46 +501,46 @@ const InternShipForm = () => {
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-  <label className="form-label">Date of Joined</label>
-  <input
-    type="date"
-    className="form-control"
-    placeholder="Date of Joining"
-    name="dateOfHiring"
-    onClick={(e) => e.target.showPicker()}
-    {...register("dateOfHiring", {
-      required: "Date of Joining is required",
-    })}
-  />
-  {errors.dateOfHiring && (
-    <p className="errorMsg">
-      {errors.dateOfHiring.message}
-    </p>
-  )}
-</div>
+                      <label className="form-label">Date of Joined</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        placeholder="Date of Joining"
+                        name="dateOfHiring"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("dateOfHiring", {
+                          required: "Date of Joining is required",
+                        })}
+                      />
+                      {errors.dateOfHiring && (
+                        <p className="errorMsg">
+                          {errors.dateOfHiring.message}
+                        </p>
+                      )}
+                    </div>
 
-<div className="col-12 col-md-6 col-lg-5 mb-3">
-  <label className="form-label">Date of Internship</label>
-  <input
-    type="date"
-    className="form-control"
-    placeholder="Last Working Date"
-    name="lastWorkingDate"
-    onClick={(e) => e.target.showPicker()}
-    {...register("lastWorkingDate", {
-      required: "Date of Internship is required",
-      validate: (value) => {
-        const dateOfHiring = watch("dateOfHiring");
-        return validateDatePeriod(value, dateOfHiring);
-      },
-    })}
-  />
-  {errors.lastWorkingDate && (
-    <p className="errorMsg">
-      {errors.lastWorkingDate.message}
-    </p>
-  )}
-</div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Date of Internship</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        placeholder="Last Working Date"
+                        name="lastWorkingDate"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("lastWorkingDate", {
+                          required: "Date of Internship is required",
+                          validate: (value) => {
+                            const dateOfHiring = watch("dateOfHiring");
+                            return validateDatePeriod(value, dateOfHiring);
+                          },
+                        })}
+                      />
+                      {errors.lastWorkingDate && (
+                        <p className="errorMsg">
+                          {errors.lastWorkingDate.message}
+                        </p>
+                      )}
+                    </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Select Mode</label>
                       <div className="form-check">

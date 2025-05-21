@@ -27,11 +27,6 @@ export const NAV_CONFIG = {
             icon: 'building' // 🏢
         },
         {
-            title: 'Designation',
-            path: '/designation',
-            icon: 'person-badge' // 🏷️
-        },
-        {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people' // 👥
@@ -66,7 +61,7 @@ export const NAV_CONFIG = {
             ]
         },
         {
-            title: 'Clients',
+            title: 'Client View',
             icon: 'person-lines-fill', // 👤📃
             items: [
                 { title: 'Client View', path: '/customersView' },
@@ -88,6 +83,7 @@ export const NAV_CONFIG = {
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Bank Details', path: '/accountsView' },
+                { title: 'Calendar', path:'/AddEvent'},
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
@@ -111,14 +107,14 @@ export const NAV_CONFIG = {
             icon: 'building'
         },
         {
-            title: 'Designation',
-            path: '/designation',
-            icon: 'person-badge'
-        },
-        {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people'
+        },
+        {
+            title:'Calendar',
+            path:'/AddEvent',
+            icon:'calendar'
         },
         {
             title: 'Letters',
