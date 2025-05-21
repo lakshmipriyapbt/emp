@@ -130,7 +130,7 @@ const CompanyLogin = () => {
           autoClose: 2000,
         });
         setTimeout(() => {
-          window.location.href = "/main";        
+          navigate("/main");        
         }, 1000);
 
       })
