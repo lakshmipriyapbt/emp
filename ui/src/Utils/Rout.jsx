@@ -82,6 +82,9 @@ import GetTaxSlab from '../CompanyModule/TDS/GetTaxSlab';
 import CompanyTdsView from '../CompanyModule/TDS/CompanyTdsView';
 import TotalEmployees from '../EmployeeModule/TotalEmployees';
 import EmployeeList from '../EmployeeModule/EmployeeList';
+import UpdateUser from '../CompanyModule/UserModue/UpdateUser';
+import AddUser from '../CompanyModule/UserModue/AddUser';
+import ViewUser from '../CompanyModule/UserModue/ViewUser';
 
 
 export const allAvailableRoutes = [
@@ -95,6 +98,9 @@ export const allAvailableRoutes = [
   {path: '/employeeProfile', allowedTypes: ['employee'] },
   {path: '/companySalaryStructure', allowedTypes: ['company_admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin'] },
+  {path:'/addUser',allowedTypes:['company_admin']},
+  {path:'/editUser/:id',allowedTypes:['company_admin']},
+  {path:'/viewUser',allowedTypes:['company_admin']},
   {path: '/department', allowedTypes: ['company_admin', 'HR'] },
   {path: '/designation', allowedTypes: ['company_admin', 'HR'] },
   {path: '/employeeRegistration', allowedTypes: ['company_admin', 'HR'] },
@@ -197,8 +203,18 @@ const Routing = () => {
         path="/companySalaryStructure"
         element={<ProtectedRoute element={<CompanySalaryStructure/>} allowedTypes={['company_admin']} />}
       />
-      
-      
+      <Route
+        path="/viewUser"
+        element={<ProtectedRoute element={<ViewUser/>} allowedTypes={['company_admin']} />}
+      />
+       <Route
+        path="/addUser"
+        element={<ProtectedRoute element={<AddUser/>} allowedTypes={['company_admin']} />}
+      />
+       <Route
+        path="/editUser/:id"
+        element={<ProtectedRoute element={<UpdateUser/>} allowedTypes={['company_admin']} />}
+      /> 
 
       {/* Employee-specific routes */}
       <Route

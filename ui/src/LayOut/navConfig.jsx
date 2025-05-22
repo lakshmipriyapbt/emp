@@ -82,6 +82,14 @@ export const NAV_CONFIG = {
             ]
         },
         {
+            title: 'Users',
+            icon: 'person-fill', // 🧾
+            items: [
+                { title: 'Users View', path: '/viewUser' },
+                { title: 'Users Registration', path: '/addUser' }
+            ]
+        },
+        {
             title: 'Settings',
             icon: 'gear', // ⚙️
             items: [
