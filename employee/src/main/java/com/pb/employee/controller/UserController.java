@@ -36,8 +36,8 @@ public class UserController {
     public ResponseEntity<?> registerUser(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                               @RequestHeader(Constants.AUTH_KEY) String authToken,
                                               @Parameter(required = true, description = "${api.registerUserPayload.description}")
-                                              @PathVariable String companyName,@RequestBody @Valid UserRequest userRequest) throws EmployeeException, IOException {
-        return userService.registerUser(companyName,userRequest);
+                                              @PathVariable String companyName,@RequestBody @Valid UserRequest userRequest,HttpServletRequest request) throws EmployeeException, IOException {
+        return userService.registerUser(companyName,userRequest,request);
     }
 
     @RequestMapping(value = "{companyName}/user/{Id}", method = RequestMethod.GET)
