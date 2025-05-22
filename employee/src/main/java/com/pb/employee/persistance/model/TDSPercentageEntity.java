@@ -22,7 +22,7 @@ public class TDSPercentageEntity {
     private String max;
 
     @Schema(example = "taxPercentage")
-    @Pattern(regexp = "^(?:[1-9]|[1-9][0-9])$", message = "{invalid.taxPercentage}")
+    @Pattern(regexp = "^(?:[0-9]|[1-9][0-9])$", message = "{invalid.taxPercentage}")
     private String taxPercentage;
 
 }
