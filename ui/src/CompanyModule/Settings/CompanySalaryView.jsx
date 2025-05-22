@@ -127,7 +127,7 @@ const CompanySalaryView = () => {
                       </span>
                       <ChevronDown
                         size={22}
-                        color="#fff"
+                        color="#000000"
                         onClick={() => {
                           toggleExpand(structure.id); // Use id from the response
                         }}
