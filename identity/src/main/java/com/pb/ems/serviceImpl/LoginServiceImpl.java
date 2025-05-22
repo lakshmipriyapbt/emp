@@ -89,7 +89,6 @@ public class LoginServiceImpl implements LoginService {
         String password = null;
         try {
             employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
             if (employee != null && employee.getPassword() != null) {
                 password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
                 if (request.getPassword().equals(password)) {
@@ -99,18 +98,20 @@ public class LoginServiceImpl implements LoginService {
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                             HttpStatus.FORBIDDEN);
                 }
+            }else {
+                userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
+                if (userEntity != null && userEntity.getPassword() != null) {
+                    password = new String(Base64.getDecoder().decode(userEntity.getPassword()), StandardCharsets.UTF_8);
+                    if (request.getPassword().equals(password)) {
+                        log.debug("Successfully logged into ems portal for {}", request.getUsername());
+                    } else {
+                        log.error("Invalid credentials");
+                        throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
+                                HttpStatus.FORBIDDEN);
+                    }
+                }
             }
-            else if (userEntity != null && userEntity.getPassword() != null){
-                 password = new String(Base64.getDecoder().decode(userEntity.getPassword()),StandardCharsets.UTF_8);
-                 if (request.getPassword().equals(password)){
-                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
-                 }else {
-                     log.error("Invalid credentials");
-                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
-                             HttpStatus.FORBIDDEN);
-                 }
-            }
-            else {
+            if (employee == null && userEntity == null) {
                 log.error("Invalid credentials");
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                         HttpStatus.FORBIDDEN);
@@ -121,7 +122,6 @@ public class LoginServiceImpl implements LoginService {
                     HttpStatus.FORBIDDEN);
         }
         Long otp = generateOtp();
-
         CompletableFuture.runAsync(() -> {
             try {
                 sendOtpByEmail(request.getUsername(), otp);
@@ -130,54 +130,19 @@ public class LoginServiceImpl implements LoginService {
                 throw new RuntimeException(e);
             }
         });
+        List<String> roles = new ArrayList<>();
+        String token = "";
         if(userEntity==null) {
             openSearchOperations.saveOtpToEmployee(employee, otp, request.getCompany());
-        }else {
-            openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
-        }
-        List<String> roles = new ArrayList<>();
-        String token= null;
-        if(userEntity==null) {
             if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
                 roles.add(Constants.COMPANY_ADMIN);
-            } else {
-                department = openSearchOperations.getDepartmentById(employee.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
-
-                if (department != null) {
-                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.ACCOUNTANT);
-                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.HR);
-                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(employee.getEmployeeType())) {
-                        roles.add(Constants.ASSOCIATE);
-                    } else {
-                        roles.add(Constants.EMPLOYEE);
-                    }
-                }
-            }
-        }
-        if (employee==null) {
-            if (userEntity.getUserType().equals(Constants.EMPLOYEE_TYPE)) {
-                roles.add(Constants.COMPANY_ADMIN);
             }else {
-                department = openSearchOperations.getDepartmentById(userEntity.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
-
-                if (department != null) {
-                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.ACCOUNTANT);
-                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.HR);
-                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(userEntity.getUserType())) {
-                        roles.add(Constants.ASSOCIATE);
-                    } else {
-                        roles.add(Constants.EMPLOYEE);
-                    }
-                }
+                roles.add(Constants.EMPLOYEE);
             }
-        }
-        if(userEntity==null) {
             token = JwtTokenUtil.generateEmployeeToken(employee.getId(), roles, request.getCompany(), request.getUsername());
         }else {
+            openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
+            roles.add(userEntity.getUserType());
             token = JwtTokenUtil.generateEmployeeToken(userEntity.getId(), roles, request.getCompany(), request.getUsername());
         }
         return new ResponseEntity<>(
