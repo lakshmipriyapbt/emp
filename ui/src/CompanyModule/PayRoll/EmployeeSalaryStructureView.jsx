@@ -16,6 +16,8 @@ const EmployeeSalaryStructureView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
+  const [selectedDownloadFormat, setSelectedDownloadFormat] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
         useEffect(() => {
         const fetchEmployeesSalaries = async () => {
@@ -49,6 +51,22 @@ const EmployeeSalaryStructureView = () => {
 
   const handleSalary = (id) => {
     Navigate(`/employeeSalaryList?id=${id}`);
+  };
+  const handleDownload = async (format) => {
+    if (!format) {
+      toast.warning("Please select a file format!");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      await downloadEmployeeSalaryDataAPI(format, toast);
+    } catch (error) {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setSelectedDownloadFormat(""); // Reset the dropdown
+    }
   };
 
   const statusMappings = {
@@ -188,7 +206,15 @@ const EmployeeSalaryStructureView = () => {
                     </Link>
                   </div>
                   <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeeSalaryDataAPI(e.target.value, showToast)}>
+                  <select 
+                      className="form-select bg-primary border-0 text-white" 
+                      value={selectedDownloadFormat}
+                      onChange={(e) => {
+                        setSelectedDownloadFormat(e.target.value);
+                        handleDownload(e.target.value);
+                      }}
+                      disabled={isDownloading}
+                    >
                       <option value="">Download Employees Salary List</option>
                       <option value="excel">Excel (.xlsx)</option>
                       <option value="pdf">PDF (.pdf)</option>

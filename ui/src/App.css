@@ -16904,7 +16904,7 @@ ul.navbar-nav.navbar-align span.mt-3{color: #000;}
 
 .sidebar-item.active .sidebar-link:hover, .sidebar-item.active>.sidebar-link{background: #3e487a; color: #fff;}
 
-.card-title{color: #fff; text-shadow: none; font-weight: 550;}
+.card-title{color: #000000; text-shadow: none; font-weight: 550;}
 .dropdown-divider{border-top:1px solid #1e2a5e !important;}
 .card-header .form-control {background: #fff; border: 1px solid #9b9898 !important;}
 

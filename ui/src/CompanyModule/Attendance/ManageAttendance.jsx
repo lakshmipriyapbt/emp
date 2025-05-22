@@ -155,7 +155,7 @@ const ManageAttendance = () => {
 
   {/* Select Month Dropdown */}
   <div className="col-12 col-md-3 col-lg-3">
-    <label className="card-title text-white">
+    <label className="card-title">
       Select Month <span className="text-danger fw-100">*</span>
     </label>
     <select className="form-select" onChange={(e) => setSelectedMonth(e.target.value)}>
@@ -173,7 +173,7 @@ const ManageAttendance = () => {
 
   {/* Select Year Dropdown */}
   <div className="col-12 col-md-3 col-lg-3">
-    <label className="card-title text-white">
+    <label className="card-title">
       Select Year <span className="text-danger fw-100">*</span>
     </label>
     <select className="form-select" onChange={(e) => setSelectedYear(e.target.value)}>
