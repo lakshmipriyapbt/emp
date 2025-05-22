@@ -118,6 +118,12 @@
             overflow: hidden;
             /* Clear floats */
         }
+        .page-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
 
         .date-info h6 {
             font-size: 17px;
@@ -276,6 +282,7 @@
                 appraisal process.
             </p>
         </div>
+         <div class="page-footer">
         <h5 style="text-align: center; margin-top: 10px;">
             <#if company.cinNo?has_content>
                 CIN: ${company.cinNo}
@@ -286,14 +293,16 @@
                         Company Information Not Available
             </#if>
         </h5>
-        <hr style="color: rgb(10, 53, 248);" />
-        <div style="text-align: center; font-size: 14px;">
-            <p>
-                ${company.companyName}<br />
-                ${company.companyAddress}<br />
-                PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-            </p>
+            <hr style="color: rgb(10, 53, 248);" />
+            <div style="text-align: center; font-size: 14px;">
+                <p>
+                    ${company.companyName}<br />
+                    ${company.companyAddress}<br />
+                    PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
+                </p>
+            </div>
         </div>
+
     </div>
 
  <#-- company logo is only included when draft is false -->
@@ -301,6 +310,9 @@
     <div class="logo">
          <img src="${company.imageFile}" alt="Company Logo" />
     </div>
+  </#if>
+  <#if offerLetter.draft>
+  <div style= "padding-top: 100px;"/>
   </#if>
     <div class="salary-table" style="page-break-after: always;">
         <div style="margin-top: -50px;">
@@ -387,24 +399,6 @@
                 been duly served.
             </p>
         </div>
-        <h5 style="text-align: center; margin-top: 80px;">
-            <#if company.cinNo?has_content>
-                CIN: ${company.cinNo}
-                <#elseif company.companyRegNo?has_content>
-                    Registration No: ${company.companyRegNo}
-                    <#else>
-                        <!-- Optionally, you can add a default text if both are null -->
-                        Company Information Not Available
-            </#if>
-        </h5>
-        <hr style="color: rgb(10, 53, 248);" />
-        <div style="text-align: center; font-size: 14px;">
-            <p>
-                ${company.companyName}<br />
-                ${company.companyAddress}<br />
-                PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-            </p>
-        </div>
     </div>
      <#-- company logo is only included when draft is false -->
    <#if !offerLetter.draft>
@@ -445,24 +439,6 @@
                     by a written mail and signed copy within the next 24 hours.</b>
             </p>
             <p>Please do not hesitate to contact us in case you have any queries.</p>
-            <h5 style="text-align: center; margin-top: 420px;">
-                <#if company.cinNo?has_content>
-                    CIN: ${company.cinNo}
-                    <#elseif company.companyRegNo?has_content>
-                        Registration No: ${company.companyRegNo}
-                        <#else>
-                            <!-- Optionally, you can add a default text if both are null -->
-                            Company Information Not Available
-                </#if>
-            </h5>
-            <hr style="color: rgb(10, 53, 248);" />
-            <div style="text-align: center; font-size: 14px;">
-                <p>
-                    ${company.companyName}<br />
-                    ${company.companyAddress}<br />
-                    PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-                </p>
-            </div>
         </div>
     </div>
      <#-- company logo is only included when draft is false -->
@@ -495,24 +471,6 @@
         <p>*Income Tax deduction is subjected to timely submission of the investment details.</p>
         <p>*Pan Card submission is mandatory for the disbursement of the salary.</p>
 
-            <h5 style="text-align: center; margin-top: 100px;">
-                <#if company.cinNo?has_content>
-                    CIN: ${company.cinNo}
-                    <#elseif company.companyRegNo?has_content>
-                        Registration No: ${company.companyRegNo}
-                        <#else>
-                            <!-- Optionally, you can add a default text if both are null -->
-                            Company Information Not Available
-                </#if>
-            </h5>
-            <hr style="color: rgb(10, 53, 248);" />
-            <div style="text-align: center; font-size: 14px;">
-                <p>
-                    ${company.companyName}<br />
-                    ${company.companyAddress}<br />
-                    PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-                </p>
-            </div>
     </div>
 
      <#-- company logo is only included when draft is false -->
@@ -608,24 +566,6 @@
                 </tr>
             </table>
         </div>
-        <h5 style="text-align: center; margin-top: 80px;">
-            <#if company.cinNo?has_content>
-                CIN: ${company.cinNo}
-                <#elseif company.companyRegNo?has_content>
-                    Registration No: ${company.companyRegNo}
-                    <#else>
-                        <!-- Optionally, you can add a default text if both are null -->
-                        Company Information Not Available
-            </#if>
-        </h5>
-        <hr style="color: rgb(10, 53, 248);" />
-        <div style="text-align: center; font-size: 14px;">
-            <p>
-                ${company.companyName}<br />
-                ${company.companyAddress}<br />
-                PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-            </p>
-        </div>
     </div>
     <!-- Company Logo Section -->
      <#-- company logo is only included when draft is false -->
@@ -650,24 +590,6 @@
                numbers.
            </p>
      </div>
-       <h5 style="text-align: center; margin-top: 540px;">
-           <#if company.cinNo?has_content>
-               CIN: ${company.cinNo}
-               <#elseif company.companyRegNo?has_content>
-                   Registration No: ${company.companyRegNo}
-                   <#else>
-                       <!-- Optionally, you can add a default text if both are null -->
-                       Company Information Not Available
-           </#if>
-       </h5>
-       <hr style="color: rgb(10, 53, 248);" />
-       <div style="text-align: center; font-size: 14px;">
-           <p>
-               ${company.companyName}<br />
-               ${company.companyAddress}<br />
-               PH: ${company.mobileNo}, Email: ${company.emailId} | Web: https://${company.shortName}.com
-           </p>
-       </div>
 </body>
 
 </html>

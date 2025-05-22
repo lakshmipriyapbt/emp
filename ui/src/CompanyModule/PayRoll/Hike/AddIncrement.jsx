@@ -44,7 +44,7 @@ const AddIncrement = () => {
     },
   });
   const { authUser, company, employee } = useAuth();
-  const date = new Date().toLocaleDateString();
+  // const date = new Date().toLocaleDateString();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
@@ -1822,6 +1822,34 @@ const handleTaxRegimeChange = (e) => {
                                 </p>
                               )}
                             </div>
+
+                             <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Genarated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Genatated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Genatated Date is required",
+                          validate: {
+                           notAfterJoiningDate: (value) => {
+                             const joiningDate = watch("dateOfSalaryIncrement");
+                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                          return (
+                            new Date(value) <= new Date(joiningDate) ||
+                             "Generated Date cannot be after date of salary increement"
+                            ); }
+                          },
+                        })}
+                      />
+                     {errors.generatedDate && (
+  <p className="errorMsg">{errors.generatedDate.message}</p>
+)}
+                    </div> 
 
                             <div className="col-lg-1"></div>
                             <div className="col-12 col-md-6 col-lg-5 mb-3">
