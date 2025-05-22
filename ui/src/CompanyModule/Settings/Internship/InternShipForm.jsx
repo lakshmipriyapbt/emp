@@ -279,14 +279,14 @@ const InternShipForm = () => {
     if (!lastWorkingDate || !dateOfHiring) {
       return "Please provide both dates.";
     }
-  
+
     const lastWorking = new Date(lastWorkingDate);
     const hiringDate = new Date(dateOfHiring);
-  
+
     if (lastWorking < hiringDate) {
       return "Internship date cannot be before the date of joining";
     }
-  
+
     return true; // Return true if validation passes
   };
 
@@ -501,46 +501,75 @@ const InternShipForm = () => {
                       )}
                     </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-  <label className="form-label">Date of Joined</label>
-  <input
-    type="date"
-    className="form-control"
-    placeholder="Date of Joining"
-    name="dateOfHiring"
-    onClick={(e) => e.target.showPicker()}
-    {...register("dateOfHiring", {
-      required: "Date of Joining is required",
-    })}
-  />
-  {errors.dateOfHiring && (
-    <p className="errorMsg">
-      {errors.dateOfHiring.message}
-    </p>
-  )}
-</div>
+                      <label className="form-label">Date of Joined</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        placeholder="Date of Joining"
+                        name="dateOfHiring"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("dateOfHiring", {
+                          required: "Date of Joining is required",
+                        })}
+                      />
+                      {errors.dateOfHiring && (
+                        <p className="errorMsg">
+                          {errors.dateOfHiring.message}
+                        </p>
+                      )}
+                    </div>
 
-<div className="col-12 col-md-6 col-lg-5 mb-3">
-  <label className="form-label">Date of Internship</label>
-  <input
-    type="date"
-    className="form-control"
-    placeholder="Last Working Date"
-    name="lastWorkingDate"
-    onClick={(e) => e.target.showPicker()}
-    {...register("lastWorkingDate", {
-      required: "Date of Internship is required",
-      validate: (value) => {
-        const dateOfHiring = watch("dateOfHiring");
-        return validateDatePeriod(value, dateOfHiring);
-      },
-    })}
-  />
-  {errors.lastWorkingDate && (
-    <p className="errorMsg">
-      {errors.lastWorkingDate.message}
-    </p>
-  )}
-</div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Date of Internship</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        placeholder="Last Working Date"
+                        name="lastWorkingDate"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("lastWorkingDate", {
+                          required: "Date of Internship is required",
+                          validate: (value) => {
+                            const dateOfHiring = watch("dateOfHiring");
+                            return validateDatePeriod(value, dateOfHiring);
+                          },
+                        })}
+                      />
+                      {errors.lastWorkingDate && (
+                        <p className="errorMsg">
+                          {errors.lastWorkingDate.message}
+                        </p>
+                      )}
+                    </div>
+                      <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                    <input
+                       type="date"
+                       name="generatedDate"
+                       placeholder="Enter Generated Date"
+                       className="form-control"
+                       autoComplete="off"
+                       onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                       required: "Generated Date is required",
+                        validate: {
+
+                       notBeforeLastWorkingDate: (value) => {
+                        const lastWorkingDate = watch("lastWorkingDate");
+                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
+                     return (
+                      new Date(value) >= new Date(lastWorkingDate) ||
+                      "Generated Date cannot be before Last Working Date"
+                       );
+                      },
+                    },
+                  })}
+                 />
+                      {errors.generatedDate && (
+                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                         )}
+
+                </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Select Mode</label>
                       <div className="form-check">

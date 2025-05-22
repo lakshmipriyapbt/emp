@@ -72,7 +72,6 @@ import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalary
 import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
 import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
-import AddTaxSlab from '../CompanyModule/TaxSlab/AddTaxSlab';
 import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
@@ -85,7 +84,7 @@ import EmployeeList from '../EmployeeModule/EmployeeList';
 import UpdateUser from '../CompanyModule/UserModue/UpdateUser';
 import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
-
+import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'HR', 'employee']},
@@ -400,6 +399,10 @@ const Routing = () => {
       <Route
         path="/addTaxSlab"
         element={<ProtectedRoute element={<AddTaxSlab/>} allowedTypes={['company_admin', 'HR']} />}
+      />
+      <Route
+        path="/employeeSalaryList"
+        element={<ProtectedRoute element={<EmployeeSalaryList/>} allowedTypes={['company_admin', 'HR']} />}
       />
 
       {/* Company Admin & Accountant shared routes */}

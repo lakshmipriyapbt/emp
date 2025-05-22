@@ -179,24 +179,26 @@ const Department = () => {
         name: data.name,
       };
 
-      let response;
       if (editingId) {
-        response = await DepartmentPutApiById(editingId, formData);
-        toast.success("Department Updated Successfully");
+        await DepartmentPutApiById(editingId, formData);
+        const updatedResponse = await DepartmentGetApi();
+        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
+           a.name.localeCompare(b.name)
+      );
+       setDepartments(sortedDepartments);
+       toast.success("Department Updated Successfully");
       } else {
-        response = await DepartmentPostApi(formData);
+        await DepartmentPostApi(formData);
+
+        // Temporary solution - refetch all departments
+        const updatedResponse = await DepartmentGetApi();
+        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setDepartments(sortedDepartments);
+
         toast.success("Department Created Successfully");
       }
-
-      // Explicitly fetch latest data after update
-      const updatedDepartments = await DepartmentGetApi();
-
-      // ✅ Force a UI update by setting a new reference
-      setDepartments([]);
-      setTimeout(() => {
-        setDepartments([...updatedDepartments.data.data]);
-        console.log("Updated Departments from API:", updatedDepartments.data.data);
-      }, 50);
 
       handleCloseAddDepartmentModal();
       reset();
@@ -206,55 +208,70 @@ const Department = () => {
     } finally {
       setLoading(false);
     }
-};
+  };
 
+  const onSubmitDesignation = async (data) => {
+    try {
+      const formData = {
+        companyName: authUser.company,
+        name: data.name,
+      };
 
-const onSubmitDesignation = async (data) => {
-  try {
-    const formData = {
-      companyName: authUser.company,
-      name: data.name,
-    };
+      if (editingDesignationId) {
+        await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
+        setDesignations(prev => ({
+          ...prev,
+          [currentDepartmentId]: prev[currentDepartmentId].map(desig =>
+            desig.id === editingDesignationId ? { ...desig, name: data.name } : desig
+          )
+        }));
+        toast.success("Designation Updated Successfully");
+      } else {
+        const response = await DesignationPostApi(currentDepartmentId, formData);
+        // Immediately add the new designation to the state
+        console.log(response.data.data)
+        setDesignations(prev => ({
+          ...prev,
+          [currentDepartmentId]: [...(prev[currentDepartmentId] || []), response.data.data]
+        }));
+        toast.success("Designation Created Successfully");
+      }
+         setTimeout(() => {
+        fetchDesignations(currentDepartmentId);
+      }, 600);
 
-    let response;
-    if (editingDesignationId) {
-      response = await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
-      toast.success("Designation Updated Successfully");
-    } else {
-      response = await DesignationPostApi(currentDepartmentId, formData);
-      toast.success("Designation Created Successfully");
+      handleCloseAddDesignationModal();
+      resetDesignation();
+    } catch (error) {
+      handleApiErrors(error);
     }
-
-    // Fetch updated designation list
-    await fetchDesignations(currentDepartmentId);
-
-    // ✅ Force a UI update
-    setDesignations(prev => ({ ...prev, [currentDepartmentId]: [] }));
-    setTimeout(() => {
-      setDesignations(prev => ({
-        ...prev,
-        [currentDepartmentId]: [...prev[currentDepartmentId]]
-      }));
-    }, 50);
-
-    handleCloseAddDesignationModal();
-    resetDesignation();
-  } catch (error) {
-    handleApiErrors(error);
-  }
-};
-
+  };
 
   const handleConfirmDelete = async () => {
     if (selectedItemId) {
       try {
         await DepartmentDeleteApiById(selectedItemId);
-        toast.success("Department Deleted Successfully");
+        toast.success("Department Deleted Successfully", {
+          position: "top-right",
+          transition: Bounce,
+          hideProgressBar: true,
+          theme: "colored",
+          autoClose: 1000,
+        });
+
+        // Update local state immediately
         setDepartments(prev => prev.filter(dept => dept.id !== selectedItemId));
+
+        // Reset selection and close modal
         setSelectedItemId(null);
         setShowDeleteModal(false);
       } catch (error) {
-        handleApiErrors(error);
+        console.error("Delete Department Error:", {
+          departmentId: selectedItemId,
+          error: error.response?.data || error.message
+        });
+
+        toast.error(error.response?.data?.error?.message || "Failed to delete department");
       }
     }
   };
@@ -270,14 +287,17 @@ const onSubmitDesignation = async (data) => {
     try {
       await DesignationDeleteApiById(departmentId, designationId);
       toast.success("Designation Deleted Successfully");
+
+      // Update local state
       setDesignations(prev => ({
         ...prev,
         [departmentId]: prev[departmentId].filter(desig => desig.id !== designationId)
       }));
-      setShowDeleteDesignationModal(false);
-      setSelectedDesignationInfo({ departmentId: null, designationId: null });
     } catch (error) {
       handleApiErrors(error);
+    } finally {
+      setShowDeleteDesignationModal(false);
+      setSelectedDesignationInfo({ departmentId: null, designationId: null });
     }
   };
 
@@ -292,50 +312,35 @@ const onSubmitDesignation = async (data) => {
     console.error(error.response);
   };
 
-  const validateName = (value, type) => {
+  const validateName = (value) => {
     const trimmedValue = value.trim();
     if (trimmedValue.length === 0) {
-      return type === "department" ? "Department Name is Required." : "Designation Name is Required.";
+      return "Department Name is Required.";
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
-      return type === "department"
-        ? "Only Alphabetic Characters, Spaces, and '/' are Allowed in Department Name."
-        : "Only Alphabetic Characters, Spaces, and '/' are Allowed in Designation Name.";
+      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
     } else {
       const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 2 && words.length === 1) {
-          return type === "department"
-            ? "Department Name Must Have a Minimum of 2 Characters."
-            : "Designation Name Must Have a Minimum of 2 Characters.";
+          return "Minimum Length 2 Characters Required.";
         } else if (word.length > 40) {
-          return type === "department"
-            ? "Department Name Must Not Exceed 40 Characters."
-            : "Designation Name Must Not Exceed 40 Characters.";
+          return "Max Length 40 Characters Required.";
         }
       }
       if (trimmedValue.length > 40) {
-        return type === "department"
-          ? "Department Name Must Not Exceed 40 Characters."
-          : "Designation Name Must Not Exceed 40 Characters.";
+        return "Department name must not exceed 40 characters.";
       }
       if (/\s{2,}/.test(trimmedValue)) {
-        return type === "department"
-          ? "No Multiple Spaces Allowed in Department Name."
-          : "No Multiple Spaces Allowed in Designation Name.";
+        return "No Multiple Spaces Between Words Allowed.";
       }
       if (/^\s/.test(value)) {
-        return type === "department"
-          ? "Leading Space Not Allowed in Department Name."
-          : "Leading Space Not Allowed in Designation Name.";
+        return "Leading space not allowed.";
       } else if (/\s$/.test(value)) {
-        return type === "department"
-          ? "Spaces at the end are not allowed."
-          : "Spaces at the end are not allowed.";
+        return "Spaces at the end are not allowed.";
       }
     }
     return true;
   };
-
 
   return (
     <LayOut>
@@ -367,7 +372,7 @@ const onSubmitDesignation = async (data) => {
             >
               <option value="">-- Select Department --</option>
               {departments?.map((dept) => (
-                <option key={`dept-option-${dept.id}`} value={dept.id}>
+                <option key={dept.id} value={dept.id}>
                   {dept.name}
                 </option>
               ))}
@@ -539,7 +544,7 @@ const onSubmitDesignation = async (data) => {
                             {...register("name", {
                               required: "Department is Required",
                               validate: {
-                                validateName: (value) => validateName(value, "department"),
+                                validateName,
                               },
                             })}
                           />
@@ -613,7 +618,7 @@ const onSubmitDesignation = async (data) => {
                             {...registerDesignation("name", {
                               required: "Designation is Required",
                               validate: {
-                                validateName: (value) => validateName(value, "designation"),
+                                validateName,
                               },
                             })}
                           />
@@ -657,15 +662,15 @@ const onSubmitDesignation = async (data) => {
           pageName="Department"
         />
         <DeletePopup
-          show={showDeleteDesignationModal}
-          handleClose={() => {
-            setShowDeleteDesignationModal(false);
-            setSelectedDesignationInfo({ departmentId: null, designationId: null });
-          }}
-          handleConfirm={handleConfirmDesignationDelete}
-          id={selectedDesignationInfo.designationId}
-          pageName="Designation"
-        />
+        show={showDeleteDesignationModal}
+        handleClose={() => {
+          setShowDeleteDesignationModal(false);
+          setSelectedDesignationInfo({ departmentId: null, designationId: null });
+        }}
+        handleConfirm={handleConfirmDesignationDelete}
+        id={selectedDesignationInfo.designationId}
+        pageName="Designation"
+      />
       </div>
     </LayOut>
   );
