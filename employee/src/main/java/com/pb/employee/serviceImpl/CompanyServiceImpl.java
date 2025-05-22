@@ -122,7 +122,7 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        openSearchOperations.GIT ScreateIndex(companyRequest.getShortName());
+        openSearchOperations.createIndex(companyRequest.getShortName());
         log.info("Creating the employee of company admin");
 
         String employeeAdminId = ResourceIdUtils.generateEmployeeResourceId(companyRequest.getEmailId());
