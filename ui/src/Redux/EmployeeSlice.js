@@ -30,22 +30,14 @@ const employeeSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
-        const filteredData = action.payload.filter(emp => emp.employeeType !== "CompanyAdmin");
-
-        if (filteredData.length === 0) {
-          state.data = [];
-          state.error = "No employee data available.";
-        } else {
-          state.status = "succeeded";
-          state.data = filteredData;
-          state.error = null;
-        }
-
-        console.log("Action Payload (employees):", filteredData);
+        state.status = "succeeded";
+        state.data = action.payload.filter(emp => emp.employeeType !== "CompanyAdmin");
+        state.error = null;
       })
       .addCase(fetchEmployees.rejected, (state, action) => {
-        state.status = "loading"; // Stay in loading if request failed
-        state.error = action.payload || "Something went wrong while fetching employees.";
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch employees";
+        state.data = []; // Clear data on error
       });
   },
 });
