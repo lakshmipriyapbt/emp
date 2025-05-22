@@ -294,22 +294,20 @@ public class LoginServiceImpl implements LoginService {
 
         try {
             user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
-            if (user == null) {
+            if (user != null){
+                Long otp = generateOtp();
+                sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
+                openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
+            }else if (user == null) {
                 userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
                 if(userEntity==null) {
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
-
-            }
-            Long otp = generateOtp();
-            sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
-            if(user==null){
+                Long otp = generateOtp();
+                sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
                 openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
-            }
-            else {
-                openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
             }
 
         } catch (Exception ex) {
@@ -330,7 +328,7 @@ public class LoginServiceImpl implements LoginService {
 
         try {
             user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
-          List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
+            List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
             if (user == null) {
                 userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
                 if (userEntity == null){
@@ -338,10 +336,8 @@ public class LoginServiceImpl implements LoginService {
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
-            }
-            if(user==null){
-                 oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
-            }else {
+                oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
+            } else {
                  oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
             }
             if (otpRequest.getPassword().equals(oldPassword)) {
