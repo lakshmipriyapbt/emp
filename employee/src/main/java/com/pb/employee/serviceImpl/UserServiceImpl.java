@@ -15,8 +15,10 @@ import com.pb.employee.request.UserUpdateRequest;
 import com.pb.employee.response.UserResponse;
 import com.pb.employee.service.UserService;
 import com.pb.employee.util.Constants;
+import com.pb.employee.util.EmailUtils;
 import com.pb.employee.util.PasswordUtils;
 import com.pb.employee.util.ResourceIdUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -40,8 +43,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private EmailUtils emailUtils;
+
     @Override
-    public ResponseEntity<?> registerUser(String companyName,UserRequest userRequest) throws EmployeeException, IOException {
+    public ResponseEntity<?> registerUser(String companyName, UserRequest userRequest, HttpServletRequest request) throws EmployeeException, IOException {
         String resourceId = null;
         String index = null;
         String defaultPassword = null;
@@ -91,6 +97,17 @@ public class UserServiceImpl implements UserService {
             log.error("Error during user registration: {}", e.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_USER), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        String finalDefaultPassword = defaultPassword;
+        CompletableFuture.runAsync(() -> {
+            try {
+                String companyUrl = EmailUtils.getBaseUrl(request)+companyName+Constants.SLASH+Constants.LOGIN ;
+                log.info("The company url : "+companyUrl);// Example URL
+                emailUtils.sendRegistrationEmail(userRequest.getEmailId(), companyUrl,Constants.USER, finalDefaultPassword);
+            } catch (Exception e) {
+                log.error("Error sending email to employee: {}", userRequest.getEmailId());
+                throw new RuntimeException(e);
+            }
+        });
 
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
