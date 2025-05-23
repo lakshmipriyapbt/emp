@@ -101,7 +101,6 @@ const CompanyLogin = () => {
       })
       .catch((error) => {
         setLoading(false);
-  
         // Ensure we're accessing the error message properly
         const errorMessage = error.message || "Login failed. Please try again later.";
         console.error('sendOtp error:', errorMessage); // Log the error

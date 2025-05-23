@@ -331,7 +331,6 @@ const [selectedMonth, setSelectedMonth] = useState('');
 
 {calendarData?.length > 0 && (
   <>
-   
    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
     <div className="mb-0">
   <h6 >📅 Existing Events</h6>

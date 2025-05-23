@@ -60,8 +60,9 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="p-4 border rounded bg-light">
-      {/* First Name */}
-      <div className="mb-3">
+    {/* Row 1: First Name and Last Name */}
+    <div className="row">
+      <div className="mb-3 col-md-6">
         <label className="form-label">First Name</label>
         <input
           className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
@@ -73,9 +74,8 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         />
         <div className="invalid-feedback">{errors.firstName?.message}</div>
       </div>
-
-      {/* Last Name */}
-      <div className="mb-3">
+  
+      <div className="mb-3 col-md-6">
         <label className="form-label">Last Name</label>
         <input
           className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
@@ -87,9 +87,11 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         />
         <div className="invalid-feedback">{errors.lastName?.message}</div>
       </div>
-
-      {/* Email */}
-      <div className="mb-3">
+    </div>
+  
+    {/* Row 2: Email and User Type */}
+    <div className="row">
+      <div className="mb-3 col-md-6">
         <label className="form-label">Email</label>
         <input
           type="email"
@@ -101,9 +103,8 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         />
         <div className="invalid-feedback">{errors.emailId?.message}</div>
       </div>
-
-      {/* User Type (Static Dropdown) */}
-      <div className="mb-3">
+  
+      <div className="mb-3 col-md-6">
         <label className="form-label">User Type</label>
         <select
           {...register('userType', { required: 'User Type is required' })}
@@ -118,16 +119,16 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         </select>
         <div className="invalid-feedback">{errors.userType?.message}</div>
       </div>
-
-      {/* Department (Dynamic Dropdown) */}
-      <div className="mb-3">
+    </div>
+  
+    {/* Row 3: Department */}
+    <div className="row">
+      <div className="mb-3 col-md-6">
         <label className="form-label">Department</label>
         <select
           {...register('department', {
             required: 'Department is required',
-            onChange: (e) => {
-              setValue('designation', '');  // Reset designation when department changes
-            }
+            onChange: () => setValue('designation', '')
           })}
           className={`form-select ${errors.department ? 'is-invalid' : ''}`}
         >
@@ -140,11 +141,18 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         </select>
         <div className="invalid-feedback">{errors.department?.message}</div>
       </div>
-      {/* Submit Button */}
-      <button type="submit" className="btn btn-primary">
-        {isEdit ? 'Update User' : 'Add User'}
-      </button>
-    </form>
+    </div>
+  
+    {/* Submit Button */}
+    <div className="row">
+      <div className="col-12 text-end">
+        <button type="submit" className="btn btn-primary">
+          {isEdit ? 'Update User' : 'Add User'}
+        </button>
+      </div>
+    </div>
+  </form>
+  
   );
 };
 
