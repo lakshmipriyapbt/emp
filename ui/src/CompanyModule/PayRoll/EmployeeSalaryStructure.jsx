@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import LayOut from "../../LayOut/LayOut";
@@ -7,7 +8,6 @@ import {
   EmployeeSalaryGetApiById,
   EmployeeSalaryPatchApiById,
   CompanySalaryStructureGetApi,
-  getCompanyTdsByYear,
   TdsGetApi
 } from "../../Utils/Axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,9 +24,9 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
+import { OverlayTrigger, Popover } from "react-bootstrap";
 
-
-// ✅ Utility function to get current financial year
+// Utility function to get current financial year
 const getCurrentFinancialYear = () => {
   const today = new Date();
   const year = today.getFullYear();
@@ -47,21 +47,23 @@ const EmployeeSalaryStructure = () => {
       incomeTax: "new" // Default to new regime
     }
   });
+  
   const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const salaryId = queryParams.get("salaryId");
   const id = queryParams.get("employeeId");
 
+  // State declarations
   const [employes, setEmployes] = useState([]);
-  const [basicSalary, setBasicSalary] = useState(0); // State for Basic Salary
+  const [basicSalary, setBasicSalary] = useState(0);
   const [allowances, setAllowances] = useState({});
   const [deductions, setDeductions] = useState({});
   const [updatedDeductions, setUpdatedDeductions] = useState({});
   const [grossAmount, setGrossAmount] = useState(0);
   const [finalAllowances, setFinalAllowances] = useState(0);
   const [totalAllowances, setTotalAllowances] = useState(0);
-  const [totalDeductions, setTotalDeductions] = useState({});
+  const [totalDeductions, setTotalDeductions] = useState(0);
   const [netSalary, setNetSalary] = useState(0);
   const [hra, setHra] = useState(0);
   const [monthlySalary, setMonthlySalary] = useState(0);
@@ -74,13 +76,11 @@ const EmployeeSalaryStructure = () => {
   const [pfTax, setPfTax] = useState(0);
   const [pfEmployee, setPfEmployee] = useState(0);
   const [pfEmployer, setPfEmployer] = useState(0);
-  const [showPfModal, setShowPfModal] = useState(false); // Modal visibility
+  const [showPfModal, setShowPfModal] = useState(false);
   const [selectedPF, setSelectedPF] = useState("calculated");
   const [basicAmount, setBasicAmount] = useState(0);
   const [amountInWords, setAmountInWords] = useState('');
   const [grossInWords, setGrossInWords] = useState('');
-
-
   const [calculatedPF, setCalculatedPF] = useState({
     pfEmployee: 0,
     pfEmployer: 0,
@@ -97,18 +97,17 @@ const EmployeeSalaryStructure = () => {
   const [loading, setLoading] = useState(false);
   const [calculatedAllowances, setCalculatedAllowances] = useState({});
   const [calculatedDeductions, setCalculatedDeductions] = useState({});
-  const [selectedTaxRegime, setSelectedTaxRegime] = useState("new"); //  Added tax regime state
-  const [selectedTdsSlabs, setSelectedTdsSlabs] = useState([]); //  Added state for TDS slabs
-  const [tdsAmount, setTdsAmount] = useState(0); //  TDS amount storage
+  const [selectedTaxRegime, setSelectedTaxRegime] = useState("new");
+  const [selectedTdsSlabs, setSelectedTdsSlabs] = useState([]);
+  const [tdsAmount, setTdsAmount] = useState(0);
   const [showTdsField, setShowTdsField] = useState(false);
   const [tdsSlabs, setTdsSlabs] = useState({
-    old: [],  // Slabs for old regime
-    new: []   // Slabs for new regime
+    old: [],
+    new: []
   });
   const [applicableSlab, setApplicableSlab] = useState(null);
 
-
-
+  // Number to words conversion function
   const numberToWords = (num) => {
     const units = [
       "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
@@ -118,71 +117,75 @@ const EmployeeSalaryStructure = () => {
     const tens = [
       "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
     ];
-  
+
     if (num === 0) return "Zero Rupees Only";
-  
+
     const convertLessThanHundred = (n) => {
       if (n < 20) return units[n];
       return tens[Math.floor(n / 10)] + (n % 10 ? " " + units[n % 10] : "");
     };
-  
+
     const convertLessThanThousand = (n) => {
       const hundred = Math.floor(n / 100);
       const remainder = n % 100;
       return (hundred ? units[hundred] + " Hundred" : "") + 
              (remainder ? (hundred ? " " : "") + convertLessThanHundred(remainder) : "");
     };
-  
+
     const convertLessThanLakh = (n) => {
       const thousand = Math.floor(n / 1000);
       const remainder = n % 1000;
       return (thousand ? convertLessThanThousand(thousand) + " Thousand" : "") + 
              (remainder ? (thousand ? " " : "") + convertLessThanThousand(remainder) : "");
     };
-  
+
     const convertLessThanCrore = (n) => {
       const lakh = Math.floor(n / 100000);
       const remainder = n % 100000;
       return (lakh ? convertLessThanThousand(lakh) + " Lakh" : "") + 
              (remainder ? (lakh ? " " : "") + convertLessThanLakh(remainder) : "");
     };
-  
+
     const convertLessThanHundredCrore = (n) => {
       const crore = Math.floor(n / 10000000);
       const remainder = n % 10000000;
       return (crore ? convertLessThanThousand(crore) + " Crore" : "") + 
              (remainder ? (crore ? " " : "") + convertLessThanCrore(remainder) : "");
     };
-  
+
     const convertLessThanThousandCrore = (n) => {
       const hundredCrore = Math.floor(n / 1000000000);
       const remainder = n % 1000000000;
       return (hundredCrore ? convertLessThanHundred(hundredCrore) + " Hundred" : "") + 
              (remainder ? (hundredCrore ? " " : "") + convertLessThanHundredCrore(remainder) : "");
     };
-  
+
     let integerPart = Math.floor(num);
     let result = convertLessThanThousandCrore(integerPart);
-  
+
     // Handle decimal (paise)
     let decimalPart = Math.round((num % 1) * 100);
     if (decimalPart > 0) {
       result += " and " + convertLessThanHundred(decimalPart) + " Paise";
     }
-  
+
     // Add currency suffix
     result += decimalPart === 0 ? " Rupees Only" : " Rupees";
-  
+
     // Handle edge case where number is between 0 and 1 (only paise)
     if (integerPart === 0 && decimalPart > 0) {
-      result = result.replace(" and ", ""); // Remove "and" when no rupees
+      result = result.replace(" and ", "");
     }
-  
+
     return result.trim();
   };
 
   const navigate = useNavigate();
   const prevOtherAllowancesRef = useRef(0);
+  const dispatch = useDispatch();
+  const { data: employees } = useSelector((state) => state.employees);
+
+  // Initial setup effects
   useEffect(() => {
     if (id && salaryId) {
       setShowFields(true);
@@ -191,12 +194,6 @@ const EmployeeSalaryStructure = () => {
     }
   }, [id, salaryId]);
 
-  const dispatch = useDispatch();
-
-  // Fetch employees from Redux store
-  const { data: employees } = useSelector((state) => state.employees);
-
-  // Fetch employees when the component mounts
   useEffect(() => {
     dispatch(fetchEmployees());
   }, [dispatch]);
@@ -214,7 +211,7 @@ const EmployeeSalaryStructure = () => {
     }
   }, [employees]);
 
-
+  // Load employee salary data if editing
   useEffect(() => {
     if (id && salaryId) {
       EmployeeSalaryGetApiById(id, salaryId)
@@ -245,6 +242,7 @@ const EmployeeSalaryStructure = () => {
     }
   }, [id, salaryId, setValue]);
 
+  // Fetch company salary structure
   useEffect(() => {
     const fetchSalaryStructures = async () => {
       try {
@@ -260,9 +258,7 @@ const EmployeeSalaryStructure = () => {
             const firstStructure = activeSalaryStructures[0];
             setAllowances(firstStructure.allowances);
             setDeductions(firstStructure.deductions);
-            setErrorMessage(""); // Clear error if salary structures are found
-            console.log("deductions", firstStructure.deductions);
-            console.log("allowances", firstStructure.allowances);
+            setErrorMessage("");
           } else {
             setErrorMessage("No active salary structure found");
           }
@@ -275,25 +271,22 @@ const EmployeeSalaryStructure = () => {
     fetchSalaryStructures();
   }, []);
 
-  // ✅ Fetch TDS slabs based on financial year and regime
+  // Fetch TDS slabs for display purposes
   useEffect(() => {
     const fetchTds = async () => {
       try {
         const currentYear = new Date().getFullYear();
-        const financialYear = getCurrentFinancialYear(); // e.g. "2023-2024"
+        const financialYear = getCurrentFinancialYear();
         const [startYear, endYear] = financialYear.split('-').map(Number);
 
-        // Fetch all TDS data
         const response = await TdsGetApi();
         const allTdsData = response.data.data;
 
-        // Filter for current financial year
         const currentYearTds = allTdsData.filter(tds =>
           parseInt(tds.startYear) === startYear &&
           parseInt(tds.endYear) === endYear
         );
 
-        // Separate old and new regime slabs
         const newRegimeSlabs = currentYearTds
           .filter(tds => tds.tdsType === "new")
           .flatMap(tds => tds.persentageEntityList);
@@ -307,7 +300,6 @@ const EmployeeSalaryStructure = () => {
           old: oldRegimeSlabs
         });
 
-        // Set initial selected slabs based on current regime
         setSelectedTdsSlabs(
           selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
         );
@@ -323,46 +315,24 @@ const EmployeeSalaryStructure = () => {
     fetchTds();
   }, [selectedTaxRegime]);
 
+  // Calculate TDS for display (not for deduction)
   useEffect(() => {
-    // Initialize TDS calculation on mount
-    calculateTds(grossAmount, selectedTaxRegime);
-  }, [grossAmount, selectedTaxRegime, selectedTdsSlabs]);
+    if (grossAmount > 0 && selectedTaxRegime) {
+      calculateTds(grossAmount, selectedTaxRegime);
+    }
+  }, [grossAmount, selectedTaxRegime]);
 
-  // Add this useEffect to show/hide TDS field based on tax regime selection
-  useEffect(() => {
-    setShowTdsField(selectedTaxRegime === "new");
-  }, [selectedTaxRegime]);
-
-  // Update the tax regime change handler
-  const handleTaxRegimeChange = (e) => {
-    const regime = e.target.value;
-    setSelectedTaxRegime(regime);
-    setValue("incomeTax", regime);
-
-    // Recalculate TDS with new regime
-    const newTds = calculateTds(grossAmount, regime);
-    setTdsAmount(newTds);
-
-    // Update deductions to reflect new TDS
-    setUpdatedDeductions(prev => ({
-      ...prev,
-      "TDS": newTds.toFixed(2)
-    }));
-  };
-
-  // useEffect to calculate total and other allowances
+  // Calculate total allowances
   const calculateTotalAllowances = () => {
-    let totalAllowances = 0; // Initialize totalAllowances variable
-    // Handle Basic Salary and HRA calculations
-    const basicSalaryPercentage = parseFloat(allowances["Basic Salary"]) || 0; // Basic Salary percentage
-    const hraPercentage = parseFloat(allowances["HRA"]) || 0; // HRA percentage
-    const basicSalaryAmount = (basicSalaryPercentage / 100) * grossAmount; // Calculate basic salary amount
-    const hraAmount = (hraPercentage / 100) * basicSalaryAmount; // Calculate HRA amount
-    setBasicAmount(basicSalaryAmount); // Update state for basic amount
+    let totalAllowances = 0;
+    const basicSalaryPercentage = parseFloat(allowances["Basic Salary"]) || 0;
+    const hraPercentage = parseFloat(allowances["HRA"]) || 0;
+    const basicSalaryAmount = (basicSalaryPercentage / 100) * grossAmount;
+    const hraAmount = (hraPercentage / 100) * basicSalaryAmount;
+    setBasicAmount(basicSalaryAmount);
 
-    // Adding Basic Salary and HRA to totalAllowances
     totalAllowances += basicSalaryAmount + hraAmount;
-    // Loop through other allowances to calculate the total
+    
     Object.entries(allowances).forEach(([key, value]) => {
       if (
         key !== "Basic Salary" &&
@@ -370,17 +340,14 @@ const EmployeeSalaryStructure = () => {
         key !== "Provident Fund Employer" &&
         key !== "Other Allowances"
       ) {
-        // Skip Basic Salary and HRA since already calculated
         if (typeof value === "string" && value.includes("%")) {
-          // If it's a percentage value, calculate the amount
           const percentageValue = parseFloat(value.replace("%", ""));
           if (!isNaN(percentageValue)) {
             let allowanceAmount;
-            // Check if the allowance is related to HRA or gross amount
             if (key === "HRA" || key === "Provident Fund Employer") {
-              allowanceAmount = (percentageValue / 100) * basicSalaryAmount; // HRA based on Basic Salary
+              allowanceAmount = (percentageValue / 100) * basicSalaryAmount;
             } else {
-              allowanceAmount = (percentageValue / 100) * grossAmount; // For other allowances, use gross amount
+              allowanceAmount = (percentageValue / 100) * grossAmount;
             }
             totalAllowances += allowanceAmount;
           }
@@ -391,7 +358,6 @@ const EmployeeSalaryStructure = () => {
         ) {
           const numericValue =
             typeof value === "number" ? value : parseFloat(value);
-          // If it's a numeric fixed allowance, add it directly to total allowances
           totalAllowances += numericValue;
         }
       }
@@ -399,7 +365,7 @@ const EmployeeSalaryStructure = () => {
     return totalAllowances;
   };
 
-  // ✅ Calculate TDS based on selected tax regime
+  // Calculate TDS for display only
   const calculateTds = (annualSalary, regime) => {
     const slabs = regime === "new" ? tdsSlabs.new : tdsSlabs.old;
     const sortedSlabs = [...slabs].sort((a, b) => parseFloat(a.min) - parseFloat(b.min));
@@ -423,70 +389,18 @@ const EmployeeSalaryStructure = () => {
       tdsAmount = annualSalary * rate;
     }
 
-    // Update deductions with the new TDS value
-    setUpdatedDeductions(prev => ({
-      ...prev,
-      "TDS": tdsAmount.toFixed(2)
-    }));
-
+    setTdsAmount(tdsAmount);
     return tdsAmount;
   };
 
-  useEffect(() => {
-    if (grossAmount > 0 && selectedTaxRegime) {
-      const calculatedTds = calculateTds(grossAmount, selectedTaxRegime);
-      setTdsAmount(calculatedTds);
-    }
-  }, [grossAmount, selectedTaxRegime]);
-
-
-
-  // useEffect to update the total allowances whenever allowances or grossAmount changes
-  useEffect(() => {
-    const totalAllow = calculateTotalAllowances();
-    setTotalAllowances(totalAllow);
-    calculateTds(grossAmount, selectedTaxRegime);
-  }, [allowances, grossAmount, selectedTaxRegime]); // Dependencies to trigger the effect
-
-  useEffect(() => {
-    const totalAllow = calculateTotalAllowances(); // Calculate total allowances
-    const newOtherAllowances = grossAmount - totalAllow; // Subtract the sum of other allowances from gross amount
-    // Ensure no negative values for other allowances
-    const validOtherAllowances = Math.max(0, newOtherAllowances);
-
-    // Check if other allowances need to be updated
-    if (validOtherAllowances !== prevOtherAllowancesRef.current) {
-      setAllowances((prevAllowances) => ({
-        ...prevAllowances,
-        "Other Allowances": validOtherAllowances.toFixed(2),
-      }));
-      prevOtherAllowancesRef.current = validOtherAllowances; // Update ref to new value
-    }
-
-    // Update total allowances state
-    setTotalAllowances(totalAllow + validOtherAllowances); // Add Other Allowances to totalAllowances
-
-    // Error checking: Disable submit if total allowances exceed gross amount
-    if (newOtherAllowances < 0) {
-      setErrorMessage(
-        "Total allowances exceed gross amount. Please adjust allowances."
-      );
-      setIsSubmitDisabled(true);
-    } else {
-      setErrorMessage("");
-      setIsSubmitDisabled(false);
-    }
-  }, [allowances, grossAmount, selectedTaxRegime]); // Recalculate whenever allowances or grossAmount change
-
+  // Calculate PF contributions
   const calculatePFContributions = () => {
-    const basicSalaryPercentage = parseFloat(allowances["Basic Salary"]) || 0; // Basic Salary percentage
+    const basicSalaryPercentage = parseFloat(allowances["Basic Salary"]) || 0;
     const pfEmployeePercentage =
-      parseFloat(deductions["Provident Fund Employee"]) || 0; // Employee PF percentage
+      parseFloat(deductions["Provident Fund Employee"]) || 0;
     const pfEmployerPercentage =
-      parseFloat(deductions["Provident Fund Employer"]) || 0; // Employer PF percentage
-    // Calculate Basic Salary Amount from the gross salary
+      parseFloat(deductions["Provident Fund Employer"]) || 0;
     const basicSalaryAmount = (basicSalaryPercentage / 100) * grossAmount;
-    // Calculate PF Contributions
     const pfEmployee = (pfEmployeePercentage / 100) * basicSalaryAmount;
     const pfEmployer = (pfEmployerPercentage / 100) * basicSalaryAmount;
     return {
@@ -495,39 +409,36 @@ const EmployeeSalaryStructure = () => {
     };
   };
 
-  // Function to handle PF limit check and show the modal
+  // Handle PF limit check and show modal if needed
   const handlePFLimitCheck = () => {
     const { pfEmployee, pfEmployer } = calculatePFContributions();
     const totalPF = pfEmployee + pfEmployer;
 
-    setCalculatedPF({ pfEmployee, pfEmployer }); // Set calculated PF values
+    setCalculatedPF({ pfEmployee, pfEmployer });
 
-    // Case: If total PF exceeds ₹43,200 per year or is less than ₹43,200
     if (totalPF !== 43200) {
       updateDeductions(totalPF / 2, totalPF / 2);
     } else {
-      // If total PF is exactly ₹43,200 per year, no confirmation needed
-      updateDeductions(43200 / 2, 43200 / 2); // Use fixed PF values of ₹43,200 per year (monthly)
+      updateDeductions(43200 / 2, 43200 / 2);
     }
   };
 
-  // Update the deductions with PF values
+  // Update deductions (excluding TDS)
   const updateDeductions = (pfEmployee, pfEmployer) => {
     const newDeductions = {
       ...deductions,
       "Provident Fund Employee": pfEmployee.toFixed(2),
       "Provident Fund Employer": pfEmployer.toFixed(2),
-      "TDS": tdsAmount.toFixed(2),
     };
-    setUpdatedDeductions(newDeductions); // Save the updated deductions in state
+    setUpdatedDeductions(newDeductions);
   };
 
-  // Function to calculate the total deductions including PF
+  // Calculate total deductions (excluding TDS)
   const calculateTotalDeductions = () => {
-    let total = 0; // Remove the direct addition of tdsAmount
+    let total = 0;
 
     Object.entries(updatedDeductions).forEach(([key, value]) => {
-      if (!value) return; // Skip empty values
+      if (!value) return;
 
       if (typeof value === "string" && value.includes("%")) {
         const percentageValue = parseFloat(value.replace("%", ""));
@@ -543,35 +454,50 @@ const EmployeeSalaryStructure = () => {
     return isNaN(total) ? 0 : total;
   };
 
+  // Calculate net salary (gross - deductions, excluding TDS)
+  const calculateNetSalary = () => {
+    const net = grossAmount - totalDeductions;
+    setNetSalary(net);
+    if (!isNaN(net)) {
+      setAmountInWords(numberToWords(net));
+    } else {
+      setAmountInWords('');
+    }
+  };
+
+  // Recalculate when dependencies change
+  useEffect(() => {
+    const totalAllow = calculateTotalAllowances();
+    setTotalAllowances(totalAllow);
+    calculateTds(grossAmount, selectedTaxRegime);
+  }, [allowances, grossAmount, selectedTaxRegime]);
 
   useEffect(() => {
-    calculateTds(grossAmount, selectedTaxRegime);
     const totalDeductions = calculateTotalDeductions();
     setTotalDeductions(totalDeductions);
-  }, [updatedDeductions, grossAmount, selectedTaxRegime]);
+    calculateNetSalary();
+  }, [updatedDeductions, grossAmount]);
 
   useEffect(() => {
-    handlePFLimitCheck(); // Trigger the PF limit check on initial load or relevant updates
+    handlePFLimitCheck();
   }, [grossAmount, allowances, deductions]);
 
-  const handleAllowanceChange = (key, newValue, grossSalary, basicSalary) => {
+  // Handle allowance changes
+  const handleAllowanceChange = (key, newValue) => {
     let validValue = newValue;
     const isPercentage = newValue.includes("%");
     let errorMessage = "";
 
-    // Convert percentage values to decimal numbers
     if (isPercentage) {
-      validValue = newValue.replace(/[^0-9%]/g, ""); // Allow only digits and %
-      const percentageValue = parseFloat(validValue.replace("%", "")) / 100; // Convert percentage to decimal
+      validValue = newValue.replace(/[^0-9%]/g, "");
+      const percentageValue = parseFloat(validValue.replace("%", "")) / 100;
       if (isNaN(percentageValue)) {
         errorMessage = "Invalid percentage value.";
       } else {
-        // Calculate allowance based on either Gross Salary or Basic Salary
-        validValue = percentageValue * grossSalary; // Use grossSalary or basicSalary depending on your requirement
-        validValue = validValue.toFixed(4); // Ensure the value is in decimal format
+        validValue = percentageValue * grossAmount;
+        validValue = validValue.toFixed(4);
       }
     } else {
-      // Validate and convert non-percentage values to numbers
       if (/[^0-9.-]/.test(newValue)) {
         errorMessage = "Only numeric values are allowed.";
       } else {
@@ -582,7 +508,6 @@ const EmployeeSalaryStructure = () => {
       }
     }
 
-    // If no error, update the state with the numeric value
     if (!errorMessage) {
       setAllowances((prevAllowances) => ({
         ...prevAllowances,
@@ -593,19 +518,19 @@ const EmployeeSalaryStructure = () => {
     setErrorMessage(errorMessage);
   };
 
-  const handleDeductionChange = (key, value, grossSalary, basicSalary) => {
+  // Handle deduction changes
+  const handleDeductionChange = (key, value) => {
     if (/[a-zA-Z]/.test(value)) {
       setErrorMessage("Alphabetic characters are not allowed.");
       return;
     }
 
-    let validValue = parseFloat(value.replace(/[^0-9.-]/g, "")); // Remove non-numeric characters
+    let validValue = parseFloat(value.replace(/[^0-9.-]/g, ""));
     let errorMessage = "";
 
-    // Handle percentage-based deduction calculation
     if (value.includes("%")) {
       const percentageValue = validValue / 100;
-      validValue = percentageValue * grossSalary; // Deduction as a percentage of gross salary (or basicSalary if required)
+      validValue = percentageValue * grossAmount;
     }
 
     if (isNaN(validValue)) {
@@ -616,82 +541,25 @@ const EmployeeSalaryStructure = () => {
       errorMessage = "Deduction value cannot be negative.";
     }
 
-    // Update the deductions state with valid numeric value
     if (!errorMessage) {
       setDeductions((prevDeductions) => ({
         ...prevDeductions,
         [key]: validValue,
-        "TDS": tdsAmount.toFixed(2), // ✅ Dynamically including TDS in deductions
       }));
     }
 
     setErrorMessage(errorMessage);
   };
 
-  useEffect(() => {
-    const totalDed = calculateTotalDeductions();
-
-    // Ensure the result is a number before setting it
-    if (typeof totalDed === "number") {
-      setTotalDeductions(totalDed); // Store as a number
-    } else {
-      setTotalDeductions(0); // Default to 0 if totalDed is not a valid number
-    }
-  }, [deductions, grossAmount, tdsAmount]);
-
-  useEffect(() => {
-    // Calculate total allowances and total deductions whenever the gross amount changes
-    //const totalAllowances = calculateTotalAllowances();
-    const totalDeductions = calculateTotalDeductions();
-    // Update state
-    setFinalAllowances(finalAllowances);
-    setTotalDeductions(totalDeductions);
-  }, [grossAmount, allowances, deductions]); // Ensure dependencies include `grossAmount`, `allowances`, and `deductions`
-
-  const calculateAllowances = () => {
-    // calculateTotalAllowances();
-    calculateTotalDeductions();
-    setShowCards(true);
+  // Handle tax regime change
+  const handleTaxRegimeChange = (e) => {
+    const regime = e.target.value;
+    setSelectedTaxRegime(regime);
+    setValue("incomeTax", regime);
+    calculateTds(grossAmount, regime);
   };
 
-
-
-  const calculateNetSalary = () => {
-    const net = totalAllowances - totalDeductions;
-    setNetSalary(net);
-    if (!isNaN(net)) {
-      setAmountInWords(numberToWords(net));
-    } else {
-      setAmountInWords('');
-    }
-  };
-
-  useEffect(() => {
-    calculateNetSalary();
-  }, [finalAllowances, totalDeductions]);
-
-  useEffect(() => {
-    if (salaryId && id) {
-      setValue("variableAmount", variableAmount);
-      setValue("fixedAmount", fixedAmount);
-      setValue("hra", hra);
-      setValue("travelAllowance", travelAllowance);
-      setValue("pfEmployee", pfEmployee);
-      setValue("pfEmployer", pfEmployer);
-      // Update other values as necessary
-    }
-  }, [
-    variableAmount,
-    fixedAmount,
-    hra,
-    travelAllowance,
-    pfEmployee,
-    pfEmployer,
-    salaryId,
-    id,
-    setValue,
-  ]);
-
+  // Handle API errors
   const handleApiErrors = (error) => {
     if (
       error.response &&
@@ -707,76 +575,75 @@ const EmployeeSalaryStructure = () => {
     console.error(error.response);
   };
 
+  // Handle Go button click
   const handleGoClick = () => {
-    // Reset both showCards and showPfModal to false when Go button is clicked
-    setShowCards(false); // Hide cards
-    setShowPfModal(false); // Hide PF Modal
+    setShowCards(false);
+    setShowPfModal(false);
 
     if (!employeeId) {
       setMessage("Please Select Employee Name");
-      setShowFields(false); // Hide fields if no employee is selected
+      setShowFields(false);
     } else {
-      setShowFields(true); // Show fields if employee is selected
-      setErrorMessage(""); // Reset error message
+      setShowFields(true);
+      setErrorMessage("");
     }
   };
 
+  // Handle submit button click
   const handleSubmitButtonClick = () => {
-    // Calculate total allowances
-    // const totalAllowances = calculateTotalAllowances();
-
-    // Calculate total deductions
     const totalDeductions = calculateTotalDeductions();
-
-    // Calculate net salary
-    const netSalary = grossAmount + finalAllowances - totalDeductions;
-
-    // Set the calculated values to state
-    setFinalAllowances(finalAllowances);
+    const netSalary = grossAmount - totalDeductions;
     setTotalDeductions(totalDeductions);
     setNetSalary(netSalary);
 
-    // Optionally, show any relevant messages
     if (netSalary < 0) {
       setErrorMessage("Net Salary cannot be negative");
     } else {
       setErrorMessage("");
     }
 
-    // Check PF limit if necessary
     handlePFLimitCheck();
     setShowPfModal(true);
     setShowCards(true);
   };
 
-  // Handle modal close and update PF values based on selection
+  // Handle PF modal close
   const handleModalClose = () => {
     const { pfEmployee, pfEmployer } = calculatedPF;
 
-    // Check the selected PF option
     if (selectedPF === "calculated") {
-      updateDeductions(pfEmployee, pfEmployer); // Use calculated PF
+      updateDeductions(pfEmployee, pfEmployer);
     } else {
-      const fixedPF = 43200 / 2; // ₹43,200 per year split into ₹21,600 each for employee and employer
-      updateDeductions(fixedPF, fixedPF); // Use ₹21,600 per year for both employee and employer
+      const fixedPF = 43200 / 2;
+      updateDeductions(fixedPF, fixedPF);
     }
-    setShowPfModal(false); // Close the modal
+    setShowPfModal(false);
   };
 
+  // Handle employee selection change
   const handleEmployeeChange = (selectedOption) => {
     setEmployeeId(selectedOption.value);
   };
 
+  // Handle variable amount change
   const handleVariableAmountChange = (e) => {
     setVariableAmount(parseFloat(e.target.value) || 0);
     setValue("variableAmount", e.target.value, { shouldValidate: true });
   };
 
+  const calculateAllowances = () => {
+    // calculateTotalAllowances();
+    calculateTotalDeductions();
+    setShowCards(true);
+  };
+
+  // Handle fixed amount change
   const handleFixedAmountChange = (e) => {
     setFixedAmount(parseFloat(e.target.value) || 0);
     setValue("fixedAmount", e.target.value, { shouldValidate: true });
   };
 
+  // Calculate gross amount when variable or fixed amount changes
   useEffect(() => {
     const newGrossSalary = variableAmount + fixedAmount;
     setGrossAmount(newGrossSalary);
@@ -785,9 +652,9 @@ const EmployeeSalaryStructure = () => {
     } else {
       setGrossInWords('');
     }
-    console.log("grossAmount", grossAmount);
   }, [variableAmount, fixedAmount]);
 
+  // Calculate monthly salary and LOP per day
   useEffect(() => {
     const monthlySalaryValue = parseFloat(grossAmount || 0) / 12;
     setMonthlySalary(monthlySalaryValue.toFixed(2));
@@ -797,23 +664,19 @@ const EmployeeSalaryStructure = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = authUser.company;
-
+  // Form submission handler
   const onSubmit = (data) => {
-    console.log("data", data);
-
     if (error) {
       toast.error(error);
       return;
     }
 
-    // Convert all numeric values safely
+    // Convert form data
     const fixedAmount = Number(data.fixedAmount) || 0;
     const variableAmount = Number(data.variableAmount) || 0;
     const grossAmountValue = Number(grossAmount) || 0;
     const netSalaryValue = Number(netSalary) || 0;
     const totalDeductionsValue = Number(totalDeductions) || 0;
-    const pfTaxValue = Number(pfTax) || 0;
     const incomeTax = selectedTaxRegime;
     const statusValue = data.status;
     const addSalaryDate = new Date().toISOString().split("T")[0];
@@ -841,9 +704,11 @@ const EmployeeSalaryStructure = () => {
       allowancesData[key] = numericValue.toFixed(2);
     });
 
-    // Process deductions
+    // Process deductions (excluding TDS)
     const deductionsData = {};
     Object.entries(deductions).forEach(([key, value]) => {
+      if (key === "TDS") return; // Skip TDS
+
       let numericValue = 0;
 
       if (typeof value === 'string' && value.includes('%')) {
@@ -857,21 +722,16 @@ const EmployeeSalaryStructure = () => {
         numericValue = parseFloat(value) || 0;
       }
 
-      // Handle fixed PF case
       if (selectedPF === "fixed" && key.includes("Provident Fund")) {
-        numericValue = 43200 / 2; // ₹21,600 for employee and employer
+        numericValue = 43200 / 2;
       }
 
       deductionsData[key] = numericValue.toFixed(2);
     });
 
-    // Add TDS for new regime
-    if (incomeTax === "new") {
-      deductionsData["TDS"] = Number(tdsAmount).toFixed(2);
-    }
-
+    // Prepare data for submission
     const dataToSubmit = {
-      companyName: companyName,
+      companyName: authUser.company,
       fixedAmount: fixedAmount.toFixed(2),
       variableAmount: variableAmount.toFixed(2),
       grossAmount: grossAmountValue.toFixed(2),
@@ -883,16 +743,17 @@ const EmployeeSalaryStructure = () => {
       netSalary: netSalaryValue.toFixed(2),
       totalDeductions: totalDeductionsValue.toFixed(2),
       tdsType: incomeTax,
+      tdsAmount: tdsAmount.toFixed(2), // Store TDS separately
       addSalaryDate: addSalaryDate,
       status: statusValue,
     };
 
-    console.log("dataToSubmit", dataToSubmit);
-
+    // Determine whether to create or update
     const apiCall = salaryId
       ? () => EmployeeSalaryPatchApiById(employeeId, salaryId, dataToSubmit)
       : () => EmployeeSalaryPostApi(employeeId, dataToSubmit);
 
+    // Execute API call
     apiCall()
       .then((response) => {
         toast.success(
@@ -908,12 +769,32 @@ const EmployeeSalaryStructure = () => {
         handleApiErrors(error);
       });
   };
+  
+  const calculationPopover = (
+    <Popover id="popover-basic" style={{ maxWidth: "300px", borderRadius: "8px", border: "1px solid #17a2b8" }}>
+      <Popover.Header as="h6" className="bg-info text-white text-center">
+        Calculation Method
+      </Popover.Header>
+      <Popover.Body className="bg-light">
+        <ul className="mb-0">
+          <li>Entire salary taxed at a single rate based on which bracket it falls into.</li>
+          <li>Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong></li>
+          <li>Financial Year: <strong>{getCurrentFinancialYear()}</strong></li>
+          {applicableSlab && (
+            <li>Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket.</li>
+          )}
+        </ul>
+      </Popover.Body>
+    </Popover>
+  );
 
+  // Clear form
   const clearForm = () => {
     reset();
     setShowFields(false);
   };
 
+  // Render UI
   return (
     <LayOut>
       <div className="container-fluid p-0">
@@ -942,12 +823,8 @@ const EmployeeSalaryStructure = () => {
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
-                      <h5
-                        className="card-title"
-                        style={{ marginBottom: "0px" }}
-                      >
-                        {" "}
-                        Salary Details{" "}
+                      <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                        Salary Details
                       </h5>
                     </div>
                     <div className="card-body" style={{ marginLeft: "20px" }}>
@@ -1013,9 +890,7 @@ const EmployeeSalaryStructure = () => {
                             readOnly={isReadOnly}
                             value={fixedAmount}
                             onChange={handleFixedAmountChange}
-
                           />
-
                           {errors.fixedAmount && (
                             <div className="errorMsg">
                               {errors.fixedAmount.message}
@@ -1031,9 +906,6 @@ const EmployeeSalaryStructure = () => {
                             className="form-control"
                             autoComplete="off"
                             value={grossAmount}
-                            onChange={(e) =>
-                              setGrossAmount(parseFloat(e.target.value))
-                            }
                             readOnly
                           />
                           {grossInWords && (
@@ -1069,7 +941,7 @@ const EmployeeSalaryStructure = () => {
                   </div>
                 </div>
                 {loading ? (
-                  <Loader /> // Show loader while loading
+                  <Loader />
                 ) : (
                   showCards && (
                     <>
@@ -1077,72 +949,41 @@ const EmployeeSalaryStructure = () => {
                         <div className="col-6 mb-4">
                           <div className="card">
                             <div className="card-header">
-                              <h5
-                                className="card-title"
-                                style={{ marginBottom: "0px" }}
-                              >
+                              <h5 className="card-title" style={{ marginBottom: "0px" }}>
                                 Allowances
                               </h5>
                             </div>
-                            <div
-                              className="card-body"
-                              style={{ paddingLeft: "20px" }}
-                            >
-                              {Object.entries(allowances).map(
-                                ([key, value]) => {
-                                  let displayValue = value;
+                            <div className="card-body" style={{ paddingLeft: "20px" }}>
+                              {Object.entries(allowances).map(([key, value]) => {
+                                let displayValue = value;
 
-                                  // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
-                                  if (
-                                    typeof value === "string" &&
-                                    value.includes("%")
-                                  ) {
-                                    const percentage = parseFloat(
-                                      value.replace("%", "")
-                                    );
-                                    if (!isNaN(percentage)) {
-                                      // Calculate based on grossAmount or basicAmount
-                                      if (
-                                        key === "HRA" ||
-                                        key === "Provident Fund Employer"
-                                      ) {
-                                        displayValue =
-                                          (percentage / 100) * basicAmount; // For HRA, use basicAmount
-                                      } else {
-                                        displayValue =
-                                          (percentage / 100) * grossAmount; // For other allowances, use grossAmount
-                                      }
+                                if (typeof value === "string" && value.includes("%")) {
+                                  const percentage = parseFloat(value.replace("%", ""));
+                                  if (!isNaN(percentage)) {
+                                    if (key === "HRA" || key === "Provident Fund Employer") {
+                                      displayValue = (percentage / 100) * basicAmount;
+                                    } else {
+                                      displayValue = (percentage / 100) * grossAmount;
                                     }
-                                  } else if (typeof value === "number") {
-                                    // If it's a number (fixed value), just display that value
-                                    displayValue = value;
                                   }
-
-                                  // Update the state with the calculated value for allowance
-
-                                  return (
-                                    <div key={key} className="mb-3">
-                                      <label>{key}</label>
-                                      <input
-                                        className="form-control"
-                                        type="text"
-                                        maxLength={7}
-                                        value={Math.round(displayValue)} // Display the calculated value
-                                        onChange={(e) =>
-                                          handleAllowanceChange(
-                                            key,
-                                            e.target.value
-                                          )
-                                        } // Handle change
-                                        readOnly={
-                                          key === "Basic Salary" ||
-                                          key === "HRA"
-                                        }
-                                      />
-                                    </div>
-                                  );
+                                } else if (typeof value === "number") {
+                                  displayValue = value;
                                 }
-                              )}
+
+                                return (
+                                  <div key={key} className="mb-3">
+                                    <label>{key}</label>
+                                    <input
+                                      className="form-control"
+                                      type="text"
+                                      maxLength={7}
+                                      value={Math.round(displayValue)}
+                                      onChange={(e) => handleAllowanceChange(key, e.target.value)}
+                                      readOnly={key === "Basic Salary" || key === "HRA"}
+                                    />
+                                  </div>
+                                );
+                              })}
 
                               <div className="mb-3">
                                 <label>Total Allowances:</label>
@@ -1153,8 +994,6 @@ const EmployeeSalaryStructure = () => {
                                   maxLength={7}
                                   value={Math.round(totalAllowances)}
                                   readOnly
-                                  data-toggle="tooltip"
-                                  title="This is the total of all allowances."
                                 />
                                 {errorMessage && (
                                   <p className="text-danger">{errorMessage}</p>
@@ -1166,17 +1005,12 @@ const EmployeeSalaryStructure = () => {
                           <div className="card">
                             <div className="card-header">
                               <div className="d-flex justify-content-start align-items-start">
-                                <h5
-                                  className="card-title me-2"
-                                  style={{ marginBottom: "0px" }}
-                                >
+                                <h5 className="card-title me-2" style={{ marginBottom: "0px" }}>
                                   Status
                                 </h5>
                                 <span className="text-danger">
                                   {errors.status && (
-                                    <p className="mb-0">
-                                      {errors.status.message}
-                                    </p>
+                                    <p className="mb-0">{errors.status.message}</p>
                                   )}
                                 </span>
                               </div>
@@ -1218,25 +1052,138 @@ const EmployeeSalaryStructure = () => {
                           </div>
                         </div>
 
-                        {/* Deductions Card */}
                         <div className="col-6 mb-4">
+                        <div className="card">
+  <div className="card-header">
+    <div className="d-flex justify-content-start align-items-start">
+      <h5 className="card-title me-2" style={{ marginBottom: "0px" }}>
+        Tax Deduction at Source (TDS)
+      </h5>
+      <span className="text-danger">
+        {errors.incomeTax && (
+          <p className="mb-0">{errors.incomeTax.message}</p>
+        )}
+      </span>
+    </div>
+  </div>
+  <div className="card-body">
+    <div className="row">
+      {/* Tax Regime Selection */}
+      <div className="col-md-12 mb-4">
+        <h6 className="mb-3">Select Tax Regime:</h6>
+        <div className="d-flex flex-wrap gap-4">
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="newRegime"
+              value="new"
+              {...register("incomeTax", {
+                onChange: (e) => setSelectedTaxRegime(e.target.value)
+              })}
+            />
+            
+<label className="form-check-label" htmlFor="newRegime">
+  <div className="d-flex align-items-center">
+    <span>New Tax Regime (Default)</span>
+    <OverlayTrigger
+      trigger={["hover", "focus"]}
+      placement="top"
+      overlay={calculationPopover}
+    >
+      <span className="ms-2" style={{ cursor: "pointer" }}>
+        <i className="bi bi-info-circle text-primary"></i>
+      </span>
+    </OverlayTrigger>
+  </div>
+</label>
+          </div>
+          <div className="form-check">
+            <input
+              className="form-check-input"
+              type="radio"
+              id="oldRegime"
+              value="old"
+              {...register("incomeTax", {
+                onChange: (e) => setSelectedTaxRegime(e.target.value)
+              })}
+            />
+            <label className="form-check-label" htmlFor="oldRegime">
+              Old Tax Regime
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Salary and Slab Information */}
+      <div className="col-md-6 mb-3">
+        <label className="form-label">Applicable Tax Rate</label>
+        <div className="p-2 bg-white rounded">
+          {applicableSlab ? (
+            <div className="d-flex align-items-center">
+              <span className="badge bg-primary me-2">
+                {applicableSlab.taxPercentage}%
+              </span>
+              <span>
+                For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
+                ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
+              </span>
+            </div>
+          ) : (
+            <span className="text-muted">No applicable slab found</span>
+          )}
+        </div>
+      </div>
+
+      {/* TDS Calculation Results */}
+      <div className="col-md-12 mt-4">
+        <div className="row">
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Tax Rate Applied</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
+              readOnly
+            />
+          </div>
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Annual TDS</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={`₹${tdsAmount.toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+              })}`}
+              readOnly
+            />
+          </div>
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Monthly TDS</label>
+            <input
+              className="form-control fw-bold text-center"
+              type="text"
+              value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2
+              })}`}
+              readOnly
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
                           <div className="card">
                             <div className="card-header">
-                              <h5
-                                className="card-title"
-                                style={{ marginBottom: "0px" }}
-                              >
+                              <h5 className="card-title" style={{ marginBottom: "0px" }}>
                                 Deductions
                               </h5>
                             </div>
-                            <div
-                              className="card-body"
-                              style={{ paddingLeft: "20px" }}
-                            >
-                              {Object.entries({
-                                ...updatedDeductions,
-                                "TDS": tdsAmount.toFixed(2) // Ensure TDS is always included
-                              }).map(([key, value]) => {
+                            <div className="card-body" style={{ paddingLeft: "20px" }}>
+                              {Object.entries(updatedDeductions).map(([key, value]) => {
                                 let displayValue = parseFloat(value) || value;
 
                                 if (typeof value === "string" && value.includes("%")) {
@@ -1253,7 +1200,7 @@ const EmployeeSalaryStructure = () => {
                                     <input
                                       className="form-control"
                                       type="text"
-                                      readOnly={["Provident Fund Employee", "Provident Fund Employer", "TDS"].includes(key)}
+                                      readOnly={["Provident Fund Employee", "Provident Fund Employer"].includes(key)}
                                       value={Math.round(displayValue)}
                                       onChange={(e) => handleDeductionChange(key, e.target.value)}
                                     />
@@ -1274,137 +1221,6 @@ const EmployeeSalaryStructure = () => {
                                 {errorMessage && (
                                   <p className="text-danger">{errorMessage}</p>
                                 )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="card">
-                            <div className="card-header">
-                              <div className="d-flex justify-content-start align-items-start">
-                                <h5 className="card-title me-2" style={{ marginBottom: "0px" }}>
-                                  Tax Deduction at Source (TDS)
-                                </h5>
-                                <span className="text-danger">
-                                  {errors.incomeTax && (
-                                    <p className="mb-0">{errors.incomeTax.message}</p>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="card-body">
-                              <div className="row">
-                                {/* Tax Regime Selection */}
-                                <div className="col-md-12 mb-4">
-                                  <h6 className="mb-3">Select Tax Regime:</h6>
-                                  <div className="d-flex flex-wrap gap-4">
-                                    <div className="form-check">
-                                      <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        id="newRegime"
-                                        value="new"
-                                        {...register("incomeTax", {
-                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
-                                        })}
-                                      />
-                                      <label className="form-check-label" htmlFor="newRegime">
-                                        New Tax Regime (Default)
-                                      </label>
-                                    </div>
-                                    <div className="form-check">
-                                      <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        id="oldRegime"
-                                        value="old"
-                                        {...register("incomeTax", {
-                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
-                                        })}
-                                      />
-                                      <label className="form-check-label" htmlFor="oldRegime">
-                                        Old Tax Regime
-                                      </label>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Salary and Slab Information */}
-                                <div className="col-md-6 mb-3">
-                                  <label className="form-label">Applicable Tax Rate</label>
-                                  <div className="p-2 bg-white rounded">
-                                    {applicableSlab ? (
-                                      <div className="d-flex align-items-center">
-                                        <span className="badge bg-primary me-2">
-                                          {applicableSlab.taxPercentage}%
-                                        </span>
-                                        <span>
-                                          For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
-                                          ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted">No applicable slab found</span>
-                                    )}
-                                  </div>
-                                </div>
-
-
-                                {/* TDS Calculation Results */}
-                                <div className="col-md-12 mt-4">
-                                  <div className="row">
-                                    <div className="col-md-4 mb-3">
-                                      <label className="form-label">Tax Rate Applied</label>
-                                      <input
-                                        className="form-control fw-bold text-center"
-                                        type="text"
-                                        value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
-                                        readOnly
-                                      />
-                                    </div>
-                                    <div className="col-md-4 mb-3">
-                                      <label className="form-label">Annual TDS</label>
-                                      <input
-                                        className="form-control fw-bold text-center"
-                                        type="text"
-                                        value={`₹${tdsAmount.toLocaleString('en-IN', {
-                                          maximumFractionDigits: 2,
-                                          minimumFractionDigits: 2
-                                        })}`}
-                                        readOnly
-                                      />
-                                    </div>
-                                    <div className="col-md-4 mb-3">
-                                      <label className="form-label">Monthly TDS</label>
-                                      <input
-                                        className="form-control fw-bold text-center"
-                                        type="text"
-                                        value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
-                                          maximumFractionDigits: 2,
-                                          minimumFractionDigits: 2
-                                        })}`}
-                                        readOnly
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Calculation Explanation */}
-                                <div className="col-md-12 mt-3">
-                                  <div className="alert alert-info">
-                                    <h6>Calculation Method:</h6>
-                                    <ul className="mb-0">
-                                      <li>Entire salary taxed at single rate based on which bracket it falls into</li>
-                                      <li>
-                                        Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong> |
-                                        Financial Year: <strong>{getCurrentFinancialYear()}</strong>
-                                      </li>
-                                      {applicableSlab && (
-                                        <li>
-                                          Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket
-                                        </li>
-                                      )}
-                                    </ul>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>

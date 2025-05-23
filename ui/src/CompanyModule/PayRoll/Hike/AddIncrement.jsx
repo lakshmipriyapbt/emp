@@ -25,6 +25,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../../Redux/EmployeeSlice";
+import { OverlayTrigger, Popover } from "react-bootstrap";
 
 const AddIncrement = () => {
   const {
@@ -337,12 +338,6 @@ const calculateTds = (annualSalary, regime) => {
     tdsAmount = annualSalary * rate;
   }
 
-  // Update deductions with the new TDS value
-  setUpdatedDeductions(prev => ({
-    ...prev,
-    "TDS": tdsAmount.toFixed(2)
-  }));
-
   return tdsAmount;
 };
 
@@ -540,10 +535,7 @@ const handleTaxRegimeChange = (e) => {
   const calculateTotalDeductions = () => {
     let total = 0;
     
-    Object.entries({
-      ...updatedDeductions,
-      "TDS": tdsAmount.toFixed(2)
-    }).forEach(([key, value]) => {
+    Object.entries(updatedDeductions).forEach(([key, value]) => {
       if (!value) return;
       
       if (typeof value === "string" && value.includes("%")) {
@@ -918,20 +910,20 @@ const handleTaxRegimeChange = (e) => {
       grossAmount: grossAmountValue.toFixed(2),
       salaryConfigurationEntity: {
         allowances: allowancesData,
-        deductions: deductionsData,
-      },
-      salaryConfigurationEntity: {
-        allowances: {
-          ...allowancesData, // Pass the calculated allowances data
-        },
-        deductions: {
-          ...deductionsData, // Pass the calculated deductions data
-        },
+        // Filter out TDS from deductions
+        deductions: Object.entries(deductionsData).reduce((acc, [key, value]) => {
+          if (key !== "TDS") {
+            acc[key] = value;
+          }
+          return acc;
+        }, {})
       },
       totalEarnings: totalEarningsValue.toFixed(2),
       netSalary: netSalaryValue.toFixed(2),
       totalDeductions: totalDeductionsValue.toFixed(2),
       pfTax: pfTaxValue.toFixed(2),
+      // Keep TDS as a separate field if needed
+      tdsAmount: tdsAmount.toFixed(2),  // Add this if you want to track TDS separately
       tdsType: tdsType,
       addSalaryDate: hikeStartedDate,
       status: statusValue,
@@ -1076,6 +1068,25 @@ const handleTaxRegimeChange = (e) => {
     setSubmissionData(submissionData);
     setData(data);
   };
+
+  const calculationPopover = (
+    <Popover id="popover-basic" style={{ maxWidth: "300px", borderRadius: "8px", border: "1px solid #17a2b8" }}>
+      <Popover.Header as="h6" className="bg-info text-white text-center">
+        Calculation Method
+      </Popover.Header>
+      <Popover.Body className="bg-light">
+        <ul className="mb-0">
+          <li>Entire salary taxed at a single rate based on which bracket it falls into.</li>
+          <li>Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong></li>
+          <li>Financial Year: <strong>{getCurrentFinancialYear()}</strong></li>
+          {applicableSlab && (
+            <li>Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket.</li>
+          )}
+        </ul>
+      </Popover.Body>
+    </Popover>
+  );
+
 
   const clearForm = () => {
     reset();
@@ -1390,10 +1401,7 @@ const handleTaxRegimeChange = (e) => {
                             <h5 className="card-title">Deductions</h5>
                           </div>
                           <div className="card-body">
-                          {Object.entries({
-  ...updatedDeductions,
-  "TDS": tdsAmount.toFixed(2) // Ensure TDS is always included
-}).map(([key, value]) => {
+                          {Object.entries(updatedDeductions).map(([key, value]) => {
   let displayValue = parseFloat(value) || value;
 
   if (typeof value === "string" && value.includes("%")) {
@@ -1412,8 +1420,7 @@ const handleTaxRegimeChange = (e) => {
         type="text"
         readOnly={[
           "Provident Fund Employee", 
-          "Provident Fund Employer", 
-          "TDS"
+          "Provident Fund Employer"
         ].includes(key)}
         value={Math.round(displayValue)}
         onChange={(e) => handleDeductionChange(key, e.target.value)}
@@ -1465,8 +1472,20 @@ const handleTaxRegimeChange = (e) => {
               })}
             />
             <label className="form-check-label" htmlFor="newRegime">
-              New Tax Regime (Default)
-            </label>
+  <div className="d-flex align-items-center">
+    <span>New Tax Regime (Default)</span>
+    <OverlayTrigger
+      trigger={["hover", "focus"]}
+      placement="top"
+      overlay={calculationPopover}
+    >
+      <span className="ms-2" style={{ cursor: "pointer" }}>
+        <i className="bi bi-info-circle text-primary"></i>
+      </span>
+    </OverlayTrigger>
+  </div>
+</label>
+
           </div>
           <div className="form-check">
             <input
@@ -1541,25 +1560,6 @@ const handleTaxRegimeChange = (e) => {
               readOnly
             />
           </div>
-        </div>
-      </div>
-
-      {/* Calculation Explanation */}
-      <div className="col-md-12 mt-3">
-        <div className="alert alert-info">
-          <h6>Calculation Method:</h6>
-          <ul className="mb-0">
-            <li>Entire salary taxed at single rate based on which bracket it falls into</li>
-            <li>
-              Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong> |
-              Financial Year: <strong>{getCurrentFinancialYear()}</strong>
-            </li>
-            {applicableSlab && (
-              <li>
-                Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket
-              </li>
-            )}
-          </ul>
         </div>
       </div>
     </div>

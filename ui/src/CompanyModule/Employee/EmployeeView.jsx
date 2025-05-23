@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { PencilSquare, Wallet} from "react-bootstrap-icons";
+import { PencilSquare, Wallet } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI} from "../../Utils/Axios";
+import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI } from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
@@ -15,6 +15,9 @@ const EmployeeView = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedEmployeeDownloadFormat, setSelectedEmployeeDownloadFormat] = useState("");
+  const [selectedBankDownloadFormat, setSelectedBankDownloadFormat] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
   const Navigate = useNavigate();
   const dispatch = useDispatch(); // Initialize dispatch function
 
@@ -29,8 +32,8 @@ const EmployeeView = () => {
   }, [dispatch]);
 
   // Step 2: Display loading or error messages
-  if (status === "loading") return <Loader/>;
-  if (status === "failed") return <Loader/>;
+  if (status === "loading") return <Loader />;
+  if (status === "failed") return <div className="text-danger p-5">Error: {error || "Failed to load employees"}</div>;
 
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
@@ -55,6 +58,39 @@ const EmployeeView = () => {
   const handleEdit = (id) => {
     Navigate(`/employeeRegister`, { state: { id } });
   };
+  const handleEmployeeDownload = async (format) => {
+    if (!format) {
+      toast.warning("Please select a file format!");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      await downloadEmployeesFileAPI(format, toast);
+    } catch (error) {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setSelectedEmployeeDownloadFormat(""); // Reset the dropdown
+    }
+  };
+
+  const handleBankDownload = async (format) => {
+    if (!format) {
+      toast.warning("Please select a file format!");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      await downloadEmployeeBankDataAPI(format, toast);
+    } catch (error) {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setSelectedBankDownloadFormat(""); // Reset the dropdown
+    }
+  };
 
   const statusMappings = {
     Active: {
@@ -66,7 +102,7 @@ const EmployeeView = () => {
             color: "#fff",
             background: "green"
           }}
-          // className="bg-primary"
+        // className="bg-primary"
         >
           Active
         </b>
@@ -94,7 +130,7 @@ const EmployeeView = () => {
             padding: "3px 6px",
             color: "#fff",
           }}
-           className="bg-danger"
+          className="bg-danger"
         >
           Relieved
         </b>
@@ -108,7 +144,7 @@ const EmployeeView = () => {
             padding: "3px 6px",
             color: "#fff",
           }}
-         className="bg-info"
+          className="bg-info"
         >
           OnBoard
         </b>
@@ -197,21 +233,21 @@ const EmployeeView = () => {
         </div>
       ),
     }
-  ];  
+  ];
 
   const filteredEmployees = employees?.filter((employee) => {
     const nameMatch =
       (employee.firstName?.toLowerCase().includes(search.toLowerCase()) || "") ||
       (employee.lastName?.toLowerCase().includes(search.toLowerCase()) || "") ||
       (employee.emailId?.toLowerCase().includes(search.toLowerCase()) || "");
-  
+
     const hireDate = employee.dateOfHiring ? new Date(employee.dateOfHiring) : null;
     const monthMatch = selectedMonth ? hireDate?.getMonth() + 1 === parseInt(selectedMonth) : true;
     const yearMatch = selectedYear ? hireDate?.getFullYear().toString() === selectedYear : true;
-  
+
     return nameMatch && monthMatch && yearMatch;
   });
-  
+
   const toInputTitleCase = (e) => {
     const input = e.target;
     let value = input.value;
@@ -275,27 +311,46 @@ const EmployeeView = () => {
             <div className="card flex-fill">
               <div className="card-header">
                 <div className="row">
-                <div className="row">
-                  <div className="col-auto">
-                    <Link to="/employeeRegister">
-                      <button className="btn btn-primary">Add Employee</button>
-                    </Link>
+                  <div className="row">
+                    <div className="col-auto">
+                      <Link to="/employeeRegister">
+                        <button className="btn btn-primary">Add Employee</button>
+                      </Link>
+                    </div>
+                    {/* Employee List Download */}
+                    <div className="col-auto">
+                      <select
+                        className="form-select bg-primary border-0 text-white"
+                        value={selectedEmployeeDownloadFormat}
+                        onChange={(e) => {
+                          setSelectedEmployeeDownloadFormat(e.target.value);
+                          handleEmployeeDownload(e.target.value);
+                        }}
+                        disabled={isDownloading}
+                      >
+                        <option value="">Download Employees List</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="pdf">PDF (.pdf)</option>
+                      </select>
+                    </div>
+
+                    {/* Bank List Download */}
+                    <div className="col-auto">
+                      <select
+                        className="form-select bg-primary border-0 text-white"
+                        value={selectedBankDownloadFormat}
+                        onChange={(e) => {
+                          setSelectedBankDownloadFormat(e.target.value);
+                          handleBankDownload(e.target.value);
+                        }}
+                        disabled={isDownloading}
+                      >
+                        <option value="">Download Bank List</option>
+                        <option value="excel">Excel (.xlsx)</option>
+                        <option value="pdf">PDF (.pdf)</option>
+                      </select>
+                    </div>
                   </div>
-                  <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeesFileAPI(e.target.value, showToast)}>
-                      <option value="">Download Employees List</option>
-                      <option value="excel">Excel (.xlsx)</option>
-                      <option value="pdf">PDF (.pdf)</option>
-                    </select>
-                  </div>
-                  <div className="col-auto">
-                    <select className="form-select bg-primary border-0 text-white" onChange={(e) => downloadEmployeeBankDataAPI(e.target.value, showToast)}>
-                      <option value="">Download Bank List</option>
-                      <option value="excel">Excel (.xlsx)</option>
-                      <option value="pdf">PDF (.pdf)</option>
-                    </select>
-                  </div>
-                </div>
                   <div className="row col-12 mb-2">
                     <div className="col-md-4 mt-2 ">
                       <input
@@ -346,19 +401,19 @@ const EmployeeView = () => {
                   />
                 </div>
               </div>
-              {(!employees || employees.length === 0) ? (
-
-                  <span className="text-danger text-center p-5">No Employees Found</span>
-
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredEmployees.length > 0 ? filteredEmployees : ""}
-              pagination
-              onChangePage={page => setCurrentPage(page)}
-              onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
-            />
-          )}
+              {filteredEmployees?.length > 0 ? (
+                <DataTable
+                  columns={columns}
+                  data={filteredEmployees}
+                  pagination
+                  onChangePage={page => setCurrentPage(page)}
+                  onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
+                />
+              ) : (
+                <div className="text-center p-5">
+                  {employees?.length === 0 ? "No employees found" : "No employees match your search criteria"}
+                </div>
+              )}
             </div>
           </div>
         </div>
