@@ -60,6 +60,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public ResponseEntity<?> generateInvoice(String companyId, String customerId, InvoiceRequest request) throws InvoiceException, IOException {
         CompanyEntity companyEntity;
         BankEntity bankEntity;
+        String purchaseOrderNo;
 
         companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
         if (companyEntity == null) {
@@ -80,6 +81,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         bankEntity = openSearchOperations.getBankById(index, null, request.getBankId());
         if (bankEntity == null) {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        purchaseOrderNo = openSearchOperations.getPurchaseOrderNo(index,request.getPurchaseOrder());
+        if(purchaseOrderNo!=null){
+            log.error("Purchase order number already exist ");
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.PURCHASE_ORDER_ALREADY_EXISTS), HttpStatus.CONFLICT);
         }
 
         try {

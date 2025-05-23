@@ -12,6 +12,7 @@ import lombok.*;
 public class UserEntity implements Entity, IDEntity {
 
     private String id;
+    private String employeeId;
     private String userType;
     private String companyId;
     private String userId;
