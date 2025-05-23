@@ -29,7 +29,8 @@ public enum InvoiceErrorMessageKey {
     INVALID_INVOICE_ID_FORMAT("invalid.invoiceId.format"),
     INVALID_INVOICE_DATE("invalid.invoice.date"),
     PLEASE_ENTER_FIELD_NAME("please.enter.field.name"),
-    NO_CHANGES_DETECTED("no.changes.detected");
+    NO_CHANGES_DETECTED("no.changes.detected"),
+    PURCHASE_ORDER_ALREADY_EXISTS("purchase.order.already.exist");
 
     private final String message;
 
