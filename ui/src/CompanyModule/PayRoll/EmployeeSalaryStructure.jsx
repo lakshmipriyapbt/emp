@@ -473,6 +473,36 @@ const EmployeeSalaryStructure = () => {
   }, [allowances, grossAmount, selectedTaxRegime]);
 
   useEffect(() => {
+      const totalAllow = calculateTotalAllowances(); // Calculate total allowances
+      const newOtherAllowances = grossAmount - totalAllow; // Subtract the sum of other allowances from gross amount
+      // Ensure no negative values for other allowances
+      const validOtherAllowances = Math.max(0, newOtherAllowances);
+  
+      // Check if other allowances need to be updated
+      if (validOtherAllowances !== prevOtherAllowancesRef.current) {
+        setAllowances((prevAllowances) => ({
+          ...prevAllowances,
+          "Other Allowances": validOtherAllowances.toFixed(2),
+        }));
+        prevOtherAllowancesRef.current = validOtherAllowances; // Update ref to new value
+      }
+  
+      // Update total allowances state
+      setTotalAllowances(totalAllow + validOtherAllowances); // Add Other Allowances to totalAllowances
+  
+      // Error checking: Disable submit if total allowances exceed gross amount
+      if (newOtherAllowances < 0) {
+        setErrorMessage(
+          "Total allowances exceed gross amount. Please adjust allowances."
+        );
+        setIsSubmitDisabled(true);
+      } else {
+        setErrorMessage("");
+        setIsSubmitDisabled(false);
+      }
+    }, [allowances, grossAmount]); // Recalculate whenever allowances or grossAmount change
+  
+  useEffect(() => {
     const totalDeductions = calculateTotalDeductions();
     setTotalDeductions(totalDeductions);
     calculateNetSalary();
@@ -953,22 +983,35 @@ const EmployeeSalaryStructure = () => {
                                 Allowances
                               </h5>
                             </div>
-                            <div className="card-body" style={{ paddingLeft: "20px" }}>
-                              {Object.entries(allowances).map(([key, value]) => {
+                           <div className="card-body">
+                            {Object.entries(allowances).map(
+                              ([key, value]) => {
                                 let displayValue = value;
 
-                                if (typeof value === "string" && value.includes("%")) {
-                                  const percentage = parseFloat(value.replace("%", ""));
+                                // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
+                                if (
+                                  typeof value === "string" &&
+                                  value.includes("%")
+                                ) {
+                                  const percentage = parseFloat(
+                                    value.replace("%", "")
+                                  );
                                   if (!isNaN(percentage)) {
-                                    if (key === "HRA" || key === "Provident Fund Employer") {
-                                      displayValue = (percentage / 100) * basicAmount;
+                                    // Calculate based on grossAmount or basicAmount
+                                    if (key === "HRA") {
+                                      displayValue =
+                                        (percentage / 100) * basicAmount; // For HRA, use basicAmount
                                     } else {
-                                      displayValue = (percentage / 100) * grossAmount;
+                                      displayValue =
+                                        (percentage / 100) * grossAmount; // For other allowances, use grossAmount
                                     }
                                   }
                                 } else if (typeof value === "number") {
+                                  // If it's a number (fixed value), just display that value
                                   displayValue = value;
                                 }
+
+                                // Update the state with the calculated value for allowance
 
                                 return (
                                   <div key={key} className="mb-3">
@@ -977,11 +1020,20 @@ const EmployeeSalaryStructure = () => {
                                       className="form-control"
                                       type="text"
                                       maxLength={7}
-                                      value={Math.round(displayValue)}
-                                      onChange={(e) => handleAllowanceChange(key, e.target.value)}
-                                      readOnly={key === "Basic Salary" || key === "HRA"}
+                                      value={Math.round(displayValue)} // Display the calculated value
+                                      onChange={(e) =>
+                                        handleAllowanceChange(
+                                          key,
+                                          e.target.value
+                                        )
+                                      } // Handle change
+                                      readOnly={
+                                        key === "Basic Salary" ||
+                                        key === "HRA"
+                                      }
                                     />
                                   </div>
+
                                 );
                               })}
 
