@@ -1,13 +1,13 @@
-// UserForm.jsx
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DepartmentGetApi } from '../../Utils/Axios';
 import { toInputTitleCase, validateEmail, validateFirstName, validateLastName } from '../../Utils/Validate';
+import Loader from '../../Utils/Loader';
 
 const USER_TYPES = [
-  { id: 'admin', name: 'Admin' },
-  { id: 'accountant', name: 'Accountant' },
-  { id: 'hr', name: 'HR' }
+  { id: 'Admin', name: 'Admin' },
+  { id: 'Accountant', name: 'Accountant' },
+  { id: 'HR', name: 'HR' }
 ];
 
 const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
@@ -15,10 +15,11 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
     register,
     handleSubmit,
     setValue,
+    reset, // Import reset
     formState: { errors },
     watch
   } = useForm({ 
-    defaultValues ,
+    defaultValues,
     mode: 'onChange' 
   });
 
@@ -26,6 +27,7 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
   const [loading, setLoading] = useState(true);
   const departmentWatch = watch('department');
 
+  // Fetch departments from API
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -40,14 +42,21 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
     fetchDepartments();
   }, []);
 
+  // Reset form when defaultValues change
+  useEffect(() => {
+    if (defaultValues && Object.keys(defaultValues).length > 0) {
+      reset(defaultValues); // Reset form with new default values when they're available
+    }
+  }, [defaultValues, reset]);
+
+  // Reset 'designation' when department changes
   useEffect(() => {
     if (departmentWatch) {
-      setValue('designation', '');
-      // Optional: fetchDesignations(departmentWatch);
+      setValue('designation', '');  // Reset designation when department changes
     }
   }, [departmentWatch, setValue]);
 
-  if (loading) return <p>Loading form...</p>;
+  if (loading) return <Loader />;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="p-4 border rounded bg-light">
@@ -57,10 +66,10 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         <input
           className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
           onInput={toInputTitleCase}
-           {...register("firstName", {
+          {...register("firstName", {
             required: "First Name is required",
             validate: validateFirstName
-           })}
+          })}
         />
         <div className="invalid-feedback">{errors.firstName?.message}</div>
       </div>
@@ -71,10 +80,10 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         <input
           className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
           onInput={toInputTitleCase}
-           {...register("lastName", {
-           required: "Last Name is required",
+          {...register("lastName", {
+            required: "Last Name is required",
             validate: validateLastName
-           })}
+          })}
         />
         <div className="invalid-feedback">{errors.lastName?.message}</div>
       </div>
@@ -85,10 +94,10 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         <input
           type="email"
           className={`form-control ${errors.emailId ? 'is-invalid' : ''}`}
-           {...register("emailId", {
+          {...register("emailId", {
             required: "Email is required",
             validate: validateEmail
-            })}
+          })}
         />
         <div className="invalid-feedback">{errors.emailId?.message}</div>
       </div>
@@ -117,8 +126,7 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
           {...register('department', {
             required: 'Department is required',
             onChange: (e) => {
-              setValue('designation', '');
-              // fetchDesignations(e.target.value); // optional
+              setValue('designation', '');  // Reset designation when department changes
             }
           })}
           className={`form-select ${errors.department ? 'is-invalid' : ''}`}
@@ -132,8 +140,7 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
         </select>
         <div className="invalid-feedback">{errors.department?.message}</div>
       </div>
-
-      {/* Submit */}
+      {/* Submit Button */}
       <button type="submit" className="btn btn-primary">
         {isEdit ? 'Update User' : 'Add User'}
       </button>

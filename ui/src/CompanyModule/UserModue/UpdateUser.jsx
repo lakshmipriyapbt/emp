@@ -1,10 +1,10 @@
-// UpdateUser.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import UserForm from './UserForm';
 import { getUserById, UserPatchApi } from '../../Utils/Axios';
+import LayOut from '../../LayOut/LayOut';
 
-const UpdateUser = () => {
+const UpdateUser = ({ fetchUsers }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [defaultValues, setDefaultValues] = useState(null);
@@ -13,7 +13,7 @@ const UpdateUser = () => {
     const fetchUser = async () => {
       try {
         const res = await getUserById(id);
-        setDefaultValues(res.data.data); // assuming response format
+        setDefaultValues(res.data.data[0]);
       } catch (err) {
         console.error('Error fetching user:', err);
       }
@@ -23,22 +23,57 @@ const UpdateUser = () => {
 
   const onSubmit = async (data) => {
     try {
-      await UserPatchApi(id, data);
-      navigate('/');
+      await UserPatchApi(id, data); // update user API
+      fetchUsers();  // Re-fetch users after update
+      navigate('/viewUser'); // Navigate to the user list after update
     } catch (err) {
       console.error('Error updating user:', err);
     }
   };
 
   return (
-    <div className="container mt-4">
-      <h2>Edit User</h2>
-      {defaultValues ? (
-        <UserForm onSubmit={onSubmit} defaultValues={defaultValues} isEdit />
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+    <LayOut>
+      <div className="container-fluid p-0">
+        <div className="row d-flex align-items-center justify-content-between mt-1">
+          <div className="col">
+            <h1 className="h3">
+              <strong>User Edit Form</strong>
+            </h1>
+          </div>
+          <div className="col-auto">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb mb-0">
+                <li className="breadcrumb-item">
+                  <a href="/main">Home</a>
+                </li>
+                <li className="breadcrumb-item active">
+                  User Edit Form
+                </li>
+              </ol>
+            </nav>
+          </div>
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title text-dark">Edit User</h5>
+              </div>
+              {defaultValues ? (
+                <UserForm
+                  onSubmit={onSubmit}
+                  defaultValues={defaultValues} // Pass default values from API
+                  isEdit
+                />
+              ) : (
+                <p>Loading...</p> // Show loading if the data is not fetched yet
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </LayOut>
   );
 };
 

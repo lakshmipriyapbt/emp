@@ -11,7 +11,7 @@ const AddUser = () => {
   const onSubmit = async (data) => {
     try {
       await UserPostApi(data);
-      navigate('/'); // Navigate back to ViewUser list
+      navigate('/viewUser'); // Navigate back to ViewUser list
     } catch (err) {
       console.error('Error adding user:', err);
     }
@@ -52,7 +52,6 @@ const AddUser = () => {
             </div>
           </div>
         </LayOut>
-
   );
 };
 

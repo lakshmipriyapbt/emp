@@ -98,7 +98,7 @@ export const allAvailableRoutes = [
   {path: '/companySalaryStructure', allowedTypes: ['company_admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin'] },
   {path:'/addUser',allowedTypes:['company_admin']},
-  {path:'/editUser/:id',allowedTypes:['company_admin']},
+  {path:'/editUser',allowedTypes:['company_admin']},
   {path:'/viewUser',allowedTypes:['company_admin']},
   {path: '/department', allowedTypes: ['company_admin', 'HR'] },
   {path: '/designation', allowedTypes: ['company_admin', 'HR'] },
