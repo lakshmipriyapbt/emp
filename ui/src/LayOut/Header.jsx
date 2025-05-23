@@ -12,6 +12,8 @@ const Header = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const {company,employee,authUser} = useAuth();
+  console.log("authUser******",authUser)
+  const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const profileDropdownRef = useRef(null);
@@ -186,7 +188,7 @@ const Header = ({ toggleSidebar }) => {
               )}
             </li>
         )}
-        {/* {!roles.includes("employee") && !roles.includes("company-admin") && !roles.includes("ems-admin") &&(
+        {!roles.includes("employee") && !roles.includes("company-admin") && !roles.includes("ems-admin") &&(
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
@@ -216,7 +218,7 @@ const Header = ({ toggleSidebar }) => {
                 </div>
               )}
             </li>
-        )} */}
+        )}
         </ul>
       </div>
       <Reset
