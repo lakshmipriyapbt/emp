@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Modal, ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import Reset from "./Reset";
 import { useAuth } from "../Context/AuthContext";
-import { EmployeeGetApiById } from "../Utils/Axios";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -12,13 +11,12 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const {company,employee} = useAuth();
+  const {company,employee,authUser} = useAuth();
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
   const { userRole } = useSelector((state) => state.auth);
-
   const token = localStorage.getItem("token");
   const companyName=localStorage.getItem("companyName")
   useEffect(() => {
@@ -41,11 +39,6 @@ const Header = ({ toggleSidebar }) => {
       }
     }
   }, [token]);
-
-  const toggleNotification = () => {
-    setIsNotificationOpen(!isNotificationOpen);
-    setIsProfileOpen(false);
-  };
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -162,7 +155,7 @@ const Header = ({ toggleSidebar }) => {
               )}
             </li>
           )}
-        {!roles.includes("ems_admin") && !roles.includes("company_admin") && (
+        {roles.includes("employee") && (
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
@@ -193,6 +186,37 @@ const Header = ({ toggleSidebar }) => {
               )}
             </li>
         )}
+        {/* {!roles.includes("employee") && !roles.includes("company-admin") && !roles.includes("ems-admin") &&(
+            <li className="nav-item dropdown position-relative">
+              <a
+                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                href
+                onClick={toggleProfile}
+              >
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+              </a>
+              {isProfileOpen && (
+                <div
+                  className="dropdown-menu dropdown-menu-end py-0 show"
+                  aria-labelledby="profileDropdown"
+                  style={{ left: "auto", right: "20%" }}
+                >
+                  <a className="dropdown-item" href={`editUser/${userId}`}>
+                    <i className="align-middle me-1 bi bi-person"></i> Profile
+                  </a>
+                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                    <i className="align-middle me-1 bi bi-key"></i> Reset Password
+                  </a>
+                  <div className="dropdown-divider"></div>
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                    Log out
+                  </a>
+                </div>
+              )}
+            </li>
+        )} */}
         </ul>
       </div>
       <Reset

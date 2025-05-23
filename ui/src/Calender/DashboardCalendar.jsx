@@ -15,7 +15,6 @@ const DashboardCalendar = () => {
   const [month, setMonth] = useState(new Date().getMonth()); // 0-11
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedEvent, setSelectedEvent] = useState(null);
-  console.log("Calnedar userRole", {userRole});
 
   useEffect(() => {
     dispatch(fetchCalendarData());
