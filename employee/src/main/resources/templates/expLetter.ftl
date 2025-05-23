@@ -70,7 +70,7 @@
         </#if>
         <p>This is to certify that <b>${employee.firstName} ${employee.lastName}</b> with an ID
             <b>${employee.employeeId}</b> was employed with our Company <b>${company[0].companyName}</b> from
-            <b>${employee.dateOfHiring}</b> to <b>${request.date} </b>
+            <b>${employee.dateOfHiring}</b> to <b>${request.lastWorkingDate} </b>
             <#if employee.designationName?has_content>
                 as a <b>${employee.designationName}</b>.
             </#if>

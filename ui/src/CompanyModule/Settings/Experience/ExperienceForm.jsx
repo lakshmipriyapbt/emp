@@ -168,7 +168,8 @@ const ExperienceForm = () => {
     const submissionData = {
       employeeId: data.employeeId,
       companyName: authUser.company,
-      date: data.experienceDate,
+      lastWorkingDate: data.experienceDate,
+      date:data.generatedDate,
       aboutEmployee:data.aboutEmployee,
       draft:draftValue,
 
@@ -188,8 +189,8 @@ const ExperienceForm = () => {
       departmentName: data.departmentName || "",
       joiningDate: formattedHiringDate || "",
       aboutEmployee:data.aboutEmployee || "",
-      experienceDate: formattedExperinceDate || "", // Resignation date formatted
-      date: formattedLastWorkingDate || "",
+      lastWorkingDate: formattedExperinceDate || "", // Resignation date formatted
+      date: data.generatedDate || "",
       noticePeriod,
       companyName: authUser.company,
       companyData: companyData,
@@ -539,6 +540,35 @@ const ExperienceForm = () => {
                         </p>
                       )}
                     </div>
+                      <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                    <input
+                       type="date"
+                       name="generatedDate"
+                       placeholder="Enter Generated Date"
+                       className="form-control"
+                       autoComplete="off"
+                       onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                       required: "Generated Date is required",
+                        validate: {
+
+                       notBeforeLastWorkingDate: (value) => {
+                        const lastWorkingDate = watch("experienceDate");
+                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
+                     return (
+                      new Date(value) >= new Date(lastWorkingDate) ||
+                      "Generated Date cannot be before Last Working Date"
+                       );
+                      },
+                    },
+                  })}
+                 />
+                      {errors.generatedDate && (
+                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                         )}
+
+                </div>
 
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Select Mode</label>
