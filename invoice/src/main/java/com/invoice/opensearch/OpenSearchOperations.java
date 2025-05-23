@@ -160,6 +160,7 @@ public class OpenSearchOperations {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     public List<InvoiceModel> getInvoicesByCompanyId(String companyId, String index) throws InvoiceException {
         logger.debug("Getting invoices for company {} from index {}", companyId, index);
 
@@ -232,4 +233,34 @@ public class OpenSearchOperations {
         // ✅ Return first invoice number if no invoices exist
         return null;
     }
+
+    public String getPurchaseOrderNo(String index, String purchaseOrderNoPlain) {
+        try {
+            // Encode the input to base64
+            String base64EncodedPurchaseOrder = Base64.getEncoder().encodeToString(purchaseOrderNoPlain.getBytes());
+
+            // Search in OpenSearch using the base64 encoded value
+            SearchResponse<InvoiceModel> response = esClient.search(s -> s
+                            .index(index)
+                            .size(1)
+                            .query(q -> q
+                                    .matchPhrase(m -> m
+                                            .field("purchaseOrder")
+                                            .query(base64EncodedPurchaseOrder)
+                                    )
+                            ),
+                    InvoiceModel.class
+            );
+
+            long value = response.hits().total().value();
+            return String.valueOf(value);
+
+        } catch (IOException e) {
+            logger.error("Error while searching for purchase order number : " ,e);
+        }
+
+        return null;
+    }
+
+
 }

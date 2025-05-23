@@ -9,6 +9,7 @@ import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.CompanyEntity;
 import com.pb.employee.persistance.model.DepartmentEntity;
+import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.UserEntity;
 import com.pb.employee.request.UserRequest;
 import com.pb.employee.request.UserUpdateRequest;
@@ -60,6 +61,14 @@ public class UserServiceImpl implements UserService {
             if (companyEntity == null){
                 log.error("Exception while fetching the company calendar details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+           String employeeId = userRequest.getEmployeeId();
+            if(employeeId != null && !employeeId.isEmpty()){
+                EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId,null,index);
+                if (employee != null){
+                    log.error("Exception while fetching the company calendar details");
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_USER), HttpStatus.CONFLICT);
+                }
             }
 
             Object existingEntity = openSearchOperations.getById(resourceId, null, index);
