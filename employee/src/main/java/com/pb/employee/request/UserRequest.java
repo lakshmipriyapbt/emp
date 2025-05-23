@@ -15,7 +15,6 @@ import javax.annotation.Nullable;
 @AllArgsConstructor
 public class UserRequest {
 
-    @Nullable
     private String employeeId;
 
     @Schema(example = "firstName")
