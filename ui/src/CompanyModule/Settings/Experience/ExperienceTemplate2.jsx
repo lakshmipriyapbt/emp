@@ -30,7 +30,7 @@ const ExperienceTemplate2 = ({
           <div className="row d-flex align-items-center p-1">
             <div className="col-6 d-flex align-items-center">
                 <p className="mb-0">Date: 
-                  {experienceDate}
+                  {date}
                 </p>
             </div>
             <div className="col-6 d-flex justify-content-end">

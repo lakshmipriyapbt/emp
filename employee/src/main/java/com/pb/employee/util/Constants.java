@@ -196,4 +196,5 @@ public class Constants {
     public static final String DRAFT = "draft";
     public static final String APPRAISAL = "Appraisal";
     public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
+    public static final String USER_ADMIN = "Admin";
 }

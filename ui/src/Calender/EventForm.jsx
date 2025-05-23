@@ -4,10 +4,20 @@ import { CalendarDeleteByIdApi, calendarPatchAPIById, calendarPostAPI } from '..
 import { fetchCalendarData } from '../Redux/CalendarSlice';
 import LayOut from '../LayOut/LayOut';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 
 const LOCAL_KEY = 'calendar_draft_events';
 
 const EventForm = () => {
+   const {
+    register,
+    formState: { errors },
+    trigger,
+    setError,
+    clearErrors,
+  } = useForm({
+    mode: 'onChange',
+  });
   const dispatch = useDispatch();
   const calendarData = useSelector((state) => state.calendar.data);
   const [newEvent, setNewEvent] = useState({ event: '', theme: 'primary', date: '' });
@@ -59,7 +69,20 @@ const [selectedMonth, setSelectedMonth] = useState('');
   };
   
   const handleChange = (e) => {
-    setNewEvent({ ...newEvent, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+   setNewEvent((prev) => ({ ...prev, [name]: value }));
+    if (name === 'event') {
+      // Validate the event title with your existing function
+      const validation = validateEventTitle(value);
+      if (validation !== true) {
+        setError('event', { type: 'manual', message: validation });
+      } else {
+        clearErrors('event');
+      }
+
+      // Alternatively, trigger validation if you want to use the `register` validation
+      // await trigger('event');
+    }
   };
 
   const isPastDate = (inputDate) => {
@@ -130,6 +153,9 @@ const [selectedMonth, setSelectedMonth] = useState('');
     setNewEvent({ event: '', theme: 'primary', date: '' });
     setMessage(null);
   };
+  
+
+
 
   const handleEdit = (index) => {
     setNewEvent(events[index]);
@@ -145,6 +171,37 @@ const [selectedMonth, setSelectedMonth] = useState('');
       setEditingIndex(null);
     }
   };
+
+const validateEventTitle = (value) => {
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length === 0) {
+    return "Event title is required.";
+  }
+  if (/^\s/.test(value)) {
+    return "No leading spaces allowed.";
+  }
+  if (/\s$/.test(value)) {
+    return "No trailing spaces allowed.";
+  }
+  if (/\s{2,}/.test(trimmedValue)) {
+    return "No multiple consecutive spaces allowed.";
+  }
+  if (trimmedValue.length < 3) {
+    return "Event title must be at least 3 characters.";
+  }
+  if (trimmedValue.length > 60) {
+    return "Event title must be no more than 60 characters.";
+  }
+  if (!/[a-zA-Z0-9]/.test(trimmedValue)) {
+    return "Event title must include at least one letter or number.";
+  }
+  if (!/^[a-zA-Z0-9\s\-:’'&,().!]+$/.test(trimmedValue)) {
+    return "Event title contains invalid characters.";
+  }
+
+  return true;
+};
 
   const handleSubmit = async () => {
     const grouped = {};
@@ -274,7 +331,9 @@ const [selectedMonth, setSelectedMonth] = useState('');
                   onChange={handleChange}
                   className="form-control"
                   required
-                />
+                  
+        />
+          {errors.event && <p className="errorMsg">{errors.event.message}</p>}
               </div>
               <div className="col-md-3">
                 <select name="theme" value={newEvent.theme} onChange={handleChange} className="form-select">
