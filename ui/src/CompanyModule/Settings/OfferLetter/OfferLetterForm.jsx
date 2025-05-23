@@ -32,7 +32,7 @@ const OfferLetterForm = () => {
       salaryConfigurationId: "",
       department: "",
       designation: "",
-      draft: false,
+      draft: undefined,
       generatedDate: "",
     }
   });
@@ -240,6 +240,12 @@ const OfferLetterForm = () => {
     }
 
     return true;
+  };
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+    
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
   };
 
 
@@ -653,7 +659,7 @@ const OfferLetterForm = () => {
                         })}
                       />
                       {errors.jobLocation && (
-                        <p className="errorMsg text-danger">
+                        <p className="errorMsg">
                           {errors.jobLocation.message}
                         </p>
                       )}
@@ -735,7 +741,7 @@ const OfferLetterForm = () => {
                         placeholder="Enter Salary Package"
                         name="salaryPackage"
                         {...register("salaryPackage", {
-                          required: "Saalry Package is required",
+                          required: "Salary Package is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",
@@ -763,16 +769,17 @@ const OfferLetterForm = () => {
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                          required: "Genatated Date is required",
+                          required: "Generated Date is required",
                           validate: {
-                            notAfterJoiningDate: (value) => {
-                              const joiningDate = watch("joiningDate");
-                              if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
-                              return (
-                                new Date(value) <= new Date(joiningDate) ||
-                                "Generated Date cannot be after Joining Date"
-                              );
-                            }
+                              notAfterJoiningDate: (value) => {
+                                const joiningDate = watch("joiningDate");
+                                if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                                return (
+                                  new Date(value) <= new Date(joiningDate) ||
+                                  "Generated Date cannot be after Joining Date"
+                                );
+                              },
+                              validateYear: (value) => validateYear(value),                           
                           },
                         })}
                       />
@@ -828,11 +835,6 @@ const OfferLetterForm = () => {
                             id="draft"
                             name="draft"
                             value="true"
-                            checked={
-                              watch("draft") === true ||
-                              watch("draft") === "true" ||
-                              (initialFormData?.draft === true || initialFormData?.draft === "true")
-                            }
                             {...register("draft", { required: true })}
                           />
                           <label className="form-check-label" htmlFor="draft">
@@ -846,11 +848,6 @@ const OfferLetterForm = () => {
                             id="undraft"
                             name="draft"
                             value="false"
-                            checked={
-                              watch("draft") === false ||
-                              watch("draft") === "false" ||
-                              (initialFormData?.draft === false || initialFormData?.draft === "false")
-                            }
                             {...register("draft", { required: true })}
                           />
                           <label className="form-check-label" htmlFor="undraft">

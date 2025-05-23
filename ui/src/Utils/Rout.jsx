@@ -72,7 +72,6 @@ import EmployeeSalaryStructureView from '../CompanyModule/PayRoll/EmployeeSalary
 import InternOfferLetter from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferLetter';
 import InternOfferPrev from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferPrev';
 import InternOfferForm from '../CompanyModule/Settings/Internship/InternOfferLetter/InternOfferForm';
-import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
 import ProtectedRoute from './ProtectedRoute';
 import ForbiddenPage from './ForbiddenPage';
 import GetCalendar from '../Calender/GetCalendar';

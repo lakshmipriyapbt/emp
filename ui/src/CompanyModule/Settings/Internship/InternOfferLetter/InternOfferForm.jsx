@@ -105,43 +105,43 @@ const InternOfferForm = () => {
 
   const validateYearFormat = (dateStr) => {
     if (!dateStr) return true; // Skip validation if empty
-    
+
     const parts = dateStr.split('-');
     if (parts.length !== 3) return false; // Invalid format
-    
+
     const year = parts[0]; // Assuming format is YYYY-MM-DD (adjust if needed)
-    
+
     // Check if year has exactly 4 digits and is a valid number
     return /^\d{4}$/.test(year) && parseInt(year) >= 1000 && parseInt(year) <= 9999;
   };
-  
+
   const validateDateInput = (value) => {
     if (!value) return true; // Skip if empty
-    
+
     // Check year format (4 digits)
     if (!validateYearFormat(value)) {
-      return "Year must be exactly 4 digits (DD-MM-YYYY format)";
+      return "Year must be exactly 4 digits";
     }
-    
+
     return true;
   };
-  
+
   const normalizeDate = (dateStr) => {
     const date = new Date(dateStr);
     return new Date(date.getFullYear(), date.getMonth(), date.getDate()); // local midnight
   };
-  
+
   const validateAcceptDate = (acceptDateValue, joiningDate) => {
     if (!acceptDateValue || !joiningDate) return true;
-  
+
     const acceptDate = normalizeDate(acceptDateValue);
     const today = normalizeDate(new Date().toISOString().split("T")[0]);
     const joining = normalizeDate(joiningDate);
-  
+
     // if (acceptDate <= today) {
     //   return "Accept Date must be after today's date";
     // }
-  
+
     if (acceptDate >= joining) {
       return "Accept Date must be before the Joining Date";
     }
@@ -237,20 +237,20 @@ const InternOfferForm = () => {
       setDesignations([]); // Clear designations when no department selected
     }
   }, [watchDepartment]);
-  
+
   const onSubmit = (data) => {
     const isDraft = data.draft === "true"; // Convert to boolean
 
     const formData = {
-        ...data,
-        draft: isDraft,
-        date:data.generatedDate,
-        companyId:company.id,
-        associateName: selectedAssignee ? selectedAssignee.associateName : '',
-        associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
-        hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
-        hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
-      };
+      ...data,
+      draft: isDraft,
+      date: data.generatedDate,
+      companyId: company.id,
+      associateName: selectedAssignee ? selectedAssignee.associateName : '',
+      associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
+      hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
+      hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
+    };
     setPreviewData(formData);
     console.log("preview:", formData);
     setShowPreview(true);
@@ -693,7 +693,7 @@ const InternOfferForm = () => {
                           validate: {
                             validYear: (value) => validateDateInput(value),
                             validEndDate: (value) => validateEndDate(value, watch("startDate")),
-                          },                        
+                          },
                         })}
                       />
                       {errors.endDate && (
@@ -807,7 +807,7 @@ const InternOfferForm = () => {
                         })}
                       />
                       {errors.companyBranch && (
-                        <p className="errorMsg text-danger">
+                        <p className="errorMsg">
                           {errors.companyBranch.message}
                         </p>
                       )}
@@ -966,8 +966,8 @@ const InternOfferForm = () => {
                       )}
                     </div>
 
-                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Genarated Date</label>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
                       <input
                         type="date"
                         name="generatedDate"
@@ -976,57 +976,64 @@ const InternOfferForm = () => {
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                          required: "Genatated Date is required",
+                          required: "Generated Date is required",
                           validate: {
-                           notAfterJoiningDate: (value) => {
-                             const joiningDate = watch("startDate");
-                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
-                          return (
-                            new Date(value) <= new Date(joiningDate) ||
-                             "Generated Date cannot be after Joining Date"
-                            ); }
+                            notAfterJoiningDate: (value) => {
+                              const joiningDate = watch("startDate");
+                              if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+
+                              // Validate year format first
+                              const yearValidationMessage = validateDateInput(value);
+                              if (yearValidationMessage !== true) return yearValidationMessage;
+
+                              return (
+                                new Date(value) <= new Date(joiningDate) ||
+                                "Generated Date cannot be after Joining Date"
+                              );
+                            },
                           },
                         })}
                       />
-                     {errors.generatedDate && (
-                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                      {errors.generatedDate && (
+                        <p className="errorMsg">{errors.generatedDate.message}</p>
                       )}
                     </div>
 
                     <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Select Mode</label>
-                      <div className="form-check">
-                        <input
-                        type="radio"
-                        className="form-check-input"
-                        id="draft"
-                        name="draft"
-                        value={true}
-                        {...register("draft", { required: true })}
-                        />
-                        <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
+                      <label className="form-label mb-2">Select Mode</label>
+                      <div className="d-flex gap-3">
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="draft"
+                            name="draft"
+                            value={true}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
                           </label>
-                          </div>
-                          <div className="form-check">
-                            <input
+                        </div>
+                        <div className="form-check">
+                          <input
                             type="radio"
                             className="form-check-input"
                             id="undraft"
                             name="draft"
                             value={false}
                             {...register("draft", { required: true })}
-                            />
-                            <label className="form-check-label" htmlFor="undraft">
-                               Digital Copy
-                               </label>
-                               </div>
-                               {errors.draft && (
-                                <p className="errorMsg">Please select Draft or  Digital Copy</p>
-                                )}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
                         </div>
-
+                      </div>
+                      {errors.draft && (
+                        <p className="errorMsg">Please select Draft or Digital Copy</p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="card-footer" style={{ marginLeft: "80%" }}>

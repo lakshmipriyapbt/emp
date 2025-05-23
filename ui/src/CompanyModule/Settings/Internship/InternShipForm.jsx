@@ -275,6 +275,13 @@ const InternShipForm = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
+  };
+
   const validateDatePeriod = (lastWorkingDate, dateOfHiring) => {
     if (!lastWorkingDate || !dateOfHiring) {
       return "Please provide both dates.";
@@ -510,6 +517,9 @@ const InternShipForm = () => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
+                          validate: {
+                            validYear: (value) => validateYear(value)
+                          }
                         })}
                       />
                       {errors.dateOfHiring && (
@@ -529,10 +539,13 @@ const InternShipForm = () => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("lastWorkingDate", {
                           required: "Date of Internship is required",
-                          validate: (value) => {
-                            const dateOfHiring = watch("dateOfHiring");
-                            return validateDatePeriod(value, dateOfHiring);
-                          },
+                          validate: {
+                            validYear: (value) => validateYear(value),
+                            dateComparison: (value) => {
+                              const dateOfHiring = watch("dateOfHiring");
+                              return validateDatePeriod(value, dateOfHiring);
+                            }
+                          }
                         })}
                       />
                       {errors.lastWorkingDate && (
@@ -541,69 +554,69 @@ const InternShipForm = () => {
                         </p>
                       )}
                     </div>
-                      <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Generated Date</label>
-                    <input
-                       type="date"
-                       name="generatedDate"
-                       placeholder="Enter Generated Date"
-                       className="form-control"
-                       autoComplete="off"
-                       onClick={(e) => e.target.showPicker()}
-                        {...register("generatedDate", {
-                       required: "Generated Date is required",
-                        validate: {
-
-                       notBeforeLastWorkingDate: (value) => {
-                        const lastWorkingDate = watch("lastWorkingDate");
-                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
-                     return (
-                      new Date(value) >= new Date(lastWorkingDate) ||
-                      "Generated Date cannot be before Last Working Date"
-                       );
-                      },
-                    },
-                  })}
-                 />
-                      {errors.generatedDate && (
-                     <p className="errorMsg">{errors.generatedDate.message}</p>
-                         )}
-
-                </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Select Mode</label>
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="draft"
-                          name="draft"
-                          value={true}
-                          {...register("draft", { required: true })}
-                        />
-                        <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
-                        </label>
-                      </div>
-                      <div className="form-check">
-                        <input
-                          type="radio"
-                          className="form-check-input"
-                          id="undraft"
-                          name="draft"
-                          value={false}
-                          {...register("draft", { required: true })}
-                        />
-                        <label className="form-check-label" htmlFor="undraft">
-                          Digital Copy
-                        </label>
-                      </div>
+                      <label className="form-label">Letter Generated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Generated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Generated Date is required",
+                          validate: {
+                            notBeforeLastWorkingDate: (value) => {
+                              const lastWorkingDate = watch("lastWorkingDate");
+                              if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
+                              return (
+                                new Date(value) >= new Date(lastWorkingDate) ||
+                                "Generated Date cannot be before Last Working Date"
+                              );
+                            },
+                            validateYear: (value) => validateYear(value),
+                          }
+                        })}
+                      />
+                      {errors.generatedDate && (
+                        <p className="errorMsg">{errors.generatedDate.message}</p>
+                      )}
 
+                    </div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label mb-2">Select Mode</label> {/* Added space below label */}
+                      <div className="d-flex gap-3"> {/* Flexbox for horizontal alignment */}
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="draft"
+                            name="draft"
+                            value={true}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value={false}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
+                      </div>
                       {errors.draft && (
-                        <p className="errorMsg">Please select draft copy or digital copy</p>
+                        <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
                       )}
                     </div>
-
 
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (

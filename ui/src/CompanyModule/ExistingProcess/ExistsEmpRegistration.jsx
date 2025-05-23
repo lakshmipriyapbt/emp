@@ -28,7 +28,7 @@ const ExistsEmpRegistration = () => {
     formState: { errors },
     reset,
   } = useForm({ mode: "onChange" });
-  const { authUser,company } = useAuth();
+  const { authUser, company } = useAuth();
   const [emp, setEmp] = useState([]);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -44,7 +44,7 @@ const ExistsEmpRegistration = () => {
   const dispatch = useDispatch();
 
   // Fetch employees from Redux store
-  const { data: employees} = useSelector((state) => state.employees);
+  const { data: employees } = useSelector((state) => state.employees);
 
   // Fetch employees when the component mounts
   useEffect(() => {
@@ -118,6 +118,12 @@ const ExistsEmpRegistration = () => {
       return "Resignation Date must be after the Date of Hiring.";
     }
     return true;
+  };
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
   };
 
   const validateRelievingDate = (value) => {
@@ -227,7 +233,7 @@ const ExistsEmpRegistration = () => {
           await new Promise((resolve) => setTimeout(resolve, DOWNLOAD_DELAY)); // 30 second delay
 
           // Now, call the download API after the delay
-             const isDraft = previewData.draft;
+          const isDraft = previewData.draft;
           const downloadResponse = await RelievingLetterDownload(employeeId, isDraft);
           downloadCompleted = true; // Mark download as completed
           return downloadResponse; // Return the download response if successful
@@ -500,7 +506,13 @@ const ExistsEmpRegistration = () => {
                         control={control}
                         rules={{
                           required: "Resignation Date is required",
-                          validate: validateResignationDate,
+                          validate: (value) => {
+                            const resignationValidation = validateResignationDate(value);
+                            if (resignationValidation !== true) return resignationValidation;
+
+                            const yearValidation = validateYear(value);
+                            return yearValidation;
+                          }
                         }}
                         render={({ field }) => (
                           <input
@@ -526,7 +538,13 @@ const ExistsEmpRegistration = () => {
                         control={control}
                         rules={{
                           required: "Relieving Date is required",
-                          validate: validateRelievingDate,
+                          validate: (value) => {
+                            const relievingValidation = validateRelievingDate(value);
+                            if (relievingValidation !== true) return relievingValidation;
+
+                            const yearValidation = validateYear(value);
+                            return yearValidation;
+                          }
                         }}
                         render={({ field }) => (
                           <input
@@ -557,66 +575,71 @@ const ExistsEmpRegistration = () => {
 
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Letter Generated Date</label>
-                    <input
-                       type="date"
-                       name="generatedDate"
-                       placeholder="Enter Generated Date"
-                       className="form-control"
-                       autoComplete="off"
-                       onClick={(e) => e.target.showPicker()}
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Generated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                       required: "Generated Date is required",
-                        validate: {
-                       
-                       notBeforeLastWorkingDate: (value) => {
-                        const lastWorkingDate = watch("relievingDate");
-                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
-                     return (
-                      new Date(value) >= new Date(lastWorkingDate) ||
-                      "Generated Date cannot be before Last Working Date"
-                       );
-                      },
-                    },
-                  })}
-                 />
-                      {errors.generatedDate && (
-                     <p className="errorMsg">{errors.generatedDate.message}</p>
-                         )}
+                          required: "Generated Date is required",
+                          validate: {
+                            notBeforeLastWorkingDate: (value) => {
+                              const lastWorkingDate = watch("relievingDate");
+                              if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
 
-                </div>
+                              // Validate year format first
+                              const yearValidationMessage = validateYear(value);
+                              if (yearValidationMessage !== true) return yearValidationMessage;
+
+                              return (
+                                new Date(value) >= new Date(lastWorkingDate) ||
+                                "Generated Date cannot be before Last Working Date"
+                              );
+                            },
+                          },
+                        })}
+                      />
+                      {errors.generatedDate && (
+                        <p className="errorMsg">{errors.generatedDate.message}</p>
+                      )}
+
+                    </div>
 
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                           <label className="form-label">Select Mode</label>
-                          <div className="form-check">
-                                     <input
-                                        type="radio"
-                                        className="form-check-input"
-                                         id="draft"
-                                        name="draft"
-                                          value={true}
-                                {...register("draft", { required: true })}
-                                />
-                         <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
-                         </label>
-                          </div>
+                      <label className="form-label mb-2">Select Mode</label> {/* Added spacing below label */}
+                      <div className="d-flex gap-3"> {/* Flexbox for side-by-side layout */}
                         <div className="form-check">
-                            <input
-                               type="radio"
-                                className="form-check-input"
-                               id="undraft"
-                               name="draft"
-                               value={false}
-                                {...register("draft", { required: true })}
-                              />
-                        <label className="form-check-label" htmlFor="undraft">
-                             Digital Copy
-                           </label>
-                       </div>
-
-                       {errors.draft && (
-                            <p className="errorMsg">Please select draft copy or digital copy</p>
-                       )}
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="draft"
+                            name="draft"
+                            value={true}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value={false}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
+                      </div>
+                      {errors.draft && (
+                        <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
+                      )}
                     </div>
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (
@@ -625,9 +648,8 @@ const ExistsEmpRegistration = () => {
                         </div>
                       )}
                       <div
-                        className={`col-${
-                          error ? "3" : "12"
-                        } d-flex justify-content-end mt-4`}
+                        className={`col-${error ? "3" : "12"
+                          } d-flex justify-content-end mt-4`}
                       >
                         <button
                           className="btn btn-secondary me-2"

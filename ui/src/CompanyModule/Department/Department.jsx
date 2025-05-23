@@ -312,35 +312,38 @@ const Department = () => {
     console.error(error.response);
   };
 
-  const validateName = (value) => {
+  const validateName = (value, fieldType) => {
     const trimmedValue = value.trim();
+    const entityName = fieldType === "designation" ? "Designation" : "Department";
+  
     if (trimmedValue.length === 0) {
-      return "Department Name is Required.";
+      return `${entityName} Name is Required.`;
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
-      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
+      return `Only Alphabetic Characters, Spaces, and '/' are Allowed in ${entityName}.`;
     } else {
       const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 2 && words.length === 1) {
-          return "Minimum Length 2 Characters Required.";
+          return `Minimum Length 2 Characters Required for ${entityName}.`;
         } else if (word.length > 40) {
-          return "Max Length 40 Characters Required.";
+          return `Max Length 40 Characters Required for ${entityName}.`;
         }
       }
       if (trimmedValue.length > 40) {
-        return "Department name must not exceed 40 characters.";
+        return `${entityName} name must not exceed 40 characters.`;
       }
       if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
+        return `No Multiple Spaces Between Words Allowed in ${entityName}.`;
       }
       if (/^\s/.test(value)) {
-        return "Leading space not allowed.";
+        return `Leading space not allowed in ${entityName}.`;
       } else if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed.";
+        return `Spaces at the end are not allowed in ${entityName}.`;
       }
     }
     return true;
   };
+  
 
   return (
     <LayOut>
@@ -543,9 +546,7 @@ const Department = () => {
                             autoComplete="off"
                             {...register("name", {
                               required: "Department is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "department"),
                             })}
                           />
                           {errors.name && (
@@ -617,9 +618,7 @@ const Department = () => {
                             autoComplete="off"
                             {...registerDesignation("name", {
                               required: "Designation is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "designation"),
                             })}
                           />
                           {errorsDesignation.name && (

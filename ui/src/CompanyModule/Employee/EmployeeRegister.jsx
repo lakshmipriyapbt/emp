@@ -86,7 +86,8 @@ export default function EmployeeRegister() {
     control, name: "employeeExperience"
   });
 
-  const onNext = async () => {
+  const onNext = async (e) => {
+    e.preventDefault();
     const isValid = await trigger(); // Validate current step fields
 
     if (isValid) {

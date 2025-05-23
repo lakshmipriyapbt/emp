@@ -9,7 +9,7 @@ import { fetchEmployees } from '../Redux/EmployeeSlice';
 import Loader from '../Utils/Loader';
 import { useNavigate } from 'react-router-dom';
 import DashboardCalendar from '../Calender/DashboardCalendar';
-import TaxSlab from '../CompanyModule/TaxSlab/TaxSlab';
+import TaxSlab from '../CompanyModule/TDS/TaxSlab';
 
 const Body = () => {
   const [data, setData] = useState({
