@@ -261,6 +261,4 @@ public class OpenSearchOperations {
 
         return null;
     }
-
-
 }
