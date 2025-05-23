@@ -763,7 +763,7 @@ const OfferLetterForm = () => {
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                          required: "Genatated Date is required",
+                          required: "Genetated Date is required",
                           validate: {
                             notAfterJoiningDate: (value) => {
                               const joiningDate = watch("joiningDate");

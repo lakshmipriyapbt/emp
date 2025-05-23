@@ -938,7 +938,7 @@ const handleTaxRegimeChange = (e) => {
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
       salaryHikePersentage: hikePercentage,
-      companyId: company.id,
+      companyId: company?.id,
       employeeId: employeeId,
       date: previewData.date,
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",
@@ -1825,7 +1825,7 @@ const handleTaxRegimeChange = (e) => {
 
                              <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Genarated Date</label>
+                      <label className="form-label">Letter Generated Date</label>
                       <input
                         type="date"
                         name="generatedDate"
@@ -1834,7 +1834,7 @@ const handleTaxRegimeChange = (e) => {
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                          required: "Genatated Date is required",
+                          required: "Genetated Date is required",
                           validate: {
                            notAfterJoiningDate: (value) => {
                              const joiningDate = watch("dateOfSalaryIncrement");

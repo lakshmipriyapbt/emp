@@ -245,7 +245,7 @@ const InternOfferForm = () => {
         ...data,
         draft: isDraft,
         date:data.generatedDate,
-        companyId:company.id,
+        companyId:company?.id,
         associateName: selectedAssignee ? selectedAssignee.associateName : '',
         associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
         hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
@@ -967,7 +967,7 @@ const InternOfferForm = () => {
                     </div>
 
                      <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Genarated Date</label>
+                      <label className="form-label">Letter Generated Date</label>
                       <input
                         type="date"
                         name="generatedDate"
@@ -976,14 +976,14 @@ const InternOfferForm = () => {
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
-                          required: "Genatated Date is required",
+                          required: "Genetated Date is required",
                           validate: {
                            notAfterJoiningDate: (value) => {
-                             const joiningDate = watch("startDate");
-                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                             const acceptDate = watch("acceptDate");
+                            if (!acceptDate) return true; // Skip this check if acceptDate isn't selected yet
                           return (
-                            new Date(value) <= new Date(joiningDate) ||
-                             "Generated Date cannot be after Joining Date"
+                            new Date(value) <= new Date() ||
+                             "Generated Date cannot be after accept Date"
                             ); }
                           },
                         })}
