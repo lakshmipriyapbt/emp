@@ -242,15 +242,15 @@ const InternOfferForm = () => {
     const isDraft = data.draft === "true"; // Convert to boolean
 
     const formData = {
-      ...data,
-      draft: isDraft,
-      date: data.generatedDate,
-      companyId: company.id,
-      associateName: selectedAssignee ? selectedAssignee.associateName : '',
-      associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
-      hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
-      hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
-    };
+        ...data,
+        draft: isDraft,
+        date:data.generatedDate,
+        companyId:company?.id,
+        associateName: selectedAssignee ? selectedAssignee.associateName : '',
+        associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
+        hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
+        hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
+      };
     setPreviewData(formData);
     console.log("preview:", formData);
     setShowPreview(true);

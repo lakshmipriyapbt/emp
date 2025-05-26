@@ -944,7 +944,7 @@ const AddIncrement = () => {
       salaryStructures.length > 0 ? salaryStructures[0].id : "";
     const payload = {
       salaryHikePersentage: hikePercentage,
-      companyId: company.id,
+      companyId: company?.id,
       employeeId: employeeId,
       date: previewData.date,
       dateOfSalaryIncrement: previewData?.dateOfSalaryIncrement || "",

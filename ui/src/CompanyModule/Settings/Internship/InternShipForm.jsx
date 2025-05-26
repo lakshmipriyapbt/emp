@@ -507,27 +507,28 @@ const InternShipForm = () => {
                         <p className="errorMsg">{errors.designation.message}</p>
                       )}
                     </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Date of Joined</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        placeholder="Date of Joining"
-                        name="dateOfHiring"
-                        onClick={(e) => e.target.showPicker()}
+                   <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">Date of Joined</label>
+                     <input
+                     type="date"
+                     className="form-control"
+                     placeholder="Date of Joining"
+                     name="dateOfHiring"
+                     onClick={(e) => e.target.showPicker()}
+                     max={new Date().toISOString().split("T")[0]} // sets max selectable date to today
                         {...register("dateOfHiring", {
                           required: "Date of Joining is required",
                           validate: {
                             validYear: (value) => validateYear(value)
                           }
                         })}
-                      />
-                      {errors.dateOfHiring && (
-                        <p className="errorMsg">
-                          {errors.dateOfHiring.message}
-                        </p>
-                      )}
+                        />
+                        {errors.dateOfHiring && (
+                          <p className="errorMsg">{errors.dateOfHiring.message}</p>
+                          )}
                     </div>
+  
+
 
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">Date of Internship</label>
