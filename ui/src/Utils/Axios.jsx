@@ -170,24 +170,33 @@ export const DesignationGetApi = async (departmentId) => {
       `/${company}/department/${departmentId}/designation`
     );
     
-    // Ensure response has expected structure
-    if (!response.data?.data) {
-      throw new Error('Invalid response structure');
+    // Check if response exists and has data with expected structure
+    if (!response?.data) {
+      console.warn("No data in response");
+      throw new Error("No data received from server");
     }
+
+    // Validate response structure
+    if (response.data.message !== "Success") {
+      console.warn("API did not return success message");
+      throw new Error("API request was not successful");
+    }
+
+    if (!Array.isArray(response.data.data)) {
+      console.warn("Unexpected data format in response");
+      throw new Error("Invalid data format received");
+    }
+
+    return response.data.data; // Return the array of designations
     
-    return Array.isArray(response.data.data) 
-      ? response.data.data 
-      : [response.data.data]; // Handle single object case
   } catch (error) {
     console.error('Designation API Error:', {
       departmentId,
       status: error.response?.status,
       url: error.config?.url,
-      error: error.message
+      error: error.message,
     });
-    
-    // Return empty array instead of throwing error
-    return [];
+    throw error; // Re-throw the error to be caught by the thunk
   }
 };
 

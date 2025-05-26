@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { TdsGetApi } from "../../Utils/Axios";
-import { toast } from "react-toastify";
+import React, { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTds } from "../../Redux/TdsSlice";
 import Loader from "../../Utils/Loader";
+import { toast } from "react-toastify";
 
 const getCurrentFinancialYear = () => {
   const today = new Date();
@@ -11,63 +12,42 @@ const getCurrentFinancialYear = () => {
 };
 
 const TaxSlab = () => {
-  const [slabsData, setSlabsData] = useState({
-    old: [],
-    new: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { tdsList, loading, error } = useSelector((state) => state.tds);
   const currentYear = getCurrentFinancialYear();
 
   useEffect(() => {
-    const fetchTaxSlabs = async () => {
-      try {
-        setLoading(true);
-        const response = await TdsGetApi();
-        const data = response?.data?.data;
+    dispatch(fetchTds());
+  }, [dispatch]);
 
-        if (data && Array.isArray(data)) {
-          const currentYearStart = currentYear.split("-")[0];
+  const { oldSlabs, newSlabs } = useMemo(() => {
+    const currentYearStart = currentYear.split("-")[0];
+    const currentYearData = tdsList.filter(
+      (entry) => entry.startYear?.toString() === currentYearStart
+    );
 
-          // Find all entries for current year
-          const currentYearData = data.filter(entry =>
-            entry.startYear && entry.startYear.toString() === currentYearStart
-          );
+    const old = currentYearData.find(
+      (tds) => tds.tdsType?.toLowerCase().includes("old")
+    )?.persentageEntityList || [];
 
-          // Separate old and new TDS types (case-insensitive)
-          const oldSlabs = currentYearData
-            .find(tds => tds.tdsType && tds.tdsType.toLowerCase().includes("old"))
-            ?.persentageEntityList || [];
+    const newer = currentYearData.find(
+      (tds) => tds.tdsType?.toLowerCase().includes("new")
+    )?.persentageEntityList || [];
 
-          const newSlabs = currentYearData
-            .find(tds => tds.tdsType && tds.tdsType.toLowerCase().includes("new"))
-            ?.persentageEntityList || [];
+    return { oldSlabs: old, newSlabs: newer };
+  }, [tdsList, currentYear]);
 
-          setSlabsData({
-            old: oldSlabs,
-            new: newSlabs
-          });
-        } else {
-          setSlabsData({ old: [], new: [] });
-        }
-      } catch (error) {
-        console.error("Error fetching TDS data:", error);
-        setError("Failed to load tax slab data");
-        toast.error("Failed to load tax slab data");
-        setSlabsData({ old: [], new: [] });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTaxSlabs();
-  }, [currentYear]);
+  useEffect(() => {
+    if (error) {
+      toast.error("Failed to load tax slab data");
+    }
+  }, [error]);
 
   if (loading) return <Loader small={true} />;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
-  const hasOldSlabs = slabsData.old.length > 0;
-  const hasNewSlabs = slabsData.new.length > 0;
+  const hasOldSlabs = oldSlabs.length > 0;
+  const hasNewSlabs = newSlabs.length > 0;
 
   return (
     <div className="tax-slab-container">
@@ -76,7 +56,6 @@ const TaxSlab = () => {
       </h3>
       {hasOldSlabs || hasNewSlabs ? (
         <div className="vertical-layout">
-          {/* Old Tax Regime - Always first */}
           {hasOldSlabs && (
             <div className="tax-regime-section">
               <h5 className="text-center mb-3">Old Tax Regime</h5>
@@ -91,7 +70,7 @@ const TaxSlab = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {slabsData.old.map((slab, index) => (
+                    {oldSlabs.map((slab, index) => (
                       <tr key={`old-${index}`}>
                         <td>{index + 1}</td>
                         <td>{slab.min?.toLocaleString() ?? 'N/A'}</td>
@@ -105,7 +84,6 @@ const TaxSlab = () => {
             </div>
           )}
 
-          {/* New Tax Regime - Always second */}
           {hasNewSlabs && (
             <div className="tax-regime-section mt-4">
               <h5 className="text-center mb-3">New Tax Regime</h5>
@@ -120,7 +98,7 @@ const TaxSlab = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {slabsData.new.map((slab, index) => (
+                    {newSlabs.map((slab, index) => (
                       <tr key={`new-${index}`}>
                         <td>{index + 1}</td>
                         <td>{slab.min?.toLocaleString() ?? 'N/A'}</td>

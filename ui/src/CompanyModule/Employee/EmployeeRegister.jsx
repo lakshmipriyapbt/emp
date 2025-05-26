@@ -234,13 +234,6 @@ export default function EmployeeRegister() {
     }
   }, [dispatch, status]);
 
-  useEffect(() => {
-    if (watchDepartment) {
-      fetchDesignations(watchDepartment);
-    } else {
-      setDesignations([]); // Clear designations when no department selected
-    }
-  }, [watchDepartment]);
 
   // Filter employees whose designation starts or ends with "Manager"
   const managerEmployees = employees.filter(
@@ -299,51 +292,78 @@ export default function EmployeeRegister() {
 
   useEffect(() => {
     fetchDepartments();
-    fetchDesignations();
     fetchBankNames();
   }, []);
+
+  useEffect(() => {
+    if (watchDepartment) {
+      fetchDesignations(watchDepartment);
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
 
   useEffect(() => {
     if (location && location.state && location.state.id) {
       const fetchData = async () => {
         try {
           const response = await EmployeeGetApiById(location.state.id);
-          // Reset the entire form data
-          reset(response.data.data);
+          const employeeData = response.data.data;
+          
+          // First reset the form with all data except department/designation
+          reset({
+            ...employeeData,
+            department: '', // Clear these initially
+            designation: ''
+          });
+  
           // Set status manually
-          const status = response.data.data.status;
+          const status = employeeData.status;
           setValue("status", status.toString());
           setLoading(true);
-          // Conditionally show "Notice Period" option based on status
-          // if (status === "NoticePeriod") {
-          //   setShowNoticePeriodOption(true);
-          // }
-
+  
+          // Set department first
+          const departmentId = employeeData.department;
+          if (departmentId) {
+            setValue("department", departmentId);
+            // Fetch designations for this department
+            const designations = await DesignationGetApi(departmentId);
+            setDesignations(designations);
+            
+            // Now set the designation after designations are loaded
+            if (employeeData.designation) {
+              setTimeout(() => {
+                setValue("designation", employeeData.designation);
+              }, 100); // Small delay to ensure select is populated
+            }
+          }
+  
           // Set employeeEducation data
-          if (response.data.data.personnelEntity?.employeeEducation?.length) {
+          if (employeeData.personnelEntity?.employeeEducation?.length) {
             reset((prev) => ({
               ...prev,
-              employeeEducation: response.data.data.personnelEntity.employeeEducation
+              employeeEducation: employeeData.personnelEntity.employeeEducation
             }));
           }
-
+  
           // Set employeeExperience data
-          if (response.data.data.personnelEntity?.employeeExperience?.length) {
+          if (employeeData.personnelEntity?.employeeExperience?.length) {
             reset((prev) => ({
               ...prev,
-              employeeExperience: response.data.data.personnelEntity.employeeExperience
+              employeeExperience: employeeData.personnelEntity.employeeExperience
             }));
           }
-
+  
         } catch (error) {
           handleApiErrors(error);
         }
       };
-
+  
       fetchData();
     } else {
       reset();
       setValue("employeeId", "");
+      setDesignations([]); // Clear designations when creating new employee
     }
   }, [location, location.state, reset, setValue]);
 
@@ -571,7 +591,7 @@ export default function EmployeeRegister() {
                         className="form-select"
                         id='designation'
                         name='designation'
-                        disabled={!watch("department")} // Disable if no department selected
+                        disabled={!watch("department") || designations.length === 0}
                         {...register("designation", {
                           required: {
                             value: true,

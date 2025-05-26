@@ -181,23 +181,24 @@ const Department = () => {
 
       if (editingId) {
         await DepartmentPutApiById(editingId, formData);
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-           a.name.localeCompare(b.name)
-      );
-       setDepartments(sortedDepartments);
-       toast.success("Department Updated Successfully");
-      } else {
-        await DepartmentPostApi(formData);
-
-        // Temporary solution - refetch all departments
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-          a.name.localeCompare(b.name)
+        // Update existing department
+        setDepartments(prev => 
+          prev.map(dept => 
+            dept.id === editingId ? { ...dept, name: data.name } : dept
+          ).sort((a, b) => a?.name?.localeCompare(b?.name))
         );
-        setDepartments(sortedDepartments);
-
-        toast.success("Department Created Successfully");
+        toast.success("Department Updated Successfully");
+      } else {
+        const response = await DepartmentPostApi(formData);
+        // Add new department with proper null checks
+        if (response?.data?.data) {
+          setDepartments(prev => 
+            [...(prev || []), response.data.data].sort((a, b) => 
+              (a?.name || '').localeCompare(b?.name || '')
+            )
+          );
+          toast.success("Department Created Successfully");
+        }
       }
 
       handleCloseAddDepartmentModal();
@@ -219,26 +220,32 @@ const Department = () => {
 
       if (editingDesignationId) {
         await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
+        // Update existing designation
         setDesignations(prev => ({
           ...prev,
-          [currentDepartmentId]: prev[currentDepartmentId].map(desig =>
+          [currentDepartmentId]: (prev[currentDepartmentId] || []).map(desig =>
             desig.id === editingDesignationId ? { ...desig, name: data.name } : desig
           )
         }));
         toast.success("Designation Updated Successfully");
       } else {
         const response = await DesignationPostApi(currentDepartmentId, formData);
-        // Immediately add the new designation to the state
-        console.log(response.data.data)
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: [...(prev[currentDepartmentId] || []), response.data.data]
-        }));
-        toast.success("Designation Created Successfully");
+        // Add new designation with proper data structure
+        if (response?.data?.data) {
+          setDesignations(prev => ({
+            ...prev,
+            [currentDepartmentId]: [
+              ...(prev[currentDepartmentId] || []),
+              {
+                id: response.data.data.id,
+                name: response.data.data.name,
+                // Include any other necessary fields from the response
+              }
+            ]
+          }));
+          toast.success("Designation Created Successfully");
+        }
       }
-         setTimeout(() => {
-        fetchDesignations(currentDepartmentId);
-      }, 600);
 
       handleCloseAddDesignationModal();
       resetDesignation();
@@ -315,7 +322,7 @@ const Department = () => {
   const validateName = (value, fieldType) => {
     const trimmedValue = value.trim();
     const entityName = fieldType === "designation" ? "Designation" : "Department";
-  
+
     if (trimmedValue.length === 0) {
       return `${entityName} Name is Required.`;
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
@@ -343,7 +350,7 @@ const Department = () => {
     }
     return true;
   };
-  
+
 
   return (
     <LayOut>

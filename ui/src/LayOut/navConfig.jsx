@@ -61,7 +61,7 @@ export const NAV_CONFIG = {
             ]
         },
         {
-            title: 'Client View',
+            title: 'Clients',
             icon: 'person-lines-fill', // 👤📃
             items: [
                 { title: 'Client View', path: '/customersView' },
