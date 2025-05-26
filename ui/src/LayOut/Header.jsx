@@ -188,7 +188,7 @@ const Header = ({ toggleSidebar }) => {
               )}
             </li>
         )}
-        {!roles.includes("employee") && !roles.includes("company-admin") && !roles.includes("ems-admin") &&(
+        {!roles.includes("employee") && !roles.includes("company_admin") && !roles.includes("ems_admin") &&(
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
