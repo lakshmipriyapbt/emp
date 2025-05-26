@@ -1117,7 +1117,6 @@ export const getCompanyTdsByYear = (year) => {
   return axiosInstance.get(`/company/${company}/tds/${year}/year`);
 };
 
-
 export const calendarPostAPI=async (data)=>{
   const company = localStorage.getItem("companyName")
     try {
@@ -1158,4 +1157,25 @@ export const calendarPatchAPIById=async (data,id)=>{
 export const CalendarDeleteByIdApi = async (id) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.delete(`/company/${company}/calendar/${id}`);
+};
+
+export const UserGetApi = () => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${company}/users`);
+};
+export const UserPostApi = (data) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.post(`/${company}/user`, data);
+};
+export const UserPatchApi = (id, data) => {
+  const company = localStorage.getItem("companyName"); // Retrieve company name
+  return axiosInstance.patch(`/${company}/user/${id}`, data);
+};
+export const getUserById = (id) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${company}/user/${id}`);
+};
+export const DeleteUserById = (id) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.delete(`/${company}/user/${id}`);
 };

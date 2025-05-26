@@ -3,11 +3,11 @@ import SideNav from "./SideNav";
 import Header from "./Header";
 import { Link } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import { CompanyImageGetApi, EmployeeGetApiById } from "../Utils/Axios";
+import { CompanyImageGetApi, EmployeeGetApiById, getUserById } from "../Utils/Axios";
 
 const LayOut = ({ children }) => {
   const name = localStorage.getItem("name");
-  const { authUser, isInitialized } = useAuth();
+  const { authData, isInitialized } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
@@ -18,28 +18,12 @@ const LayOut = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!authUser) return;
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        console.log("userId:", authUser.userId);
-        const response = await EmployeeGetApiById(authUser.userId);
-        console.log("userId@:", authUser.userId);
-        const companyId = response.data.companyId;
-        await fetchCompanyLogo(companyId);
-      } catch (error) {
-        console.log(error);
-        setError("Failed to fetch data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    if (!isInitialized || !authData) return;
+  
     const fetchCompanyLogo = async (companyId) => {
       try {
         const logoResponse = await CompanyImageGetApi(companyId);
-        if (logoResponse && logoResponse.data && logoResponse.data.data) {
+        if (logoResponse?.data?.data) {
           const logoPath = logoResponse.data.data;
           const fileName = logoPath.split("\\").pop();
           setLogoFileName(fileName);
@@ -53,9 +37,37 @@ const LayOut = ({ children }) => {
         setError("Error fetching logo");
       }
     };
-
+  
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { userId, userRole } = authData;
+        console.log("userId:", userId, "role:", userRole);
+  
+        if (["Admin", "Hr", "Accountant"].includes(userRole)) {
+          const response = await getUserById(userId);
+          const companyId = response.data.companyId;
+          await fetchCompanyLogo(companyId);
+        } else if (["company-admin", "employee"].includes(userRole)) {
+          const response = await EmployeeGetApiById(userId);
+          const companyId = response.data.companyId;
+          await fetchCompanyLogo(companyId);
+        } else {
+          setError("Invalid user role");
+        }
+  
+      } catch (error) {
+        console.error(error);
+        setError("Failed to fetch data");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
     fetchData();
-  }, [authUser]);
+  }, [authData, isInitialized]);
+  
 
   return (
     <div className="wrapper">
