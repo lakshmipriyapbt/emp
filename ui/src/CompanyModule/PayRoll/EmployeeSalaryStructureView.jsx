@@ -224,7 +224,7 @@ const EmployeeSalaryStructureView = () => {
                     <input
                           type="search"
                           className="form-control"
-                          placeholder="Search by ID, Name, Gross Amount, or Net Salary"
+                          placeholder="Search by Name"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           style={{ marginBottom: "10px", padding: "5px", width: "300px" }}

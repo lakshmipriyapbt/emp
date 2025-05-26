@@ -17278,5 +17278,26 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	color: white;
 	margin-top: 5px;
 	display: inline-block;
-  } 
+  }
+  
+  .today-highlight {
+  background-color: #fffde7; /* Light yellow background */
+  position: relative;
+}
+
+.today-highlight::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  background-color: #3b7ddd; /* Orange dot indicator */
+  border-radius: 50%;
+}
+
+.today-highlight strong {
+  color: #3b7ddd; /* Orange text for the day number */
+  font-weight: bold;
+}
 /* Pre Loadder css End */
