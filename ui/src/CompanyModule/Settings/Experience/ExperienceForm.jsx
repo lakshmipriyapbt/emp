@@ -56,7 +56,7 @@ const ExperienceForm = () => {
     const today = new Date();
     if (experienceDate > today) {
       return "Experience Date cannot be in the Future";
-    }  
+    }
     if (experienceDate < dateOfHiring) {
       return "Experience Date must be after Date of Hired.";
     }
@@ -66,7 +66,7 @@ const ExperienceForm = () => {
   useEffect(() => {
     fetchTemplate();
   }, []);
-  
+
   const fetchTemplate = async (companyId) => {
     try {
       const res = await TemplateGetAPI(companyId);
@@ -194,10 +194,10 @@ const ExperienceForm = () => {
       noticePeriod,
       companyName: authUser.company,
       companyData: companyData,
-      draft:draftValue,
+      draft: draftValue,
 
     };
-   console.log("previewData",preview)
+    console.log("previewData", preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);
@@ -300,8 +300,8 @@ const ExperienceForm = () => {
       departmentName: "",
       dateOfHiring: "",
       experienceDate: "",
-      aboutEmployee:"",
-      draft:"",
+      aboutEmployee: "",
+      draft: "",
     });
   };
 
@@ -571,37 +571,39 @@ const ExperienceForm = () => {
                 </div>
 
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Select Mode</label>
-                       <div className="form-check">
-                         <input
-                          type="radio"
-                           className="form-check-input"
+                      <label className="form-label mb-2">Select Mode</label>
+                      <div className="d-flex align-items-center gap-3"> {/* Flexbox for side-by-side alignment */}
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
                             id="draft"
-                              name="draft"
-                               value={true}
-                                {...register("draft", { required: true })}
-                                 />
-                                    <label className="form-check-label" htmlFor="draft">
-                                      Draft Copy
-                                      </label>
-                                      </div>
-                                      <div className="form-check">
-                                          <input
-                                           type="radio"
-                                           className="form-check-input"
-                                           id="undraft"
-                                           name="draft"
-                                           value={false}
-                                           {...register("draft", { required: true })}
-                                           />
-                                           <label className="form-check-label" htmlFor="undraft">
-                                            Digital Copy
-                                            </label>
-                                            </div>
-                                            {errors.draft && (
-                                               <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
-                                                )}
-                                                </div>
+                            name="draft"
+                            value={true}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value={false}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
+                      </div>
+                      {errors.draft && (
+                        <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
+                      )}
+                    </div>
 
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (
@@ -610,9 +612,8 @@ const ExperienceForm = () => {
                         </div>
                       )}
                       <div
-                        className={`col-${
-                          error ? "3" : "12"
-                        } d-flex justify-content-end mt-4`}
+                        className={`col-${error ? "3" : "12"
+                          } d-flex justify-content-end mt-4`}
                       >
                         <button
                           className="btn btn-secondary me-2"
