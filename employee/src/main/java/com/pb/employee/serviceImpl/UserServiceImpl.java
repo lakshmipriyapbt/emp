@@ -22,6 +22,8 @@ import com.pb.employee.util.ResourceIdUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -164,6 +166,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> updateUser(String companyName, String Id, UserUpdateRequest userUpdateRequest) throws EmployeeException {
         String index = null;
+        DepartmentEntity departmentEntity = null;
         try {
             index = ResourceIdUtils.generateCompanyIndex(companyName);
 
@@ -179,12 +182,8 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);
             }
 
-            UserEntity existingUser = existingUsers.iterator().next();
-            UserEntity originalUser = new UserEntity();
-            BeanUtils.copyProperties(existingUser, originalUser);
+            UserEntity existingUser = dao.get(existingUsers.stream().findFirst().get().getId(), companyName).get();
 
-            DepartmentEntity departmentEntity = null;
-            String departmentId = existingUser.getDepartment();
             if (userUpdateRequest.getDepartment() != null) {
                 departmentEntity = openSearchOperations.getDepartmentById(userUpdateRequest.getDepartment(), null, index);
                 if (departmentEntity == null) {
@@ -193,26 +192,17 @@ public class UserServiceImpl implements UserService {
                             ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT   )))),
                             HttpStatus.CONFLICT);
                 }
-                departmentId = departmentEntity.getId();
+            }
+
+            if (userUpdateRequest.getUserType().equals(existingUser.getUserType()) &&
+                    userUpdateRequest.getFirstName().equals(existingUser.getFirstName()) &&
+                    userUpdateRequest.getLastName().equals(existingUser.getLastName()) &&
+                    Objects.equals(userUpdateRequest.getDepartment(), existingUser.getDepartment())) {
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE), HttpStatus.BAD_REQUEST);
             }
 
             UserEntity updatedData = objectMapper.convertValue(userUpdateRequest, UserEntity.class);
-
-            // Update only the mutable fields
-            existingUser.setUserType(updatedData.getUserType());
-            existingUser.setFirstName(updatedData.getFirstName());
-            existingUser.setLastName(updatedData.getLastName());
-            existingUser.setDepartment(departmentId);
-
-            // Check if any changes were made
-            if (originalUser.getUserType().equals(existingUser.getUserType()) &&
-                    originalUser.getFirstName().equals(existingUser.getFirstName()) &&
-                    originalUser.getLastName().equals(existingUser.getLastName()) &&
-                    Objects.equals(originalUser.getDepartment(), existingUser.getDepartment())) {
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createFailureResponse(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE)), HttpStatus.OK);
-            }
-
+            BeanUtils.copyProperties(updatedData, existingUser, getNullPropertyNames(updatedData));
             dao.save(existingUser, companyName);
 
             return new ResponseEntity<>(
@@ -254,5 +244,17 @@ public class UserServiceImpl implements UserService {
                     HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        Set<String> emptyNames = new HashSet<>();
+        for (var pd : src.getPropertyDescriptors()) {
+            Object value = src.getPropertyValue(pd.getName());
+            if (value == null) {
+                emptyNames.add(pd.getName());
+            }
+        }
+        return emptyNames.toArray(new String[0]);
     }
 }
