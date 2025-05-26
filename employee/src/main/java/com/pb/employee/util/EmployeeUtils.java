@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import javax.swing.text.Position;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.lang.reflect.Field;
 import java.util.Base64;
@@ -548,14 +551,29 @@ public class EmployeeUtils {
         return noOfChanges;
     }
 
-    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(List<EmployeeEntity> employees, List<AttendanceEntity> attendanceRecords) {
+    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(List<EmployeeEntity> employees, List<AttendanceEntity> attendanceRecords, String month, String year) {
         Set<String> employeesWithAttendance = attendanceRecords.stream()
                 .map(AttendanceEntity::getEmployeeId)
                 .collect(Collectors.toSet());
 
+        Month monthEnum = Month.valueOf(month.toUpperCase(Locale.ENGLISH)); // Convert "march" to MARCH
+        int monthNumber = monthEnum.getValue(); // 3
+
+        LocalDate endOfMonth = LocalDate.of(Integer.parseInt(year), monthNumber, 1)
+                .withDayOfMonth(LocalDate.of(Integer.parseInt(year), monthNumber, 1).lengthOfMonth());
+
         return employees.stream()
                 .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
                         !employeesWithAttendance.contains(employee.getEmployeeId())&& Constants.ACTIVE.equalsIgnoreCase(employee.getStatus()))
+                .filter(emp -> {
+                    try {
+                        LocalDate dateOfHiring = LocalDate.parse(emp.getDateOfHiring()); // expects yyyy-MM-dd format
+                        return dateOfHiring.isBefore(endOfMonth);
+                    } catch (DateTimeParseException e) {
+                        // optionally log invalid date and skip employee
+                        return false;
+                    }
+                })
                 .collect(Collectors.toList());
     }
 }
