@@ -795,8 +795,11 @@ public class PayslipServiceImpl implements PayslipService {
             responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
             responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
 
-
-            if (employeesWithoutAttendance.size() != 0){
+            if (employeesWithoutSalary.size() != 0){
+                responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.FORBIDDEN);
+            }
+            if (employeesWithoutAttendance.size() != 0){;
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
 
             }
