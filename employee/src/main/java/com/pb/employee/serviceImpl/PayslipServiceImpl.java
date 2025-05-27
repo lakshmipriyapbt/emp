@@ -803,8 +803,11 @@ public class PayslipServiceImpl implements PayslipService {
             responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
 
             if (employeesWithoutSalary.size() != 0 && generatedPayslips.isEmpty()){
-                responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
-                return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().
+                                createFailureResponse(String.format(ErrorMessageHandler
+                                        .getMessage(EmployeeErrorMessageKey.EMPLOYEE_SALARY_NOT_FOUND),employeesWithoutSalary )),
+                        HttpStatus.FORBIDDEN);
             }
             if (employeesWithoutAttendance.size() != 0){;
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
