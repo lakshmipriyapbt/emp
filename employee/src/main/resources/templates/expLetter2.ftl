@@ -8,6 +8,11 @@
     <style>
         body {
             position: relative;
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            margin: 30px;
+            line-height: 1.5;
+
         }
 
         .watermark {

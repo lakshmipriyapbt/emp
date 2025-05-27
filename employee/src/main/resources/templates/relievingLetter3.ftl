@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Relieving Letter</title>
     <style>
+        body {
+            position: relative;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            margin: 30px;
+            line-height: 1.9;
+        }
 
          .watermark {
            position: fixed;
