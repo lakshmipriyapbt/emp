@@ -517,7 +517,7 @@ const InternShipForm = () => {
                      onClick={(e) => e.target.showPicker()}
                      max={new Date().toISOString().split("T")[0]} // sets max selectable date to today
                         {...register("dateOfHiring", {
-                          required: "Date of Joining is required",
+                          required: "Date of Joined is required",
                           validate: {
                             validYear: (value) => validateYear(value)
                           }

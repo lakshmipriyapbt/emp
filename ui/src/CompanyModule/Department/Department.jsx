@@ -172,44 +172,46 @@ const Department = () => {
   };
 
   const onSubmit = async (data) => {
-    setLoading(true);
-    try {
-      const formData = {
-        companyName: authUser.company,
-        name: data.name,
-      };
+  setLoading(true);
+  try {
+    const formData = {
+      companyName: authUser.company,
+      name: data.name,
+    };
 
-      if (editingId) {
-        await DepartmentPutApiById(editingId, formData);
-        // Update existing department
+    if (editingId) {
+      await DepartmentPutApiById(editingId, formData);
+      setDepartments(prev => 
+        prev.map(dept => 
+          dept.id === editingId ? { ...dept, name: data.name } : dept
+        ).sort((a, b) => a?.name?.localeCompare(b?.name))
+      );
+      toast.success("Department Updated Successfully");
+    } else {
+      const response = await DepartmentPostApi(formData);
+      if (response?.data?.data) {
         setDepartments(prev => 
-          prev.map(dept => 
-            dept.id === editingId ? { ...dept, name: data.name } : dept
-          ).sort((a, b) => a?.name?.localeCompare(b?.name))
+          [...(prev || []), response.data.data].sort((a, b) => 
+            (a?.name || '').localeCompare(b?.name || '')
+          )
         );
-        toast.success("Department Updated Successfully");
-      } else {
-        const response = await DepartmentPostApi(formData);
-        // Add new department with proper null checks
-        if (response?.data?.data) {
-          setDepartments(prev => 
-            [...(prev || []), response.data.data].sort((a, b) => 
-              (a?.name || '').localeCompare(b?.name || '')
-            )
-          );
-          toast.success("Department Created Successfully");
-        }
+        toast.success("Department Created Successfully");
       }
+    }
 
+    // Delay closing modal and resetting form
+    setTimeout(() => {
       handleCloseAddDepartmentModal();
       reset();
       setEditingId(null);
-    } catch (error) {
-      handleApiErrors(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 500); // Delay in milliseconds
+  } catch (error) {
+    handleApiErrors(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const onSubmitDesignation = async (data) => {
     try {

@@ -30,6 +30,7 @@ const CompanyTdsView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  console.log("user role", authUser?.userRole);
 
   // Validate numeric input with max digits
   const validateNumericInput = (value, maxDigits) => {
@@ -544,7 +545,7 @@ const CompanyTdsView = () => {
           </div>
   
           {/* Edit/Save Controls */}
-          {authUser?.userRole?.includes("company_admin") && filteredData.length > 0 && (
+          {authUser?.roles?.includes("company_admin") && filteredData.length > 0 && (
             <div className="d-flex justify-content-end mb-3">
               {!isEditing ? (
                 <button 

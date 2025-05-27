@@ -243,15 +243,15 @@ const InternOfferForm = () => {
     const isDraft = data.draft === "true"; // Convert to boolean
 
     const formData = {
-        ...data,
-        draft: isDraft,
-        date:data.generatedDate,
-        companyId:company?.id,
-        associateName: selectedAssignee ? selectedAssignee.associateName : '',
-        associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
-        hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
-        hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
-      };
+      ...data,
+      draft: isDraft,
+      date: data.generatedDate,
+      companyId: company?.id,
+      associateName: selectedAssignee ? selectedAssignee.associateName : '',
+      associateDesignation: selectedAssignee ? selectedAssignee.associateDesignation : '',
+      hrName: selectedHR ? selectedHR.hrName : 'Company Admin',
+      hrEmail: selectedHR ? selectedHR.hrEmail : 'Company Admin',
+    };
     setPreviewData(formData);
     console.log("preview:", formData);
     setShowPreview(true);
@@ -972,24 +972,20 @@ const InternOfferForm = () => {
                       <input
                         type="date"
                         name="generatedDate"
-                        placeholder="Enter Genatated Date"
+                        placeholder="Enter Generated Date"
                         className="form-control"
                         autoComplete="off"
                         onClick={(e) => e.target.showPicker()}
                         {...register("generatedDate", {
                           required: "Generated Date is required",
                           validate: {
-                            notAfterJoiningDate: (value) => {
-                              const joiningDate = watch("acceptDate");
-                              if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
-
-                              // Validate year format first
-                              const yearValidationMessage = validateDateInput(value);
-                              if (yearValidationMessage !== true) return yearValidationMessage;
+                            notAfterAcceptDate: (value) => {
+                              const acceptDate = watch("acceptDate");
+                              if (!acceptDate) return true;
 
                               return (
-                                new Date(value) <= new Date(joiningDate) ||
-                                "Generated Date cannot be after accept date Date"
+                                new Date(value) < new Date(acceptDate) ||
+                                "Generated Date must be before the Accept Date"
                               );
                             },
                           },
