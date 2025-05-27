@@ -1,21 +1,26 @@
-// AddUser.jsx
 import React from 'react';
 import UserForm from './UserForm';
 import { useNavigate } from 'react-router-dom';
 import LayOut from '../../LayOut/LayOut';
 import { UserPostApi } from '../../Utils/Axios';
+import { toast } from 'react-toastify';
 
 const AddUser = () => {
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
-    try {
-      await UserPostApi(data);
-      navigate('/viewUser'); // Navigate back to ViewUser list
-    } catch (err) {
-      console.error('Error adding user:', err);
-    }
-  };
+  try {
+    await UserPostApi(data);
+    toast.success('User added successfully!');
+
+    setTimeout(() => {
+      navigate('/viewUser', { state: { refresh: Date.now() } });
+    }, 500);
+  } catch (err) {
+    console.error('Error adding user:', err);
+    toast.error('Failed to add user');
+  }
+};
 
   return (
        <LayOut>
