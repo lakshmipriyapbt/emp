@@ -33,7 +33,7 @@ const EmployeeList = () => {
             const filtered = employees.filter(
                 (emp) =>
                     emp.status?.toLowerCase() === status.toLowerCase() &&
-                    emp.firstName?.toLowerCase().includes(search.toLowerCase())
+                    (`${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase().includes(search.toLowerCase()))
             );
             setFilteredEmployees(filtered);
         }
