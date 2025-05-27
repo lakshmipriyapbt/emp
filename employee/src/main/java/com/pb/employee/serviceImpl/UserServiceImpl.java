@@ -64,6 +64,10 @@ public class UserServiceImpl implements UserService {
                 log.error("Exception while fetching the company calendar details");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
+            if (companyEntity.getEmailId().equals(userRequest.getEmailId())){
+                log.error("Exception while fetching the company calendar details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ALREADY_EXIST), HttpStatus.BAD_REQUEST);
+            }
             if(userRequest.getEmployeeId() != null && !userRequest.getEmployeeId().isEmpty()){
                 EmployeeEntity employee = openSearchOperations.getEmployeeById(userRequest.getEmployeeId(),null,index);
                 if (employee != null){
