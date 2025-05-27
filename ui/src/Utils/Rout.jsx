@@ -97,7 +97,7 @@ export const allAvailableRoutes = [
   {path: '/companySalaryStructure', allowedTypes: ['company_admin', 'Admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin', 'Admin'] },
   {path:'/addUser',allowedTypes:['company_admin', 'Admin']},
-  {path:'/editUser',allowedTypes:['company_admin', 'Admin']},
+  {path:'/editUser',allowedTypes:['company_admin', 'Admin','HR', 'Accountant']},
   {path:'/viewUser',allowedTypes:['company_admin', 'Admin']},
   {path: '/department', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/designation', allowedTypes: ['company_admin', 'Admin', 'HR'] },
@@ -211,7 +211,7 @@ const Routing = () => {
       />
        <Route
         path="/editUser/:id"
-        element={<ProtectedRoute element={<UpdateUser/>} allowedTypes={['company_admin', 'Admin']} />}
+        element={<ProtectedRoute element={<UpdateUser/>} allowedTypes={['company_admin', 'Admin', 'HR', 'Accountant']} />}
       /> 
 
       {/* Employee-specific routes */}
