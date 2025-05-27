@@ -1,3 +1,4 @@
+// AddUser.jsx
 import React from 'react';
 import UserForm from './UserForm';
 import { useNavigate } from 'react-router-dom';
@@ -9,18 +10,24 @@ const AddUser = () => {
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
-  try {
-    await UserPostApi(data);
-    toast.success('User added successfully!');
-
-    setTimeout(() => {
-      navigate('/viewUser', { state: { refresh: Date.now() } });
-    }, 500);
-  } catch (err) {
-    console.error('Error adding user:', err);
-    toast.error('Failed to add user');
-  }
-};
+    try {
+      await UserPostApi(data);
+       const successMessage =data.message || 'User Created Successfully';
+                toast.success(successMessage, {
+                  position: 'top-right',
+                  autoClose: 1000,
+                });
+                setTimeout(() => {
+                  navigate('/viewUser', { state: { refresh: Date.now() } });
+                }, 500); 
+       } catch (err) {
+      const errorMsg = err.response?.data?.error?.message || err.message || 'Error updating User';
+          toast.error(errorMsg, {
+            position: 'top-right',
+            autoClose: 1000,
+          });
+      }
+  };
 
   return (
        <LayOut>
