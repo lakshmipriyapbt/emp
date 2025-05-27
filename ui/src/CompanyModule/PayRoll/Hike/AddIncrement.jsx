@@ -267,96 +267,96 @@ const AddIncrement = () => {
   };
 
   // ✅ Fetch TDS slabs based on financial year and regime
-useEffect(() => {
-  const fetchTds = async () => {
-    try {
-      const currentYear = new Date().getFullYear();
-      const financialYear = getCurrentFinancialYear();
-      const [startYear, endYear] = financialYear.split('-').map(Number);
+  useEffect(() => {
+    const fetchTds = async () => {
+      try {
+        const currentYear = new Date().getFullYear();
+        const financialYear = getCurrentFinancialYear();
+        const [startYear, endYear] = financialYear.split('-').map(Number);
 
-      // Fetch all TDS data
-      const response = await TdsGetApi();
-      const allTdsData = response.data.data;
+        // Fetch all TDS data
+        const response = await TdsGetApi();
+        const allTdsData = response.data.data;
 
-      // Filter for current financial year
-      const currentYearTds = allTdsData.filter(tds =>
-        parseInt(tds.startYear) === startYear &&
-        parseInt(tds.endYear) === endYear
-      );
+        // Filter for current financial year
+        const currentYearTds = allTdsData.filter(tds =>
+          parseInt(tds.startYear) === startYear &&
+          parseInt(tds.endYear) === endYear
+        );
 
-      // Separate old and new regime slabs
-      const newRegimeSlabs = currentYearTds
-        .filter(tds => tds.tdsType === "new")
-        .flatMap(tds => tds.persentageEntityList);
+        // Separate old and new regime slabs
+        const newRegimeSlabs = currentYearTds
+          .filter(tds => tds.tdsType === "new")
+          .flatMap(tds => tds.persentageEntityList);
 
-      const oldRegimeSlabs = currentYearTds
-        .filter(tds => tds.tdsType === "old")
-        .flatMap(tds => tds.persentageEntityList);
+        const oldRegimeSlabs = currentYearTds
+          .filter(tds => tds.tdsType === "old")
+          .flatMap(tds => tds.persentageEntityList);
 
-      setTdsSlabs({
-        new: newRegimeSlabs,
-        old: oldRegimeSlabs
-      });
+        setTdsSlabs({
+          new: newRegimeSlabs,
+          old: oldRegimeSlabs
+        });
 
-      // Set initial selected slabs based on current regime
-      setSelectedTdsSlabs(
-        selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
-      );
-    } catch (error) {
-      console.error("Error fetching TDS slabs:", error);
-      setTdsSlabs({
-        new: [],
-        old: []
-      });
-      setSelectedTdsSlabs([]);
+        // Set initial selected slabs based on current regime
+        setSelectedTdsSlabs(
+          selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
+        );
+      } catch (error) {
+        console.error("Error fetching TDS slabs:", error);
+        setTdsSlabs({
+          new: [],
+          old: []
+        });
+        setSelectedTdsSlabs([]);
+      }
+    };
+    fetchTds();
+  }, [selectedTaxRegime]);
+
+  // ✅ Calculate TDS based on selected tax regime
+  const calculateTds = (annualSalary, regime) => {
+    const slabs = regime === "new" ? tdsSlabs.new : tdsSlabs.old;
+    const sortedSlabs = [...slabs].sort((a, b) => parseFloat(a.min) - parseFloat(b.min));
+
+    let applicable = null;
+    for (const slab of sortedSlabs) {
+      const min = parseFloat(slab.min);
+      const max = parseFloat(slab.max) || Infinity;
+
+      if (annualSalary >= min && annualSalary <= max) {
+        applicable = slab;
+        break;
+      }
     }
+
+    setApplicableSlab(applicable || sortedSlabs[sortedSlabs.length - 1]);
+
+    let tdsAmount = 0;
+    if (applicable) {
+      const rate = parseFloat(applicable.taxPercentage) / 100;
+      tdsAmount = annualSalary * rate;
+    }
+
+    return tdsAmount;
   };
-  fetchTds();
-}, [selectedTaxRegime]);
 
-// ✅ Calculate TDS based on selected tax regime
-const calculateTds = (annualSalary, regime) => {
-  const slabs = regime === "new" ? tdsSlabs.new : tdsSlabs.old;
-  const sortedSlabs = [...slabs].sort((a, b) => parseFloat(a.min) - parseFloat(b.min));
-
-  let applicable = null;
-  for (const slab of sortedSlabs) {
-    const min = parseFloat(slab.min);
-    const max = parseFloat(slab.max) || Infinity;
-
-    if (annualSalary >= min && annualSalary <= max) {
-      applicable = slab;
-      break;
+  useEffect(() => {
+    if (grossAmount > 0 && selectedTaxRegime) {
+      const calculatedTds = calculateTds(grossAmount, selectedTaxRegime);
+      setTdsAmount(calculatedTds);
     }
-  }
+  }, [grossAmount, selectedTaxRegime]);
 
-  setApplicableSlab(applicable || sortedSlabs[sortedSlabs.length - 1]);
+  const handleTaxRegimeChange = (e) => {
+    const regime = e.target.value;
+    setSelectedTaxRegime(regime);
+    setValue("tdsType", regime);
 
-  let tdsAmount = 0;
-  if (applicable) {
-    const rate = parseFloat(applicable.taxPercentage) / 100;
-    tdsAmount = annualSalary * rate;
-  }
-
-  return tdsAmount;
-};
-
-useEffect(() => {
-  if (grossAmount > 0 && selectedTaxRegime) {
-    const calculatedTds = calculateTds(grossAmount, selectedTaxRegime);
-    setTdsAmount(calculatedTds);
-  }
-}, [grossAmount, selectedTaxRegime]);
-
-const handleTaxRegimeChange = (e) => {
-  const regime = e.target.value;
-  setSelectedTaxRegime(regime);
-  setValue("tdsType", regime);
-
-  // Recalculate TDS with new regime
-  const newTds = calculateTds(grossAmount, regime);
-  setTdsAmount(newTds);
-};
+    // Recalculate TDS with new regime
+    const newTds = calculateTds(grossAmount, regime);
+    setTdsAmount(newTds);
+  };
 
   const fetchTemplate = async (companyId) => {
     try {
@@ -534,17 +534,17 @@ const handleTaxRegimeChange = (e) => {
   // Function to calculate the total deductions including PF
   const calculateTotalDeductions = () => {
     let total = 0;
-    
+
     Object.entries(updatedDeductions).forEach(([key, value]) => {
       if (!value) return;
-      
+
       if (typeof value === "string" && value.includes("%")) {
         // percentage calculation
       } else {
         total += parseFloat(value) || 0;
       }
     });
-    
+
     return isNaN(total) ? 0 : total;
   };
 
@@ -594,6 +594,12 @@ const handleTaxRegimeChange = (e) => {
     }
 
     setErrorMessage(errorMessage);
+  };
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
   };
 
   const handleDeductionChange = (key, value, grossSalary, basicSalary) => {
@@ -1401,33 +1407,33 @@ const handleTaxRegimeChange = (e) => {
                             <h5 className="card-title">Deductions</h5>
                           </div>
                           <div className="card-body">
-                          {Object.entries(updatedDeductions).map(([key, value]) => {
-  let displayValue = parseFloat(value) || value;
+                            {Object.entries(updatedDeductions).map(([key, value]) => {
+                              let displayValue = parseFloat(value) || value;
 
-  if (typeof value === "string" && value.includes("%")) {
-    const percentage = parseFloat(value.replace("%", ""));
-    if (!isNaN(percentage)) {
-      const baseAmount = key.includes("Provident Fund") ? basicAmount : grossAmount;
-      displayValue = (percentage / 100) * baseAmount;
-    }
-  }
+                              if (typeof value === "string" && value.includes("%")) {
+                                const percentage = parseFloat(value.replace("%", ""));
+                                if (!isNaN(percentage)) {
+                                  const baseAmount = key.includes("Provident Fund") ? basicAmount : grossAmount;
+                                  displayValue = (percentage / 100) * baseAmount;
+                                }
+                              }
 
-  return (
-    <div key={key} className="mb-3">
-      <label>{key}</label>
-      <input
-        className="form-control"
-        type="text"
-        readOnly={[
-          "Provident Fund Employee", 
-          "Provident Fund Employer"
-        ].includes(key)}
-        value={Math.round(displayValue)}
-        onChange={(e) => handleDeductionChange(key, e.target.value)}
-      />
-    </div>
-  );
-})}
+                              return (
+                                <div key={key} className="mb-3">
+                                  <label>{key}</label>
+                                  <input
+                                    className="form-control"
+                                    type="text"
+                                    readOnly={[
+                                      "Provident Fund Employee",
+                                      "Provident Fund Employer"
+                                    ].includes(key)}
+                                    value={Math.round(displayValue)}
+                                    onChange={(e) => handleDeductionChange(key, e.target.value)}
+                                  />
+                                </div>
+                              );
+                            })}
                             <div className="mb-3">
                               <label>Total Deductions</label>
                               <input
@@ -1445,126 +1451,126 @@ const handleTaxRegimeChange = (e) => {
                           </div>
                         </div>
                         <div className="card">
-  <div className="card-header">
-    <div className="d-flex justify-content-start align-items-start">
-      <h5 className="card-title me-2">Tax Deduction at Source (TDS)</h5>
-      <span className="text-danger">
-        {errors.tdsType && (
-          <p className="mb-0">{errors.tdsType.message}</p>
-        )}
-      </span>
-    </div>
-  </div>
-  <div className="card-body">
-    <div className="row">
-      {/* Tax Regime Selection */}
-      <div className="col-md-12 mb-4">
-        <h6 className="mb-3">Select Tax Regime:</h6>
-        <div className="d-flex flex-wrap gap-4">
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="radio"
-              id="newRegime"
-              value="new"
-              {...register("tdsType", {
-                onChange: (e) => setSelectedTaxRegime(e.target.value)
-              })}
-            />
-            <label className="form-check-label" htmlFor="newRegime">
-  <div className="d-flex align-items-center">
-    <span>New Tax Regime (Default)</span>
-    <OverlayTrigger
-      trigger={["hover", "focus"]}
-      placement="top"
-      overlay={calculationPopover}
-    >
-      <span className="ms-2" style={{ cursor: "pointer" }}>
-        <i className="bi bi-info-circle text-primary"></i>
-      </span>
-    </OverlayTrigger>
-  </div>
-</label>
+                          <div className="card-header">
+                            <div className="d-flex justify-content-start align-items-start">
+                              <h5 className="card-title me-2">Tax Deduction at Source (TDS)</h5>
+                              <span className="text-danger">
+                                {errors.tdsType && (
+                                  <p className="mb-0">{errors.tdsType.message}</p>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="card-body">
+                            <div className="row">
+                              {/* Tax Regime Selection */}
+                              <div className="col-md-12 mb-4">
+                                <h6 className="mb-3">Select Tax Regime:</h6>
+                                <div className="d-flex flex-wrap gap-4">
+                                  <div className="form-check">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      id="newRegime"
+                                      value="new"
+                                      {...register("tdsType", {
+                                        onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                      })}
+                                    />
+                                    <label className="form-check-label" htmlFor="newRegime">
+                                      <div className="d-flex align-items-center">
+                                        <span>New Tax Regime (Default)</span>
+                                        <OverlayTrigger
+                                          trigger={["hover", "focus"]}
+                                          placement="top"
+                                          overlay={calculationPopover}
+                                        >
+                                          <span className="ms-2" style={{ cursor: "pointer" }}>
+                                            <i className="bi bi-info-circle text-primary"></i>
+                                          </span>
+                                        </OverlayTrigger>
+                                      </div>
+                                    </label>
 
-          </div>
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="radio"
-              id="oldRegime"
-              value="old"
-              {...register("tdsType", {
-                onChange: (e) => setSelectedTaxRegime(e.target.value)
-              })}
-            />
-            <label className="form-check-label" htmlFor="oldRegime">
-              Old Tax Regime
-            </label>
-          </div>
-        </div>
-      </div>
+                                  </div>
+                                  <div className="form-check">
+                                    <input
+                                      className="form-check-input"
+                                      type="radio"
+                                      id="oldRegime"
+                                      value="old"
+                                      {...register("tdsType", {
+                                        onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                      })}
+                                    />
+                                    <label className="form-check-label" htmlFor="oldRegime">
+                                      Old Tax Regime
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
 
-      {/* Salary and Slab Information */}
-      <div className="col-md-6 mb-3">
-        <label className="form-label">Applicable Tax Rate</label>
-        <div className="p-2 bg-white rounded">
-          {applicableSlab ? (
-            <div className="d-flex align-items-center">
-              <span className="badge bg-primary me-2">
-                {applicableSlab.taxPercentage}%
-              </span>
-              <span>
-                For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
-                ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
-              </span>
-            </div>
-          ) : (
-            <span className="text-muted">No applicable slab found</span>
-          )}
-        </div>
-      </div>
+                              {/* Salary and Slab Information */}
+                              <div className="col-md-6 mb-3">
+                                <label className="form-label">Applicable Tax Rate</label>
+                                <div className="p-2 bg-white rounded">
+                                  {applicableSlab ? (
+                                    <div className="d-flex align-items-center">
+                                      <span className="badge bg-primary me-2">
+                                        {applicableSlab.taxPercentage}%
+                                      </span>
+                                      <span>
+                                        For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
+                                        ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted">No applicable slab found</span>
+                                  )}
+                                </div>
+                              </div>
 
-      {/* TDS Calculation Results */}
-      <div className="col-md-12 mt-4">
-        <div className="row">
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Tax Rate Applied</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Annual TDS</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={`₹${tdsAmount.toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2
-              })}`}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Monthly TDS</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2
-              })}`}
-              readOnly
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                              {/* TDS Calculation Results */}
+                              <div className="col-md-12 mt-4">
+                                <div className="row">
+                                  <div className="col-md-4 mb-3">
+                                    <label className="form-label">Tax Rate Applied</label>
+                                    <input
+                                      className="form-control fw-bold text-center"
+                                      type="text"
+                                      value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
+                                      readOnly
+                                    />
+                                  </div>
+                                  <div className="col-md-4 mb-3">
+                                    <label className="form-label">Annual TDS</label>
+                                    <input
+                                      className="form-control fw-bold text-center"
+                                      type="text"
+                                      value={`₹${tdsAmount.toLocaleString('en-IN', {
+                                        maximumFractionDigits: 2,
+                                        minimumFractionDigits: 2
+                                      })}`}
+                                      readOnly
+                                    />
+                                  </div>
+                                  <div className="col-md-4 mb-3">
+                                    <label className="form-label">Monthly TDS</label>
+                                    <input
+                                      className="form-control fw-bold text-center"
+                                      type="text"
+                                      value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
+                                        maximumFractionDigits: 2,
+                                        minimumFractionDigits: 2
+                                      })}`}
+                                      readOnly
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="card">
                           <div className="card-header">
@@ -1823,67 +1829,72 @@ const handleTaxRegimeChange = (e) => {
                               )}
                             </div>
 
-                             <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Letter Generated Date</label>
-                      <input
-                        type="date"
-                        name="generatedDate"
-                        placeholder="Enter Genatated Date"
-                        className="form-control"
-                        autoComplete="off"
-                        onClick={(e) => e.target.showPicker()}
-                        {...register("generatedDate", {
-                          required: "Genetated Date is required",
-                          validate: {
-                           notAfterJoiningDate: (value) => {
-                             const joiningDate = watch("dateOfSalaryIncrement");
-                            if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
-                          return (
-                            new Date(value) <= new Date(joiningDate) ||
-                             "Generated Date cannot be after date of salary increement"
-                            ); }
-                          },
-                        })}
-                      />
-                     {errors.generatedDate && (
-  <p className="errorMsg">{errors.generatedDate.message}</p>
-)}
-                    </div> 
+                            <div className="col-lg-1"></div>
+                            <div className="col-12 col-md-6 col-lg-5 mb-3">
+                              <label className="form-label">Letter Generated Date</label>
+                              <input
+                                type="date"
+                                name="generatedDate"
+                                placeholder="Enter Genatated Date"
+                                className="form-control"
+                                autoComplete="off"
+                                onClick={(e) => e.target.showPicker()}
+                                {...register("generatedDate", {
+                                  required: "Generated Date is required",
+                                  validate: {
+                                    notAfterJoiningDate: (value) => {
+                                      const joiningDate = watch("dateOfSalaryIncrement");
+                                      if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                                      return (
+                                        new Date(value) <= new Date(joiningDate) ||
+                                        "Generated Date cannot be after date of salary increment"
+                                      );
+                                    },
+                                    validateYear: (value) => validateYear(value),
+                                  }
+                                })}
+                              />
+                              {errors.generatedDate && (
+                                <p className="errorMsg">{errors.generatedDate.message}</p>
+                              )}
+                            </div>
 
                             <div className="col-lg-1"></div>
                             <div className="col-12 col-md-6 col-lg-5 mb-3">
-                              <label className="form-label">Select Mode</label>
-                              <div className="form-check">
-                                <input
-                                  type="radio"
-                                  className="form-check-input"
-                                  id="draft"
-                                  name="draft"
-                                  value={true}
-                                  {...register("draft", { required: true })}
-                                />
-                                <label className="form-check-label" htmlFor="draft">
-                                  Draft Copy
-                                </label>
-                              </div>
-                              <div className="form-check">
-                                <input
-                                  type="radio"
-                                  className="form-check-input"
-                                  id="undraft"
-                                  name="draft"
-                                  value={false}
-                                  {...register("draft", { required: true })}
-                                />
-                                <label className="form-check-label" htmlFor="undraft">
-                                  Digital Copy
-                                </label>
+                              <label className="form-label mb-2">Select Mode</label> {/* Added spacing below label */}
+                              <div className="d-flex gap-3"> {/* Flexbox for side-by-side layout */}
+                                <div className="form-check">
+                                  <input
+                                    type="radio"
+                                    className="form-check-input"
+                                    id="draft"
+                                    name="draft"
+                                    value={true}
+                                    {...register("draft", { required: true })}
+                                  />
+                                  <label className="form-check-label" htmlFor="draft">
+                                    Draft Copy
+                                  </label>
+                                </div>
+                                <div className="form-check">
+                                  <input
+                                    type="radio"
+                                    className="form-check-input"
+                                    id="undraft"
+                                    name="draft"
+                                    value={false}
+                                    {...register("draft", { required: true })}
+                                  />
+                                  <label className="form-check-label" htmlFor="undraft">
+                                    Digital Copy
+                                  </label>
+                                </div>
                               </div>
                               {errors.draft && (
-                                <p className="errorMsg">Please select draft copy or digital copy</p>
+                                <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
                               )}
                             </div>
+
                           </div>
                           {message && (<span className="text-center text-danger">message</span>)}
                           <div

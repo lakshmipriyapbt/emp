@@ -1,80 +1,146 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
-import { companyViewByIdApi, EmployeeGetApiById, getUserById } from "../Utils/Axios";
+import { EmployeeGetApiById, getUserById, companyViewByIdApi } from "../Utils/Axios";
 
-export const AuthContext = createContext();
+// Create the context
+const AuthContext = createContext();
 
+// Create the Provider component
 export const AuthProvider = ({ children }) => {
-  const [authUser, setAuthUser] = useState(null);
-  const [employee, setEmployee] = useState(null);
-  const [company, setCompany] = useState(null);
+  const [authUser, setAuthUser] = useState(null);      // Stores decoded user info (e.g., userId, companyId)
+  const [employee, setEmployee] = useState(null);       // Stores employee/user details
+  const [company, setCompany] = useState(null);         // Stores company details
+  const [isInitialized, setIsInitialized] = useState(false); // Tells us when auth is ready (app booted or login done)
 
+  // Runs once on app start or refresh
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        const userId = decodedToken.sub;
-        const userRole = decodedToken.roles;
-        const company = decodedToken.company;
-        const employeeId = decodedToken.employeeId;
-        const companyId = decodedToken.companyId;
-        setAuthUser({ userId, userRole, company, employeeId, companyId });
+    if (!token) {
+      setIsInitialized(true);
+      return;
+    }
 
-      // Fetch Employee Data
-      const fetchEmployeeAndCompany = async () => {
-        try {
-          let userResponse;
-
-          // Check the role and call the corresponding API
-          if (userRole === "Admin" || userRole === "HR" || userRole === "Accountant") {
-            // For Admin, HR, Accountant, use `getUserById` API
-            console.log(`Fetching user data for ${userRole} with userId: ${userId}`);
-            userResponse = await getUserById(userId);
-            console.log("UserId Response:", userResponse.data); // Log full response
-
-            setEmployee(userResponse.data.data);
-          } else if (userRole === "company-admin" || userRole === "employee") {
-            // For company-admin and employee, use `EmployeeGetApiById` API
-            console.log(`Fetching employee data for ${userRole} with userId: ${userId}`);
-            userResponse = await EmployeeGetApiById(userId);
-            console.log("Employee Id Response:", userResponse.data); // Log full response
-
-            setEmployee(userResponse.data.data);
-          }
-
-          // Log employee state right after setting it
-          console.log("Employee State after setEmployee:", employee);
-
-          // After getting employee data, fetch company data if needed
-          const companyIdFromEmp = userResponse?.data?.data?.companyId || companyId;
-          console.log("Company ID from employee data:", companyIdFromEmp);
-          
-          if (companyIdFromEmp) {
-            const companyResponse = await companyViewByIdApi(companyIdFromEmp);
-            console.log("CompanyResponse:", companyResponse.data); // Log full company response
-
-            setCompany(companyResponse.data.data);
-          }
-        } catch (error) {
-          console.error("Error fetching employee or company data:", error);
-        }
-      };
-        fetchEmployeeAndCompany();
-      } catch (error) {
-        console.error("Failed to decode token:", error);
+    try {
+      const decoded = jwtDecode(token);
+      // Optionally validate expiration
+      if (decoded.exp * 1000 < Date.now()) {
         localStorage.removeItem("token");
-        setAuthUser(null);
+        setIsInitialized(true);
+        return;
       }
+
+      // Save essential info to state
+      setAuthUser({
+        userId: decoded.sub,
+        roles: decoded.roles || [],
+        companyId: decoded.companyId,
+        employeeId: decoded.employee,
+        company: decoded.company
+      });
+    } catch (err) {
+      console.error("Invalid token", err);
+      localStorage.removeItem("token");
+      setIsInitialized(true);
     }
   }, []);
 
+  // Fetch employee/user + company when authUser changes (login or after app initializes)
+  useEffect(() => {
+    if (!authUser) {
+      setEmployee(null);
+      setCompany(null);
+      setIsInitialized(true);
+      return;
+    }
+
+    const fetchDetails = async () => {
+      try {
+        let empData = null;
+
+        try {
+          // First try fetching as employee
+          const empRes = await EmployeeGetApiById(authUser.userId);
+          empData = empRes?.data?.data;
+        } catch {
+          // If that fails, try fetching as user
+          const userRes = await getUserById(authUser.userId);
+          const userData = userRes?.data?.data;
+          empData = Array.isArray(userData) && userData.length > 0 ? userData[0] : userData;
+        }
+
+        setEmployee(empData);
+        console.log("empData companyId and authUser companyId", empData?.companyId, authUser?.companyId);
+
+        const companyId = empData?.companyId || authUser?.companyId;
+
+        if (companyId) {
+          const compRes = await companyViewByIdApi(companyId);
+          setCompany(compRes?.data?.data);
+        }
+      } catch (error) {
+        console.error("Failed fetching employee or company", error);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+
+    fetchDetails();
+  }, [authUser]);
+
+  // Function to handle login and token storage
+  const login = (token) => {
+    try {
+      localStorage.setItem("token", token);
+      const decoded = jwtDecode(token);
+
+      const userId = decoded.sub;
+      const roles = decoded.roles || [];
+      const companyId = decoded.companyId;
+      const company = decoded.company;
+      const employeeId = decoded.employee;
+
+      console.log("roles", roles);
+
+      // Set authUser object (triggers fetch effect above)
+      setAuthUser({
+        userId,
+        roles,
+        companyId,
+        company,
+        employeeId
+      });
+
+      setIsInitialized(false); // Reset while loading fresh data
+    } catch (err) {
+      console.error("Login failed - invalid token", err);
+    }
+  };
+
+  // Function to logout user and clear all state
+  const logout = () => {
+    localStorage.removeItem("token");
+    setAuthUser(null);
+    setEmployee(null);
+    setCompany(null);
+    setIsInitialized(true);
+  };
+
   return (
-    <AuthContext.Provider value={{ authUser,setAuthUser, employee, company }}>
+    <AuthContext.Provider
+      value={{
+        authUser,
+        setAuthUser,
+        employee,
+        company,
+        isInitialized,
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const  useAuth = () => useContext(AuthContext);
-
+// Custom hook to use auth context
+export const useAuth = () => useContext(AuthContext);

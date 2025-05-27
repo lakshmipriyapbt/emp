@@ -6,6 +6,9 @@ import ProductReducer from './ProductSlice';
 import InvoiceReducer from './InvoiceSlice';
 import employeeReducer from './EmployeeSlice';
 import calendarReducer from './CalendarSlice';
+import TdsReducer from './TdsSlice'
+import departmentReducer from './DepartmentSlice'
+import designationReducer from './DesignationSlice'
 
 const store = configureStore({
   reducer: {
@@ -16,6 +19,9 @@ const store = configureStore({
     invoices:InvoiceReducer,
     employees: employeeReducer, // Add employee slice reducer to store
     calendar:calendarReducer,
+    tds:TdsReducer,
+    department:departmentReducer,
+    designation:designationReducer
   },
 });
 

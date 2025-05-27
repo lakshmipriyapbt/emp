@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import org.opensearch.client.opensearch.core.*;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -234,10 +235,11 @@ public class OpenSearchOperations {
         return null;
     }
 
-    public String getPurchaseOrderNo(String index, String purchaseOrderNoPlain) {
+    public List<InvoiceModel> getPurchaseOrderNo(String index, String purchaseOrderNo) {
+        List<InvoiceModel> invoiceModels = new ArrayList<>();
         try {
             // Encode the input to base64
-            String base64EncodedPurchaseOrder = Base64.getEncoder().encodeToString(purchaseOrderNoPlain.getBytes());
+            String base64Encoded = Base64.getEncoder().encodeToString(purchaseOrderNo.getBytes(StandardCharsets.UTF_8));
 
             // Search in OpenSearch using the base64 encoded value
             SearchResponse<InvoiceModel> response = esClient.search(s -> s
@@ -246,19 +248,20 @@ public class OpenSearchOperations {
                             .query(q -> q
                                     .matchPhrase(m -> m
                                             .field("purchaseOrder")
-                                            .query(base64EncodedPurchaseOrder)
+                                            .query(base64Encoded)
                                     )
                             ),
                     InvoiceModel.class
             );
-
-            long value = response.hits().total().value();
-            return String.valueOf(value);
+            List<Hit<InvoiceModel>> hits = response.hits().hits();
+            for (Hit<InvoiceModel> hit : hits) {
+                invoiceModels.add(hit.source()); // ✅ Return last invoice number found
+            }
 
         } catch (IOException e) {
             logger.error("Error while searching for purchase order number : " ,e);
         }
+        return invoiceModels;
 
-        return null;
     }
 }

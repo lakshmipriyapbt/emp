@@ -221,7 +221,6 @@ const ForgotPassword = () => {
                   placeholder='Enter Your Email Id'
                   className="form-control"
                   onKeyDown={handleEmailChange}
-                  onPaste={handlePaste}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {

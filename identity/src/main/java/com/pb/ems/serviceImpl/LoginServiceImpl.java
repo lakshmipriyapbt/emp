@@ -82,15 +82,16 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException {
-        EmployeeEntity employee;
+        EmployeeEntity employee = null;
         UserEntity userEntity = null;
         Object entity = null;
         DepartmentEntity department;
         String password = null;
         try {
-            employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-            if (employee != null && employee.getPassword() != null) {
-                password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+            userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
+
+            if (userEntity != null && userEntity.getPassword() != null) {
+                password = new String(Base64.getDecoder().decode(userEntity.getPassword()), StandardCharsets.UTF_8);
                 if (request.getPassword().equals(password)) {
                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
                 } else {
@@ -99,9 +100,9 @@ public class LoginServiceImpl implements LoginService {
                             HttpStatus.FORBIDDEN);
                 }
             }else {
-                userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
-                if (userEntity != null && userEntity.getPassword() != null) {
-                    password = new String(Base64.getDecoder().decode(userEntity.getPassword()), StandardCharsets.UTF_8);
+                employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+                if (employee != null && employee.getPassword() != null) {
+                    password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
                     if (request.getPassword().equals(password)) {
                         log.debug("Successfully logged into ems portal for {}", request.getUsername());
                     } else {
@@ -180,42 +181,21 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseEntity<?> validateCompanyOtp(OTPRequest request) throws IdentityException {
-        EmployeeEntity user;
+        EmployeeEntity user = null;
         UserEntity userEntity=null;
         try {
-            user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-            if (user == null) {
-                userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
-                if (userEntity==null) {
+            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
+
+            if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+
+                if (user==null) {
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
             }
-            if (user != null && user.getOtp() != null) {
-                Long otp = user.getOtp();
-                long currentTime = Instant.now().getEpochSecond();
-                log.debug("the user found checking the otp..");
-
-                Long userOtp = Long.valueOf(request.getOtp());
-                if (!userOtp.equals(otp)) {
-                    log.error("Invalid OTP for user.. ");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
-                            HttpStatus.FORBIDDEN);
-                }
-
-                if (currentTime > user.getExpiryTime()) {
-                    log.error("OTP expired for user..." );
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
-                            HttpStatus.FORBIDDEN);
-                }
-                // Clear OTP and expiry time
-                user.setOtp(null);
-                user.setExpiryTime(null);
-
-                openSearchOperations.updateEmployee(user,request.getCompany());
-            }
-            else if (userEntity != null && userEntity.getOtp() != null) {
+            if (userEntity != null && userEntity.getOtp() != null) {
                 Long otp = userEntity.getOtp();
                 long currentTime = Instant.now().getEpochSecond();
                 log.debug("the user found checking the otp..");
@@ -237,6 +217,30 @@ public class LoginServiceImpl implements LoginService {
                 userEntity.setExpiryTime(null);
 
                 openSearchOperations.updateUser(userEntity,request.getCompany());
+
+            }
+            else if (user != null && user.getOtp() != null) {
+                Long otp = user.getOtp();
+                long currentTime = Instant.now().getEpochSecond();
+                log.debug("the user found checking the otp..");
+
+                Long userOtp = Long.valueOf(request.getOtp());
+                if (!userOtp.equals(otp)) {
+                    log.error("Invalid OTP for user.. ");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                            HttpStatus.FORBIDDEN);
+                }
+
+                if (currentTime > user.getExpiryTime()) {
+                    log.error("OTP expired for user..." );
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
+                            HttpStatus.FORBIDDEN);
+                }
+                // Clear OTP and expiry time
+                user.setOtp(null);
+                user.setExpiryTime(null);
+                openSearchOperations.updateEmployee(user,request.getCompany());
+
 
             }
             else {
@@ -293,21 +297,21 @@ public class LoginServiceImpl implements LoginService {
         UserEntity userEntity = null;
 
         try {
-            user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
-            if (user != null){
+            userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
+            if (userEntity != null){
                 Long otp = generateOtp();
                 sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
-                openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
-            }else if (user == null) {
-                userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
-                if(userEntity==null) {
+                openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
+            }else if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
+                if(user==null) {
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
                 Long otp = generateOtp();
                 sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
-                openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
+                openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
             }
 
         } catch (Exception ex) {
@@ -327,11 +331,12 @@ public class LoginServiceImpl implements LoginService {
         String oldPassword = null;
 
         try {
-            user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
+            userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
+
             List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
-            if (user == null) {
-                userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
-                if (userEntity == null){
+            if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
+                if (user == null){
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);

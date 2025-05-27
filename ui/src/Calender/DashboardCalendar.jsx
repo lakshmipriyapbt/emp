@@ -15,6 +15,7 @@ const DashboardCalendar = () => {
   const [month, setMonth] = useState(new Date().getMonth()); // 0-11
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [today] = useState(new Date()); // Store today's date
 
   useEffect(() => {
     dispatch(fetchCalendarData());
@@ -57,7 +58,7 @@ const DashboardCalendar = () => {
 
         {loading && <div className="alert alert-info">Loading events...</div>}
         {error && <div className="alert alert-danger">{error}</div>}
-        {!loading && <GetCalendar events={filteredEvents} year={year} month={month} onEventClick={setSelectedEvent} />}
+        {!loading && <GetCalendar events={filteredEvents} year={year} month={month} onEventClick={setSelectedEvent} today={today} />}
 
         <HrCalender event={selectedEvent} onClose={() => setSelectedEvent(null)} />
 

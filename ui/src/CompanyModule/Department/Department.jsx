@@ -181,23 +181,24 @@ const Department = () => {
 
       if (editingId) {
         await DepartmentPutApiById(editingId, formData);
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-           a.name.localeCompare(b.name)
-      );
-       setDepartments(sortedDepartments);
-       toast.success("Department Updated Successfully");
-      } else {
-        await DepartmentPostApi(formData);
-
-        // Temporary solution - refetch all departments
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-          a.name.localeCompare(b.name)
+        // Update existing department
+        setDepartments(prev => 
+          prev.map(dept => 
+            dept.id === editingId ? { ...dept, name: data.name } : dept
+          ).sort((a, b) => a?.name?.localeCompare(b?.name))
         );
-        setDepartments(sortedDepartments);
-
-        toast.success("Department Created Successfully");
+        toast.success("Department Updated Successfully");
+      } else {
+        const response = await DepartmentPostApi(formData);
+        // Add new department with proper null checks
+        if (response?.data?.data) {
+          setDepartments(prev => 
+            [...(prev || []), response.data.data].sort((a, b) => 
+              (a?.name || '').localeCompare(b?.name || '')
+            )
+          );
+          toast.success("Department Created Successfully");
+        }
       }
 
       handleCloseAddDepartmentModal();
@@ -219,26 +220,32 @@ const Department = () => {
 
       if (editingDesignationId) {
         await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
+        // Update existing designation
         setDesignations(prev => ({
           ...prev,
-          [currentDepartmentId]: prev[currentDepartmentId].map(desig =>
+          [currentDepartmentId]: (prev[currentDepartmentId] || []).map(desig =>
             desig.id === editingDesignationId ? { ...desig, name: data.name } : desig
           )
         }));
         toast.success("Designation Updated Successfully");
       } else {
         const response = await DesignationPostApi(currentDepartmentId, formData);
-        // Immediately add the new designation to the state
-        console.log(response.data.data)
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: [...(prev[currentDepartmentId] || []), response.data.data]
-        }));
-        toast.success("Designation Created Successfully");
+        // Add new designation with proper data structure
+        if (response?.data?.data) {
+          setDesignations(prev => ({
+            ...prev,
+            [currentDepartmentId]: [
+              ...(prev[currentDepartmentId] || []),
+              {
+                id: response.data.data.id,
+                name: response.data.data.name,
+                // Include any other necessary fields from the response
+              }
+            ]
+          }));
+          toast.success("Designation Created Successfully");
+        }
       }
-         setTimeout(() => {
-        fetchDesignations(currentDepartmentId);
-      }, 600);
 
       handleCloseAddDesignationModal();
       resetDesignation();
@@ -312,35 +319,38 @@ const Department = () => {
     console.error(error.response);
   };
 
-  const validateName = (value) => {
+  const validateName = (value, fieldType) => {
     const trimmedValue = value.trim();
+    const entityName = fieldType === "designation" ? "Designation" : "Department";
+
     if (trimmedValue.length === 0) {
-      return "Department Name is Required.";
+      return `${entityName} Name is Required.`;
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
-      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
+      return `Only Alphabetic Characters, Spaces, and '/' are Allowed in ${entityName}.`;
     } else {
       const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 2 && words.length === 1) {
-          return "Minimum Length 2 Characters Required.";
+          return `Minimum Length 2 Characters Required for ${entityName}.`;
         } else if (word.length > 40) {
-          return "Max Length 40 Characters Required.";
+          return `Max Length 40 Characters Required for ${entityName}.`;
         }
       }
       if (trimmedValue.length > 40) {
-        return "Department name must not exceed 40 characters.";
+        return `${entityName} name must not exceed 40 characters.`;
       }
       if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
+        return `No Multiple Spaces Between Words Allowed in ${entityName}.`;
       }
       if (/^\s/.test(value)) {
-        return "Leading space not allowed.";
+        return `Leading space not allowed in ${entityName}.`;
       } else if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed.";
+        return `Spaces at the end are not allowed in ${entityName}.`;
       }
     }
     return true;
   };
+
 
   return (
     <LayOut>
@@ -543,9 +553,7 @@ const Department = () => {
                             autoComplete="off"
                             {...register("name", {
                               required: "Department is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "department"),
                             })}
                           />
                           {errors.name && (
@@ -617,9 +625,7 @@ const Department = () => {
                             autoComplete="off"
                             {...registerDesignation("name", {
                               required: "Designation is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "designation"),
                             })}
                           />
                           {errorsDesignation.name && (

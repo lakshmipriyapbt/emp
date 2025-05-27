@@ -344,7 +344,10 @@ const AttendanceReport = () => {
                       Select Employee
                     </label>
                     <Select
-                      options={emp}
+                       options={[
+                        { label: "Select Employee", value: "" }, // Placeholder option
+                        ...emp, // Spread existing employee options
+                      ]}
                       onChange={handleEmployeeChange}
                       placeholder="Select Employee"
                       menuPortalTarget={document.body}

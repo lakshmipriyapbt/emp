@@ -182,7 +182,7 @@ const InvoiceView = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to={"/"}>Home</Link>
+                <a href="/main">Home</a>
                 </li>
                 <li className="breadcrumb-item active">Invoices</li>
                 <li className="breadcrumb-item active">Invoice View</li>

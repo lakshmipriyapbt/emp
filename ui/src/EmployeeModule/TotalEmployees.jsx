@@ -41,9 +41,10 @@ const TotalEmployees = () => {
 
   useEffect(() => {
     if (employees && Array.isArray(employees)) {
-      const result = employees.filter((emp) =>
-        emp.firstName?.toLowerCase().includes(search.toLowerCase())
-      );
+      const result = employees.filter((emp) => {
+        const fullName = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
+        return fullName.includes(search.toLowerCase());
+      });
       setFilteredData(result);
     }
   }, [search, employees]);

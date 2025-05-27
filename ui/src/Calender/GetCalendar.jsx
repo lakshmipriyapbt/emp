@@ -21,9 +21,12 @@ const themeToColor = (theme) => {
   }
 };
 
-const GetCalendar = ({ events, year, month, onEventClick }) => {
+const GetCalendar = ({ events, year, month, onEventClick, today }) => {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = new Date(year, month, 1).getDay();
+  const currentDate = new Date();
+
+  const todayStr = today.toISOString().split('T')[0];
 
   const groupedEvents = groupEventsByDate(events);
 
@@ -38,8 +41,10 @@ const GetCalendar = ({ events, year, month, onEventClick }) => {
     const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     const dayEvents = groupedEvents[dateStr] || [];
 
+     const isToday = dateStr === todayStr;
+
     days.push(
-      <td key={day} className="align-top p-2 border">
+      <td key={day} className={`align-top p-2 border ${isToday ? 'today-highlight' : ''}`}>
         <strong>{day}</strong>
         {dayEvents.map((e, i) => (
           <div

@@ -447,10 +447,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
-
             List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName,null,month,year);
 
-            List<EmployeeEntity> employeesWithoutAttendance = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities);
+            List<EmployeeEntity> employeesWithoutAttendance = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities, month, year);
 
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createSuccessResponse(employeesWithoutAttendance), HttpStatus.OK);
