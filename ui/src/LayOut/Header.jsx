@@ -41,6 +41,7 @@ const Header = ({ toggleSidebar }) => {
       }
     }
   }, [token]);
+  console.log("user roles",roles);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -188,7 +189,7 @@ const Header = ({ toggleSidebar }) => {
               )}
             </li>
         )}
-        {!roles.includes("employee") && !roles.includes("company_admin") && !roles.includes("ems_admin") &&(
+         {(roles.includes("Accountant") || roles.includes("HR") || roles.includes("Admin"))  && (
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
@@ -207,18 +208,18 @@ const Header = ({ toggleSidebar }) => {
                   <a className="dropdown-item" href={`editUser/${userId}`}>
                     <i className="align-middle me-1 bi bi-person"></i> Profile
                   </a>
-                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                  <a className="dropdown-item" href onClick={handleResetPasswordClick}>
                     <i className="align-middle me-1 bi bi-key"></i> Reset Password
                   </a>
                   <div className="dropdown-divider"></div>
-                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                  <a className="dropdown-item" href onClick={handleLogOut}>
                     <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
                     Log out
                   </a>
                 </div>
               )}
             </li>
-        )}
+          )}
         </ul>
       </div>
       <Reset
