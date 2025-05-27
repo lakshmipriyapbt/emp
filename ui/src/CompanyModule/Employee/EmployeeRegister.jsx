@@ -1028,8 +1028,8 @@ export default function EmployeeRegister() {
                         {...register("accountNo", {
                           required: "Account Number is required",
                           pattern: {
-                            value: /^\d{6,18}$/,
-                            message: "Enter a valid Account Number (6-18 digits only)",
+                            value: /^\d{9,18}$/,
+                            message: "Enter a valid Account Number (8-18 digits only)",
                           },
                         })}
                       />

@@ -341,9 +341,9 @@ public class LoginServiceImpl implements LoginService {
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
-                oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
+                oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
             } else {
-                 oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
+                 oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
             }
             if (otpRequest.getPassword().equals(oldPassword)) {
                 log.error("you can't update with the previous password");

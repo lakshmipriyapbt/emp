@@ -133,7 +133,7 @@ public class EmployeeRequest {
     private String bankName;
 
     @Schema(example = "bankBranch")
-    @Pattern(regexp =  "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{bankBranch.format}")
+    @Pattern(regexp = "^(?:[A-Z]{2,}(?:[ ,][A-Z][a-z]+)*|[A-Z][a-z]+(?:[ ,][A-Z][a-z]+)*|[A-Z]+(?:[ ,][A-Z]+)*)$", message = "{bankBranch.format}")
     @Size(min = 2, max = 100, message = "{bankBranch.size.message}")
     private String bankBranch;
 
