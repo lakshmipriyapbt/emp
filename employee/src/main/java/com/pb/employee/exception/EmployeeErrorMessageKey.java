@@ -139,7 +139,9 @@ public enum EmployeeErrorMessageKey {
     ERROR_RETRIEVING_SALARY("error.retrieving.salary"),
     INVALID_ADD_SALARY_DATE("invalid.add.salary.date"),
     APPRAISAL_IS_ALREADY_EXIST("appraisal.is.already.exist"),
-    INVALID_USER("invalid.user");
+    INVALID_USER("invalid.user"),
+    EMAIL_ALREADY_EXIST("email.already.exist"),
+    EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found");
 
     private final String key;
 

@@ -313,7 +313,7 @@ const PayslipUpdate3 = () => {
         fetchData();
     } else {
         setLoading(true); // Keep loading true if authUser is not ready
-    }  }, [employeeId, month, year, authUser.company]);
+    }  }, [employeeId, month, year, authUser?.company]);
 
   const [validationError, setValidationError] = useState("");
 

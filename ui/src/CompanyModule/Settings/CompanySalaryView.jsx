@@ -100,7 +100,7 @@ const CompanySalaryView = () => {
             </nav>
           </div>
         </div>
-        {authUser && authUser.roles && authUser.roles.includes("company_admin") && (
+        {authUser.roles.includes("company_admin") && (
           <div className="col-12 col-md-6 col-lg-4 mb-3">
             <Link to="/companySalaryStructure">
               <button className="btn btn-primary">Add Salary Structure</button>
