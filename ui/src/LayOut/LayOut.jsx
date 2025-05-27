@@ -49,8 +49,9 @@ const LayOut = ({ children }) => {
           const response = await getUserById(userId);
           const companyId = response.data.companyId;
           await fetchCompanyLogo(companyId);
-        } else if (["company-admin", "employee"].includes(userRole)) {
+        } else if (["company_admin", "employee"].includes(userRole)) {
           const response = await EmployeeGetApiById(userId);
+          
           const companyId = response.data.companyId;
           await fetchCompanyLogo(companyId);
         } else {
