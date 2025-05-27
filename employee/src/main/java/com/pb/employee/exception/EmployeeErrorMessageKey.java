@@ -131,6 +131,7 @@ public enum EmployeeErrorMessageKey {
     COMPANY_TDS_ALREADY_EXIST("company.tds.already.exist"),
     UNABLE_UPDATE_COMPANY_TDS("unable.update.company.tds"),
     COMPANY_TDS_NOT_FOUND("company.tds.not.found"),
+    TDS_NOT_FOUND("tds.not.found"),
     USER_ID_ALREADY_EXISTS("user.id.already.exist"),
     UNABLE_GET_USER("unable.to.get.user"),
     USER_NOT_FOUND("user.not.found"),

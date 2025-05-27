@@ -35,6 +35,7 @@ const InternOfferForm = () => {
     hrEmail: "",
   });
   const { company } = useAuth();
+  // console.log("company for internOfferLatter", company)
   const [showPreview, setShowPreview] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -979,7 +980,7 @@ const InternOfferForm = () => {
                           required: "Generated Date is required",
                           validate: {
                             notAfterJoiningDate: (value) => {
-                              const joiningDate = watch("startDate");
+                              const joiningDate = watch("acceptDate");
                               if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
 
                               // Validate year format first
@@ -988,7 +989,7 @@ const InternOfferForm = () => {
 
                               return (
                                 new Date(value) <= new Date(joiningDate) ||
-                                "Generated Date cannot be after Joining Date"
+                                "Generated Date cannot be after accept date Date"
                               );
                             },
                           },

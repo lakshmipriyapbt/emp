@@ -781,6 +781,13 @@ public class PayslipServiceImpl implements PayslipService {
                 // Generate and save payslip using only applicableSalary
                 if (applicableSalary.getStatus().equals(EmployeeStatus.ACTIVE.getStatus())) {
                     TDSResPayload tdsResPayload = tdsService.getCompanyYearTDS(payslipRequest.getCompanyName(), attendanceEntity.getYear(),applicableSalary.getTdsType());
+                    if (tdsResPayload == null) {
+                        return new ResponseEntity<>(
+                                ResponseBuilder.builder().build().
+                                        createFailureResponse(String.format(ErrorMessageHandler
+                                                .getMessage(EmployeeErrorMessageKey.TDS_NOT_FOUND),  attendanceEntity.getYear() )),
+                                HttpStatus.FORBIDDEN);
+                    }
                     PayslipEntity payslipProperties = PayslipUtils.unMaskEmployeePayslipProperties(applicableSalary, payslipRequest, paySlipId, employee.getId(), attendanceEntity,tdsResPayload);
                     assert designationEntity != null;
                     payslipProperties.setDesignation(designationEntity.getName());
@@ -795,7 +802,7 @@ public class PayslipServiceImpl implements PayslipService {
             responseBody.put(Constants.GENERATE_PAYSLIP, generatedPayslips);
             responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
 
-            if (employeesWithoutSalary.size() != 0){
+            if (employeesWithoutSalary.size() != 0 && generatedPayslips.isEmpty()){
                 responseBody.put(Constants.EMPLOYEE_WITHOUT_SALARIES, employeesWithoutSalary);
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.FORBIDDEN);
             }

@@ -309,8 +309,14 @@ const PayslipUpdate4 = () => {
       }
       setLoading(false);
     };
-    fetchData();
-  }, [employeeId, month, year, authUser.company]);
+     if (authUser) { // Only run effect if authUser is present
+        fetchData();
+    } else {
+        setLoading(true); // Keep loading true if authUser is not ready
+    }
+  }, [employeeId, month, year, authUser?.company]);
+
+
 
   const [validationError, setValidationError] = useState("");
 
@@ -362,6 +368,9 @@ const PayslipUpdate4 = () => {
         }, {}),
       };
 
+      if (loading || !authUser) { // Also check for authUser here
+    return <Loader />;
+  }
       const totalAllowances = Object.entries(updatedAllowances)
         .filter(([key]) => key !== "Other Allowances")
         .reduce((total, [, amount]) => total + (Number(amount) || 0), 0);
