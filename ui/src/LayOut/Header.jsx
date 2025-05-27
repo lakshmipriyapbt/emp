@@ -11,8 +11,8 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const { company, employee, authUser } = useAuth();
-  console.log("authUser******", authUser);
+  const {company,employee,authUser} = useAuth();
+  console.log("authUser******",authUser)
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -20,8 +20,7 @@ const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const { userRole } = useSelector((state) => state.auth);
   const token = localStorage.getItem("token");
-  const companyName = localStorage.getItem("companyName");
-
+  const companyName=localStorage.getItem("companyName")
   useEffect(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
@@ -67,20 +66,23 @@ const Header = ({ toggleSidebar }) => {
   const handleLogOut = () => {
     const role = userRole?.[0];
     const companyName = localStorage.getItem("companyName");
-
+  
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-
+  
     toast.success("Logout Successful", { autoClose: 2000 });
-
+  
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (companyName) {
+    } else if (role === "company_admin" && companyName) {
       navigate(`/${companyName}/login`, { replace: true });
     } else {
       navigate("/", { replace: true });
     }
   };
+  
+  
+  
 
   const closeModal = () => {
     setShowErrorModal(false);
@@ -93,45 +95,35 @@ const Header = ({ toggleSidebar }) => {
 
   return (
     <nav className="navbar navbar-expand navbar-light navbar-bg">
-      <a
-        className="sidebar-toggle js-sidebar-toggle"
-        onClick={toggleSidebar}
-        href
-      >
+      <a className="sidebar-toggle js-sidebar-toggle" onClick={toggleSidebar}   href>
         <i className="hamburger align-self-center"></i>
       </a>
       <div className="navbar-collapse collapse">
         <ul className="navbar-nav navbar-align">
           {roles.includes("ems_admin") && (
             <>
-              <span className="mt-3">EMS-Admin</span>
-              <li className="nav-item">
-                <a
-                  className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
-                  href
-                  onClick={toggleProfile}
+             <span className="mt-3">EMS-Admin</span>
+            <li className="nav-item">
+              <a
+                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                href
+                onClick={toggleProfile}
+              >
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+              </a>
+              {isProfileOpen && (
+                <div
+                  className="dropdown-menu dropdown-menu-end py-0 show"
+                  aria-labelledby="profileDropdown"
+                  style={{ left: "auto", right: "3%" }}
                 >
-                  <i
-                    className="bi bi-person-circle"
-                    style={{ fontSize: "22px" }}
-                  ></i>
-                </a>
-                {isProfileOpen && (
-                  <div
-                    className="dropdown-menu dropdown-menu-end py-0 show"
-                    aria-labelledby="profileDropdown"
-                    style={{ left: "auto", right: "3%" }}
-                  >
-                    <a className="dropdown-item" href onClick={handleLogOut}>
-                      <i
-                        className="align-middle bi bi-arrow-left-circle"
-                        style={{ paddingRight: "10px" }}
-                      ></i>
-                      Logout
-                    </a>
-                  </div>
-                )}
-              </li>
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                    Logout
+                  </a>
+                </div>
+              )}
+            </li>
             </>
           )}
           {roles.includes("company_admin") && (
@@ -141,13 +133,8 @@ const Header = ({ toggleSidebar }) => {
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">
-                  {company?.companyName}
-                </span>
-                <i
-                  className="bi bi-person-circle"
-                  style={{ fontSize: "22px" }}
-                ></i>
+                <span className="text-dark p-2 mb-3">{company?.companyName}</span>
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
                 <div
@@ -158,40 +145,27 @@ const Header = ({ toggleSidebar }) => {
                   <a className="dropdown-item" href="/profile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
                   </a>
-                  <a
-                    className="dropdown-item"
-                    href
-                    onClick={handleResetPasswordClick}
-                  >
-                    <i className="align-middle me-1 bi bi-key"></i> Reset
-                    Password
+                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                    <i className="align-middle me-1 bi bi-key"></i> Reset Password
                   </a>
                   <div className="dropdown-divider"></div>
-                  <a className="dropdown-item" href onClick={handleLogOut}>
-                    <i
-                      className="align-middle bi bi-arrow-left-circle"
-                      style={{ paddingRight: "10px" }}
-                    ></i>
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
                     Logout
                   </a>
                 </div>
               )}
             </li>
           )}
-          {roles.includes("employee") && (
+        {roles.includes("employee") && (
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">
-                  {employee?.firstName} {employee?.lastName}
-                </span>
-                <i
-                  className="bi bi-person-circle"
-                  style={{ fontSize: "22px" }}
-                ></i>
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
                 <div
@@ -202,75 +176,49 @@ const Header = ({ toggleSidebar }) => {
                   <a className="dropdown-item" href="/employeeProfile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
                   </a>
-                  <a
-                    className="dropdown-item"
-                    href
-                    onClick={handleResetPasswordClick}
-                  >
-                    <i className="align-middle me-1 bi bi-key"></i> Reset
-                    Password
+                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                    <i className="align-middle me-1 bi bi-key"></i> Reset Password
                   </a>
                   <div className="dropdown-divider"></div>
-                  <a className="dropdown-item" href onClick={handleLogOut}>
-                    <i
-                      className="align-middle bi bi-arrow-left-circle"
-                      style={{ paddingRight: "10px" }}
-                    ></i>
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
                     Log out
                   </a>
                 </div>
               )}
             </li>
-          )}
-          {(roles.includes("Admin") ||
-            roles.includes("HR") ||
-            roles.includes("Accountant")) &&
-            !roles.includes("ems_admin") &&
-            !roles.includes("company_admin") &&
-            !roles.includes("employee") && (
-              <li className="nav-item dropdown position-relative">
-                <a
-                  className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
-                  href
-                  onClick={toggleProfile}
+        )}
+        {!roles.includes("employee") && !roles.includes("company_admin") && !roles.includes("ems_admin") &&(
+            <li className="nav-item dropdown position-relative">
+              <a
+                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                href
+                onClick={toggleProfile}
+              >
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+              </a>
+              {isProfileOpen && (
+                <div
+                  className="dropdown-menu dropdown-menu-end py-0 show"
+                  aria-labelledby="profileDropdown"
+                  style={{ left: "auto", right: "20%" }}
                 >
-                  <span className="text-dark p-2 mb-3">
-                    {employee?.firstName} {employee?.lastName}
-                  </span>
-                  <i
-                    className="bi bi-person-circle"
-                    style={{ fontSize: "22px" }}
-                  ></i>
-                </a>
-                {isProfileOpen && (
-                  <div
-                    className="dropdown-menu dropdown-menu-end py-0 show"
-                    aria-labelledby="profileDropdown"
-                    style={{ left: "auto", right: "20%" }}
-                  >
-                    <a className="dropdown-item" href={`editUser/${userId}`}>
-                      <i className="align-middle me-1 bi bi-person"></i> Profile
-                    </a>
-                    <a
-                      className="dropdown-item"
-                      href
-                      onClick={handleResetPasswordClick}
-                    >
-                      <i className="align-middle me-1 bi bi-key"></i> Reset
-                      Password
-                    </a>
-                    <div className="dropdown-divider"></div>
-                    <a className="dropdown-item" href onClick={handleLogOut}>
-                      <i
-                        className="align-middle bi bi-arrow-left-circle"
-                        style={{ paddingRight: "10px" }}
-                      ></i>
-                      Log out
-                    </a>
-                  </div>
-                )}
-              </li>
-            )}
+                  <a className="dropdown-item" href={`editUser/${userId}`}>
+                    <i className="align-middle me-1 bi bi-person"></i> Profile
+                  </a>
+                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                    <i className="align-middle me-1 bi bi-key"></i> Reset Password
+                  </a>
+                  <div className="dropdown-divider"></div>
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                    Log out
+                  </a>
+                </div>
+              )}
+            </li>
+        )}
         </ul>
       </div>
       <Reset
@@ -278,12 +226,7 @@ const Header = ({ toggleSidebar }) => {
         show={showResetPasswordModal}
         onClose={() => setShowResetPasswordModal(false)}
       />
-      <Modal
-        show={showErrorModal}
-        onHide={closeModal}
-        centered
-        style={{ zIndex: "1050" }}
-      >
+      <Modal show={showErrorModal} onHide={closeModal} centered style={{ zIndex: "1050" }}>
         <ModalHeader closeButton>
           <ModalTitle className="text-center">Error</ModalTitle>
         </ModalHeader>

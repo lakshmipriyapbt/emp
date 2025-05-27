@@ -4,7 +4,7 @@ import { DeleteUserById, UserGetApi } from '../../Utils/Axios';
 import LayOut from '../../LayOut/LayOut';
 import DataTable from 'react-data-table-component';
 import { PencilSquare, XSquare } from 'react-bootstrap-icons';
-import { toast } from 'react-toastify';
+import { useLocation } from 'react-router-dom';
 
 const ViewUser = () => {
   const [users, setUsers] = useState([]);
@@ -13,18 +13,15 @@ const ViewUser = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false); // Modal visibility
   const [userToDelete, setUserToDelete] = useState(null); // User to delete
+  const [isDeleting, setIsDeleting] = useState(false);
+  const location = useLocation();
 
   const fetchUsers = async () => {
     try {
       const res = await UserGetApi();
       setUsers(res.data.data); // assuming API returns { data: { data: [...] } }
-      
     } catch (err) {
-      const errorMsg = err.response?.data?.error?.message || err.message || 'Network Error';
-          toast.error(errorMsg, {
-            position: 'top-right',
-            autoClose: 1000,
-          });     
+      console.error('Error fetching users:', err);
     }
   };
 
@@ -34,25 +31,18 @@ const handleDelete = (id) => {
   };
 
   const confirmDelete = async () => {
-    try {
-      await DeleteUserById(userToDelete);  // Delete the user
-      await fetchUsers();  // Refresh user list
-      setShowModal(false);  // Hide the modal after deletion
-      setUserToDelete(null); // Clear the user to delete
-       const successMessage ='User Deleted Successfully';
-              toast.success(successMessage, {
-                position: 'top-right',
-                autoClose: 1000,
-             });
-    } catch (err) {
-      console.error('Error deleting user:', err);
-      const errorMsg = err.response?.data?.error?.message || err.message || 'Network Error';
-      toast.error(errorMsg, {
-        position: 'top-right',
-        autoClose: 1000,
-      });     
-    }
-  };
+  setIsDeleting(true);
+  try {
+    await DeleteUserById(userToDelete);
+    setUsers(users.filter(user => user.id !== userToDelete));
+    setShowModal(false);
+    setUserToDelete(null);
+  } catch (err) {
+    console.error('Error deleting user:', err);
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
   const handleCancel = () => {
     setShowModal(false);  // Hide the modal without deleting
@@ -107,9 +97,16 @@ const handleDelete = (id) => {
     },
   ];
 
-  useEffect(() => {
+useEffect(() => {
+  fetchUsers();
+}, []); // fetch on mount
+
+useEffect(() => {
+  if (location.state?.refresh) {
+    console.log("Refresh triggered from location.state");
     fetchUsers();
-  }, []);
+  }
+}, [location.state?.refresh]); // fetch on state change
 
   return (
     <LayOut>
@@ -190,7 +187,7 @@ const handleDelete = (id) => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={handleCancel}>Cancel</button>
-                <button type="button" className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+                <button type="button" className="btn btn-danger" onClick={confirmDelete}  disabled={isDeleting} >{isDeleting ? 'Deleting...' : 'Delete'}</button>
               </div>
             </div>
           </div>

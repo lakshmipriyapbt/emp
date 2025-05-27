@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import UserForm from './UserForm';
 import { getUserById, UserPatchApi } from '../../Utils/Axios';
 import LayOut from '../../LayOut/LayOut';
-import { toast } from 'react-toastify';
 
 const UpdateUser = ({ fetchUsers }) => {
   const { id } = useParams();
@@ -25,19 +24,10 @@ const UpdateUser = ({ fetchUsers }) => {
   const onSubmit = async (data) => {
     try {
       await UserPatchApi(id, data); // update user API
-        const successMessage =data.message || 'User Created Successfully';
-        toast.success(successMessage, {
-          position: 'top-right',
-          autoClose: 1000,
-       });
       fetchUsers();  // Re-fetch users after update
       navigate('/viewUser'); // Navigate to the user list after update
     } catch (err) {
-            const errorMsg = err.response?.data?.error?.message || err.message || 'Error updating User';
-                toast.error(errorMsg, {
-                  position: 'top-right',
-                  autoClose: 1000,
-                });
+      console.error('Error updating user:', err);
     }
   };
 
