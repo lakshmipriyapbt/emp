@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchTds } from "../../Redux/TdsSlice";
 import { useDispatch,useSelector } from "react-redux";
+import Loader from "../../Utils/Loader";
 
 const getCurrentFinancialYear = () => {
   const today = new Date();
@@ -455,6 +456,8 @@ const CompanyTdsView = () => {
       setIsSaving(false);
     }
   };
+
+  if (loading) return  <Loader/>;
 
   return (
     <LayOut>

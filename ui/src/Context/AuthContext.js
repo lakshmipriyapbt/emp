@@ -27,14 +27,14 @@ export const AuthProvider = ({ children }) => {
           let userResponse;
 
           // Check the role and call the corresponding API
-          if (userRole === "Admin" || userRole === "HR" || userRole === "Accountant") {
+          if (userRole == "Admin" || userRole == "HR" || userRole == "Accountant") {
             // For Admin, HR, Accountant, use `getUserById` API
             console.log(`Fetching user data for ${userRole} with userId: ${userId}`);
             userResponse = await getUserById(userId);
             console.log("UserId Response:", userResponse.data); // Log full response
 
             setEmployee(userResponse.data.data);
-          } else if (userRole === "company-admin" || userRole === "employee") {
+          } else if (userRole == "company_admin" || userRole == "employee") {
             // For company-admin and employee, use `EmployeeGetApiById` API
             console.log(`Fetching employee data for ${userRole} with userId: ${userId}`);
             userResponse = await EmployeeGetApiById(userId);
