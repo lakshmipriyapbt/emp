@@ -97,7 +97,6 @@ export const allAvailableRoutes = [
   {path: '/companySalaryStructure', allowedTypes: ['company_admin', 'Admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin', 'Admin'] },
   {path:'/addUser',allowedTypes:['company_admin', 'Admin']},
-  {path:'/editUser',allowedTypes:['company_admin', 'Admin']},
   {path:'/viewUser',allowedTypes:['company_admin', 'Admin']},
   {path: '/department', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/designation', allowedTypes: ['company_admin', 'Admin', 'HR'] },
@@ -159,7 +158,8 @@ export const allAvailableRoutes = [
   {path: '/getcalendar', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
-  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] }
+  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
+  {path:'/editUser',allowedTypes:['Admin','HR','Accountant']},
 ];
 
 const Routing = () => {
@@ -209,10 +209,6 @@ const Routing = () => {
         path="/addUser"
         element={<ProtectedRoute element={<AddUser/>} allowedTypes={['company_admin', 'Admin']} />}
       />
-       <Route
-        path="/editUser/:id"
-        element={<ProtectedRoute element={<UpdateUser/>} allowedTypes={['company_admin', 'Admin']} />}
-      /> 
 
       {/* Employee-specific routes */}
       <Route
@@ -475,6 +471,10 @@ const Routing = () => {
         path="/employeeList/:status"
         element={<ProtectedRoute element={<EmployeeList/>} allowedTypes={['company_admin', 'Admin','HR','employee', 'Accountant']} />}
       />
+     <Route
+        path="/editUser/:id"
+        element={<ProtectedRoute element={<UpdateUser/>} allowedTypes={['Admin','HR', 'Accountant']} />}
+      /> 
     </Routes>
   );
 };
