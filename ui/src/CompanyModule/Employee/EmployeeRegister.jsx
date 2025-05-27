@@ -373,6 +373,13 @@ export default function EmployeeRegister() {
     return new Date(value) >= new Date(startDate) || "End Date cannot be before Start Date";
   };
 
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+    
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
+  };
+
   const calculateTenure = (index, startDate, endDate) => {
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -401,29 +408,47 @@ export default function EmployeeRegister() {
 
   // Custom Validation Function
   const validateDOB = (value) => {
-    if (!value) return "Date of Birth is required";
+  if (!value) return "Date of Birth is required";
 
-    const dobDate = new Date(value);
-    const minHiringDate = new Date(dobDate);
-    minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+  // Validate year format (must be 4 digits)
+  const year = new Date(value).getFullYear();
+  if (year.toString().length !== 4) {
+    return "Year must be exactly 4 digits";
+  }
 
-    if (hiringDate && new Date(hiringDate) < minHiringDate) {
-      return "Employee must be at least 16 years old at hiring.";
-    }
-    return true;
-  };
+  const dobDate = new Date(value);
+  const minHiringDate = new Date(dobDate);
+  minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+
+  if (hiringDate && new Date(hiringDate) < minHiringDate) {
+    return "Employee must be at least 16 years old at hiring.";
+  }
+
+  return true;
+};
 
   const validateHiringDate = (value) => {
-    if (!value) return "Date of Hiring is required";
+  if (!value) return "Date of Hiring is required";
 
-    const hiringDate = new Date(value);
-    const dobDate = new Date(dob);
+  // Validate year format (must be 4-digit)
+  const year = new Date(value).getFullYear();
+  if (year.toString().length !== 4) {
+    return "Year must be exactly 4 digits";
+  }
 
-    if (dob && hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))) {
-      return "Hiring date must be at least 16 years after DOB.";
-    }
-    return true;
-  };
+  // Validate hiring date is at least 16 years after DOB
+  const hiringDate = new Date(value);
+  const dobDate = new Date(dob);
+
+  if (
+    dob &&
+    hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))
+  ) {
+    return "Hiring date must be at least 16 years after DOB.";
+  }
+
+  return true;
+};
 
   const handleClear = () => {
     reset(); // Reset form fields
@@ -1003,8 +1028,8 @@ export default function EmployeeRegister() {
                         {...register("accountNo", {
                           required: "Account Number is required",
                           pattern: {
-                            value: /^\d{6,18}$/,
-                            message: "Enter a valid Account Number (6-18 digits only)",
+                            value: /^\d{9,18}$/,
+                            message: "Enter a valid Account Number (8-18 digits only)",
                           },
                         })}
                       />

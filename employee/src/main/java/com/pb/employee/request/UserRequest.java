@@ -32,7 +32,7 @@ public class UserRequest {
 
     @Schema(example = "userType")
     @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]*$", message = "{user.type}")
-    @Size(min = 3, max = 20, message = "{userType.size.message}")
+    @Size(min = 2, max = 20, message = "{userType.size.message}")
     private String userType;
 
     @Schema(example = "departmentId")

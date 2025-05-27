@@ -310,8 +310,11 @@ const PayslipUpdate2 = () => {
       }
       setLoading(false);
     };
-    fetchData();
-  }, [employeeId, month, year, authUser.company]);
+ if (authUser) { // Only run effect if authUser is present
+        fetchData();
+    } else {
+        setLoading(true); // Keep loading true if authUser is not ready
+    }  }, [employeeId, month, year, authUser.company]);
 
   const [validationError, setValidationError] = useState("");
 

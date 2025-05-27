@@ -314,7 +314,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // Step 7: Deactivate Salaries if Employee is Made Relieved
         if (Constants.RELIEVED.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                salaryEntity.setStatus(Constants.RELIEVED);
+                salaryEntity.setStatus(Constants.IN_ACTIVE);
                 openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
             }
             log.info("Salaries set to Relieved for employee: {}", employeeId);
