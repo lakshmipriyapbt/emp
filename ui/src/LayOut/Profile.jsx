@@ -573,7 +573,7 @@ function Profile() {
                         {companyField && (
                           <>
                             <label className="form-label">{companyField === "cinNo" ? "CIN Number" : "Registration Number"}</label>
-                            <input type="text" className="form-control" {...register(companyField)} />
+                            <input type="text" className="form-control" {...register(companyField)} readOnly />
                           </>
                         )}
                       </div>

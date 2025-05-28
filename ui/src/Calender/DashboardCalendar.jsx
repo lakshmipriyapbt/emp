@@ -11,7 +11,7 @@ const DashboardCalendar = () => {
   const dispatch = useDispatch();
   const { data, loading, error } = useSelector((state) => state.calendar);
   const { userRole } = useSelector((state) => state.auth);
-  const isAdmin = userRole.includes('company-admin') || userRole.includes('Admin')|| userRole.includes('HR');
+  const isAdmin = userRole.includes('company_admin') || userRole.includes('Admin')|| userRole.includes('HR');
   const [month, setMonth] = useState(new Date().getMonth()); // 0-11
   const [year, setYear] = useState(new Date().getFullYear());
   const [selectedEvent, setSelectedEvent] = useState(null);

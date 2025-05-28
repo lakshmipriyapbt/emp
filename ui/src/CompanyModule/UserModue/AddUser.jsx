@@ -11,14 +11,15 @@ const AddUser = () => {
   const onSubmit = async (data) => {
   try {
     await UserPostApi(data);
-    toast.success('User added successfully!');
-
-    setTimeout(() => {
-      navigate('/viewUser', { state: { refresh: Date.now() } });
-    }, 500);
+    toast.success('User added successfully!', {
+      autoClose: 2000, // Show for 2 seconds
+      onClose: () => {
+        navigate('/viewUser', { state: { refresh: Date.now() } });
+      }
+    });
   } catch (err) {
     console.error('Error adding user:', err);
-    toast.error('Failed to add user');
+    toast.error('email already exists');
   }
 };
 

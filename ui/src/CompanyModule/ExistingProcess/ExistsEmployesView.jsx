@@ -269,9 +269,6 @@ const handleConfirmSubmission = async () => {
                 <li className="breadcrumb-item">
                   <a href="/main">Home</a>
                 </li>
-                <li className="breadcrumb-item">
-                  <a href="/existingSummary">Relieved Employees Summary</a>
-                </li>
                 <li className="breadcrumb-item active">Relieving Employee</li>
               </ol>
             </nav>
