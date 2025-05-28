@@ -220,11 +220,11 @@ public class InvoiceUtils {
             double grandTotal = subTotal;
 
 
-                    if (invoiceEntity.getCGst() != null && invoiceEntity.getSGst() != null) {
+                    if (invoiceEntity.getCGst() != null && !invoiceEntity.getCGst().equals("0.00") && invoiceEntity.getSGst() != null && !invoiceEntity.getSGst().equals("0.00")) {
                         cGst = Double.parseDouble(invoiceEntity.getCGst());
                         sGst = Double.parseDouble(invoiceEntity.getSGst());
                         grandTotal +=  cGst + sGst;
-                    } else if (invoiceEntity.getIGst() != null){
+                    } else if (invoiceEntity.getIGst() != null && !invoiceEntity.getIGst().equals("0.00")){
                         iGst = Double.parseDouble(invoiceEntity.getIGst());
                         grandTotal += iGst;
                     }else if (invoiceEntity.getCGst() != null && invoiceEntity.getSGst() != null && invoiceEntity.getIGst() != null){

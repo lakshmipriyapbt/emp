@@ -69,10 +69,10 @@ const InternOfferForm = () => {
       setSelectedHR({
         hrId: "Company Admin",
         hrName: "Company Admin",
-        hrEmail: company?.mailId || "N/A",
+        hrEmail: company?.emailId || "N/A",
       });
     } else {
-      const selectedHRPerson = hrEmployees.find((emp) => String(emp.id) === selectedId);
+      const selectedHRPerson = hrEmployees.find((emp) => String(emp?.id) === selectedId);
 
       if (selectedHRPerson) {
         setSelectedHR({
@@ -190,7 +190,7 @@ const InternOfferForm = () => {
       setSelectedHR({
         hrId: "Company Admin",
         hrName: "Company Admin",
-        hrEmail: company?.emailId || "N/A",
+        hrEmail:  company?.emailId || company?.mailId || "N/A", 
       });
     }
   }, [employees, company]);
@@ -874,7 +874,7 @@ const InternOfferForm = () => {
                           Select Employee
                         </option>
                         {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
+                          <option key={emp?.id} value={emp?.id}>
                             {emp.name}
                           </option>
                         ))}
@@ -898,7 +898,7 @@ const InternOfferForm = () => {
                         {hrEmployees.length > 0 ? (
                           <>
                             {hrEmployees.map((emp) => (
-                              <option key={emp.id} value={String(emp.id)}>
+                              <option key={emp?.id} value={String(emp?.id)}>
                                 {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
                               </option>
                             ))}
