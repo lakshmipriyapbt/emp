@@ -5,11 +5,14 @@ import { TdsPostApi } from "../../Utils/Axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import { useDispatch } from "react-redux";
+import { fetchTds } from "../../Redux/TdsSlice";
 
 const generateYearOptions = (start = 2020, end = 2050) =>
   Array.from({ length: end - start + 1 }, (_, i) => start + i);
 
 const AddTaxSlab = () => {
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -109,46 +112,54 @@ const AddTaxSlab = () => {
   };
 
   const onSubmit = async (data) => {
-    try {
-      console.log("Submitting Data:", data);
+  try {
+    console.log("Submitting Data:", data);
 
-      const formattedData = {
-        startYear: Number(data.startYear.value),
-        endYear: Number(data.endYear.value),
-        tdsType: data.tdsType.value.toString(),
-        persentageEntityList: data.persentageEntityList.map((entry) => ({
-          min: entry.min.toString(),
-          max: entry.max.toString(),
-          taxPercentage: entry.taxPercentage.toString(),
-        })),
-      };
+    const formattedData = {
+      startYear: Number(data.startYear.value),
+      endYear: Number(data.endYear.value),
+      tdsType: data.tdsType.value.toString(),
+      persentageEntityList: data.persentageEntityList.map((entry) => ({
+        min: entry.min.toString(),
+        max: entry.max.toString(),
+        taxPercentage: entry.taxPercentage.toString(),
+      })),
+    };
 
-      console.log("Final API Request Payload:", JSON.stringify(formattedData));
+    console.log("Final API Request Payload:", JSON.stringify(formattedData));
 
-      const response = await TdsPostApi(formattedData);
-      console.log("API Response:", response.data);
+    const response = await TdsPostApi(formattedData);
+    console.log("API Response:", response.data);
 
-      toast.success("TDS Structure added successfully!");
-      navigate("/companyTdsView");
+    toast.success("TDS Structure added successfully!", {
+      autoClose: 1000,
+      onClose: () => {
+        dispatch(fetchTds()); // Refresh the TDS list
+        navigate("/companyTdsView");
+      },
+    });
 
-      // Preserve financial year and TDS type while resetting slabs
-      reset({
-        startYear: data.startYear,
-        endYear: data.endYear,
-        tdsType: data.tdsType,
-        persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
-      });
-    } catch (error) {
-      console.error("API Error Details:", error.response?.data || error.message);
-      toast.error(error.response?.data?.detail || "TDS structure for the selected financial year already exists.");
+    // Reset form but preserve year and tdsType
+    reset({
+      startYear: data.startYear,
+      endYear: data.endYear,
+      tdsType: data.tdsType,
+      persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
+    });
+  } catch (error) {
+    console.error("API Error Details:", error.response?.data || error.message);
+    toast.error(
+      error.response?.data?.detail ||
+        "TDS structure for the selected financial year already exists."
+    );
 
-      if (error.response) {
-        console.log("Status Code:", error.response.status);
-        console.log("Headers:", error.response.headers);
-        console.log("Response Data:", error.response.data);
-      }
+    if (error.response) {
+      console.log("Status Code:", error.response.status);
+      console.log("Headers:", error.response.headers);
+      console.log("Response Data:", error.response.data);
     }
-  };
+  }
+};
 
   useEffect(() => {
     if (startYear && watch("endYear")) {

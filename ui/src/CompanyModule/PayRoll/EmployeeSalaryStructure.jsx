@@ -47,7 +47,7 @@ const EmployeeSalaryStructure = () => {
       incomeTax: "new" // Default to new regime
     }
   });
-  
+
   const { authUser } = useAuth();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -106,6 +106,7 @@ const EmployeeSalaryStructure = () => {
     new: []
   });
   const [applicableSlab, setApplicableSlab] = useState(null);
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   // Number to words conversion function
   const numberToWords = (num) => {
@@ -128,36 +129,36 @@ const EmployeeSalaryStructure = () => {
     const convertLessThanThousand = (n) => {
       const hundred = Math.floor(n / 100);
       const remainder = n % 100;
-      return (hundred ? units[hundred] + " Hundred" : "") + 
-             (remainder ? (hundred ? " " : "") + convertLessThanHundred(remainder) : "");
+      return (hundred ? units[hundred] + " Hundred" : "") +
+        (remainder ? (hundred ? " " : "") + convertLessThanHundred(remainder) : "");
     };
 
     const convertLessThanLakh = (n) => {
       const thousand = Math.floor(n / 1000);
       const remainder = n % 1000;
-      return (thousand ? convertLessThanThousand(thousand) + " Thousand" : "") + 
-             (remainder ? (thousand ? " " : "") + convertLessThanThousand(remainder) : "");
+      return (thousand ? convertLessThanThousand(thousand) + " Thousand" : "") +
+        (remainder ? (thousand ? " " : "") + convertLessThanThousand(remainder) : "");
     };
 
     const convertLessThanCrore = (n) => {
       const lakh = Math.floor(n / 100000);
       const remainder = n % 100000;
-      return (lakh ? convertLessThanThousand(lakh) + " Lakh" : "") + 
-             (remainder ? (lakh ? " " : "") + convertLessThanLakh(remainder) : "");
+      return (lakh ? convertLessThanThousand(lakh) + " Lakh" : "") +
+        (remainder ? (lakh ? " " : "") + convertLessThanLakh(remainder) : "");
     };
 
     const convertLessThanHundredCrore = (n) => {
       const crore = Math.floor(n / 10000000);
       const remainder = n % 10000000;
-      return (crore ? convertLessThanThousand(crore) + " Crore" : "") + 
-             (remainder ? (crore ? " " : "") + convertLessThanCrore(remainder) : "");
+      return (crore ? convertLessThanThousand(crore) + " Crore" : "") +
+        (remainder ? (crore ? " " : "") + convertLessThanCrore(remainder) : "");
     };
 
     const convertLessThanThousandCrore = (n) => {
       const hundredCrore = Math.floor(n / 1000000000);
       const remainder = n % 1000000000;
-      return (hundredCrore ? convertLessThanHundred(hundredCrore) + " Hundred" : "") + 
-             (remainder ? (hundredCrore ? " " : "") + convertLessThanHundredCrore(remainder) : "");
+      return (hundredCrore ? convertLessThanHundred(hundredCrore) + " Hundred" : "") +
+        (remainder ? (hundredCrore ? " " : "") + convertLessThanHundredCrore(remainder) : "");
     };
 
     let integerPart = Math.floor(num);
@@ -332,7 +333,7 @@ const EmployeeSalaryStructure = () => {
     setBasicAmount(basicSalaryAmount);
 
     totalAllowances += basicSalaryAmount + hraAmount;
-    
+
     Object.entries(allowances).forEach(([key, value]) => {
       if (
         key !== "Basic Salary" &&
@@ -473,35 +474,35 @@ const EmployeeSalaryStructure = () => {
   }, [allowances, grossAmount, selectedTaxRegime]);
 
   useEffect(() => {
-      const totalAllow = calculateTotalAllowances(); // Calculate total allowances
-      const newOtherAllowances = grossAmount - totalAllow; // Subtract the sum of other allowances from gross amount
-      // Ensure no negative values for other allowances
-      const validOtherAllowances = Math.max(0, newOtherAllowances);
-  
-      // Check if other allowances need to be updated
-      if (validOtherAllowances !== prevOtherAllowancesRef.current) {
-        setAllowances((prevAllowances) => ({
-          ...prevAllowances,
-          "Other Allowances": validOtherAllowances.toFixed(2),
-        }));
-        prevOtherAllowancesRef.current = validOtherAllowances; // Update ref to new value
-      }
-  
-      // Update total allowances state
-      setTotalAllowances(totalAllow + validOtherAllowances); // Add Other Allowances to totalAllowances
-  
-      // Error checking: Disable submit if total allowances exceed gross amount
-      if (newOtherAllowances < 0) {
-        setErrorMessage(
-          "Total allowances exceed gross amount. Please adjust allowances."
-        );
-        setIsSubmitDisabled(true);
-      } else {
-        setErrorMessage("");
-        setIsSubmitDisabled(false);
-      }
-    }, [allowances, grossAmount]); // Recalculate whenever allowances or grossAmount change
-  
+    const totalAllow = calculateTotalAllowances(); // Calculate total allowances
+    const newOtherAllowances = grossAmount - totalAllow; // Subtract the sum of other allowances from gross amount
+    // Ensure no negative values for other allowances
+    const validOtherAllowances = Math.max(0, newOtherAllowances);
+
+    // Check if other allowances need to be updated
+    if (validOtherAllowances !== prevOtherAllowancesRef.current) {
+      setAllowances((prevAllowances) => ({
+        ...prevAllowances,
+        "Other Allowances": validOtherAllowances.toFixed(2),
+      }));
+      prevOtherAllowancesRef.current = validOtherAllowances; // Update ref to new value
+    }
+
+    // Update total allowances state
+    setTotalAllowances(totalAllow + validOtherAllowances); // Add Other Allowances to totalAllowances
+
+    // Error checking: Disable submit if total allowances exceed gross amount
+    if (newOtherAllowances < 0) {
+      setErrorMessage(
+        "Total allowances exceed gross amount. Please adjust allowances."
+      );
+      setIsSubmitDisabled(true);
+    } else {
+      setErrorMessage("");
+      setIsSubmitDisabled(false);
+    }
+  }, [allowances, grossAmount]); // Recalculate whenever allowances or grossAmount change
+
   useEffect(() => {
     const totalDeductions = calculateTotalDeductions();
     setTotalDeductions(totalDeductions);
@@ -621,6 +622,10 @@ const EmployeeSalaryStructure = () => {
 
   // Handle submit button click
   const handleSubmitButtonClick = () => {
+    if (!fixedAmount || fixedAmount === 0) {
+      toast.error("Please enter fixed amount");
+      return;
+    }
     const totalDeductions = calculateTotalDeductions();
     const netSalary = grossAmount - totalDeductions;
     setTotalDeductions(totalDeductions);
@@ -696,6 +701,7 @@ const EmployeeSalaryStructure = () => {
 
   // Form submission handler
   const onSubmit = (data) => {
+    setFormSubmitted(true);
     if (error) {
       toast.error(error);
       return;
@@ -712,6 +718,10 @@ const EmployeeSalaryStructure = () => {
     const addSalaryDate = new Date().toISOString().split("T")[0];
 
     if (variableAmount === 0 && fixedAmount === 0 && grossAmountValue === 0) {
+      return;
+    }
+    if (!fixedAmount || fixedAmount === 0) {
+      toast.error("Please enter fixed amount");
       return;
     }
 
@@ -799,7 +809,7 @@ const EmployeeSalaryStructure = () => {
         handleApiErrors(error);
       });
   };
-  
+
   const calculationPopover = (
     <Popover id="popover-basic" style={{ maxWidth: "300px", borderRadius: "8px", border: "1px solid #17a2b8" }}>
       <Popover.Header as="h6" className="bg-info text-white text-center">
@@ -895,7 +905,7 @@ const EmployeeSalaryStructure = () => {
                           </label>
                           <input
                             type="text"
-                            className="form-control"
+                            className={`form-control ${formSubmitted && !fixedAmount ? 'is-invalid' : ''}`}
                             autoComplete="off"
                             maxLength={10}
                             {...register("fixedAmount", {
@@ -924,6 +934,11 @@ const EmployeeSalaryStructure = () => {
                           {errors.fixedAmount && (
                             <div className="errorMsg">
                               {errors.fixedAmount.message}
+                            </div>
+                          )}
+                          {formSubmitted && !fixedAmount && (
+                            <div className="invalid-feedback">
+                              Please enter fixed amount
                             </div>
                           )}
                         </div>
@@ -983,59 +998,59 @@ const EmployeeSalaryStructure = () => {
                                 Allowances
                               </h5>
                             </div>
-                           <div className="card-body">
-                            {Object.entries(allowances).map(
-                              ([key, value]) => {
-                                let displayValue = value;
+                            <div className="card-body">
+                              {Object.entries(allowances).map(
+                                ([key, value]) => {
+                                  let displayValue = value;
 
-                                // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
-                                if (
-                                  typeof value === "string" &&
-                                  value.includes("%")
-                                ) {
-                                  const percentage = parseFloat(
-                                    value.replace("%", "")
-                                  );
-                                  if (!isNaN(percentage)) {
-                                    // Calculate based on grossAmount or basicAmount
-                                    if (key === "HRA") {
-                                      displayValue =
-                                        (percentage / 100) * basicAmount; // For HRA, use basicAmount
-                                    } else {
-                                      displayValue =
-                                        (percentage / 100) * grossAmount; // For other allowances, use grossAmount
-                                    }
-                                  }
-                                } else if (typeof value === "number") {
-                                  // If it's a number (fixed value), just display that value
-                                  displayValue = value;
-                                }
-
-                                // Update the state with the calculated value for allowance
-
-                                return (
-                                  <div key={key} className="mb-3">
-                                    <label>{key}</label>
-                                    <input
-                                      className="form-control"
-                                      type="text"
-                                      maxLength={7}
-                                      value={Math.round(displayValue)} // Display the calculated value
-                                      onChange={(e) =>
-                                        handleAllowanceChange(
-                                          key,
-                                          e.target.value
-                                        )
-                                      } // Handle change
-                                      readOnly={
-                                        key === "Basic Salary" ||
-                                        key === "HRA"
+                                  // If the allowance is a percentage, calculate the actual value using grossAmount or basicAmount
+                                  if (
+                                    typeof value === "string" &&
+                                    value.includes("%")
+                                  ) {
+                                    const percentage = parseFloat(
+                                      value.replace("%", "")
+                                    );
+                                    if (!isNaN(percentage)) {
+                                      // Calculate based on grossAmount or basicAmount
+                                      if (key === "HRA") {
+                                        displayValue =
+                                          (percentage / 100) * basicAmount; // For HRA, use basicAmount
+                                      } else {
+                                        displayValue =
+                                          (percentage / 100) * grossAmount; // For other allowances, use grossAmount
                                       }
-                                    />
-                                  </div>
+                                    }
+                                  } else if (typeof value === "number") {
+                                    // If it's a number (fixed value), just display that value
+                                    displayValue = value;
+                                  }
 
-                                );
-                              })}
+                                  // Update the state with the calculated value for allowance
+
+                                  return (
+                                    <div key={key} className="mb-3">
+                                      <label>{key}</label>
+                                      <input
+                                        className="form-control"
+                                        type="text"
+                                        maxLength={7}
+                                        value={Math.round(displayValue)} // Display the calculated value
+                                        onChange={(e) =>
+                                          handleAllowanceChange(
+                                            key,
+                                            e.target.value
+                                          )
+                                        } // Handle change
+                                        readOnly={
+                                          key === "Basic Salary" ||
+                                          key === "HRA"
+                                        }
+                                      />
+                                    </div>
+
+                                  );
+                                })}
 
                               <div className="mb-3">
                                 <label>Total Allowances:</label>
@@ -1105,129 +1120,129 @@ const EmployeeSalaryStructure = () => {
                         </div>
 
                         <div className="col-6 mb-4">
-                        <div className="card">
-  <div className="card-header">
-    <div className="d-flex justify-content-start align-items-start">
-      <h5 className="card-title me-2" style={{ marginBottom: "0px" }}>
-        Tax Deduction at Source (TDS)
-      </h5>
-      <span className="text-danger">
-        {errors.incomeTax && (
-          <p className="mb-0">{errors.incomeTax.message}</p>
-        )}
-      </span>
-    </div>
-  </div>
-  <div className="card-body">
-    <div className="row">
-      {/* Tax Regime Selection */}
-      <div className="col-md-12 mb-4">
-        <h6 className="mb-3">Select Tax Regime:</h6>
-        <div className="d-flex flex-wrap gap-4">
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="radio"
-              id="newRegime"
-              value="new"
-              {...register("incomeTax", {
-                onChange: (e) => setSelectedTaxRegime(e.target.value)
-              })}
-            />
-            
-<label className="form-check-label" htmlFor="newRegime">
-  <div className="d-flex align-items-center">
-    <span>New Tax Regime (Default)</span>
-    <OverlayTrigger
-      trigger={["hover", "focus"]}
-      placement="top"
-      overlay={calculationPopover}
-    >
-      <span className="ms-2" style={{ cursor: "pointer" }}>
-        <i className="bi bi-info-circle text-primary"></i>
-      </span>
-    </OverlayTrigger>
-  </div>
-</label>
-          </div>
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="radio"
-              id="oldRegime"
-              value="old"
-              {...register("incomeTax", {
-                onChange: (e) => setSelectedTaxRegime(e.target.value)
-              })}
-            />
-            <label className="form-check-label" htmlFor="oldRegime">
-              Old Tax Regime
-            </label>
-          </div>
-        </div>
-      </div>
+                          <div className="card">
+                            <div className="card-header">
+                              <div className="d-flex justify-content-start align-items-start">
+                                <h5 className="card-title me-2" style={{ marginBottom: "0px" }}>
+                                  Tax Deduction at Source (TDS)
+                                </h5>
+                                <span className="text-danger">
+                                  {errors.incomeTax && (
+                                    <p className="mb-0">{errors.incomeTax.message}</p>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="card-body">
+                              <div className="row">
+                                {/* Tax Regime Selection */}
+                                <div className="col-md-12 mb-4">
+                                  <h6 className="mb-3">Select Tax Regime:</h6>
+                                  <div className="d-flex flex-wrap gap-4">
+                                    <div className="form-check">
+                                      <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        id="newRegime"
+                                        value="new"
+                                        {...register("incomeTax", {
+                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                        })}
+                                      />
 
-      {/* Salary and Slab Information */}
-      <div className="col-md-6 mb-3">
-        <label className="form-label">Applicable Tax Rate</label>
-        <div className="p-2 bg-white rounded">
-          {applicableSlab ? (
-            <div className="d-flex align-items-center">
-              <span className="badge bg-primary me-2">
-                {applicableSlab.taxPercentage}%
-              </span>
-              <span>
-                For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
-                ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
-              </span>
-            </div>
-          ) : (
-            <span className="text-muted">No applicable slab found</span>
-          )}
-        </div>
-      </div>
+                                      <label className="form-check-label" htmlFor="newRegime">
+                                        <div className="d-flex align-items-center">
+                                          <span>New Tax Regime (Default)</span>
+                                          <OverlayTrigger
+                                            trigger={["hover", "focus"]}
+                                            placement="top"
+                                            overlay={calculationPopover}
+                                          >
+                                            <span className="ms-2" style={{ cursor: "pointer" }}>
+                                              <i className="bi bi-info-circle text-primary"></i>
+                                            </span>
+                                          </OverlayTrigger>
+                                        </div>
+                                      </label>
+                                    </div>
+                                    <div className="form-check">
+                                      <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        id="oldRegime"
+                                        value="old"
+                                        {...register("incomeTax", {
+                                          onChange: (e) => setSelectedTaxRegime(e.target.value)
+                                        })}
+                                      />
+                                      <label className="form-check-label" htmlFor="oldRegime">
+                                        Old Tax Regime
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
 
-      {/* TDS Calculation Results */}
-      <div className="col-md-12 mt-4">
-        <div className="row">
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Tax Rate Applied</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Annual TDS</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={`₹${tdsAmount.toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2
-              })}`}
-              readOnly
-            />
-          </div>
-          <div className="col-md-4 mb-3">
-            <label className="form-label">Monthly TDS</label>
-            <input
-              className="form-control fw-bold text-center"
-              type="text"
-              value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2
-              })}`}
-              readOnly
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                                {/* Salary and Slab Information */}
+                                <div className="col-md-6 mb-3">
+                                  <label className="form-label">Applicable Tax Rate</label>
+                                  <div className="p-2 bg-white rounded">
+                                    {applicableSlab ? (
+                                      <div className="d-flex align-items-center">
+                                        <span className="badge bg-primary me-2">
+                                          {applicableSlab.taxPercentage}%
+                                        </span>
+                                        <span>
+                                          For salary between ₹{applicableSlab.min.toLocaleString('en-IN')} -
+                                          ₹{applicableSlab.max ? applicableSlab.max.toLocaleString('en-IN') : '∞'}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-muted">No applicable slab found</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* TDS Calculation Results */}
+                                <div className="col-md-12 mt-4">
+                                  <div className="row">
+                                    <div className="col-md-4 mb-3">
+                                      <label className="form-label">Tax Rate Applied</label>
+                                      <input
+                                        className="form-control fw-bold text-center"
+                                        type="text"
+                                        value={applicableSlab ? `${applicableSlab.taxPercentage}%` : 'N/A'}
+                                        readOnly
+                                      />
+                                    </div>
+                                    <div className="col-md-4 mb-3">
+                                      <label className="form-label">Annual TDS</label>
+                                      <input
+                                        className="form-control fw-bold text-center"
+                                        type="text"
+                                        value={`₹${tdsAmount.toLocaleString('en-IN', {
+                                          maximumFractionDigits: 2,
+                                          minimumFractionDigits: 2
+                                        })}`}
+                                        readOnly
+                                      />
+                                    </div>
+                                    <div className="col-md-4 mb-3">
+                                      <label className="form-label">Monthly TDS</label>
+                                      <input
+                                        className="form-control fw-bold text-center"
+                                        type="text"
+                                        value={`₹${(tdsAmount / 12).toLocaleString('en-IN', {
+                                          maximumFractionDigits: 2,
+                                          minimumFractionDigits: 2
+                                        })}`}
+                                        readOnly
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                           <div className="card">
                             <div className="card-header">
                               <h5 className="card-title" style={{ marginBottom: "0px" }}>
