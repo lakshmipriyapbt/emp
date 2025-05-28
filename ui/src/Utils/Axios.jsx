@@ -129,9 +129,37 @@ export const DepartmentGetApi = () => {
   return axiosInstance.get(`${company}/department`);
 }
 
-export const DepartmentPostApi = (data) => {
-  return axiosInstance.post("/department", data);
-}
+export const DepartmentPostApi = async (departmentData) => {
+  try {
+    const response = await axiosInstance.post("/department", departmentData);
+    
+    // Debug the raw response
+    console.log('API Response:', response.data);
+    
+    // Handle case where API returns just {path, message, data: 'success'}
+    if (response.data?.data === 'success') {
+      return {
+        id: `temp-${Date.now()}`, // Temporary ID
+        name: departmentData.name,
+        companyName: departmentData.companyName,
+        type: "department"
+      };
+    }
+    
+    // Handle case where API returns the full department
+    if (response.data?.data?.name) {
+      return response.data.data;
+    }
+    
+    throw new Error('API returned unexpected format');
+  } catch (error) {
+    console.error('DepartmentPostApi error:', {
+      error: error.response?.data || error.message,
+      request: departmentData
+    });
+    throw error;
+  }
+};
 export const DepartmentGetApiById = (departmentId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`${company}/department/${departmentId}`)

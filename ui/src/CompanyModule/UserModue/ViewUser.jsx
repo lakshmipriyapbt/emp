@@ -25,24 +25,24 @@ const ViewUser = () => {
     }
   };
 
-const handleDelete = (id) => {
+  const handleDelete = (id) => {
     setUserToDelete(id);  // Set the user to be deleted
     setShowModal(true);    // Show the confirmation modal
   };
 
   const confirmDelete = async () => {
-  setIsDeleting(true);
-  try {
-    await DeleteUserById(userToDelete);
-    setUsers(users.filter(user => user.id !== userToDelete));
-    setShowModal(false);
-    setUserToDelete(null);
-  } catch (err) {
-    console.error('Error deleting user:', err);
-  } finally {
-    setIsDeleting(false);
-  }
-};
+    setIsDeleting(true);
+    try {
+      await DeleteUserById(userToDelete);
+      setUsers(users.filter(user => user.id !== userToDelete));
+      setShowModal(false);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleCancel = () => {
     setShowModal(false);  // Hide the modal without deleting
@@ -90,23 +90,23 @@ const handleDelete = (id) => {
       button: true,
       cell: (row) => (
         <div>
-          <Link to={`/editUser/${row.id}`} className="btn btn-sm me-2"><PencilSquare size={22} color='#2255a4'/></Link>
-          <button  onClick={() => handleDelete(row.id)}  className="btn btn-sm"><XSquare size={22} color='#da542e' /></button>
+          <Link to={`/editUser/${row.id}`} className="btn btn-sm me-2"><PencilSquare size={22} color='#2255a4' /></Link>
+          <button onClick={() => handleDelete(row.id)} className="btn btn-sm"><XSquare size={22} color='#da542e' /></button>
         </div>
       ),
     },
   ];
 
-useEffect(() => {
-  fetchUsers();
-}, []); // fetch on mount
-
-useEffect(() => {
-  if (location.state?.refresh) {
-    console.log("Refresh triggered from location.state");
+  useEffect(() => {
     fetchUsers();
-  }
-}, [location.state?.refresh]); // fetch on state change
+  }, []); // fetch on mount
+
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log("Refresh triggered from location.state");
+      fetchUsers();
+    }
+  }, [location.state?.refresh]); // fetch on state change
 
   return (
     <LayOut>
@@ -134,37 +134,37 @@ useEffect(() => {
         <div className="row mt-4">
           <div className="col-12">
             <div className="card">
-            <div className="card-header">
-  <div className="row w-100 align-items-center">
-    {/* Card Title */}
-    <div className="col">
-      <h2 className="card-title text-dark mb-0">User List</h2>
-    </div>
+              <div className="card-header">
+                <div className="row w-100 align-items-center">
+                  {/* Card Title */}
+                  <div className="col">
+                    <h2 className="card-title text-dark mb-0">User List</h2>
+                  </div>
 
-    {/* Add New User Button */}
-    <div className="col-auto">
-      <Link to="/addUser" className="btn btn-success mb-0">Add New User</Link>
-    </div>
+                  {/* Add New User Button */}
+                  <div className="col-auto">
+                    <Link to="/addUser" className="btn btn-success mb-0">Add New User</Link>
+                  </div>
 
-    {/* Search Input */}
-    <div className="col-auto">
-      <input
-        type="text"
-        className="form-control"
-        placeholder="Search by Name, Email, Type, or Department"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-      />
-    </div>
-  </div>
-  <hr/>
-</div>
+                  {/* Search Input */}
+                  <div className="col-auto">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Search by Name, Email, Type, or Department"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <hr />
+              </div>
               {/* DataTable */}
               <DataTable
                 columns={columns}
                 data={filteredUsers}  // Using the filtered users
                 pagination
-                paginationPerPage={5}
+                paginationPerPage={10}
                 onChangePage={page => setCurrentPage(page)}
                 onChangeRowsPerPage={perPage => setRowsPerPage(perPage)}
                 highlightOnHover
@@ -174,24 +174,24 @@ useEffect(() => {
           </div>
         </div>
       </div>
-        {/* Confirmation Modal */}
-        <div className={`modal fade ${showModal ? 'show' : ''}`} tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden={!showModal} style={{ display: showModal ? 'block' : 'none' }}>
+      {/* Confirmation Modal */}
+      <div className={`modal fade ${showModal ? 'show' : ''}`} tabIndex="-1" aria-labelledby="deleteModalLabel" aria-hidden={!showModal} style={{ display: showModal ? 'block' : 'none' }}>
         <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={handleCancel}></button>
-              </div>
-              <div className="modal-body">
-                Are you sure you want to delete this user?
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={handleCancel}>Cancel</button>
-                <button type="button" className="btn btn-danger" onClick={confirmDelete}  disabled={isDeleting} >{isDeleting ? 'Deleting...' : 'Delete'}</button>
-              </div>
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={handleCancel}></button>
+            </div>
+            <div className="modal-body">
+              Are you sure you want to delete this user?
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={handleCancel}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={confirmDelete} disabled={isDeleting} >{isDeleting ? 'Deleting...' : 'Delete'}</button>
             </div>
           </div>
         </div>
+      </div>
     </LayOut>
   );
 };

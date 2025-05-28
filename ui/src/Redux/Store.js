@@ -20,8 +20,8 @@ const store = configureStore({
     employees: employeeReducer, // Add employee slice reducer to store
     calendar:calendarReducer,
     tds:TdsReducer,
-    department:departmentReducer,
-    designation:designationReducer
+    departments:departmentReducer,
+    designations:designationReducer
   },
 });
 

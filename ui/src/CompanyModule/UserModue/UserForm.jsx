@@ -100,6 +100,7 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
             required: "Email is required",
             validate: validateEmail
           })}
+          disabled={isEdit}
         />
         <div className="invalid-feedback">{errors.emailId?.message}</div>
       </div>

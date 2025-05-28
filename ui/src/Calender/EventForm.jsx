@@ -5,6 +5,7 @@ import { fetchCalendarData } from '../Redux/CalendarSlice';
 import LayOut from '../LayOut/LayOut';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
 const LOCAL_KEY = 'calendar_draft_events';
 
@@ -18,8 +19,9 @@ const EventForm = () => {
   } = useForm({
     mode: 'onChange',
   });
+  
   const dispatch = useDispatch();
-  const calendarData = useSelector((state) => state.calendar.data);
+  const { data: calendarData, loading } = useSelector((state) => state.calendar);
   const [newEvent, setNewEvent] = useState({ event: '', theme: 'primary', date: '' });
   const [editingIndex, setEditingIndex] = useState(null);
   const [events, setEvents] = useState([]);
@@ -27,10 +29,11 @@ const EventForm = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteYearTarget, setDeleteYearTarget] = useState(null);
   const [editingBackendEvent, setEditingBackendEvent] = useState(null);
-  const [currentYearIndex, setCurrentYearIndex] = useState(0);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
-
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [localCalendarData, setLocalCalendarData] = useState([]);
+  const [forceUpdate, setForceUpdate] = useState(0); // Add force update trigger
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,6 +41,12 @@ const EventForm = () => {
   useEffect(() => {
     dispatch(fetchCalendarData());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (calendarData) {
+      setLocalCalendarData(calendarData);
+    }
+  }, [calendarData]);
 
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_KEY);
@@ -60,28 +69,17 @@ const EventForm = () => {
     date.setMonth(parseInt(monthNumber, 10) - 1);
     return date.toLocaleString('default', { month: 'long' });
   };
-  const handlePreviousYear = () => {
-    setCurrentYearIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  const handleNextYear = () => {
-    setCurrentYearIndex((prev) => Math.min(prev + 1, calendarData.length - 1));
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewEvent((prev) => ({ ...prev, [name]: value }));
     if (name === 'event') {
-      // Validate the event title with your existing function
       const validation = validateEventTitle(value);
       if (validation !== true) {
         setError('event', { type: 'manual', message: validation });
       } else {
         clearErrors('event');
       }
-
-      // Alternatively, trigger validation if you want to use the `register` validation
-      // await trigger('event');
     }
   };
 
@@ -105,31 +103,48 @@ const EventForm = () => {
 
     if (editingBackendEvent) {
       const { yearId, month, date } = editingBackendEvent;
-      const yearEntry = calendarData.find((entry) => entry.id === yearId);
+      const yearEntry = localCalendarData.find((entry) => entry.id === yearId);
 
       if (yearEntry) {
         const updatedDateEntityList = yearEntry.dateEntityList.map((block) => {
           if (block.month === month) {
-            const updatedHolidays = block.holidaysEntities.map((evt) =>
-              evt.date === date
-                ? {
-                  event: newEvent.event,
-                  theme: newEvent.theme,
-                  date: new Date(newEvent.date).getDate().toString().padStart(2, '0'),
-                }
-                : evt
-            );
+            const existingEventIndex = block.holidaysEntities.findIndex(evt => evt.date === date);
+            const updatedHolidays = [...block.holidaysEntities];
+            const newEventData = {
+              event: newEvent.event,
+              theme: newEvent.theme,
+              date: new Date(newEvent.date).getDate().toString().padStart(2, '0'),
+            };
+
+            if (existingEventIndex >= 0) {
+              updatedHolidays[existingEventIndex] = newEventData;
+            } else {
+              updatedHolidays.push(newEventData);
+            }
+
             return { ...block, holidaysEntities: updatedHolidays };
           }
           return block;
         });
 
-        await calendarPatchAPIById({ dateEntityList: updatedDateEntityList }, yearId);
-        setMessage({ type: 'success', text: '✅ Event updated successfully!' });
-        setEditingBackendEvent(null);
-        setNewEvent({ event: '', theme: 'primary', date: '' });
-        dispatch(fetchCalendarData());
-        window.location.reload();
+        try {
+          await calendarPatchAPIById({ dateEntityList: updatedDateEntityList }, yearId);
+          
+          // Update local state immediately
+          const updatedData = localCalendarData.map(year => 
+            year.id === yearId 
+              ? { ...year, dateEntityList: updatedDateEntityList } 
+              : year
+          );
+          setLocalCalendarData(updatedData);
+          setForceUpdate(prev => prev + 1); // Force re-render
+          
+          setMessage({ type: 'success', text: '✅ Event updated successfully!' });
+          setEditingBackendEvent(null);
+          setNewEvent({ event: '', theme: 'primary', date: '' });
+        } catch (error) {
+          setMessage({ type: 'danger', text: 'Failed to update event' });
+        }
         return;
       }
     }
@@ -152,10 +167,8 @@ const EventForm = () => {
 
     setNewEvent({ event: '', theme: 'primary', date: '' });
     setMessage(null);
+    setForceUpdate(prev => prev + 1);
   };
-
-
-
 
   const handleEdit = (index) => {
     setNewEvent(events[index]);
@@ -203,98 +216,294 @@ const EventForm = () => {
     return true;
   };
 
+  const getMergedEventsForMonth = (year, month) => {
+  // Get backend events
+  const backendEvents = [];
+  const yearEntry = localCalendarData.find((y) => y.year.toString() === year);
+  if (yearEntry) {
+    const monthBlock = yearEntry.dateEntityList.find((m) => m.month === month);
+    if (monthBlock) {
+      backendEvents.push(...monthBlock.holidaysEntities.map(evt => ({
+        ...evt,
+        source: 'backend'
+      })));
+    }
+  }
+
+  // Get local events for this month
+  const localEvents = events
+    .filter(evt => {
+      const dt = new Date(evt.date);
+      return dt.getFullYear().toString() === year && 
+             (dt.getMonth() + 1).toString().padStart(2, '0') === month;
+    })
+    .map(evt => ({
+      ...evt,
+      date: new Date(evt.date).getDate().toString().padStart(2, '0'),
+      source: 'local'
+    }));
+
+  // Merge and group by day
+  const merged = [...backendEvents, ...localEvents];
+  const dayEventMap = {};
+  
+  merged.forEach((evt) => {
+    const day = parseInt(evt.date);
+    if (!dayEventMap[day]) {
+      dayEventMap[day] = [];
+    }
+    dayEventMap[day].push(evt);
+  });
+
+  return dayEventMap;
+};
+
+  const handleDeleteEvent = async (evt, yearEntry, monthBlock) => {
+    setIsDeleting(true);
+    try {
+      const updatedHolidays = monthBlock.holidaysEntities.filter(
+        e => !(e.date === evt.date && e.event === evt.event)
+      );
+      
+      const updatedDateEntityList = yearEntry.dateEntityList.map(block =>
+        block.month === monthBlock.month
+          ? { ...block, holidaysEntities: updatedHolidays }
+          : block
+      );
+
+      await calendarPatchAPIById({ dateEntityList: updatedDateEntityList }, yearEntry.id);
+      
+      // Update local state immediately
+      const updatedData = localCalendarData.map(year => 
+        year.id === yearEntry.id
+          ? { ...year, dateEntityList: updatedDateEntityList }
+          : year
+      );
+      setLocalCalendarData(updatedData);
+      setForceUpdate(prev => prev + 1); // Force re-render
+
+      setMessage({ type: 'success', text: 'Event deleted successfully' });
+    } catch (error) {
+      setMessage({ type: 'danger', text: 'Failed to delete event' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    const grouped = {};
+  const grouped = {};
 
-    events.forEach(({ event, theme, date }) => {
-      const dt = new Date(date);
-      const year = dt.getFullYear().toString();
-      const month = (dt.getMonth() + 1).toString().padStart(2, '0');
-      const day = dt.getDate().toString().padStart(2, '0');
+  events.forEach(({ event, theme, date }) => {
+    const dt = new Date(date);
+    const year = dt.getFullYear().toString();
+    const month = (dt.getMonth() + 1).toString().padStart(2, '0');
+    const day = dt.getDate().toString().padStart(2, '0');
 
-      if (!grouped[year]) grouped[year] = {};
-      if (!grouped[year][month]) grouped[year][month] = [];
+    if (!grouped[year]) grouped[year] = {};
+    if (!grouped[year][month]) grouped[year][month] = [];
 
-      grouped[year][month].push({ event, theme, date: day });
+    grouped[year][month].push({ event, theme, date: day });
+  });
+
+  const postPayloads = [];
+  const patchPayloads = [];
+
+  for (const [year, monthData] of Object.entries(grouped)) {
+    const existingYearEntry = localCalendarData.find((entry) => entry.year.toString() === year);
+
+    if (existingYearEntry) {
+      const existingMap = {};
+      existingYearEntry.dateEntityList.forEach((monthBlock) => {
+        existingMap[monthBlock.month] = [...monthBlock.holidaysEntities];
+      });
+
+      for (const [month, holidaysEntities] of Object.entries(monthData)) {
+        if (!existingMap[month]) {
+          existingMap[month] = holidaysEntities;
+        } else {
+          holidaysEntities.forEach((newEvt) => {
+            const isDuplicate = existingMap[month].some(
+              (evt) => evt.date === newEvt.date && evt.event === newEvt.event
+            );
+            if (!isDuplicate) {
+              existingMap[month].push(newEvt);
+            }
+          });
+        }
+      }
+
+      const mergedDateEntityList = Object.entries(existingMap).map(([month, holidaysEntities]) => ({
+        month,
+        holidaysEntities,
+      }));
+
+      patchPayloads.push({ id: existingYearEntry.id, dateEntityList: mergedDateEntityList });
+    } else {
+      const dateEntityList = Object.entries(monthData).map(([month, holidaysEntities]) => ({
+        month,
+        holidaysEntities,
+      }));
+      postPayloads.push({ year, dateEntityList });
+    }
+  }
+
+  try {
+    for (const payload of postPayloads) {
+      await calendarPostAPI(payload);
+    }
+
+    for (const { id, dateEntityList } of patchPayloads) {
+      await calendarPatchAPIById({ dateEntityList }, id);
+    }
+
+    toast.success("🎉 Events submitted successfully!", {
+      autoClose: 2000,
+      onClose: () => {
+        dispatch(fetchCalendarData());
+        setEvents([]);
+        localStorage.removeItem(LOCAL_KEY);
+        setEditingIndex(null);
+      }
     });
 
-    const postPayloads = [];
-    const patchPayloads = [];
+  } catch (error) {
+    const errMsg = error?.response?.data?.error?.message || 'Submission failed.';
+    toast.error(`❌ ${errMsg}`);
+  }
 
-    for (const [year, monthData] of Object.entries(grouped)) {
-      const existingYearEntry = calendarData.find((entry) => entry.year.toString() === year);
-
-      if (existingYearEntry) {
-        const existingMap = {};
-        existingYearEntry.dateEntityList.forEach((monthBlock) => {
-          existingMap[monthBlock.month] = [...monthBlock.holidaysEntities];
-        });
-
-        for (const [month, holidaysEntities] of Object.entries(monthData)) {
-          if (!existingMap[month]) {
-            existingMap[month] = holidaysEntities;
-          } else {
-            holidaysEntities.forEach((newEvt) => {
-              const isDuplicate = existingMap[month].some(
-                (evt) => evt.date === newEvt.date && evt.event === newEvt.event
-              );
-              if (!isDuplicate) {
-                existingMap[month].push(newEvt);
-              }
-            });
-          }
-        }
-
-        const mergedDateEntityList = Object.entries(existingMap).map(([month, holidaysEntities]) => ({
-          month,
-          holidaysEntities,
-        }));
-
-        patchPayloads.push({ id: existingYearEntry.id, dateEntityList: mergedDateEntityList });
-      } else {
-        const dateEntityList = Object.entries(monthData).map(([month, holidaysEntities]) => ({
-          month,
-          holidaysEntities,
-        }));
-        postPayloads.push({ year, dateEntityList });
-      }
-    }
-
-    try {
-      for (const payload of postPayloads) {
-        await calendarPostAPI(payload);
-      }
-
-      for (const { id, dateEntityList } of patchPayloads) {
-        await calendarPatchAPIById({ dateEntityList }, id);
-      }
-
-      setMessage({ type: 'success', text: '🎉 Events submitted successfully!' });
-      setEvents([]);
-      localStorage.removeItem(LOCAL_KEY);
-      setEditingIndex(null);
-      dispatch(fetchCalendarData());
-      window.location.reload();
-    } catch (error) {
-      const errMsg = error?.response?.data?.error?.message || 'Submission failed.';
-      setMessage({ type: 'danger', text: `❌ ${errMsg}` });
-    }
-
-    setShowConfirm(false);
-  };
+  setShowConfirm(false);
+};
 
   const handleDeleteYear = async () => {
     if (!deleteYearTarget) return;
     try {
       await CalendarDeleteByIdApi(deleteYearTarget.id);
+      
+      // Update local state
+      const updatedData = localCalendarData.filter(
+        year => year.id !== deleteYearTarget.id
+      );
+      setLocalCalendarData(updatedData);
+      setForceUpdate(prev => prev + 1); // Force re-render
+
       setMessage({ type: 'success', text: `🗑️ Deleted year ${deleteYearTarget.year}` });
       setDeleteYearTarget(null);
-      dispatch(fetchCalendarData());
-      window.location.reload();
     } catch (error) {
       setMessage({ type: 'danger', text: '❌ Failed to delete year' });
     }
   };
+
+  const renderCalendar = () => {
+  if (!selectedYear || !selectedMonth) return null;
+
+  // Get the year and month data from backend
+  const yearEntry = localCalendarData.find((y) => y.year.toString() === selectedYear);
+  const monthBlock = yearEntry?.dateEntityList.find((m) => m.month === selectedMonth);
+
+  // Get merged events (backend + local)
+  const dayEventMap = getMergedEventsForMonth(selectedYear, selectedMonth);
+  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+  const firstDay = new Date(`${selectedYear}-${selectedMonth}-01`).getDay();
+
+  const rows = [];
+  let currentDay = 1 - firstDay;
+
+  for (let week = 0; week < 6; week++) {
+    const cells = [];
+
+    for (let d = 0; d < 7; d++) {
+      if (currentDay > 0 && currentDay <= daysInMonth) {
+        const formattedDate = `${selectedYear}-${selectedMonth}-${String(currentDay).padStart(2, '0')}`;
+
+        cells.push(
+          <td key={d} className="align-top" style={{ height: '80px', width: "150px" }}>
+            <div className="fw-bold">{currentDay}</div>
+            {dayEventMap[currentDay]?.map((evt, idx) => (
+              <div key={idx} className="small">
+                <div className={`badge bg-${evt.theme} mt-1`}>
+                  {evt.event}
+                  {evt.source === 'local' && ' (unsaved)'}
+                </div>
+                {evt.source === 'backend' && yearEntry && monthBlock ? (
+                  <div className="mt-1">
+                    <button
+                      className="btn btn-sm btn-outline-info me-1"
+                      onClick={() => {
+                        setNewEvent({ 
+                          event: evt.event, 
+                          theme: evt.theme, 
+                          date: formattedDate 
+                        });
+                        setEditingBackendEvent({
+                          yearId: yearEntry.id,
+                          year: yearEntry.year,
+                          month: selectedMonth,
+                          date: evt.date,
+                        });
+                        setEditingIndex(null);
+                      }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      disabled={isDeleting}
+                      onClick={() => handleDeleteEvent(evt, yearEntry, monthBlock)}
+                    >
+                      {isDeleting ? 'Deleting...' : '❌'}
+                    </button>
+                  </div>
+                ) : (
+                  // For local events, show remove button
+                  <div className="mt-1">
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => {
+                        const eventIndex = events.findIndex(e => 
+                          e.event === evt.event && 
+                          e.date === formattedDate
+                        );
+                        if (eventIndex >= 0) {
+                          handleDelete(eventIndex);
+                        }
+                      }}
+                    >
+                      ❌ Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </td>
+        );
+      } else {
+        cells.push(<td key={d}></td>);
+      }
+      currentDay++;
+    }
+
+    rows.push(<tr key={week}>{cells}</tr>);
+  }
+
+  return (
+    <div className="table-responsive" key={`calendar-${selectedYear}-${selectedMonth}-${forceUpdate}`}>
+      <table className="table table-bordered text-center">
+        <thead className="table-light">
+          <tr>
+            <th>Sun</th>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
+          </tr>
+        </thead>
+        <tbody style={{ maxWidth: "150px", maxHeight: "80px" }}>{rows}</tbody>
+      </table>
+    </div>
+  );
+};
 
   return (
     <LayOut>
@@ -331,7 +540,6 @@ const EventForm = () => {
                   onChange={handleChange}
                   className="form-control"
                   required
-
                 />
                 {errors.event && <p className="errorMsg">{errors.event.message}</p>}
               </div>
@@ -388,11 +596,11 @@ const EventForm = () => {
             </>
           )}
 
-          {calendarData?.length > 0 && (
+          {localCalendarData?.length > 0 && (
             <>
               <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                 <div className="mb-0">
-                  <h6 >📅 Existing Events</h6>
+                  <h6>📅 Existing Events</h6>
                   <span className='text-sm text-info'>Please select Year and Month to display Events</span>
                 </div>
                 <div className="d-flex align-items-center gap-3 ms-auto">
@@ -404,7 +612,7 @@ const EventForm = () => {
                       onChange={(e) => setSelectedYear(e.target.value)}
                     >
                       <option value="">-- Select Year --</option>
-                      {calendarData.map((yearEntry) => (
+                      {localCalendarData.map((yearEntry) => (
                         <option key={yearEntry.id} value={yearEntry.year}>
                           {yearEntry.year}
                         </option>
@@ -438,112 +646,13 @@ const EventForm = () => {
                   <h6 className="mt-3 text-primary">
                     📆 {getMonthName(selectedMonth)} {selectedYear}
                   </h6>
-
-                  {(() => {
-                    const yearEntry = calendarData.find((y) => y.year === selectedYear);
-                    const monthBlock = yearEntry?.dateEntityList.find((m) => m.month === selectedMonth);
-                    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-                    const firstDay = new Date(`${selectedYear}-${selectedMonth}-01`).getDay();
-
-                    const dayEventMap = {};
-                    monthBlock?.holidaysEntities.forEach((evt) => {
-                      const day = parseInt(evt.date);
-                      if (!dayEventMap[day]) {
-                        dayEventMap[day] = [];
-                      }
-                      dayEventMap[day].push(evt);
-                    });
-
-                    const rows = [];
-                    let currentDay = 1 - firstDay;
-
-                    for (let week = 0; week < 6; week++) {
-                      const cells = [];
-
-                      for (let d = 0; d < 7; d++) {
-                        if (currentDay > 0 && currentDay <= daysInMonth) {
-                          const evt = dayEventMap[currentDay];
-                          const formattedDate = `${selectedYear}-${selectedMonth}-${String(currentDay).padStart(2, '0')}`;
-
-                          cells.push(
-                            <td key={d} className="align-top" style={{ height: '80px', width: "150px" }}>
-                              <div className="fw-bold">{currentDay}</div>
-                              {dayEventMap[currentDay]?.map((evt, idx) => (
-                                <div key={idx} className="small">
-                                  <div className={`badge bg-${evt.theme} mt-1`}>{evt.event}</div>
-                                  <div className="mt-1">
-                                    <button
-                                      className="btn btn-sm btn-outline-info me-1"
-                                      onClick={() => {
-                                        setNewEvent({ event: evt.event, theme: evt.theme, date: formattedDate });
-                                        setEditingBackendEvent({
-                                          yearId: yearEntry.id,
-                                          year: yearEntry.year,
-                                          month: monthBlock.month,
-                                          date: evt.date,
-                                        });
-                                        setEditingIndex(null);
-                                      }}
-                                    >
-                                      ✏️
-                                    </button>
-                                    <button
-                                      className="btn btn-sm btn-outline-danger"
-                                      onClick={async () => {
-                                        const updatedHolidays = monthBlock.holidaysEntities.filter((e) =>
-                                          !(e.date === evt.date && e.event === evt.event)
-                                        );
-                                        const updatedDateEntityList = yearEntry.dateEntityList.map((block) =>
-                                          block.month === monthBlock.month
-                                            ? { ...block, holidaysEntities: updatedHolidays }
-                                            : block
-                                        );
-
-                                        await calendarPatchAPIById({ dateEntityList: updatedDateEntityList }, yearEntry.id);
-                                        dispatch(fetchCalendarData());
-                                        setMessage({ type: 'success', text: '❌ Event deleted' });
-                                      }}
-                                    >
-                                      ❌
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                            </td>
-                          );
-                        } else {
-                          cells.push(<td key={d}></td>);
-                        }
-                        currentDay++;
-                      }
-
-                      rows.push(<tr key={week}>{cells}</tr>);
-                    }
-
-                    return (
-                      <div className="table-responsive">
-                        <table className="table table-bordered text-center ">
-                          <thead className="table-light">
-                            <tr >
-                              <th>Sun</th>
-                              <th>Mon</th>
-                              <th>Tue</th>
-                              <th>Wed</th>
-                              <th>Thu</th>
-                              <th>Fri</th>
-                              <th>Sat</th>
-                            </tr>
-                          </thead>
-                          <tbody style={{ maxWidth: "150px", maxHeight: "80px" }}>{rows}</tbody>
-                        </table>
-                      </div>
-                    );
-                  })()}
+                  {renderCalendar()}
                 </>
               )}
             </>
           )}
 
+          {/* Modals */}
           {deleteYearTarget && (
             <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
               <div className="modal-dialog modal-dialog-centered">

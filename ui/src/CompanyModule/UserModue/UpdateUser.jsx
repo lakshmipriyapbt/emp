@@ -5,7 +5,7 @@ import { getUserById, UserPatchApi } from '../../Utils/Axios';
 import LayOut from '../../LayOut/LayOut';
 import { toast } from 'react-toastify';
 
-const UpdateUser = ({ fetchUsers }) => {
+const UpdateUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [defaultValues, setDefaultValues] = useState(null);
@@ -17,24 +17,26 @@ const UpdateUser = ({ fetchUsers }) => {
         setDefaultValues(res.data.data[0]);
       } catch (err) {
         console.error('Error fetching user:', err);
+        toast.error('Failed to load user data');
       }
     };
     fetchUser();
   }, [id]);
 
   const onSubmit = async (data) => {
-  try {
-    await UserPatchApi(id, data); // Update user API
-    fetchUsers();  // Re-fetch users after update
-    toast.success("User updated successfully"); // Show success message
-    setTimeout(() => {
-      navigate('/viewUser'); // Navigate after delay
-    }, 1000); // 1-second delay
-  } catch (err) {
-    console.error('Error updating user:', err);
-    toast.error("Failed to update user");
-  }
-};
+    try {
+      await UserPatchApi(id, data);
+      toast.success("User updated successfully", {
+        autoClose: 2000,  // Show for 2 seconds
+        onClose: () => {
+          navigate('/viewUser', { state: { refresh: Date.now() } })
+        }
+      });
+    } catch (err) {
+      console.error('Error updating user:', err);
+      toast.error("no changes detected");
+    }
+  };
 
   return (
     <LayOut>
@@ -68,11 +70,11 @@ const UpdateUser = ({ fetchUsers }) => {
               {defaultValues ? (
                 <UserForm
                   onSubmit={onSubmit}
-                  defaultValues={defaultValues} // Pass default values from API
+                  defaultValues={defaultValues}
                   isEdit
                 />
               ) : (
-                <p>Loading...</p> // Show loading if the data is not fetched yet
+                <p>Loading...</p>
               )}
             </div>
           </div>
