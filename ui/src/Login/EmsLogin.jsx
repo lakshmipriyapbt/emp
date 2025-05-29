@@ -154,8 +154,7 @@ const EmsLogin = () => {
                         pattern: {
                           value:
                             /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                          message:
-                            "Invalid email Id format. Only .com, .in, .org, .net, .edu, .gov are allowed.",
+                          message: "Invalid Email Id Format",
                         },
                       })}
                     />

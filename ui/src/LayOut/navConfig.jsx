@@ -262,7 +262,7 @@ export const NAV_CONFIG = {
         },
         {
             title: 'Salary Summary',
-            path: '/employeeSalary',
+            path: '/employeeSalariesView',
             icon: 'wallet2'
         },
         {
