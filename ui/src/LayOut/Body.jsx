@@ -23,6 +23,8 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Get userRole from Redux store
+  const { userRole } = useSelector((state) => state.auth);
   const { data: employees = [], status } = useSelector(
     (state) => state.employees
   );
@@ -49,11 +51,11 @@ const Body = () => {
   }, [employees]);
 
   if (!authUser) return <Loader />;
-
   if (loading) return <Loader />;
 
-  const isAdmin = authUser?.userRole?.includes("ems_admin");
-  const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
+  // Use userRole from Redux instead of authUser
+  const isAdmin = userRole?.includes("ems_admin");
+  const isCompanyAdmin = userRole?.includes("company_admin");
 
   const handleTotalEmployeesClick = () => {
     navigate('/totalEmployees');
@@ -74,16 +76,16 @@ const Body = () => {
         </h1>
         <div className="row h-100">
           {isAdmin ? (
-            <div className='card'>
-              <iframe
-                src="https://122.175.43.71:2800/kibana/s/ems/app/dashboards#/view/deba4a73-baa2-4c62-aa78-089197311bcb?embed=true&fullscreen=true" 
-                height="3500" 
-                width="800"
-                title="EMS Dashboard"
-                style={{ border: 'none' }}
-              />
-            </div>
-          ) : (
+            <div className='card' style={{ height: '100vh' }}>
+          <iframe
+            src="https://cubhrm.com:5601/kibana/s/ems/app/dashboards#/view/274b991a-5aa5-4c53-8d7d-b9412e71609d?&embed=true"
+            height="100%"
+            width="100%"
+            title="EMS Dashboard"
+            style={{ border: 'none', height: '100%', width: '100%' }}
+          />
+        </div>
+          ) : (isCompanyAdmin) ? (
             <>
               <div className="row">
                 <div className="col-xl-4 col-12 mb-3">
@@ -153,7 +155,7 @@ const Body = () => {
                 </div>
               </div>
             </>
-          )}
+          ) : null}
         </div>
       </div>
     </LayOut>
