@@ -569,7 +569,7 @@ const ExperienceForm = () => {
                          )}
 
                 </div>
-
+                <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label mb-2">Select Mode</label>
                       <div className="d-flex align-items-center gap-3"> {/* Flexbox for side-by-side alignment */}
