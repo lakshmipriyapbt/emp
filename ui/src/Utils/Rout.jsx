@@ -94,6 +94,8 @@ export const allAvailableRoutes = [
   {path: '/forgotPassword', allowedTypes: ['company_admin', 'Admin']},
   {path: '/employeeSalary', allowedTypes: ['employee'] },
   {path: '/employeeProfile', allowedTypes: ['employee'] },
+  {path: '/employeeSalaryView', allowedTypes: ['employee'] },
+  {path: '/employeeSalariesView', allowedTypes: ['employee'] },
   {path: '/companySalaryStructure', allowedTypes: ['company_admin', 'Admin'] },
   {path: '/accountRegistration', allowedTypes: ['company_admin', 'Admin'] },
   {path:'/addUser',allowedTypes:['company_admin', 'Admin']},
@@ -138,11 +140,11 @@ export const allAvailableRoutes = [
   {path: '/payslipUpdate3', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/payslipUpdate4', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/AddEvent', allowedTypes: ['company_admin', 'Admin', 'HR'] },
-  {path: '/employeeSalaryList', allowedTypes: ['company_admin', 'Admin', 'HR'] },
+  {path: '/employeeSalaryList', allowedTypes: ['company_admin', 'Admin', 'HR','employee'] },
   {path: '/getTaxSlab', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/addTaxSlab', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/companyTdsView', allowedTypes: ['company_admin', 'Admin', 'HR'] },
-  {path: '/employeeSalaryUpdate', allowedTypes: ['company_admin', 'Admin', 'HR'] },
+  {path: '/employeeSalaryUpdate', allowedTypes: ['company_admin', 'Admin', 'HR', 'employee'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/productRegistration', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
@@ -216,14 +218,17 @@ const Routing = () => {
 
       {/* Employee-specific routes */}
       <Route
-        path="/employeeSalary"
+        path="/employeeSalaryView"
         element={<ProtectedRoute element={<EmployeeSalaryView/>} allowedTypes={['employee']} />}
       />
       <Route
         path="/employeeProfile"
         element={<ProtectedRoute element={<EmployeeProfile/>} allowedTypes={['employee']} />}
       />
-
+      <Route
+        path="/employeeSalariesView"
+        element={<ProtectedRoute element={<EmployeeSalaryById/>} allowedTypes={['employee']} />}
+      />
         
       {/* Company Admin & HR shared routes */}
       <Route
@@ -384,7 +389,7 @@ const Routing = () => {
       />
       <Route
         path="/employeeSalaryUpdate"
-        element={<ProtectedRoute element={<EmployeeSalaryUpdate/>} allowedTypes={['company_admin', 'Admin', 'HR']} />}
+        element={<ProtectedRoute element={<EmployeeSalaryUpdate/>} allowedTypes={['company_admin', 'Admin', 'HR', 'employee']} />}
       />
 
       <Route
@@ -401,7 +406,7 @@ const Routing = () => {
       />
       <Route
         path="/employeeSalaryList"
-        element={<ProtectedRoute element={<EmployeeSalaryList/>} allowedTypes={['company_admin', 'Admin', 'HR']} />}
+        element={<ProtectedRoute element={<EmployeeSalaryList/>} allowedTypes={['company_admin', 'Admin', 'HR', 'employee']} />}
       />
 
       {/* Company Admin & Accountant shared routes */}
