@@ -77,14 +77,14 @@ const Body = () => {
         <div className="row h-100">
           {isAdmin ? (
             <div className='card' style={{ height: '100vh' }}>
-          <iframe
-            src="https://cubhrm.com:5601/kibana/s/ems/app/dashboards#/view/274b991a-5aa5-4c53-8d7d-b9412e71609d?&embed=true"
-            height="100%"
-            width="100%"
-            title="EMS Dashboard"
-            style={{ border: 'none', height: '100%', width: '100%' }}
-          />
-        </div>
+              <iframe
+                src="https://cubhrm.com:5601/kibana/s/ems/app/dashboards#/view/274b991a-5aa5-4c53-8d7d-b9412e71609d?&embed=true"
+                height="100%"
+                width="100%"
+                title="EMS Dashboard"
+                style={{ border: 'none', height: '100%', width: '100%' }}
+              />
+            </div>
           ) : (isCompanyAdmin) ? (
             <>
               <div className="row">
