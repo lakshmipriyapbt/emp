@@ -56,6 +56,11 @@ const Body = () => {
   // Use userRole from Redux instead of authUser
   const isAdmin = userRole?.includes("ems_admin");
   const isCompanyAdmin = userRole?.includes("company_admin");
+  const isHR = userRole?.includes("HR");
+  const isAccountant = userRole?.includes("Accountant");
+  const isEmployee = userRole?.includes("employee");
+
+  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant || isEmployee;
 
   const handleTotalEmployeesClick = () => {
     navigate('/totalEmployees');
@@ -63,7 +68,7 @@ const Body = () => {
   const handleActiveEmployeesClick = () => {
     navigate('/employeeList/Active');
   };
-  
+
   const handleRelievedEmployeesClick = () => {
     navigate('/employeeList/Relieved');
   };
@@ -85,7 +90,7 @@ const Body = () => {
                 style={{ border: 'none', height: '100%', width: '100%' }}
               />
             </div>
-          ) : (isCompanyAdmin) ? (
+          ) : (showCompanyDashboard) ? (
             <>
               <div className="row">
                 <div className="col-xl-4 col-12 mb-3">
@@ -132,7 +137,7 @@ const Body = () => {
                       <div className="d-flex align-items-center mb-2">
                         <PersonFillExclamation color='red' size={30} className="me-3" />
                         <div>
-                        <h5 className="card-title fw-bold" style={{ color: "black" }}>Relieved Employees</h5>
+                          <h5 className="card-title fw-bold" style={{ color: "black" }}>Relieved Employees</h5>
                           <h1 className="mt-1">{data.RelievedEmployeesCount}</h1>
                         </div>
                       </div>
@@ -140,7 +145,7 @@ const Body = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="row">
                 <div className="col-md-6">
                   <div className="card h-100 p-4">
