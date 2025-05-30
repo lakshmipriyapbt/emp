@@ -84,6 +84,7 @@ import UpdateUser from '../CompanyModule/UserModue/UpdateUser';
 import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
 import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
+import LandingPage from '../LayOut/NewLogin/LandingPage';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -169,7 +170,7 @@ const Routing = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Message />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
