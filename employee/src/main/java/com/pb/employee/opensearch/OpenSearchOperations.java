@@ -28,6 +28,8 @@ import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.Entity;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.ResourceIdUtils;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.opensearch.client.opensearch.OpenSearchClient;
 //import org.opensearch.client.opensearch._types.FieldValue;
 //import org.opensearch.client.opensearch._types.Result;
@@ -1099,5 +1101,36 @@ public class OpenSearchOperations {
             }
         }
         return iecObservationEntities;
+    }
+
+    public EmployeeEntity getEmployeeByEmailId(String emailId, String companyName) throws EmployeeException {
+        logger.debug("Getting employees for company {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.EMPLOYEE)));
+        boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.EMAIL_ID).query(emailId)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<EmployeeEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        try {
+            // Adjust the type or field according to your index structure
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), EmployeeEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<EmployeeEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
+
+        List<EmployeeEntity> employeeEntities = new ArrayList<>();
+        for (Hit<EmployeeEntity> hit : hits) {
+            employeeEntities.add(hit.source());
+        }
+
+        return employeeEntities.get(0);
     }
 }
