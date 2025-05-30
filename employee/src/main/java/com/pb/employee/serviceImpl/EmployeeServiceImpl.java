@@ -191,10 +191,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                             Map<String, Object> partialUpdate = new HashMap<>();
                             partialUpdate.put(Constants.STATUS, status);
                             List<EmployeeSalaryEntity> employeeSalaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), null);
-                            for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities){
-                                salaryEntity.setStatus(Constants.IN_ACTIVE);
-                                openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
-
+                            if (!employeeSalaryEntities.isEmpty() && employeeSalaryEntities.size() != 0) {
+                                for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities) {
+                                    salaryEntity.setStatus(Constants.IN_ACTIVE);
+                                    openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
+                                }
                             }
                             openSearchOperations.partialUpdate(employee.getId(), partialUpdate, index);
                         }
@@ -203,9 +204,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                         employee.setStatus(Constants.RELIEVED);
                         log.info("updating the inactive employees to relieved");
                         List<EmployeeSalaryEntity> employeeSalaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), null);
-                        for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities){
-                            salaryEntity.setStatus(Constants.IN_ACTIVE);
-                            openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
+                        if (!employeeSalaryEntities.isEmpty() && employeeSalaryEntities.size() != 0) {
+                            for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities) {
+                                salaryEntity.setStatus(Constants.IN_ACTIVE);
+                                openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
+                            }
                         }
                         openSearchOperations.saveEntity(employee, employee.getId(), index);
                         log.info("Successfully the inactive employees to relieved");

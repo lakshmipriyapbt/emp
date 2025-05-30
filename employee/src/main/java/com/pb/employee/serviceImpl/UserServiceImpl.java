@@ -13,7 +13,9 @@ import com.pb.employee.persistance.model.EmployeeEntity;
 import com.pb.employee.persistance.model.UserEntity;
 import com.pb.employee.request.UserRequest;
 import com.pb.employee.request.UserUpdateRequest;
+import com.pb.employee.response.EmployeeResponse;
 import com.pb.employee.response.UserResponse;
+import com.pb.employee.service.EmployeeService;
 import com.pb.employee.service.UserService;
 import com.pb.employee.util.Constants;
 import com.pb.employee.util.EmailUtils;
@@ -49,6 +51,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private EmailUtils emailUtils;
 
+    @Autowired
+    private EmployeeService employeeService;
+
     @Override
     public ResponseEntity<?> registerUser(String companyName, UserRequest userRequest, HttpServletRequest request) throws EmployeeException, IOException {
         String resourceId = null;
@@ -75,6 +80,10 @@ public class UserServiceImpl implements UserService {
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_USER), HttpStatus.CONFLICT);
                 }
             }
+            EmployeeEntity employee = openSearchOperations.getEmployeeByEmailId(userRequest.getEmailId(), companyName);
+            if (employee != null){
+                userRequest.setEmployeeId(employee.getId());
+            }
 
             Object existingEntity = openSearchOperations.getById(resourceId, null, index);
             if (existingEntity != null) {
@@ -95,9 +104,7 @@ public class UserServiceImpl implements UserService {
 
             // Convert UserRequest to EmployeeEntity and then override other fields
             UserEntity userEntity = objectMapper.convertValue(userRequest, UserEntity.class);
-
             userEntity.setId(resourceId);
-            userEntity.setUserId(resourceId);
             userEntity.setPassword(password);
             userEntity.setType(Constants.USER);
             userEntity.setCompanyId(companyEntity.getId());
@@ -142,12 +149,16 @@ public class UserServiceImpl implements UserService {
             List<UserResponse> userResponses = new ArrayList<>();
             for (UserEntity user : users) {
                 UserResponse userResponse = objectMapper.convertValue(user, UserResponse.class);
-
                 if (user.getDepartment() != null) {
                     DepartmentEntity department = openSearchOperations.getDepartmentById(user.getDepartment(), null, index);
-
                     if (department != null) {
                         userResponse.setDepartmentName(department.getName());
+                    }
+                }
+                if (user.getEmployeeId() != null && !user.getEmployeeId().isEmpty()) {
+                    EmployeeResponse employee = employeeService.getEmployeeById(companyName, user.getEmployeeId());
+                    if (employee != null) {
+                        userResponse.setEmployee(employee);
                     }
                 }
                 userResponses.add(userResponse);
