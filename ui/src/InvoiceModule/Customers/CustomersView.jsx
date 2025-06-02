@@ -34,7 +34,7 @@ const CustomersView = () => {
       setIsFetching(true);
       const timer = setTimeout(() => {
         dispatch(fetchCustomers(companyId)).finally(()=>setIsFetching(false));
-      }, 1000); // Delay of 1000ms
+      }, 500); // Delay of 500ms
   
       return () => clearTimeout(timer);
     }
@@ -180,70 +180,78 @@ const handleCloseDeleteModal = () => {
     setSearch(searchTerm);
   };
 
-    if (isFetching||loading) return  <Loader/>;
   return (
     <LayOut>
       <div className="container-fluid p-0">
-        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-          <div className="col">
-            <h1 className="h3 mb-3">
-              <strong>Client View</strong>
-            </h1>
-          </div>
-          <div className="col-auto">
-            <nav aria-label="breadcrumb">
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
-                </li>
-                <li className="breadcrumb-item active">Clients</li>
-                <li className="breadcrumb-item active">Client View</li>
-              </ol>
-            </nav>
-          </div>
-        </div>
-
-        {/* Search and Filter Form */}
-        <div className="row">
-          <div className="col-12 col-lg-12 col-xxl-12 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header">
-                <div className="row">
-                  <div className="col-md-4">
-                    <Link to={"/customerRegistration"}>
-                      <button className="btn btn-primary">Add Client</button>
-                    </Link>
-                  </div>
-                  <div className="col-md-4 offset-md-4 d-flex justify-content-end">
-                    <input
-                      type="search"
-                      className="form-control"
-                      placeholder="Search..."
-                      value={search}
-                      onChange={(e) => getFilteredList(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <DataTable
-                columns={columns}
-                data={filteredData}
-                pagination
-                paginationPerPage={rowsPerPage}
-                onChangePage={(page) => setCurrentPage(page)}
-                onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
-              />
+        {(isFetching || loading) ? (
+          <div className="row">
+            <div className="col-12">
+              <Loader />
             </div>
-            <DeletePopup
-              show={showDeleteModal}
-              handleClose={handleCloseDeleteModal}
-              handleConfirm={handleDelete}
-              id={selectedItemId}
-              pageName="Client Details"
-            />
-
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+              <div className="col">
+                <h1 className="h3 mb-3">
+                  <strong>Client View</strong>
+                </h1>
+              </div>
+              <div className="col-auto">
+                <nav aria-label="breadcrumb">
+                  <ol className="breadcrumb mb-0">
+                    <li className="breadcrumb-item">
+                      <a href="/main">Home</a>
+                    </li>
+                    <li className="breadcrumb-item active">Clients</li>
+                    <li className="breadcrumb-item active">Client View</li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
+
+            {/* Search and Filter Form */}
+            <div className="row">
+              <div className="col-12 col-lg-12 col-xxl-12 d-flex">
+                <div className="card flex-fill">
+                  <div className="card-header">
+                    <div className="row">
+                      <div className="col-md-4">
+                        <Link to={"/customerRegistration"}>
+                          <button className="btn btn-primary">Add Client</button>
+                        </Link>
+                      </div>
+                      <div className="col-md-4 offset-md-4 d-flex justify-content-end">
+                        <input
+                          type="search"
+                          className="form-control"
+                          placeholder="Search..."
+                          value={search}
+                          onChange={(e) => getFilteredList(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DataTable
+                    columns={columns}
+                    data={filteredData}
+                    pagination
+                    paginationPerPage={rowsPerPage}
+                    onChangePage={(page) => setCurrentPage(page)}
+                    onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
+                  />
+                </div>
+                <DeletePopup
+                  show={showDeleteModal}
+                  handleClose={handleCloseDeleteModal}
+                  handleConfirm={handleDelete}
+                  id={selectedItemId}
+                  pageName="Client Details"
+                />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </LayOut>
   );
