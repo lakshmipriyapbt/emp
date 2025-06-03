@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import LayOut from "../../LayOut/LayOut";
-import {TdsPatchApi } from "../../Utils/Axios";
+import { TdsPatchApi } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchTds } from "../../Redux/TdsSlice";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../Utils/Loader";
 
 const getCurrentFinancialYear = () => {
@@ -17,7 +17,7 @@ const getCurrentFinancialYear = () => {
 
 const CompanyTdsView = () => {
   const dispatch = useDispatch()
-  const {tdsList, loading, error} = useSelector((state)=>state.tds)
+  const { tdsList, loading, error } = useSelector((state) => state.tds)
   const [filteredData, setFilteredData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(getCurrentFinancialYear());
   const [selectedTdsType, setSelectedTdsType] = useState("");
@@ -30,6 +30,9 @@ const CompanyTdsView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
   console.log("user role", authUser?.userRole);
 
   // Validate numeric input with max digits
@@ -260,29 +263,35 @@ const CompanyTdsView = () => {
   };
 
   useEffect(() => {
-    // Dispatch the action to fetch TDS data when component mounts
-    dispatch(fetchTds());
-  }, [dispatch]);
+     if (companyId) {
+      setIsFetching(true);
+      const timer = setTimeout(() => {
+    dispatch(fetchTds(companyId)).finally(() => setIsFetching(false));
+   }, 500); // Delay of 1500ms
   
+      return () => clearTimeout(timer); 
+    }
+  }, [dispatch, companyId]);  
+
   useEffect(() => {
     // This effect will process the Redux store data whenever tdsList or filters change
     if (tdsList && Array.isArray(tdsList)) {
-      const filteredByYear = tdsList.filter(entry => 
+      const filteredByYear = tdsList.filter(entry =>
         entry.startYear === selectedYear.split("-")[0]
       );
       const filteredByType = selectedTdsType
         ? filteredByYear.filter(entry => entry.tdsType === selectedTdsType)
         : filteredByYear;
-  
+
       setFilteredData(filteredByType);
-  
+
       // Initialize editedSlabs with current data
       const initialEditedSlabs = {};
       filteredByType.forEach(tds => {
         initialEditedSlabs[tds.id] = [...tds.persentageEntityList];
       });
       setEditedSlabs(initialEditedSlabs);
-  
+
       // Always include both 'old' and 'new' in the dropdown
       setTdsTypes(['old', 'new']);
     } else {
@@ -291,7 +300,7 @@ const CompanyTdsView = () => {
       setEditedSlabs({});
     }
   }, [tdsList, selectedYear, selectedTdsType]); // Add dependencies
-  
+
   // Handle error state from Redux
   useEffect(() => {
     if (error) {
@@ -458,20 +467,17 @@ const CompanyTdsView = () => {
     }
   };
 
-  if (loading) return  <Loader/>;
-
   return (
     <LayOut>
-      {loading && tdsList.length === 0 ? (
-        <div className="text-center py-4">
-          <div className="spinner-border text-primary" style={{ width: '3rem', height: '3rem' }} role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Loading TDS structure data...</p>
-        </div>
-      ) : (
         <div className="container-fluid p-0">
-          {/* Header Section */}
+          {(isFetching || loading) ? (
+          <div className="row">
+            <div className="col-12">
+              <Loader />
+            </div>
+          </div>
+        ) : (
+          <>
           <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
             <div className="col">
               <h1 className="h3 mb-3">
@@ -490,7 +496,7 @@ const CompanyTdsView = () => {
               </nav>
             </div>
           </div>
-  
+
           {/* Filter Section */}
           <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             <div>
@@ -543,13 +549,13 @@ const CompanyTdsView = () => {
               </div>
             </div>
           </div>
-  
+
           {/* Edit/Save Controls */}
           {authUser?.roles?.includes("company_admin") && filteredData.length > 0 && (
             <div className="d-flex justify-content-end mb-3">
               {!isEditing ? (
-                <button 
-                  className="btn btn-primary me-2" 
+                <button
+                  className="btn btn-primary me-2"
                   onClick={handleEditClick}
                   disabled={loading}
                 >
@@ -593,7 +599,7 @@ const CompanyTdsView = () => {
               )}
             </div>
           )}
-  
+
           {/* TDS Structure Cards */}
           <div className="row">
             {loading && tdsList.length > 0 ? (
@@ -615,7 +621,7 @@ const CompanyTdsView = () => {
                         FY: {tds.startYear}-{tds.endYear}
                       </div>
                     </div>
-  
+
                     <div className="card-body pt-0">
                       <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6>TDS Slabs</h6>
@@ -626,7 +632,7 @@ const CompanyTdsView = () => {
                           </small>
                         )}
                       </div>
-  
+
                       {editedSlabs[tds.id]?.length > 0 ? (
                         <div className="table-responsive">
                           <table className="table table-sm">
@@ -742,7 +748,7 @@ const CompanyTdsView = () => {
                           {loading ? 'Loading slabs...' : 'No slabs available.'}
                         </div>
                       )}
-  
+
                       {isEditing && (
                         <button
                           className="btn btn-sm btn-primary mt-2"
@@ -768,8 +774,8 @@ const CompanyTdsView = () => {
             ) : (
               <div className="col-12 d-flex justify-content-center">
                 <div className="alert alert-info text-center">
-                  {loading 
-                    ? 'Loading TDS data...' 
+                  {loading
+                    ? 'Loading TDS data...'
                     : selectedTdsType
                       ? `No TDS structure found for ${selectedYear} with type ${selectedTdsType}.`
                       : `No TDS structure found for ${selectedYear}.`}
@@ -777,7 +783,7 @@ const CompanyTdsView = () => {
               </div>
             )}
           </div>
-  
+
           {/* Add Slab Modal */}
           {showAddSlabForm && (
             <div
@@ -876,8 +882,9 @@ const CompanyTdsView = () => {
               </div>
             </div>
           )}
+          </>
+        )}
         </div>
-      )}
     </LayOut>
   );
 };
