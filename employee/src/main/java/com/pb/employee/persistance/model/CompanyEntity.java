@@ -62,6 +62,8 @@ public class CompanyEntity implements Entity{
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String shortName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String status;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String type;
 
 }

@@ -3,6 +3,8 @@ import { Route, Routes} from 'react-router';
 import EmsLogin from '../Login/EmsLogin';
 import CompanyLogin from '../Login/CompanyLogin';
 import CompanyRegistration from '../EMSModule/Company/CompanyRegistration';
+import AnonymousCmpRegistration from '../EMSModule/Company/AnonymousCmpRegistration';
+
 import Body from '../LayOut/Body';
 import CompanyView from '../EMSModule/Company/CompanyView';
 import Department from '../CompanyModule/Department/Department';
@@ -177,6 +179,7 @@ const Routing = () => {
       <Route path='/profile' element={<Profile />} />
       <Route path='/main' element={<Body />} />
       <Route path='/forgotPassword' element={<ForgotPassword/>}/>
+      <Route path='/anonymouseCmpRegistration' element={<AnonymousCmpRegistration/>}/>
       <Route path='/forbidden' element={<ForbiddenPage/>}/>
 
 
