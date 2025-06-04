@@ -17145,7 +17145,7 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 .side-nav {
 	position:absolute;
 	transition: opacity 0.35s ease-in-out;
-	width: 100%;
+	width:100%;
     background-color: #fbfbff;
 	height: 100vh;
 	opacity: 1;
@@ -17160,6 +17160,7 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   }
   
 .side-nav .nav-link {
+	width: 235px; /* ✅ fixed width */
 	font-size: 1.1rem;
 	display: flex;
 	align-items: center;
@@ -17170,15 +17171,14 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	text-decoration: none;
 	margin-bottom: 8px; /* ⬅️ Add small gap between items */
 	border-radius: 8px; /* ⬅️ Rounded corners look nice when items are separated */
-	transition: background-color 1.0s ease;
-  }
+	transition: background-color 0.3s ease-in-out;
+}
   
   .side-nav .nav-link:hover,
   .side-nav .nav-link.active {
 	background-color: #3f4e6c; /* Slightly lighter color when hovered/active */
 	color: #fcf8e3;
-	width: 225px;
-	margin-left: 10px;
+	width: 235px;
   }
   
   .side-nav .nav-link i {
