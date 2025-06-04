@@ -48,15 +48,23 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
+    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) throws EmployeeException {
         List<CompanyEntity> companyEntity = null;
         EmployeeEntity employee = null;
         TemplateEntity templateNo ;
         String index = ResourceIdUtils.generateCompanyIndex(experienceLetterFieldsRequest.getCompanyName());
 
         try {
-            templateNo=openSearchOperations.getCompanyTemplates(experienceLetterFieldsRequest.getCompanyName());
-            if (templateNo ==null){
+            if(!experienceLetterFieldsRequest.isDraft()) {
+                CompanyEntity entity = openSearchOperations.getCompanyByCompanyName(experienceLetterFieldsRequest.getCompanyName(), Constants.INDEX_EMS);
+                if (entity.getImageFile() == null) {
+                    log.error("Company not found: {}", index);
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE)), HttpStatus.NOT_FOUND);
+                }
+            }
+
+            templateNo = openSearchOperations.getCompanyTemplates(experienceLetterFieldsRequest.getCompanyName());
+            if (templateNo == null) {
                 log.error("company templates are not exist ");
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_GET_TEMPLATE), experienceLetterFieldsRequest.getCompanyName()),
                         HttpStatus.NOT_FOUND);
@@ -83,9 +91,9 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPERIENCE_DATE_NOT_VALID), experienceLetterFieldsRequest.getEmployeeId()), HttpStatus.NOT_FOUND);
             }
 
-            DepartmentEntity departmentEntity =null;
+            DepartmentEntity departmentEntity = null;
             DesignationEntity designationEntity = null;
-            if (employee.getDepartment() !=null && employee.getDesignation() !=null) {
+            if (employee.getDepartment() != null && employee.getDesignation() != null) {
                 departmentEntity = openSearchOperations.getDepartmentById(employee.getDepartment(), null, index);
                 designationEntity = openSearchOperations.getDesignationById(employee.getDesignation(), null, index);
                 EmployeeUtils.unmaskEmployeeProperties(employee, departmentEntity, designationEntity);
@@ -131,7 +139,8 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
             String templateName = switch (Integer.parseInt(templateNo.getExperienceTemplateNo())) {
                 case 1 -> Constants.EXPERIENCE_LETTER;
                 case 2 -> Constants.EXPERIENCE_LETTER_TWO;
-                default -> throw new IllegalArgumentException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_TEMPLATE_NUMBER));
+                default ->
+                        throw new IllegalArgumentException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_TEMPLATE_NUMBER));
             };
 
             // Fetch FreeMarker template
@@ -156,6 +165,9 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             // Return response with PDF content
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        }catch (EmployeeException exception){
+            log.error("Exception occurred while generating service  latter{}", exception.getMessage());
+            throw  exception;
 
         } catch (Exception e) {
             log.error("Error generating service letter: {}", e.getMessage(), e);

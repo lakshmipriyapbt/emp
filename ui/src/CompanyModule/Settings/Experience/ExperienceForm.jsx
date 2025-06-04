@@ -29,6 +29,7 @@ const ExperienceForm = () => {
   } = useForm({ mode: "onChange" });
   const { authUser, companyData } = useAuth();
   const [emp, setEmp] = useState([]);
+  const [downloadError, setDownloadError] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [noticePeriod, setNoticePeriod] = useState(0);
   const [previewData, setPreviewData] = useState(null);
@@ -206,16 +207,39 @@ const ExperienceForm = () => {
   const handleConfirmSubmission = async () => {
     try {
       const success = await ExperienceFormPostApi(submissionData);
-      if (success) {
-        setShowPreview(true);
-        reset();
-      }
-    } catch (error) {
-      console.error("Error downloading the PDF:", error);
-      handleError(error);
-    }
-  };
-
+       if (success) {
+            setShowPreview(true);
+            reset();
+            setShowPreview(false);
+            toast.success("Offer Letter downloaded successfully");
+          } else {
+            toast.error("Failed to download Offer Letter");
+            setDownloadError(true);
+          }
+        } catch (err) {
+          console.error("Error:", err);
+      
+          if (err.response && err.response.data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const errorJson = JSON.parse(reader.result);
+                const errorMessage = errorJson?.error?.message || "Failed to download  Experience Letter";
+                toast.error(errorMessage);
+              } catch (e) {
+                toast.error("Unexpected error while parsing server response");
+              }
+              setDownloadError(true);
+            };
+            reader.readAsText(err.response.data);
+          } else {
+            const fallbackMessage = err?.response?.data?.error?.message || "Failed to save or download Intern Offer Letter";
+            toast.error(fallbackMessage);
+            setDownloadError(true);
+          }
+        }
+   };
+    
   const handleError = (errors) => {
     if (errors.response) {
       const status = errors.response.status;

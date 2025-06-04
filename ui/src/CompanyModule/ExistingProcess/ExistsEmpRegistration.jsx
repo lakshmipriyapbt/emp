@@ -203,10 +203,11 @@ const ExistsEmpRegistration = () => {
 
   const handleConfirmSubmission = async () => {
     const employeeId = previewData.id;
+    const isDraft = previewData.draft;
 
     try {
       // Step 1: First, make the API call to submit the form data (RelievingFormPostApi)
-      const response = await RelievingFormPostApi(employeeId, submissionData);
+      const response = await RelievingFormPostApi(employeeId, submissionData,isDraft);
 
       // Display success message for form submission
       toast.success(response.data.message);

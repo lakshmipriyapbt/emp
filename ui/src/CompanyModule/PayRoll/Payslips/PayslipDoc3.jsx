@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Download } from "react-bootstrap-icons";
+import { useForm } from 'react-hook-form';
 import {
   EmployeeGetApiById,
   EmployeePaySlipDownloadById,
@@ -14,6 +15,10 @@ const PayslipDoc3 = () => {
   const [payslipData, setPayslipData] = useState(null);
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const { reset } = useForm();
+  const [showPreview, setShowPreview] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
   const location = useLocation();
   const navigate=useNavigate();
   const queryParams = new URLSearchParams(location.search);
@@ -62,20 +67,38 @@ const PayslipDoc3 = () => {
           templateNumber
         );
         if (success) {
-          toast.success("Payslip downloaded successfully");
+          setShowPreview(true);
+          reset();
+          setShowPreview(false);
+          toast.success("Offer Letter downloaded successfully");
         } else {
-          toast.error("Failed to download payslip");
+          toast.error("Failed to download Offer Letter");
+          setDownloadError(true);
         }
       } catch (err) {
-        console.error("Error downloading payslip:", err);
-        toast.error("Failed to download payslip");
+        console.error("Error:", err);
+    
+        if (err.response && err.response.data instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorJson = JSON.parse(reader.result);
+              const errorMessage = errorJson?.error?.message || "Failed to download Intern Offer Letter";
+              toast.error(errorMessage);
+            } catch (e) {
+              toast.error("Unexpected error while parsing server response");
+            }
+            setDownloadError(true);
+          };
+          reader.readAsText(err.response.data);
+        } else {
+          const fallbackMessage = err?.response?.data?.error?.message || "Failed to save or download Intern Offer Letter";
+          toast.error(fallbackMessage);
+          setDownloadError(true);
+        }
       }
-    } else {
-      console.error("Employee ID or Payslip ID is missing");
-      toast.error("Employee ID or Payslip ID is missing");
     }
   };
-
 
   if (loading) {
     return <div>Loading...</div>;

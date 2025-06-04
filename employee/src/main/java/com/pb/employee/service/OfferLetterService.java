@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 public interface OfferLetterService {
 
 
-    ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request);
+    ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request) throws EmployeeException;
 
     ResponseEntity<byte[]> downloadInternShipOfferLetter(InternshipOfferLetterRequest internshipOfferLetterRequest, HttpServletRequest request) throws EmployeeException;
 }

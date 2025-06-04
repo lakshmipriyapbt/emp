@@ -267,20 +267,39 @@ const OfferLetterPreview = () => {
       draft: previewData.draft
     };
 
-    try {
-      const success = await OfferLetterDownload(payload);
-      if (success) {
-        toast.success("Offer Letter downloaded successfully");
-      } else {
-        toast.error("Failed to download Offer Letter");
-        setError(true);
-      }
-    } catch (err) {
-      console.error("Error:", err.response ? err.response.data : err);
-      toast.error("Failed to save or download Offer Letter");
+ try {
+    const success = await OfferLetterDownload(payload);
+    
+    if (success) {
+      toast.success("Offer Letter downloaded successfully");
+    } else {
+      toast.error("Failed to download Offer Letter");
       setError(true);
     }
-  };
+
+  } catch (err) {
+    console.error("Error:", err);
+
+    if (err.response && err.response.data instanceof Blob) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const errorJson = JSON.parse(reader.result);
+          const errorMessage = errorJson?.error?.message || "Failed to download Offer Letter";
+          toast.error(errorMessage);
+        } catch (e) {
+          toast.error("Unexpected error while parsing server response");
+        }
+        setError(true);
+      };
+      reader.readAsText(err.response.data);
+    } else {
+      const fallbackMessage = err?.response?.data?.error?.message || "Failed to save or download Offer Letter";
+      toast.error(fallbackMessage);
+      setError(true);
+    }
+  }
+};
 
   // const generateRefNo = () => {
   //   const randomNumber = Math.floor(100 + Math.random() * 900); // Ensures 3-digit number (100-999)

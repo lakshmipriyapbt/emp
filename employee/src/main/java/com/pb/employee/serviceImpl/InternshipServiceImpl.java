@@ -41,7 +41,7 @@ public class InternshipServiceImpl implements InternshipService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) {
+    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) throws EmployeeException {
 
         CompanyEntity entity;
         Entity companyEntity;
@@ -55,6 +55,12 @@ public class InternshipServiceImpl implements InternshipService {
             if (entity == null) {
                 log.error("Company not found: {}", internshipRequest.getCompanyId());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), internshipRequest.getCompanyId()), HttpStatus.NOT_FOUND);
+            }
+            if(!internshipRequest.isDraft()) {
+                if (entity.getImageFile() == null) {
+                    log.error("Company not found: {}", internshipRequest.getCompanyId());
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE), internshipRequest.getCompanyId()), HttpStatus.NOT_FOUND);
+                }
             }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
 
@@ -112,6 +118,10 @@ public class InternshipServiceImpl implements InternshipService {
 
             // Return the PDF as the HTTP response
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        }catch (EmployeeException exception){
+            log.error("Exception occurred while generating InternShip  latter{}", exception.getMessage());
+            throw  exception;
 
         } catch (Exception e) {
             log.error("Error occurred while generating appraisal letter: {}", e.getMessage(), e);
