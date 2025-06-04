@@ -17,7 +17,7 @@ import java.util.List;
 @Component
 public class CompanyUtils {
 
-    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword) {
+    public static Entity maskCompanyProperties(CompanyRequest companyRequest, String id, String defaultPassword, String status) {
         String hra = null, pan = null, pf = null, spa = null, ta = null, regNo = null, mobileNo=null, landNo= null, gstNo=null, cinNo=null, pmNo=null, psmailId=null;
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -70,6 +70,9 @@ public class CompanyUtils {
         if(companyRequest.getCinNo() != null) {
             cinNo = Base64.getEncoder().encodeToString(companyRequest.getCinNo().toString().getBytes());
             entity.setCinNo(cinNo);
+        }
+        if (status != null && !status.isEmpty()){
+            entity.setStatus(status);
         }
 
         entity.setId(id);

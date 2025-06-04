@@ -30,7 +30,7 @@ const AccountsView = () => {
       setIsFetching(true);
       const timer = setTimeout(() => {
         dispatch(fetchBanks(companyId)).finally(() => setIsFetching(false));
-      }, 1500); // Delay of 1500ms
+      }, 500); // Delay of 1500ms
   
       return () => clearTimeout(timer); 
     }
@@ -162,11 +162,18 @@ const handleCloseDeleteModal = () => {
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
   };
-  if (isFetching||loading) return  <Loader/>;
 
   return (
     <LayOut>
       <div className="container-fluid p-0">
+        {(isFetching || loading) ? (
+          <div className="row">
+            <div className="col-12">
+              <Loader />
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
             <h1 className="h3 mb-3">
@@ -227,6 +234,8 @@ const handleCloseDeleteModal = () => {
 
           </div>
         </div>
+        </>
+        )}
       </div>
     </LayOut>
   );

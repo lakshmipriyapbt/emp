@@ -102,6 +102,7 @@ public class LoginServiceImpl implements LoginService {
             }else {
                 employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
                 if (employee != null && employee.getPassword() != null) {
+                    validateEmployee(employee);
                     password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
                     if (request.getPassword().equals(password)) {
                         log.debug("Successfully logged into ems portal for {}", request.getUsername());
@@ -117,6 +118,8 @@ public class LoginServiceImpl implements LoginService {
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                         HttpStatus.FORBIDDEN);
             }
+        }catch (IdentityException identityException){
+            throw identityException;
         } catch (Exception e) {
             log.error("Invalid creds {}", e.getMessage(), e);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
@@ -148,6 +151,18 @@ public class LoginServiceImpl implements LoginService {
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
+    }
+
+    private void validateEmployee(EmployeeEntity employee) throws IdentityException {
+        if (employee.getStatus().equalsIgnoreCase(Constants.PENDING)){
+            log.error("Employee is not active");
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.COMPANY_UNDER_REVIEW),
+                    HttpStatus.FORBIDDEN);
+        }else if (!employee.getStatus().equalsIgnoreCase(Constants.ACTIVE)){
+            log.error("Employee is not active");
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.EMPLOYEE_INACTIVE),
+                    HttpStatus.FORBIDDEN);
+        }
     }
 
     private void sendOtpByEmail(String emailId, Long otp) {

@@ -13,10 +13,13 @@ import java.io.IOException;
 import java.util.List;
 
 public interface CompanyService {
-    ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException;
+    ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request, String status) throws EmployeeException;
     ResponseEntity<?> getCompanies( HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> getCompanyById(String companyId,  HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> updateCompanyById(String companyId, CompanyUpdateRequest companyUpdateRequest) throws IOException, EmployeeException;
+
+    ResponseEntity<?> updateCompanyStatus(String companyId, String status) throws EmployeeException, IOException;
+
     ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException;
 
     ResponseEntity<?> updateCompanyStampImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException;
