@@ -9,6 +9,7 @@ import calendarReducer from './CalendarSlice';
 import TdsReducer from './TdsSlice'
 import departmentReducer from './DepartmentSlice'
 import designationReducer from './DesignationSlice'
+import UserReducer from './UserSlice'
 
 const store = configureStore({
   reducer: {
@@ -21,7 +22,8 @@ const store = configureStore({
     calendar:calendarReducer,
     tds:TdsReducer,
     departments:departmentReducer,
-    designations:designationReducer
+    designations:designationReducer,
+    users:UserReducer
   },
 });
 
