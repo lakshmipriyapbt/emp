@@ -26,14 +26,13 @@ const CompanyTdsView = () => {
   const [editedSlabs, setEditedSlabs] = useState({});
   const [showAddSlabForm, setShowAddSlabForm] = useState(false);
   const [newSlab, setNewSlab] = useState({ min: "", max: "", taxPercentage: "" });
-  const { authUser } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const [isFetching, setIsFetching] = useState(true); // Local loading state
   const { employee } = useAuth();
   const companyId = employee?.companyId;
-  console.log("user role", authUser?.userRole);
+  const { userRole } = useSelector((state) => state.auth);
 
   // Validate numeric input with max digits
   const validateNumericInput = (value, maxDigits) => {
@@ -551,7 +550,7 @@ const CompanyTdsView = () => {
           </div>
 
           {/* Edit/Save Controls */}
-          {authUser?.roles?.includes("company_admin") && filteredData.length > 0 && (
+          {userRole?.includes("company_admin") && filteredData.length > 0 && (
             <div className="d-flex justify-content-end mb-3">
               {!isEditing ? (
                 <button
