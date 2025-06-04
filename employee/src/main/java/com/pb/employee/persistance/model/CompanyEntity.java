@@ -18,7 +18,7 @@ public class CompanyEntity implements Entity{
     private String companyName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String emailId;
-//    password is not mandatory
+    //    password is not mandatory
     private String password;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String companyAddress;

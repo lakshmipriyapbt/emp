@@ -244,6 +244,45 @@ public class CompanyServiceImpl implements CompanyService {
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
+    @Override
+    public ResponseEntity<?> updateCompanyStatus(String companyId, String status) throws EmployeeException, IOException {
+
+        CompanyEntity companyEntity;
+        List<EmployeeEntity> employees;
+        try {
+            companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
+                        HttpStatus.BAD_REQUEST);
+            }
+            employees = openSearchOperations.getCompanyEmployees(companyEntity.getShortName());
+            Optional<EmployeeEntity> companyAdminOpt = employees.stream()
+                    .filter(emp -> Constants.ADMIN.equalsIgnoreCase(emp.getEmployeeType()))
+                    .findFirst();
+
+            if (status != null) {
+                companyEntity.setStatus(status);
+                if (!companyAdminOpt.isEmpty()) {
+                    String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
+                    companyAdminOpt.get().setStatus(status);
+                    openSearchOperations.saveEntity(companyAdminOpt.get(), companyAdminOpt.get().getId(), index);
+                }
+                openSearchOperations.saveEntity(companyEntity, companyId, Constants.INDEX_EMS);
+            }
+        }catch (EmployeeException e){
+            log.error("Exception while updating the company status");
+            throw e;
+        }catch (Exception exception){
+            log.error("Exception while updating the compamy status {}, {}", companyId, exception);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPDATE_STATUS),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(
+                ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+
+    }
     @Override
     public ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {
         CompanyEntity user;
