@@ -169,8 +169,7 @@ const UserForm = ({ onSubmit, defaultValues = {}, isEdit = false }) => {
       {showEmployee && (
         <>
           <hr />
-          <h5 className="text-dark">Employee Details</h5>
-
+          <h5 className="text-dark m-2">Employee Details</h5>
           {employee ? (
             <>
               <div className="row">
