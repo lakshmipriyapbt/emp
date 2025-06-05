@@ -1,5 +1,6 @@
 package com.pb.employee.controller;
 
+import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.InternshipRequest;
 import com.pb.employee.service.InternshipService;
 import com.pb.employee.util.Constants;
@@ -29,7 +30,7 @@ public class InternshipController {
             description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                   @RequestBody @Valid InternshipRequest internshipRequest,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request) throws EmployeeException {
         return internshipService.downloadInternship(internshipRequest, request);
     }
 
