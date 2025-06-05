@@ -109,6 +109,11 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             if (!experienceLetterFieldsRequest.isDraft() && !companyEntity.getFirst().getImageFile().isEmpty()) {
                 String imageUrl = companyEntity.getFirst().getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
