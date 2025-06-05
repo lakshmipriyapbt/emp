@@ -1,6 +1,6 @@
 "use strict";
 import Swiper from 'swiper';
-import { WOW } from 'wowjs';
+import WOW  from 'wow.js';
 
 
 document.addEventListener("DOMContentLoaded", function () {
