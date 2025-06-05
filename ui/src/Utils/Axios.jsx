@@ -632,12 +632,10 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
       responseType: 'blob', // Keep this to handle binary data
       // Remove Accept header or set it to application/json
       headers: {
-        'Accept': 'application/pdf, application/json', // Change from application/pdf to application/json
+        'Accept': 'application/json', // Change from application/pdf to application/json
       }
     });
 
-    const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
      const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -647,7 +645,6 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     a.remove();
     window.URL.revokeObjectURL(url);
     return true;
-   }
   } catch (error) {
     console.error('Download error:', error);
     throw error;
@@ -779,11 +776,9 @@ export const RelievingLetterDownload = async (employeeId, draft, payload) => {
     const response = await axiosInstance.post(`/${company}/employee/${employeeId}/download?draft=${draft}`,payload, {
       responseType: 'blob',
       headers: {
-        'Accept': 'application/json , application/pdf',
+        'Accept': 'application/pdf',
       }
     });
-    const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -793,7 +788,6 @@ export const RelievingLetterDownload = async (employeeId, draft, payload) => {
     a.remove();
     window.URL.revokeObjectURL(url);
     return true;
-   }
   } catch (error) {
     console.error('Download error:', error);
     throw error;
@@ -806,12 +800,11 @@ export const ExperienceFormPostApi = async (payload) => {
       {
         responseType: 'blob', // Handle binary response for file download
         headers: {
-          'Accept': 'application/json , application/pdf',      
+          'Content-Type': 'application/json', // Correct content type
+          'Accept': 'application/pdf',        // Expected response format
         },
       }
     );
-     const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -821,7 +814,6 @@ export const ExperienceFormPostApi = async (payload) => {
     a.remove();
     window.URL.revokeObjectURL(url);
     return true;
-     }
   } catch (error) {
     console.error('Download error:', error);
     throw error;
@@ -833,11 +825,9 @@ export const OfferLetterDownload = async (payload) => {
     const response = await axiosInstance.post(`/offerletter/upload`,payload, {
       responseType: 'blob', 
       headers: {
-        'Accept': 'application/pdf, application/json', 
+        'Accept': 'application/pdf', 
       }
     });
-    const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -848,7 +838,6 @@ export const OfferLetterDownload = async (payload) => {
     window.URL.revokeObjectURL(url);
 
     return true; 
-   }
 
   } catch (error) {
     console.error('Download error:', error);
@@ -861,11 +850,9 @@ export const InternOfferLetterDownload = async (payload) => {
     const response = await axiosInstance.post(`/internShipLetter/download`,payload, {
       responseType: 'blob', 
       headers: {
-        'Accept': 'application/pdf, application/json',
+        'Accept': 'application/pdf', 
       }
     });
-    const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -876,7 +863,6 @@ export const InternOfferLetterDownload = async (payload) => {
     window.URL.revokeObjectURL(url);
 
     return true; 
-   }
 
   } catch (error) {
     console.error('Download error:', error);
@@ -891,11 +877,10 @@ export const InternshipCertificateDownload= async (payload) => {
     const response = await axiosInstance.post(`/internship/upload`,payload, {
       responseType: 'blob', // Handle binary response for file download
       headers: {
-         'Accept': 'application/pdf, application/json',
+        'Content-Type': 'application/json', // Correct content type
+        'Accept': 'application/pdf',        // Expected response format
       },
     });
-    const contentType = response.headers['content-type'];
-     if (contentType && contentType.includes('application/pdf')) {
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
@@ -905,7 +890,6 @@ export const InternshipCertificateDownload= async (payload) => {
     a.remove();
     window.URL.revokeObjectURL(url);
     return true; 
-   }
   } catch (error) {
     console.error('Download error:', error);
     throw error; 

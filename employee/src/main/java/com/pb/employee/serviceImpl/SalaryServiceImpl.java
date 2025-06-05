@@ -161,7 +161,7 @@ public class SalaryServiceImpl implements SalaryService {
     @Override
     public List<EmployeeSalaryResPayload> getEmployeeSalary(String companyName, String employeeId) throws EmployeeException {
         try {
-            List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName, employeeId);
+           List<EmployeeSalaryResPayload> employeeSalaryResPayload = validateEmployeesSalaries(companyName, employeeId);
             if (employeeId == null) {
                 return employeeSalaryResPayload.stream().filter(employeeSalaryRes -> employeeSalaryRes.getStatus().equalsIgnoreCase(Constants.ACTIVE)).collect(Collectors.toList());
             }
@@ -337,15 +337,15 @@ public class SalaryServiceImpl implements SalaryService {
             }
             String index = ResourceIdUtils.generateCompanyIndex(companyName);
             for (EmployeeSalaryEntity employeeSalaryEntity : allSalaries){
-                EmployeeUtils.unMaskEmployeeSalaryProperties(employeeSalaryEntity);
-                EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeSalaryEntity.getEmployeeId(), null, index);
+                    EmployeeUtils.unMaskEmployeeSalaryProperties(employeeSalaryEntity);
+                    EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeSalaryEntity.getEmployeeId(), null, index);
 
-                EmployeeSalaryResPayload resPayload = new EmployeeSalaryResPayload();
-                BeanUtils.copyProperties(employeeSalaryEntity, resPayload);
-                resPayload.setEmployeeName(employee.getFirstName() + " " + employee.getLastName());
-                resPayload.setEmployeeCreatedId(employee.getEmployeeId());
+                    EmployeeSalaryResPayload resPayload = new EmployeeSalaryResPayload();
+                    BeanUtils.copyProperties(employeeSalaryEntity, resPayload);
+                    resPayload.setEmployeeName(employee.getFirstName() + " " + employee.getLastName());
+                    resPayload.setEmployeeCreatedId(employee.getEmployeeId());
 
-                employeeSalaryResPayloads.add(resPayload);
+                    employeeSalaryResPayloads.add(resPayload);
 
             }
             return employeeSalaryResPayloads;

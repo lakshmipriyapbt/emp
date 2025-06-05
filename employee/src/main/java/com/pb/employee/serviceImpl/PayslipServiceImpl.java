@@ -471,10 +471,6 @@ public class PayslipServiceImpl implements PayslipService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_ALREADY_EXISTS), companyName),
                         HttpStatus.CONFLICT);
             }
-            if (company.getImageFile() == null) {
-                log.error("Company not found: {}", index);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE)), HttpStatus.NOT_FOUND);
-            }
             entity = openSearchOperations.getPayslipById(payslipId, null, index);
             PayslipUtils.unmaskEmployeePayslip(entity);
             Entity companyEntity = CompanyUtils.unmaskCompanyProperties(company, request);

@@ -86,7 +86,7 @@ public class RelievingController {
                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                   HttpServletRequest request,
                                                   @PathVariable String companyName,
-                                                  @PathVariable String employeeId, @RequestParam(required = false) boolean draft) throws EmployeeException {
+                                                  @PathVariable String employeeId, @RequestParam(required = false) boolean draft) {
         return relievingService.downloadRelievingLetter(request, companyName, employeeId, draft);
     }
 }

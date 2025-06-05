@@ -183,40 +183,17 @@ const InternShipForm = () => {
   const handleConfirmSubmission = async () => {
     try {
       const success = await InternshipCertificateDownload(submissionData);
-     if (success) {
-           setShowPreview(true);
-           reset();
-           setShowPreview(false);
-           toast.success("Intern Offer Letter downloaded successfully");
-         } else {
-           toast.error("Failed to download Intern Offer Letter");
-           setError(true);
-         }
-       } catch (err) {
-         console.error("Error:", err);
-     
-         if (err.response && err.response.data instanceof Blob) {
-           const reader = new FileReader();
-           reader.onload = () => {
-             try {
-               const errorJson = JSON.parse(reader.result);
-               const errorMessage = errorJson?.error?.message || "Failed to download Intern Offer Letter";
-               toast.error(errorMessage);
-             } catch (e) {
-               toast.error("Unexpected error while parsing server response");
-             }
-             setError(true);
-           };
-           reader.readAsText(err.response.data);
-         } else {
-           const fallbackMessage = err?.response?.data?.error?.message || "Failed to save or download Intern Offer Letter";
-           toast.error(fallbackMessage);
-           setError(true);
-         }
-       }
-     };
-     
-     
+      if (success) {
+        toast.success("InternShip Letter Downloaded Successfully");
+        setShowPreview(false);
+        reset();
+      }
+    } catch (error) {
+      console.error("Error downloading the PDF:", error);
+      handleError(error);
+    }
+  };
+
   const handleError = (errors) => {
     if (errors.response) {
       const status = errors.response.status;

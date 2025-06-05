@@ -29,7 +29,7 @@ public class OfferLetterController {
     public ResponseEntity<byte[]> downloadOfferLetter(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                       @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                       @RequestBody @Valid OfferLetterRequest offerLetterRequest,
-                                                      HttpServletRequest request) throws EmployeeException {
+                                                      HttpServletRequest request) {
         return offerLetterService.downloadOfferLetter(offerLetterRequest,request);
     }
 

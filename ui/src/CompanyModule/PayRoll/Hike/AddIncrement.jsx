@@ -51,7 +51,6 @@ const AddIncrement = () => {
   const salaryId = queryParams.get("salaryId");
   const id = queryParams.get("employeeId");
   const [salaryConfigurationId, setSalaryConfigurationId] = useState("");
-  const [salaryError, setSalaryError] = useState("");
   const [employes, setEmployes] = useState([]);
   const [salaryStructure, setSalaryStructure] = useState(0);
   const [allowances, setAllowances] = useState({});
@@ -956,57 +955,36 @@ const AddIncrement = () => {
     };
     try {
       // First, call the EmployeeSalaryPostApi to update salary
-      setLoading(true);
-      // Call EmployeeSalaryPostApi and handle response
-      const salaryResponse = await EmployeeSalaryPostApi(employeeId, dataToSubmit);
-      // Check if EmployeeSalaryPostApi returned an error
-      if (salaryResponse?.error?.message) {
-        toast.error(salaryResponse.error.message);
-        setLoading(false);
-        return;
-      }
+      setLoading(true); // Show loader before the delay
+      await EmployeeSalaryPostApi(employeeId, dataToSubmit);
       // Introduce a delay before calling AppraisalLetterDownload
       setTimeout(async () => {
         try {
-          // Call AppraisalLetterDownload and handle response
-          const appraisalResponse = await AppraisalLetterDownload(payload);
-          // Check if AppraisalLetterDownload returned an error
-          if (appraisalResponse?.error?.message) {
-            toast.error(appraisalResponse.error.message);
-          } else {
-            // Success case
-            toast.success(
-              "Employee Salary Updated and Appraisal Letter Generated Successfully"
-            );
-            setError("");
-            setShowFields(false);
-            navigate("/employeeview");
-          }
+          // Now, after the delay, call the AppraisalLetterDownload API
+          await AppraisalLetterDownload(payload);
+
+          // If both API calls succeed
+          toast.success(
+            "Employee Salary Updated and Appraisal Letter Generated Successfully"
+          );
+          setError(""); // Clear error message on success
+          setShowFields(false); // Optionally hide fields after success
+          navigate("/employeeview"); // Navigate to the employee view page
         } catch (err) {
-          console.error("Error in AppraisalLetterDownload:", err);
-          // Handle axios error response
-          if (err.response?.data?.error?.message) {
-            toast.error(err.response.data.error.message);
-          } else if (err.message) {
-            toast.error(err.message);
-          } else {
-            toast.error("Failed to generate appraisal letter");
-          }
+          console.error(
+            "Error occurred while downloading the appraisal letter:",
+            err
+          );
+          toast.error("Failed to generate appraisal letter");
         } finally {
-          setLoading(false);
+          setLoading(false); // Hide loader after the delay and download process
         }
-      }, 2000);
+      }, 2000); // Delay in milliseconds (2000 ms = 2 seconds)
     } catch (err) {
-      console.error("Error in EmployeeSalaryPostApi:", err);
-      // Handle axios error response
-      if (err.response?.data?.error?.message) {
-        toast.error(err.response.data.error.message);
-      } else if (err.message) {
-        toast.error(err.message);
-      } else {
-        toast.error("Failed to update salary");
-      }
-      setLoading(false);
+      // Handle any errors that occur during the EmployeeSalaryPostApi call
+      console.error("Error occurred:", err);
+      toast.error("Failed to update salary");
+      setLoading(false); // Hide loader if error occurs
     }
   };
 

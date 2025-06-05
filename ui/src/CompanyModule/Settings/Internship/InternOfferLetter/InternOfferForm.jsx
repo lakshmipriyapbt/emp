@@ -19,7 +19,6 @@ const InternOfferForm = () => {
     reset,
   } = useForm({ mode: "onChange" });
 
-  const [error, setError] = useState(false);
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -70,10 +69,10 @@ const InternOfferForm = () => {
       setSelectedHR({
         hrId: "Company Admin",
         hrName: "Company Admin",
-        hrEmail: company?.mailId || "N/A",
+        hrEmail: company?.emailId || "N/A",
       });
     } else {
-      const selectedHRPerson = hrEmployees.find((emp) => String(emp.id) === selectedId);
+      const selectedHRPerson = hrEmployees.find((emp) => String(emp?.id) === selectedId);
 
       if (selectedHRPerson) {
         setSelectedHR({
@@ -191,7 +190,7 @@ const InternOfferForm = () => {
       setSelectedHR({
         hrId: "Company Admin",
         hrName: "Company Admin",
-        hrEmail: company?.emailId || "N/A",
+        hrEmail:  company?.emailId || company?.mailId || "N/A", 
       });
     }
   }, [employees, company]);
@@ -257,44 +256,61 @@ const InternOfferForm = () => {
     console.log("preview:", formData);
     setShowPreview(true);
   };
-  
   const handleConfirmSubmission = async () => {
-  try {
-    const success = await InternOfferLetterDownload(previewData);
-
-    if (success) {
-      setShowPreview(true);
-      reset();
-      setShowPreview(false);
-      toast.success("Intern Offer Letter downloaded successfully");
-    } else {
-      toast.error("Failed to download Intern Offer Letter");
-      setError(true);
+    try {
+      const success = await InternOfferLetterDownload(previewData);
+      if (success) {
+        setShowPreview(true);
+        reset();
+        setShowPreview(false)
+      }
+    } catch (error) {
+      console.error("Error downloading the PDF:", error);
+      handleError(error);
     }
-  } catch (err) {
-    console.error("Error:", err);
+  };
 
-    if (err.response && err.response.data instanceof Blob) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const errorJson = JSON.parse(reader.result);
-          const errorMessage = errorJson?.error?.message || "Failed to download Intern Offer Letter";
-          toast.error(errorMessage);
-        } catch (e) {
-          toast.error("Unexpected error while parsing server response");
-        }
-        setError(true);
-      };
-      reader.readAsText(err.response.data);
+  const handleError = (errors) => {
+    if (errors.response) {
+      const status = errors.response.status;
+      let errorMessage = "";
+
+      switch (status) {
+        case 403:
+          errorMessage = "Session Timeout!";
+          navigate("/");
+          break;
+        case 404:
+          errorMessage = "Resource Not Found!";
+          break;
+        case 406:
+          errorMessage = "Invalid Details!";
+          break;
+        case 500:
+          errorMessage = "Server Error!";
+          break;
+        default:
+          errorMessage = "An Error Occurred!";
+          break;
+      }
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        transition: Bounce,
+        hideProgressBar: true,
+        theme: "colored",
+        autoClose: 3000,
+      });
     } else {
-      const fallbackMessage = err?.response?.data?.error?.message || "Failed to save or download Intern Offer Letter";
-      toast.error(fallbackMessage);
-      setError(true);
+      // toast.error("Network Error!", {
+      //   position: "top-right",
+      //   transition: Bounce,
+      //   hideProgressBar: true,
+      //   theme: "colored",
+      //   autoClose: 3000,
+      // });
     }
-  }
-};
-
+  };
 
   const clearForm = () => {
     reset();
@@ -858,7 +874,7 @@ const InternOfferForm = () => {
                           Select Employee
                         </option>
                         {employeeOptions.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
+                          <option key={emp?.id} value={emp?.id}>
                             {emp.name}
                           </option>
                         ))}
@@ -882,7 +898,7 @@ const InternOfferForm = () => {
                         {hrEmployees.length > 0 ? (
                           <>
                             {hrEmployees.map((emp) => (
-                              <option key={emp.id} value={String(emp.id)}>
+                              <option key={emp?.id} value={String(emp?.id)}>
                                 {`${emp.firstName} ${emp.lastName} (${emp.designationName})`}
                               </option>
                             ))}
