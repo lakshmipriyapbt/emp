@@ -1,18 +1,19 @@
-package com.pb.employee.controller;
+package com.invoice.controller;
 
-import com.pb.employee.util.Constants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.invoice.Constants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-@RestController
-@CrossOrigin(origins = "*")
-@RequestMapping("")
-public class ApiCheckController {
 
-    private static final Logger log = LoggerFactory.getLogger(ApiCheckController.class);
+
+@Slf4j
+
+
+
+public class healthcheckController {
 
     @RequestMapping(value = "/health/readyz", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(summary = "${api.getApiCheck.tag}", description = "${api.getApiCheck.description}")
@@ -22,7 +23,6 @@ public class ApiCheckController {
         log.info("Entered the Employee API check controller");
         return Constants.SUCCESS;
     }
-
     @RequestMapping(value = "/health/livez", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(summary = "${api.getApiCheck.tag}", description = "${api.getApiCheck.description}")
     @ResponseStatus(HttpStatus.OK)
@@ -31,6 +31,5 @@ public class ApiCheckController {
         log.info("Entered the Identity API check controller");
         return Constants.SUCCESS;
     }
-
 
 }
