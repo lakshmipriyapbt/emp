@@ -25,6 +25,7 @@ import java.util.List;
 public class CompanyController {
     @Autowired
     private CompanyService companyService;
+
     @RequestMapping(value = "", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.registerCompany.tag}", description = "${api.registerCompany.description}")
@@ -35,7 +36,18 @@ public class CompanyController {
                                              @Parameter(required = true, description = "${api.registerCompanyPayload.description}")
                                              @RequestBody @Valid CompanyRequest companyRequest,
                                              HttpServletRequest request) throws EmployeeException {
-        return companyService.registerCompany(companyRequest,request);
+        return companyService.registerCompany(companyRequest,request, Constants.ACTIVE);
+    }
+
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.registerCompany.tag}", description = "${api.registerCompany.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
+    public ResponseEntity<?> registerCompanyAnonymous(@Parameter(required = true, description = "${api.registerCompanyPayload.description}")
+                                             @RequestBody @Valid CompanyRequest companyRequest,
+                                             HttpServletRequest request) throws EmployeeException {
+        return companyService.registerCompany(companyRequest,request, (String) Constants.PENDING);
     }
 
     @RequestMapping(value = "", method = RequestMethod.GET)
@@ -70,6 +82,18 @@ public class CompanyController {
                                                @PathVariable String companyId,
                                                @RequestBody @Valid CompanyUpdateRequest companyUpdateRequest) throws IOException, EmployeeException {
         return companyService.updateCompanyById(companyId,companyUpdateRequest);
+    }
+
+    @RequestMapping(value = "/{companyId}/status/{status}", method = RequestMethod.PATCH    )
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.updateCompany.tag}", description = "${api.updateCompany.description}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "202", description= "Accepted")
+    public ResponseEntity<?> updateCompanyStatusById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                               @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                               @PathVariable String companyId,
+                                               @PathVariable String status) throws IOException, EmployeeException {
+        return companyService.updateCompanyStatus(companyId, status);
     }
     @RequestMapping(value = "/image/{companyId}", method = RequestMethod.PATCH,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },

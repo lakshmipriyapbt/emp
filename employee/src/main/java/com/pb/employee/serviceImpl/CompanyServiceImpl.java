@@ -55,7 +55,7 @@ public class CompanyServiceImpl implements CompanyService {
     private ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request) throws EmployeeException{
+    public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request, String status) throws EmployeeException{
         // Check if a company with the same short or company name already exists
         log.debug("validating shortname {} company name {} exsited ", companyRequest.getShortName(), companyRequest.getCompanyName());
         String resourceId = ResourceIdUtils.generateCompanyResourceId(companyRequest.getCompanyName());
@@ -115,7 +115,7 @@ public class CompanyServiceImpl implements CompanyService {
         try{
             defaultPassword = PasswordUtils.generateStrongPassword();
             password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
-            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId, password);
+            Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId, password, status);
             Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, Constants.INDEX_EMS);
         } catch (Exception exception) {
             log.error("Unable to save the company details {} {}", companyRequest.getCompanyName(),exception.getMessage());
@@ -133,6 +133,7 @@ public class CompanyServiceImpl implements CompanyService {
                 companyId(resourceId).
                 emailId(companyRequest.getEmailId()).
                 password(password).
+                status(status).
                 type(Constants.EMPLOYEE).
                 build();
         openSearchOperations.saveEntity(employee, employeeAdminId, index);
@@ -157,7 +158,11 @@ public class CompanyServiceImpl implements CompanyService {
             try {
                 String companyUrl =EmailUtils.getBaseUrl(request)+companyRequest.getShortName()+Constants.SLASH+Constants.LOGIN ;
                 log.info("The company url : "+companyUrl);// Example URL
-                emailUtils.sendRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,defaultPassword);
+                if (status.equalsIgnoreCase((String) Constants.PENDING)){
+                    emailUtils.sendCompanyRegistrationEmail(companyRequest.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,defaultPassword);
+                }else {
+                    emailUtils.sendRegistrationEmail(companyRequest.getEmailId(), companyUrl, Constants.EMPLOYEE_TYPE, defaultPassword);
+                }
             } catch (Exception e) {
                 log.error("Error sending email to company: {}", companyRequest.getEmailId());
                 throw new RuntimeException(e);
@@ -168,7 +173,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public ResponseEntity<?> getCompanies( HttpServletRequest request) throws EmployeeException {
+    public ResponseEntity<?> getCompanies(HttpServletRequest request) throws EmployeeException {
 
         List<CompanyEntity> companyEntities = null;
         companyEntities = openSearchOperations.getCompanies();
@@ -238,6 +243,45 @@ public class CompanyServiceImpl implements CompanyService {
         openSearchOperations.saveEntity(entity, companyId, Constants.INDEX_EMS);
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> updateCompanyStatus(String companyId, String status) throws EmployeeException, IOException {
+
+        CompanyEntity companyEntity;
+        List<EmployeeEntity> employees;
+        try {
+            companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company is not found");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
+                        HttpStatus.BAD_REQUEST);
+            }
+            employees = openSearchOperations.getCompanyEmployees(companyEntity.getShortName());
+            Optional<EmployeeEntity> companyAdminOpt = employees.stream()
+                    .filter(emp -> Constants.ADMIN.equalsIgnoreCase(emp.getEmployeeType()))
+                    .findFirst();
+
+            if (status != null) {
+                companyEntity.setStatus(status);
+                if (!companyAdminOpt.isEmpty()) {
+                    String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
+                    companyAdminOpt.get().setStatus(status);
+                    openSearchOperations.saveEntity(companyAdminOpt.get(), companyAdminOpt.get().getId(), index);
+                }
+                openSearchOperations.saveEntity(companyEntity, companyId, Constants.INDEX_EMS);
+            }
+        }catch (EmployeeException e){
+            log.error("Exception while updating the company status");
+            throw e;
+        }catch (Exception exception){
+            log.error("Exception while updating the compamy status {}, {}", companyId, exception);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPDATE_STATUS),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(
+                ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+
     }
     @Override
     public ResponseEntity<?> updateCompanyImageById(String companyId, MultipartFile multipartFile) throws EmployeeException, IOException {

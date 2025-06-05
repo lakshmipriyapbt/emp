@@ -2,6 +2,7 @@ package com.pb.employee.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pb.employee.persistance.model.EmployeeEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,5 @@ public class UserResponse {
     private String password;
     private String department;
     private String departmentName;
+    private EmployeeResponse employee;
 }

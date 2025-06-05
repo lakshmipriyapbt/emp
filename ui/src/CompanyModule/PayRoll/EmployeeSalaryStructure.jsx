@@ -657,6 +657,7 @@ const EmployeeSalaryStructure = () => {
 
   // Handle employee selection change
   const handleEmployeeChange = (selectedOption) => {
+    clearForm();
     setEmployeeId(selectedOption.value);
   };
 
@@ -830,9 +831,11 @@ const EmployeeSalaryStructure = () => {
 
   // Clear form
   const clearForm = () => {
-    reset();
-    setShowFields(false);
-  };
+  reset(); // Reset react-hook-form
+  setShowFields(false);
+  setShowCards(false);
+  setFixedAmount(0);
+};
 
   // Render UI
   return (

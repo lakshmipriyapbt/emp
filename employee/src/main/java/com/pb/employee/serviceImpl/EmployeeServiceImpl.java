@@ -190,6 +190,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                             // Perform partial update for status only
                             Map<String, Object> partialUpdate = new HashMap<>();
                             partialUpdate.put(Constants.STATUS, status);
+                            List<EmployeeSalaryEntity> employeeSalaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), null);
+                            if (!employeeSalaryEntities.isEmpty() && employeeSalaryEntities.size() != 0) {
+                                for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities) {
+                                    salaryEntity.setStatus(Constants.IN_ACTIVE);
+                                    openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
+                                }
+                            }
                             openSearchOperations.partialUpdate(employee.getId(), partialUpdate, index);
                         }
                     }

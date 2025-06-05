@@ -23,6 +23,8 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Get userRole from Redux store
+  const { userRole } = useSelector((state) => state.auth);
   const { data: employees = [], status } = useSelector(
     (state) => state.employees
   );
@@ -49,11 +51,16 @@ const Body = () => {
   }, [employees]);
 
   if (!authUser) return <Loader />;
-
   if (loading) return <Loader />;
 
-  const isAdmin = authUser?.userRole?.includes("ems_admin");
-  const isCompanyAdmin = authUser?.userRole?.includes("company_admin");
+  // Use userRole from Redux instead of authUser
+  const isAdmin = userRole?.includes("ems_admin");
+  const isCompanyAdmin = userRole?.includes("company_admin");
+  const isHR = userRole?.includes("HR");
+  const isAccountant = userRole?.includes("Accountant");
+  const isEmployee = userRole?.includes("employee");
+
+  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant || isEmployee;
 
   const handleTotalEmployeesClick = () => {
     navigate('/totalEmployees');
@@ -61,7 +68,7 @@ const Body = () => {
   const handleActiveEmployeesClick = () => {
     navigate('/employeeList/Active');
   };
-  
+
   const handleRelievedEmployeesClick = () => {
     navigate('/employeeList/Relieved');
   };
@@ -74,16 +81,16 @@ const Body = () => {
         </h1>
         <div className="row h-100">
           {isAdmin ? (
-            <div className='card'>
+            <div className='card' style={{ height: '100vh' }}>
               <iframe
-                src="https://122.175.43.71:2800/kibana/s/ems/app/dashboards#/view/deba4a73-baa2-4c62-aa78-089197311bcb?embed=true&fullscreen=true" 
-                height="1000" 
-                width="800"
+                src="https://cubhrm.com:5601/kibana/s/ems/app/dashboards#/view/274b991a-5aa5-4c53-8d7d-b9412e71609d?&embed=true"
+                height="100%"
+                width="100%"
                 title="EMS Dashboard"
-                style={{ border: 'none' }}
+                style={{ border: 'none', height: '100%', width: '100%' }}
               />
             </div>
-          ) : (
+          ) : (showCompanyDashboard) ? (
             <>
               <div className="row">
                 <div className="col-xl-4 col-12 mb-3">
@@ -130,7 +137,7 @@ const Body = () => {
                       <div className="d-flex align-items-center mb-2">
                         <PersonFillExclamation color='red' size={30} className="me-3" />
                         <div>
-                        <h5 className="card-title fw-bold" style={{ color: "black" }}>Relieved Employees</h5>
+                          <h5 className="card-title fw-bold" style={{ color: "black" }}>Relieved Employees</h5>
                           <h1 className="mt-1">{data.RelievedEmployeesCount}</h1>
                         </div>
                       </div>
@@ -138,7 +145,7 @@ const Body = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="row">
                 <div className="col-md-6">
                   <div className="card h-100 p-4">
@@ -153,7 +160,7 @@ const Body = () => {
                 </div>
               </div>
             </>
-          )}
+          ) : null}
         </div>
       </div>
     </LayOut>
