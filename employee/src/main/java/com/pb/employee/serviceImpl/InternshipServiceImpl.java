@@ -56,12 +56,6 @@ public class InternshipServiceImpl implements InternshipService {
                 log.error("Company not found: {}", internshipRequest.getCompanyId());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), internshipRequest.getCompanyId()), HttpStatus.NOT_FOUND);
             }
-            if(!internshipRequest.isDraft()) {
-                if (entity.getImageFile() == null) {
-                    log.error("Company not found: {}", internshipRequest.getCompanyId());
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE), internshipRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-                }
-            }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
 
             templateNo=openSearchOperations.getCompanyTemplates(entity.getShortName());

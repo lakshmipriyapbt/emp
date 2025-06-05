@@ -49,11 +49,6 @@ public class RelievingServiceImpl implements RelievingService {
         RelievingEntity relievingEntity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         try {
-                CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
-                if (companyEntity.getImageFile() == null) {
-                    log.error("Company not found: {}", index);
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE)), HttpStatus.NOT_FOUND);
-                }
             employeeEntity = openSearchOperations.getEmployeeById(employeeId, null, index);
             if (employeeEntity == null) {
                 log.info("employee is not found with employeeId {}", employeeId);

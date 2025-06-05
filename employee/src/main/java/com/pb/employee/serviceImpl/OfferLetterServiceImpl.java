@@ -58,12 +58,6 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 log.error("Company not found: {}", offerLetterRequest.getCompanyId());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), offerLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
             }
-            if(!offerLetterRequest.isDraft()) {
-                if (entity.getImageFile() == null) {
-                    log.error("Company not found: {}", offerLetterRequest.getCompanyId());
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE), offerLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-                }
-            }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity,request);
             salaryConfiguration =  openSearchOperations.getSalaryStructureById(offerLetterRequest.getSalaryConfigurationId(),null,Constants.INDEX_EMS+"_"+entity.getShortName());
             CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfiguration);
@@ -148,12 +142,6 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             if (entity == null) {
                 log.error("Company not found: {}", internshipOfferLetterRequest.getCompanyId());
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), internshipOfferLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-            }
-            if(!internshipOfferLetterRequest.isDraft()) {
-                if (entity.getImageFile() == null) {
-                    log.error("Company not found: {}", internshipOfferLetterRequest.getCompanyId());
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE), internshipOfferLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-                }
             }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
 

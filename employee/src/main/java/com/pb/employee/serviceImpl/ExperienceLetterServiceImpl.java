@@ -55,14 +55,6 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
         String index = ResourceIdUtils.generateCompanyIndex(experienceLetterFieldsRequest.getCompanyName());
 
         try {
-            if(!experienceLetterFieldsRequest.isDraft()) {
-                CompanyEntity entity = openSearchOperations.getCompanyByCompanyName(experienceLetterFieldsRequest.getCompanyName(), Constants.INDEX_EMS);
-                if (entity.getImageFile() == null) {
-                    log.error("Company not found: {}", index);
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE)), HttpStatus.NOT_FOUND);
-                }
-            }
-
             templateNo = openSearchOperations.getCompanyTemplates(experienceLetterFieldsRequest.getCompanyName());
             if (templateNo == null) {
                 log.error("company templates are not exist ");
@@ -106,7 +98,6 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), experienceLetterFieldsRequest.getCompanyName()), HttpStatus.NOT_FOUND);
             }
             CompanyUtils.unmaskCompanyProperties(companyEntity.getFirst(), request);
-
 
             // Load the company image from a URL
 

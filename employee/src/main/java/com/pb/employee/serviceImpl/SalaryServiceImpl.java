@@ -74,11 +74,6 @@ public class SalaryServiceImpl implements SalaryService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         try {
-            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(employeeSalaryRequest.getCompanyName(), Constants.INDEX_EMS);
-            if (companyEntity.getImageFile() == null) {
-                log.error("Company not found: {}", index);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE)), HttpStatus.NOT_FOUND);
-            }
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
             if (entity.getStatus().equals(EmployeeStatus.INACTIVE.getStatus())){
                 log.error("employee is inActive {}", employeeId);
