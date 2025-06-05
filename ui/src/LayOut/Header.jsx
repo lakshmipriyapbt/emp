@@ -75,7 +75,7 @@ const Header = ({ toggleSidebar }) => {
   
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (role === "company_admin" && companyName) {
+    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" || companyName) {
       navigate(`/${companyName}/login`, { replace: true });
     } else {
       navigate("/", { replace: true });

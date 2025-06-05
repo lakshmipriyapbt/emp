@@ -164,7 +164,7 @@ export const allAvailableRoutes = [
   {path: '/getcalendar', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
-  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] }
+  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
 ];
 
 const Routing = () => {
@@ -181,7 +181,6 @@ const Routing = () => {
       <Route path='/forgotPassword' element={<ForgotPassword/>}/>
       <Route path='/anonymouseCmpRegistration' element={<AnonymousCmpRegistration/>}/>
       <Route path='/forbidden' element={<ForbiddenPage/>}/>
-
 
       {/* EMS Admin-specific routes */}
       <Route
