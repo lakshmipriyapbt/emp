@@ -41,7 +41,7 @@ public class InternshipServiceImpl implements InternshipService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) {
+    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) throws EmployeeException {
 
         CompanyEntity entity;
         Entity companyEntity;
@@ -117,6 +117,10 @@ public class InternshipServiceImpl implements InternshipService {
 
             // Return the PDF as the HTTP response
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (EmployeeException exception) {
+            log.error("Exception occurred while generating appraisal letter{}", exception.getMessage());
+            throw exception;
 
         } catch (Exception e) {
             log.error("Error occurred while generating appraisal letter: {}", e.getMessage(), e);

@@ -48,7 +48,7 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
+    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) throws EmployeeException {
         List<CompanyEntity> companyEntity = null;
         EmployeeEntity employee = null;
         TemplateEntity templateNo ;
@@ -161,6 +161,10 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             // Return response with PDF content
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (EmployeeException exception) {
+            log.error("Exception occurred while generating service letter{}", exception.getMessage());
+            throw exception;
 
         } catch (Exception e) {
             log.error("Error generating service letter: {}", e.getMessage(), e);

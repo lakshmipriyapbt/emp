@@ -46,7 +46,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request) {
+    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request) throws EmployeeException {
         CompanyEntity entity;
         Entity companyEntity;
         SalaryConfigurationEntity salaryConfiguration;
@@ -125,6 +125,9 @@ public class OfferLetterServiceImpl implements OfferLetterService {
 
             // Return the PDF as the HTTP response
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (EmployeeException exception) {
+            log.error("Exception occurred while generating  offer latter{}", exception.getMessage());
+            throw exception;
 
         } catch (Exception e) {
             log.error("Error occurred while generating offer letter: {}", e.getMessage(), e);
