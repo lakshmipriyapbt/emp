@@ -172,7 +172,7 @@ const LandingPage = () => {
                 className="bg-s1 rounded-full text-s2 p-2 md:p-3 text-lg lg:text-5xl !leading-none"
                 weight="regular" style={{maxHeight:"35px"}}
               />
-              <a href="tel:+123456789" className="max-xl:hidden" > 040 48583619 </a>
+              <a href="tel:+123456789" className="max-xl:hidden" > +91 9705678967 </a>
             </div>
             <a
               href="#"
@@ -542,10 +542,10 @@ const LandingPage = () => {
             data-wow-duration="1.3s"
           >
             <div
-              className="bg-white p-6 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
+              className="bg-white p-2 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
             >
               <div
-                className="text-4xl text-s1 pb-6 group-hover:text-mainTextColor duration-500"
+                className="text-4xl text-center text-s1 pb-5 mt-3 group-hover:text-mainTextColor duration-500"
               >
                 <i className="ph-fill ph-users-three"></i>
               </div>
@@ -568,10 +568,10 @@ const LandingPage = () => {
             data-wow-delay=".2s"
           >
             <div
-              className="bg-white p-6 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
+              className="bg-white p-2 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
             >
               <div
-                className="text-4xl text-s1 pb-6 group-hover:text-mainTextColor duration-500"
+                className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500"
               >
                 <i className="ph-fill ph-hand-coins"></i>
               </div>
@@ -594,10 +594,10 @@ const LandingPage = () => {
             data-wow-delay=".4s"
           >
             <div
-              className="bg-white p-6 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
+              className="bg-white p-2 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
             >
               <div
-                className="text-4xl text-s1 pb-6 group-hover:text-mainTextColor duration-500"
+                className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500"
               >
                 <i className="ph-fill ph-user-gear"></i>
               </div>
@@ -620,10 +620,10 @@ const LandingPage = () => {
             data-wow-delay=".6s"
           >
             <div
-              className="bg-white p-6 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
+              className="bg-white p-2 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2"
             >
               <div
-                className="text-4xl text-s1 pb-6 group-hover:text-mainTextColor duration-500"
+                className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500"
               >
                 <i className="ph-fill ph-user-plus"></i>
               </div>
@@ -994,8 +994,7 @@ const LandingPage = () => {
           </h1>
 
           <p className="pb-8 wow animate__animated animate__fadeInUp">
-            We save you from all that boring paperwork! From  hiring, to
-            instant payments, and taxes, we’ve got your back.
+          We're here to help you streamline your HR and payroll processes. Reach out to our team for more information about CUB HRM and how it can benefit your organization
           </p>
 
           <a
@@ -1318,8 +1317,8 @@ const LandingPage = () => {
             <span className="text-2xl pt-2"
               ><i className="ph ph-envelope-simple-open"></i
             ></span>
-            info@mail.com
-          </a>
+            ems@vbrsit.com
+            </a>
         </li>
         <li>
           <a
@@ -1327,7 +1326,7 @@ const LandingPage = () => {
             className="flex justify-start items-center gap-2 hover:text-white hover:translate-x-2 duration-500"
           >
             <span className="text-2xl pt-2"><i className="ph ph-phone-call"></i></span>
-            +112 1254 124
+            +91 9705678967
           </a>
         </li>
         <li>
@@ -1337,7 +1336,7 @@ const LandingPage = () => {
             <span className="text-2xl pt-2"
               ><i className="ph ph-paper-plane-tilt"></i
             ></span>
-            255 Sheet, City Name Home Land, NY
+            1st Floor Unit # 117, Techno-1, Sy. No:86, 87(p), 88/1, Raidurg, Serilingampally, Ranga Reddy Dt. Telangana-500081
           </p>
         </li>
       </ul>

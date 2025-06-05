@@ -50,6 +50,7 @@ public class RestFilter implements Filter {
             "/emsadmin/login",
             "/token/validate",
             "/company/login",
+            "/ems/company/add",
             "/validate",
             "/forgot/password",
             "/ems/swagger-ui/index.html",
