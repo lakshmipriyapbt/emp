@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Bounce, toast } from "react-toastify";
 import DeletePopup from "../../Utils/DeletePopup";
 import LayOut from "../../LayOut/LayOut";
-import { companyDeleteByIdApi, companyViewApi } from "../../Utils/Axios";
+import { companyDeleteByIdApi, companyViewApi, updateCompanyStatusApi } from "../../Utils/Axios";
 import {useNavigate } from "react-router-dom";
 
 const CompanyView = () => {
@@ -16,6 +16,8 @@ const CompanyView = () => {
   const [showNoRecordsMessage, setShowNoRecordsMessage] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: "" });
   const Navigate = useNavigate();
 
    
@@ -79,6 +81,28 @@ const CompanyView = () => {
       }
     }
   };
+  const handleStatusChange = (id, newStatus) => {
+    setStatusUpdateData({ id, newStatus });
+    setShowStatusModal(true);
+  };
+
+  const confirmStatusChange = async () => {
+    const { id, newStatus } = statusUpdateData;
+    try {
+      const response = await updateCompanyStatusApi(id, newStatus);
+      if (response.status === 200) {
+        toast.success("Status updated successfully!");
+        await getUser();
+      } else {
+        toast.error("Failed to update status.");
+      }
+    } catch (error) {
+      handleApiErrors(error);
+    } finally {
+      setShowStatusModal(false);
+      setStatusUpdateData({ id: null, newStatus: "" });
+    }
+  };
 
 
 
@@ -119,7 +143,7 @@ const CompanyView = () => {
           {row.emailId.length > 20 ? `${row.emailId.slice(0, 20)}...` : row.emailId}
           </div>
       ),
-      width: "250px",
+      width: "200px",
     },
     {
       name: <h6><b>Mobile Number</b></h6>,
@@ -128,13 +152,13 @@ const CompanyView = () => {
           {row.mobileNo.length > 20 ? `${row.mobileNo.slice(0, 20)}...` : row.mobileNo}
           </div>
       ),
-      width: "200px",
+      width: "150px",
       wrap: true, 
     },
     {
       name: <h6><b>Type</b></h6>,
       selector: (row) => row.companyType,
-      width: "150px",
+      width: "130px",
       wrap: true,
     },
     {
@@ -171,6 +195,24 @@ const CompanyView = () => {
         </div>
       ),
     },
+    {
+      name: <h6><b>Status</b></h6>,
+      selector: (row) => row.status,
+      cell: (row) => (
+        <select
+          className="form-select form-select-sm"
+          value={row.status}
+          onChange={(e) => handleStatusChange(row.id, e.target.value)}
+          style={{ width: "120px" }}
+        >
+          <option value="Active">Active</option>
+          <option value="Inactive">InActive</option>
+          <option value="pending">Pending</option>
+        </select>
+      ),
+      width: "150px",
+    },
+    
   ];
 
   const getFilteredList = (searchTerm) => {
@@ -245,6 +287,25 @@ const CompanyView = () => {
           />
         </div>
       </div>
+      {showStatusModal && (
+        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex="-1" role="dialog">
+          <div className="modal-dialog modal-dialog-centered"role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Status Change</h5>
+                <button type="button" className="btn-close" onClick={() => setShowStatusModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to change the status to <strong>{statusUpdateData.newStatus}</strong>?</p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowStatusModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={confirmStatusChange}>Yes, Update</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </LayOut>
   );
 };

@@ -88,9 +88,12 @@ export const resetPassword = (data, employeeId) => {
   return axiosInstance.patch(`/company/employee/${employeeId}/password`, data);
 }
 
-
 export const CompanyRegistrationApi = (data) => {
   return axiosInstance.post("/company", data);
+};
+
+export const CompanyAddApi = (data) => {
+  return axios.post(`${BASE_URL}/company/add`,data)
 };
 
 export const companyViewApi = async () => {
@@ -118,6 +121,10 @@ export const companyUpdateByIdApi = async (companyId, data) => {
     console.error('Error during company update:', error);  // Optional logging
     throw error;  // Rethrow the error so it can be caught in onSubmit's catch block
   }
+};
+
+export const updateCompanyStatusApi = (id, status) => {
+  return axiosInstance.patch(`company/${id}/status/${status}`)
 };
 
 export const companyPasswordUpdateById = async (companyId) => {
