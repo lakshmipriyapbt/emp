@@ -87,7 +87,12 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       const response = await updateCompanyStatusApi(id, newStatus);
       if (response.status === 200) {
         toast.success("Status updated successfully!");
-        await getUser();
+        setTimeout(() => {
+          getUser();
+          if (search) {
+            getFilteredList(search); // maintain filtered view
+          }
+        }, 1000); // Delay of 1 second
       } else {
         toast.error("Failed to update status.");
       }
@@ -202,6 +207,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
           style={{ width: "120px" }}
         >
+          <option value="">Status</option>
           <option value="Active">Active</option>
           <option value="Inactive">InActive</option>
           <option value="pending">Pending</option>
@@ -254,7 +260,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
                   </div>
                   <div className='col-12 col-md-6 col-lg-4'></div>
                   <div className='col-12 col-md-6 col-lg-4'>
-                    <input type='search' className="form-control" placeholder='Search by Company Name'
+                    <input type='search' className="form-control mb-1" placeholder='Search by Company Name'
                       value={search}
                       onChange={(e) => getFilteredList(e.target.value)}
                     />
