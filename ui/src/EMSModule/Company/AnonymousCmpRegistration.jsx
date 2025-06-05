@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-  CompanyRegistrationApi,
+  CompanyAddApi,
 } from "../../Utils/Axios";
 import { toast } from "react-toastify";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import '../../LayOut/NewLogin/Style.css';
+
 
 const AnonymouseCmpRegistration = () => {
   const {
@@ -54,7 +56,9 @@ const AnonymouseCmpRegistration = () => {
       } else if (data.companyType === "Firm") {
         updateData.companyRegistrationNumber = data.companyRegistrationNumber;
       }
-    
+       await CompanyAddApi(data);
+       toast.success("Company Created Successfully")
+      navigate("/");
       reset();
     } catch (error) {
       console.log("Entered catch block"); // Add this line
@@ -450,9 +454,10 @@ const AnonymouseCmpRegistration = () => {
       <div className="container-fluid p-0" >
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col"  style={{marginLeft: "100px", marginRight: "100px", marginTop: "40px"}}>
-            <h1 className="h3 mb-3">
-              <strong>Registration</strong>{" "}
+            <h1 className="h3 mb-3 text-info">
+            To Register with CUB HRM ,Please Fill these Details{" "}
             </h1>
+            <span className="text-info"></span>
           </div>
         </div>
         <form onSubmit={handleSubmit(onSubmit)}>
