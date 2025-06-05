@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
         String index = null;
         String defaultPassword ;
         String password ;
-        EmployeeEntity employee = null;
+        EmployeeEntity employee ;
 
         try {
             resourceId = ResourceIdUtils.generateUserResourceId(userRequest.getEmailId());
@@ -78,9 +78,9 @@ public class UserServiceImpl implements UserService {
             }
             if(userRequest.getEmployeeId() != null && !userRequest.getEmployeeId().isEmpty()){
               employee = openSearchOperations.getEmployeeById(userRequest.getEmployeeId(),null,index);
-                if (employee != null){
-                    log.error("Exception while fetching the company calendar details");
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_USER), HttpStatus.CONFLICT);
+                if (employee == null){
+                    log.error("Exception while fetching the employee details");
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.CONFLICT);
                 }
                 password =employee.getPassword();
                 defaultPassword = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
