@@ -29,13 +29,13 @@ public class EmailUtils {
     @Value("${registration.mail.text}")
     public String registrationText;
 
-    @Value("${registration.confirmation.mail.subject")
+    @Value("${registration.confirmation.mail.subject}")
     public String confirmSubject;
 
     @Value("${registration.confirmation.mail.text}")
     public String confirmText;
 
-    @Value("${registration.rejection.mail.subject")
+    @Value("${registration.rejection.mail.subject}")
     public String rejectionSubject;
 
     @Value("${registration.rejection.mail.text}")
