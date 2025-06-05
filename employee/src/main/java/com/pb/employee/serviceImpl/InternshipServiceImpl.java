@@ -72,6 +72,11 @@ public class InternshipServiceImpl implements InternshipService {
             if (!internshipRequest.isDraft()) {
                 // Load and watermark company image
                 String imageUrl = entity.getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);

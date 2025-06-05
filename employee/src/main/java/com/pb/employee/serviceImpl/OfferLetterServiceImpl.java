@@ -77,6 +77,11 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             if (!offerLetterRequest.isDraft()) {
                 // Load the company image from a URL
                 String imageUrl = entity.getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
@@ -177,6 +182,11 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             if (!internshipOfferLetterRequest.isDraft()) {
                 // Load the company image from a URL
                 String imageUrl = entity.getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
