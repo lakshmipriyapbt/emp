@@ -199,4 +199,5 @@ public class Constants {
     public static final String USER_ADMIN = "Admin";
     public static final Object PENDING = "pending";
     public static final String REJECTED = "rejected";
+    public static final String INACTIVE = "inactive";
 }
