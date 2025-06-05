@@ -198,4 +198,5 @@ public class Constants {
     public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
     public static final String USER_ADMIN = "Admin";
     public static final Object PENDING = "pending";
+    public static final String INACTIVE = "inactive";
 }
