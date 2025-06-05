@@ -246,7 +246,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public ResponseEntity<?> updateCompanyStatus(String companyId, String status) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyStatus(String companyId, String status, HttpServletRequest request) throws EmployeeException, IOException {
 
         CompanyEntity companyEntity;
         List<EmployeeEntity> employees;
@@ -269,8 +269,25 @@ public class CompanyServiceImpl implements CompanyService {
                     companyAdminOpt.get().setStatus(status);
                     openSearchOperations.saveEntity(companyAdminOpt.get(), companyAdminOpt.get().getId(), index);
                 }
+                String password =new String(Base64.getDecoder().decode(companyEntity.getPassword()), StandardCharsets.UTF_8);
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        String companyUrl =EmailUtils.getBaseUrl(request)+companyEntity.getShortName()+Constants.SLASH+Constants.LOGIN ;
+                        log.info("The company url : "+companyUrl);// Example URL
+                        if (status.equalsIgnoreCase(Constants.ACTIVE)){
+                            emailUtils.sendCompanyRegistrationConfirmEmail(companyEntity.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,password);
+                        }else if (status.equalsIgnoreCase(Constants.REJECTED)){
+                            emailUtils.sendRegistrationRejectionEmail(companyEntity.getEmailId(),Constants.EMPLOYEE_TYPE);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error sending email to company: {}", companyEntity.getEmailId());
+                        throw new RuntimeException(e);
+                    }
+                });
                 openSearchOperations.saveEntity(companyEntity, companyId, Constants.INDEX_EMS);
             }
+
+
         }catch (EmployeeException e){
             log.error("Exception while updating the company status");
             throw e;
