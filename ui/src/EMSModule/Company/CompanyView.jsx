@@ -80,6 +80,32 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
     setStatusUpdateData({ id, newStatus });
     setShowStatusModal(true);
   };
+<<<<<<< HEAD
+=======
+
+  const confirmStatusChange = async () => {
+    const { id, newStatus } = statusUpdateData;
+    try {
+      const response = await updateCompanyStatusApi(id, newStatus);
+      if (response.status === 200) {
+        toast.success("Status updated successfully!");
+        setTimeout(() => {
+          getUser();
+          if (search) {
+            getFilteredList(search); // maintain filtered view
+          }
+        }, 1000); // Delay of 1 second
+      } else {
+        toast.error("Failed to update status.");
+      }
+    } catch (error) {
+      handleApiErrors(error);
+    } finally {
+      setShowStatusModal(false);
+      setStatusUpdateData({ id: null, newStatus: "" });
+    }
+  };
+>>>>>>> 78dfa15d9 (resolve the merge conflicts)
 
   const confirmStatusChange = async () => {
     const { id, newStatus } = statusUpdateData;

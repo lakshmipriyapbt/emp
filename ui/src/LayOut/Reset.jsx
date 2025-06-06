@@ -179,6 +179,12 @@ const Reset = ({ companyName, onClose, show }) => {
     >
       <Modal.Header closeButton>
         <Modal.Title>Reset Password</Modal.Title>
+        <button
+                    type="button"
+                    className="btn-close text-dark" // Bootstrap's close button class
+                    aria-label="Close"
+                    onClick={handleClose} // Function to close the modal
+                  >X</button>
       </Modal.Header>
       <Modal.Body>
         <div>
