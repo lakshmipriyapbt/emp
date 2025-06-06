@@ -430,6 +430,12 @@ const CreatePassword = () => {
       >
         <ModalHeader closeButton>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+                    type="button"
+                    className="btn-close text-dark" // Bootstrap's close button class
+                    aria-label="Close"
+                    onClick={closeModal} // Function to close the modal
+          >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">
           {errorMessage}

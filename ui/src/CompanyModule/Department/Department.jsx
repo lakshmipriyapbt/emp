@@ -540,7 +540,7 @@ const Department = () => {
                     className="btn-close"
                     aria-label="Close"
                     onClick={handleCloseAddDepartmentModal}
-                  ></button>
+                  >X</button>
                 </div>
                 <ModalBody>
                   <form onSubmit={handleSubmit(onSubmit)} id="departmentForm">
