@@ -23,6 +23,24 @@ public class EmailUtils {
     @Value("${mail.text}")
     public String text;
 
+    @Value("${registration.mail.subject}")
+    public String registrationSubject;
+
+    @Value("${registration.mail.text}")
+    public String registrationText;
+
+    @Value("${registration.confirmation.mail.subject}")
+    public String confirmSubject;
+
+    @Value("${registration.confirmation.mail.text}")
+    public String confirmText;
+
+    @Value("${registration.rejection.mail.subject}")
+    public String rejectionSubject;
+
+    @Value("${registration.rejection.mail.text}")
+    public String rejectionText;
+
     @Autowired
     public JavaMailSender javaMailSender;
 
@@ -37,6 +55,55 @@ public class EmailUtils {
         formattedText = formattedText.replace("{url}", url);  // Finally replace the URL
         formattedText = formattedText.replace("{name}", name);// Finally replace the URL
         formattedText = formattedText.replace("{password}", defaultPassword);
+
+        mailMessage.setText(formattedText);
+        javaMailSender.send(mailMessage);
+        log.info("Credentials sent to the Email...");
+    }
+
+
+    public void sendCompanyRegistrationEmail(String emailId, String url,String name, String defaultPassword) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(emailId);
+        mailMessage.setSubject(registrationSubject);
+
+        String mailText = registrationText;
+        // Replace placeholders in the mail text
+        String formattedText = mailText.replace("{emailId}", emailId);
+        formattedText = formattedText.replace("{name}", name);// Finally replace the URL
+        formattedText = formattedText.replace("{password}", defaultPassword);
+
+        mailMessage.setText(formattedText);
+        javaMailSender.send(mailMessage);
+        log.info("Credentials sent to the Email...");
+    }
+
+    public void sendCompanyRegistrationConfirmEmail(String emailId, String url,String name, String defaultPassword) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(emailId);
+        mailMessage.setSubject(confirmSubject);
+
+        String mailText = confirmText;
+        // Replace placeholders in the mail text
+        String formattedText = mailText.replace("{emailId}", emailId);
+        formattedText = formattedText.replace("{name}", name);
+        formattedText = formattedText.replace("{url}", url);  // Finally replace the URL
+        formattedText = formattedText.replace("{password}", defaultPassword);
+
+        mailMessage.setText(formattedText);
+        javaMailSender.send(mailMessage);
+        log.info("Credentials sent to the Email...");
+    }
+
+    public void sendRegistrationRejectionEmail(String emailId,String name) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(emailId);
+        mailMessage.setSubject(rejectionSubject);
+
+        String mailText = rejectionText;
+        // Replace placeholders in the mail text
+        String formattedText = mailText.replace("{emailId}", emailId);
+        formattedText = formattedText.replace("{name}", name);
 
         mailMessage.setText(formattedText);
         javaMailSender.send(mailMessage);

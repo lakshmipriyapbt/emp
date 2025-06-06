@@ -5,6 +5,8 @@ import "./modules/bootstrap";
 import "./modules/sidebar";
 import "./modules/theme";
 import "./modules/feather";
+import "./plugins/plugin-custom";
+import "./plugins/plugins";
 
 // Charts
 import "./modules/chartjs";

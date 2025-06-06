@@ -13,7 +13,9 @@ public enum IdentityErrorMessageKey {
     OTP_EXPIRED("otp.expired"),
     USER_NOT_FOUND("user.not.found"),
     USED_PASSWORD("user.password"),
-    UNABLE_TO_SEARCH("unable.search");
+    UNABLE_TO_SEARCH("unable.search"),
+    COMPANY_UNDER_REVIEW("company.under.review"),
+    EMPLOYEE_INACTIVE("employee.inactive");
     private final String key;
 
     IdentityErrorMessageKey(String keyVal) {

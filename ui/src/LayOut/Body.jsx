@@ -56,6 +56,7 @@ const Body = () => {
   // Use userRole from Redux instead of authUser
   const isAdmin = userRole?.includes("ems_admin");
   const isCompanyAdmin = userRole?.includes("company_admin");
+  const isUserAdmin = userRole?.includes("Admin");
   const isHR = userRole?.includes("HR");
   const isAccountant = userRole?.includes("Accountant");
   const isEmployee = userRole?.includes("employee");

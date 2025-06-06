@@ -17144,24 +17144,49 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   }
   /* SideNav.css */
 .side-nav {
-  --primary-color: #3f51b5;
-  --primary-light: #f0f5ff;
-  --text-color: #2d3748;
-  --text-light: #4a5568;
-  --border-color: #e2e8f0;
-  --hover-bg: #f8f9fa;
-  --transition-speed: 0.3s;
+	position:absolute;
+	transition: opacity 0.35s ease-in-out;
+	width:100%;
+    background-color: #fbfbff;
+	height: 100vh;
+	opacity: 1;
+	overflow-y: auto; /* enables vertical scroll */
+	overflow-x: hidden;
+	padding-bottom: 1rem; /* optional padding for nicer bottom spacing */
+	scrollbar-width:none; /* for Firefox */
+	scrollbar-color: #555 #2c3e50; /* optional: custom scrollbar colors */
+  }
+  .fixed-sideNav.collapsed .side-nav {
+	opacity: 0;
+  }
   
-  position: fixed;
-  width: 250px;
-  height: 100vh;
-  background: #ffffff;
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-  overflow: hidden;
+.side-nav .nav-link {
+	width: 235px; /* ✅ fixed width */
+	font-size: 1.1rem;
+	display: flex;
+	align-items: center;
+	padding: 6px 15px;
+	margin: 0; /* ❗ No vertical margin */
+	border-radius: 0; /* ❗ No rounded corners for touching boxes */
+	color: #565e64;
+	text-decoration: none;
+	margin-bottom: 8px; /* ⬅️ Add small gap between items */
+	border-radius: 8px; /* ⬅️ Rounded corners look nice when items are separated */
+	transition: background-color 0.3s ease-in-out;
 }
+  
+  .side-nav .nav-link:hover,
+  .side-nav .nav-link.active {
+	background-color: #3f4e6c; /* Slightly lighter color when hovered/active */
+	color: #fcf8e3;
+	width: 235px;
+  }
+  
+  .side-nav .nav-link i {
+	font-size: 1.3rem;
+	margin-right: 12px; /* Gap between icon and text */
+	vertical-align: middle;
+  }
 
 /* Logo Section */
 .logo-container {

@@ -3,6 +3,8 @@ import { Route, Routes} from 'react-router';
 import EmsLogin from '../Login/EmsLogin';
 import CompanyLogin from '../Login/CompanyLogin';
 import CompanyRegistration from '../EMSModule/Company/CompanyRegistration';
+import AnonymousCmpRegistration from '../EMSModule/Company/AnonymousCmpRegistration';
+
 import Body from '../LayOut/Body';
 import CompanyView from '../EMSModule/Company/CompanyView';
 import Department from '../CompanyModule/Department/Department';
@@ -84,6 +86,7 @@ import UpdateUser from '../CompanyModule/UserModue/UpdateUser';
 import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
 import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
+import LandingPage from '../LayOut/NewLogin/LandingPage';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -161,7 +164,7 @@ export const allAvailableRoutes = [
   {path: '/getcalendar', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
-  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] }
+  {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
 ];
 
 const Routing = () => {
@@ -169,15 +172,15 @@ const Routing = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Message />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
       <Route path='/profile' element={<Profile />} />
       <Route path='/main' element={<Body />} />
       <Route path='/forgotPassword' element={<ForgotPassword/>}/>
+      <Route path='/anonymouseCmpRegistration' element={<AnonymousCmpRegistration/>}/>
       <Route path='/forbidden' element={<ForbiddenPage/>}/>
-
 
       {/* EMS Admin-specific routes */}
       <Route

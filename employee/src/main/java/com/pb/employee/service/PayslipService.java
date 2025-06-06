@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public interface PayslipService {
 
-    ResponseEntity<?> generatePaySlip(PayslipRequest payslipRequest, String salaryId, String employeeId,HttpServletRequest request) throws EmployeeException, IOException;
+    ResponseEntity<?> generatePaySlip(PayslipRequest payslipRequest, String salaryId, String employeeId, HttpServletRequest request) throws EmployeeException, IOException;
 
     ResponseEntity<?> generatePaySlipForAllEmployees(PayslipRequest payslipRequest,HttpServletRequest request) throws EmployeeException, IOException;
 
