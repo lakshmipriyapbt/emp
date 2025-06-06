@@ -1922,6 +1922,12 @@ const AddIncrement = () => {
                           <ModalTitle className="text-center">
                             Confirm Provident Fund Option
                           </ModalTitle>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            aria-label="Close"
+                            onClick={() => setShowPfModal(false)}
+                          >X</button>
                         </ModalHeader>
                         <ModalBody className="text-center fs-bold">
                           <p>

@@ -30,7 +30,7 @@ const AppraisalTemplate1 = ({
         overflow: "hidden",
       }}
     >
-      {!draft && (<div style={{ textAlign: "right" }}>
+      {!draft && (<div>
         {companyData ? (
           <img
             className="align-middle"

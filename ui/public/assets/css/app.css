@@ -5685,7 +5685,7 @@ body{
 	border: 0;
 	border-radius: 0.2rem;
 	box-sizing: content-box;
-	color: #000;
+	color: var(--bs-dark);
 	height: 1em;
 	opacity: 0.5;
 	padding: 0.25em;

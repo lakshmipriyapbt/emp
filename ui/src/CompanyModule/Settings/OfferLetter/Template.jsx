@@ -185,7 +185,7 @@ const Template = () => {
                 />
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-                        <div style={{ textAlign: "right" }}>
+                        <div>
                             {company?.imageFile ? (
                                 <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (

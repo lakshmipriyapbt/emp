@@ -165,7 +165,7 @@ const InvoicePdf = () => {
                     GST Number: {companyDetails.gstNo || "N/A"}
                   </p>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div>
                   {companyDetails.imageFile && (
                     <img
                       src={companyDetails.imageFile}
@@ -212,11 +212,11 @@ const InvoicePdf = () => {
                 {/* Invoice Meta Data */}
                 <div className="col-md-6 text-end">
                   <p>
-                    <b>Invoice ID: {invoiceData.invoiceNo || "N/A"}</b>
+                    <b>Invoice ID:&nbsp; &nbsp; {invoiceData.invoiceNo || "N/A"}</b>
                   </p>
                   <p>
-                    <b>Invoice Date: </b> <CalendarFill />{" "}
-                    <b>
+                    <b>Invoice Date:{" "} &nbsp; &nbsp;
+                   
                       {invoiceData.invoiceDate
                         ? new Date(invoiceData.invoiceDate).getFullYear()
                         : "N/A"}
@@ -232,10 +232,11 @@ const InvoicePdf = () => {
                         ? new Date(invoiceData.invoiceDate).getDate()
                         : "N/A"}
                     </b>
+        
                   </p>
                   <p>
-                    <b>Due Date: </b> <CalendarFill />{" "}
-                    <b>
+                    <b>Due Date:&nbsp; &nbsp;
+                   
                       {invoiceData.dueDate
                         ? new Date(invoiceData.dueDate).getFullYear()
                         : "N/A"}

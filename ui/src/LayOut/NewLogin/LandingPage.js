@@ -196,7 +196,7 @@ const LandingPage = () => {
                                     aria-label="Close"
                                     onClick={closeModal} // Function to close the modal
                                 >
-                                </button>
+                               X </button>
                             </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit(onSubmit)}>

@@ -134,7 +134,7 @@ function Message() {
                         <div className="modal-content">
                             <div className="modal-header">
                                 <ModalTitle className="modal-title">Company Service Name</ModalTitle>
-                                <button type="button" className="btn-close" aria-label="Close" onClick={closeModal}></button>                         
+                                <button type="button" className="btn-close" aria-label="Close" onClick={closeModal}>X</button>                         
                          </div>
                             <div className="modal-body">
                                 <form onSubmit={handleSubmit(onSubmit)}>
