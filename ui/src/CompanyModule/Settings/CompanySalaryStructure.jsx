@@ -9,7 +9,7 @@ import { useAuth } from "../../Context/AuthContext";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const CompanySalaryStructure = () => {
   const {
@@ -574,7 +574,7 @@ const CompanySalaryStructure = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>              
                 </li>
                 <li className="breadcrumb-item active">Salary Structure</li>
               </ol>

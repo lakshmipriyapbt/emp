@@ -367,7 +367,7 @@ const Department = () => {
                 <nav aria-label="breadcrumb">
                   <ol className="breadcrumb mb-0">
                     <li className="breadcrumb-item">
-                      <Link to="/main">Home</Link>
+                      <Link to="/main" className="custom-link">Home</Link>
                     </li>
                     <li className="breadcrumb-item active">Departments</li>
                   </ol>
@@ -537,10 +537,12 @@ const Department = () => {
                   </ModalTitle>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="custom-close-btn"
                     aria-label="Close"
                     onClick={handleCloseAddDepartmentModal}
-                  >X</button>
+                  >
+                     x
+                  </button>
                 </div>
                 <ModalBody>
                   <form onSubmit={handleSubmit(onSubmit)} id="departmentForm">
@@ -609,10 +611,12 @@ const Department = () => {
                   </ModalTitle>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="custom-close-btn"
                     aria-label="Close"
                     onClick={handleCloseAddDesignationModal}
-                  ></button>
+                  >
+                    x
+                  </button>
                 </div>
                 <ModalBody>
                   <form onSubmit={handleSubmitDesignation(onSubmitDesignation)}>

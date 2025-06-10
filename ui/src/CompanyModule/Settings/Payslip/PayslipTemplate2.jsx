@@ -10,7 +10,7 @@ const PayslipTemplate2 = () => {
                 <div className="card">
                     <div className="card-header mt-4" style={{ background: "none", padding:"0px 25px",borderBottomWidth:"0px" }}>
                         <div className="header-content mt-4" style={{ textAlign: "center", alignItems: "center", backgroundColor: "#9EEAF9", border: "1px solid black", borderBottom: "none" }}>
-                            <div className="d-flex justify-content-center" style={{paddingTop:"20px"}}>
+                            <div style={{paddingTop:"10px", marginLeft:"390px"}}>
                                 {company?.imageFile ? (
                                     <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                                 ) : (

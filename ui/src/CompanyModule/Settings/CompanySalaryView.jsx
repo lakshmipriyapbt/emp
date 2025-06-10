@@ -94,7 +94,7 @@ const CompanySalaryView = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to="/main">Home</Link>
+                  <Link to="/main" className="custom-link">Home</Link>  
                 </li>
                 <li className="breadcrumb-item active">Salary View</li>
               </ol>

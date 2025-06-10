@@ -61,7 +61,8 @@ const Body = () => {
   const isAccountant = userRole?.includes("Accountant");
   const isEmployee = userRole?.includes("employee");
 
-  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant || isEmployee|| isUserAdmin;
+  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant ;
+  const showEmployeeDashboard = isEmployee;
 
   const handleTotalEmployeesClick = () => {
     navigate('/totalEmployees');
@@ -161,6 +162,20 @@ const Body = () => {
                 </div>
               </div>
             </>
+            ) : showEmployeeDashboard ? (
+            <div className="row">
+              <div className="col-md-6">
+                <div className="card h-100 p-4">
+                  <DashboardCalendar />
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="card h-100 p-4">
+                  <TaxSlab />
+                </div>
+              </div>
+            </div>
           ) : null}
         </div>
       </div>

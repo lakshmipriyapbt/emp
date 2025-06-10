@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import LayOut from "../../LayOut/LayOut";
 import { TdsPostApi } from "../../Utils/Axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { useDispatch } from "react-redux";
@@ -199,7 +199,7 @@ const AddTaxSlab = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">TDS</li>
                 <li className="breadcrumb-item active">Add TDS Structure</li>
