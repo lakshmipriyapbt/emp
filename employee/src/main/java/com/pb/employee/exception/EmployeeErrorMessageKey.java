@@ -141,7 +141,13 @@ public enum EmployeeErrorMessageKey {
     APPRAISAL_IS_ALREADY_EXIST("appraisal.is.already.exist"),
     INVALID_USER("invalid.user"),
     EMAIL_ALREADY_EXIST("email.already.exist"),
-    EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found");
+    EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found"),
+    CANDIDATE_ALREADY_EXIST("candidate.already.exist"),
+    UNABLE_SAVE_CANDIDATE("unable.save.candidate"),
+    CANDIDATE_EMAILID_ALREADY_EXISTS("candidate.email.already.exists"),
+    INVALID_CANDIDATE("invalid.candidate"), CANDIDATE_ID_ALREADY_EXISTS("candidate.id.already.exist"),
+    CANDIDATE_NOT_FOUND("candidate.not.found"),
+    UNABLE_DELETE_CANDIDATE("unable.delete.candidate");
 
     private final String key;
 
