@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation,Link } from "react-router-dom";
 import Select from "react-select";
 import { Bounce, toast } from "react-toastify";
 import LayOut from "../../../LayOut/LayOut";
@@ -345,7 +345,7 @@ const ExperienceForm = () => {
               <p>
                 To set up the experience templates before proceeding, Please
                 select the Template from Settings{" "}
-                <a href="/experienceLetter">Expereince Templates </a>
+                <Link to="/experienceLetter" className="custom-link">Expereince Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the experience
@@ -371,7 +371,7 @@ const ExperienceForm = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Generate Experience</li>
               </ol>

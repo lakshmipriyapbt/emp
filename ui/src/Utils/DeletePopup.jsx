@@ -4,8 +4,16 @@ import {Modal,ModalBody, ModalFooter, ModalHeader, ModalTitle,Button } from 'rea
 const DeletePopup = ({ show, handleClose, handleConfirm,id,employeeId,pageName }) => {
   return (
     <Modal show={show} onHide={handleClose} centered  style={{ zIndex: 9999 }}>
-      <ModalHeader closeButton>
+      <ModalHeader>
         <ModalTitle>Confirm Delete</ModalTitle>
+        <button
+            type="button"
+            className="custom-close-btn"
+            aria-label="Close"
+            onClick={handleClose}
+          >
+            ×
+          </button>
       </ModalHeader>
       <ModalBody>Are you sure you want to Delete {pageName} ?</ModalBody>
       <ModalFooter>

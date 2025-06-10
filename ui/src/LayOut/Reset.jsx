@@ -70,21 +70,21 @@ const Reset = ({ companyName, onClose, show }) => {
       setLoading(true);
       await resetPassword(formData, authUser.userId);
       setLoading(false);
-      onClose(); 
+      onClose();
       toast.success("Password Reset Successful");
-    
+
       // Delay pop-up message slightly to ensure smooth UI experience
       setTimeout(() => {
         toast.info("Login using new password"); // Show additional prompt
         navigate(`/${companyName}/login`);
       }, 1000); // 1-second delay before redirect
-    
+
       setLoading(false);
       onClose();
     } catch (error) {
       handleApiErrors(error);
       setLoading(false);
-    }    
+    }
   };
 
   const handleApiErrors = (error) => {
@@ -136,13 +136,13 @@ const Reset = ({ companyName, onClose, show }) => {
 
   const handlePaste = (e) => {
     const pastedText = e.clipboardData.getData('Text');
-    
+
     // Allow numbers, letters, and special characters while removing spaces
-    const sanitizedText = pastedText.replace(/[^A-Za-z0-9!@#$%^&*()_+={}[\]:;"'<>,.?/\\|-]/g, ''); 
-    
+    const sanitizedText = pastedText.replace(/[^A-Za-z0-9!@#$%^&*()_+={}[\]:;"'<>,.?/\\|-]/g, '');
+
     e.preventDefault(); // Prevent default paste action
     e.target.value = sanitizedText; // Insert sanitized text into the input
-};
+  };
 
   const validatePassword = (value) => {
     const errors = [];
@@ -177,8 +177,18 @@ const Reset = ({ companyName, onClose, show }) => {
       backdrop="static"
       keyboard={false}
     >
-      <Modal.Header closeButton>
-        <Modal.Title>Reset Password</Modal.Title>
+      <Modal.Header >
+        <Modal.Title>
+          Reset Password
+          <button
+            type="button"
+            className="custom-close-btn left"
+            aria-label="Close"
+            onClick={handleClose}
+          >
+            ×
+          </button>
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div>
@@ -211,7 +221,7 @@ const Reset = ({ companyName, onClose, show }) => {
                       message:
                         "Old Password must be at least 6 characters long",
                     },
-                     validate:validatePassword
+                    validate: validatePassword
                   })}
                 />
               </div>

@@ -33,13 +33,13 @@ const CustomersView = () => {
     if (companyId) {
       setIsFetching(true);
       const timer = setTimeout(() => {
-        dispatch(fetchCustomers(companyId)).finally(()=>setIsFetching(false));
+        dispatch(fetchCustomers(companyId)).finally(() => setIsFetching(false));
       }, 500); // Delay of 500ms
-  
+
       return () => clearTimeout(timer);
     }
   }, [dispatch, companyId]);
-  
+
   useEffect(() => {
     console.log("Customers from Redux store:", customers);
   }, [customers]);
@@ -55,7 +55,7 @@ const CustomersView = () => {
       setFilteredData([]);
       toast.error(error)
     }
-  }, [search, customers,error]);
+  }, [search, customers, error]);
 
   const handleEdit = (customerId) => {
     navigate(`/customerRegistration`, { state: { customerId } });
@@ -63,16 +63,16 @@ const CustomersView = () => {
   };
 
   // Function to open delete confirmation modal
-const handleOpenDeleteModal = (customerId) => {
-  setSelectedItemId(customerId);
-  setShowDeleteModal(true);
-};
+  const handleOpenDeleteModal = (customerId) => {
+    setSelectedItemId(customerId);
+    setShowDeleteModal(true);
+  };
 
-// Function to close delete confirmation modal
-const handleCloseDeleteModal = () => {
-  setShowDeleteModal(false);
-  setSelectedItemId(null);
-};
+  // Function to close delete confirmation modal
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedItemId(null);
+  };
 
   const handleDelete = async (customerId) => {
     if (!selectedItemId) return;
@@ -95,7 +95,7 @@ const handleCloseDeleteModal = () => {
       if (error.response && error.response.data) {
         console.error("Server Error Message:", error.response.data);
       }
-    }finally {
+    } finally {
       handleCloseDeleteModal();
     }
   };
@@ -156,7 +156,7 @@ const handleCloseDeleteModal = () => {
         <div>
           <button
             className="btn btn-sm"
-            style={{ backgroundColor: "transparent",border:"none" }}
+            style={{ backgroundColor: "transparent", border: "none" }}
             onClick={() => handleEdit(row.customerId)}
             title="Edit"
           >
@@ -201,7 +201,7 @@ const handleCloseDeleteModal = () => {
                 <nav aria-label="breadcrumb">
                   <ol className="breadcrumb mb-0">
                     <li className="breadcrumb-item">
-                      <a href="/main">Home</a>
+                      <Link to="/main" className="custom-link">Home</Link>
                     </li>
                     <li className="breadcrumb-item active">Clients</li>
                     <li className="breadcrumb-item active">Client View</li>

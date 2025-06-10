@@ -10,7 +10,7 @@ import {
   CompanySalaryStructureGetApi,
   TdsGetApi
 } from "../../Utils/Axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate,Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../Context/AuthContext";
@@ -831,11 +831,11 @@ const EmployeeSalaryStructure = () => {
 
   // Clear form
   const clearForm = () => {
-  reset(); // Reset react-hook-form
-  setShowFields(false);
-  setShowCards(false);
-  setFixedAmount(0);
-};
+    reset(); // Reset react-hook-form
+    setShowFields(false);
+    setShowCards(false);
+    setFixedAmount(0);
+  };
 
   // Render UI
   return (
@@ -852,7 +852,7 @@ const EmployeeSalaryStructure = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
-                    <a href="/main">Home</a>
+                    <Link to="/main" className="custom-link">Home</Link>         
                   </li>
                   <li className="breadcrumb-item active">Payroll</li>
                   <li className="breadcrumb-item active">Manage Salary</li>
@@ -1426,10 +1426,20 @@ const EmployeeSalaryStructure = () => {
           style={{ zIndex: "1050" }}
           className="custom-modal"
         >
-          <ModalHeader closeButton>
-            <ModalTitle className="text-center">
-              Confirm Provident Fund Option
-            </ModalTitle>
+          <ModalHeader>
+            <div className="d-flex justify-content-between align-items-center w-100">
+              <ModalTitle className="text-center mb-0 flex-grow-1">
+                Confirm Provident Fund Option
+              </ModalTitle>
+              <button
+                type="button"
+                className="custom-close-btn"
+                aria-label="Close"
+                onClick={() => setShowPfModal(false)}
+              >
+                ×
+              </button>
+            </div>
           </ModalHeader>
           <ModalBody className="text-center fs-bold">
             <p>

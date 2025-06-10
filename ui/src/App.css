@@ -17490,4 +17490,30 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   color: #3b7ddd; /* Orange text for the day number */
   font-weight: bold;
 }
+.custom-link {
+  color: red;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.custom-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  color: #da542e;
+}
+.custom-close-btn.left {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  color: #da542e;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  margin-left: 15rem; /* Space between text and × */
+}
+
 /* Pre Loadder css End */
