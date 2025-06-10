@@ -91,7 +91,7 @@ const EmployeeSalaryById = () => {
                   <span className="me-3" style={getStatusStyle(item.status)}>
                     {item.status}
                   </span>
-                  <ChevronRight size={18} color="#fff" />
+                  <ChevronRight size={18} color="#000000" />
                 </div>
               </div>
               {expanded[index] && (

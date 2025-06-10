@@ -153,7 +153,7 @@ const PayslipDoc2 = () => {
             }}
           >
             <div
-              className="header-content mt-4"
+              className="d-flex mt-4"
               style={{
                 textAlign: "center",
                 alignItems: "center",
@@ -162,7 +162,9 @@ const PayslipDoc2 = () => {
                 borderBottom: "none",
               }}
             >
-              <div style={{ paddingTop: "20px" }}>
+              <div className="d-flex justify-content-center"
+              style={{paddingTop:"20px"}}
+              >
                 {company?.imageFile ? (
                   <img
                     className="align-middle"

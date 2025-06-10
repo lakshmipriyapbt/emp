@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Slide, toast } from 'react-toastify';
-import { CalendarFill } from 'react-bootstrap-icons';
+import { Calendar, CalendarFill } from 'react-bootstrap-icons';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../Context/AuthContext';
 import { companyViewByIdApi, InvoiceGetApiById } from '../../Utils/Axios';
@@ -113,8 +113,8 @@ const InvoicePdf = () => {
               </div>
               <div className="col-md-6 text-right">
                 <h5><b style={{ fontSize: "smaller" }}>INVOICE </b>-<span>{invoiceData.invoiceId}</span></h5>
-                <p><b>Invoice Date :</b> <CalendarFill /> <b>{invoiceData.invoiceDate}</b></p>
-                <p><b>Due Date : </b><CalendarFill /> <b>{invoiceData.dueDate}</b></p>
+                <p><b>Invoice Date : <Calendar />{invoiceData.invoiceDate}</b></p>
+                <p><b>Due Date : <Calendar />{invoiceData.dueDate}</b></p>
               </div>
               {/* Bank Details in Two Columns */}
               <div className="col-md-12">

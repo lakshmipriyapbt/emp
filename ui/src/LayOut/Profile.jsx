@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const {company, employee } = useAuth();
+  console.log("company *****",company)
   const {
     register,
     handleSubmit,
@@ -40,8 +41,8 @@ function Profile() {
     // Determine whether to show CIN or Registration Number
     if (company.cinNo) {
       setCompanyField("cinNo");
-    } else if (company.regNo) {
-      setCompanyField("regNo");
+    } else if (company.companyRegNo) {
+      setCompanyField("companyRegNo");
     }
   }
 }, [company, setValue]);

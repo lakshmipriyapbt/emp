@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate} from "react-router-dom";
+import { useNavigate,Link} from "react-router-dom";
 import Select from "react-select";
 import { Bounce, toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
@@ -246,7 +246,9 @@ const handleConfirmSubmission = async () => {
             <div className="row justify-content-center">
               <div className="col-8 text-center mt-5">
                 <h2>No Relieving Template Available</h2>
-                <p>To set up the Relieving templates before proceeding, Please select the Template from Settings <a href="/relievingTemplates">Relieving Templates </a></p>
+                <p>To set up the Relieving templates before proceeding, Please select the Template from Settings{" "} 
+                  <Link to="/relievingTemplates" className="custom-link">Relieving Templates </Link>
+                </p>
                 <p>Please contact the administrator to set up the experience templates before proceeding.</p>
               </div>
             </div>
@@ -267,7 +269,7 @@ const handleConfirmSubmission = async () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Relieving Employee</li>
               </ol>
