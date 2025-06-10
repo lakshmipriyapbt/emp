@@ -1011,10 +1011,10 @@ const CompanySalaryStructure = () => {
                   <ModalTitle className="modal-title">Add New Field</ModalTitle>
                   <button
                     type="button"
-                    className="btn-close" // Bootstrap's close button class
+                    className="btn-close text-dark" // Bootstrap's close button class
                     aria-label="Close"
                     onClick={handleCloseNewFieldModal} // Function to close the modal
-                  ></button>
+                  >X</button>
                 </ModalHeader>
                 <ModalBody>
                   <form>

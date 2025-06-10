@@ -508,6 +508,14 @@ video {
 .container{
   width: 100%;
 }
+
+.d-flex {
+	display: flex !important;
+
+	background-color: transparent;
+
+	/* background-color: whitesmoke; */
+}
 @media (min-width: 576px){
 
   .container{

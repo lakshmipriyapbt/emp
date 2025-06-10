@@ -212,8 +212,14 @@ const EmsLogin = () => {
         style={{ zIndex: "1050" }}
         className="custom-modal"
       >
-        <ModalHeader closeButton>
+        <ModalHeader>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+            type="button"
+            className="text-dark"
+            aria-label="Close"
+            onClick={closeModal}
+          >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">{errorMessage}</ModalBody>
       </Modal>
