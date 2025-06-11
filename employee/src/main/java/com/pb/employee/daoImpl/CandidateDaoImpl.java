@@ -20,15 +20,13 @@ import java.util.Collection;
 @Component
 public class CandidateDaoImpl extends AbstractDao<CandidateEntity> implements CandidateDao {
 
-    @Autowired
-    private OpenSearchOperations openSearchOperations;
 
     public CandidateDaoImpl(Repository repository) {
         super(repository);
     }
 
     @Override
-    public Collection<CandidateEntity> getCandidates(String companyName, String candidateId, String emailId, String companyId) throws EmployeeException {
+    public Collection<CandidateEntity> getCandidates(String companyName, String candidateId, String companyId) throws EmployeeException {
         Collection<Filter> filters = new ArrayList<>();
 
         if (StringUtils.isNotBlank(companyName)) {
@@ -38,30 +36,10 @@ public class CandidateDaoImpl extends AbstractDao<CandidateEntity> implements Ca
         if (StringUtils.isNotBlank(candidateId)) {
             filters.add(new Filter(Constants.ID, Operator.EQ, candidateId));
         }
-        if (StringUtils.isNotBlank(emailId)) {
-            filters.add(new Filter(Constants.EMAIL_ID, Operator.EQ, emailId));
-        }
 
         filters.add(new Filter(Constants.TYPE, Operator.EQ, "candidate"));
 
         return search(filters, companyName);
     }
-
-    @Override
-    public CandidateEntity getCandidateById(String companyName, String candidateId, String companyId) throws EmployeeException {
-        Collection<Filter> filters = new ArrayList<>();
-        filters.add(new Filter(Constants.COMPANY_ID, Operator.EQ, companyId));
-        filters.add(new Filter(Constants.ID, Operator.EQ, candidateId));
-        filters.add(new Filter(Constants.TYPE, Operator.EQ, "candidate"));
-
-
-        Collection<CandidateEntity> results = search(filters, companyName);
-
-        if (results != null && !results.isEmpty()) {
-            return results.iterator().next();
-        }
-        return null;
-    }
-
 
 }

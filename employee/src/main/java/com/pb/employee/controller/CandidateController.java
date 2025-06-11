@@ -2,6 +2,8 @@ package com.pb.employee.controller;
 
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeException;
+import com.pb.employee.persistance.model.CandidateEntity;
+import com.pb.employee.persistance.model.CompanyCalendarEntity;
 import com.pb.employee.request.CandidatePayload.CandidateRequest;
 import com.pb.employee.request.CandidatePayload.CandidateUpdateRequest;
 import com.pb.employee.service.CandidateService;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collection;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -41,13 +44,15 @@ public class CandidateController {
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.getCandidateById.tag}", description = "${api.getCandidateById.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> getCandidateById(
+    public ResponseEntity<?> getCandidate(
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @PathVariable String companyName,
             @PathVariable String candidateId) throws EmployeeException, IOException {
-        return candidateService.getCandidateById(companyName, candidateId);
+        Collection<CandidateEntity> candidateEntities = candidateService.getCandidate(companyName, candidateId);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(candidateEntities), HttpStatus.OK);
     }
+
 
     @RequestMapping(value = "candidate/{companyName}", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
@@ -57,8 +62,10 @@ public class CandidateController {
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @PathVariable String companyName) throws EmployeeException, IOException {
-        return candidateService.getCandidates(companyName);
+        Collection<CandidateEntity> candidateEntities =  candidateService.getCandidate(companyName, null);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(candidateEntities), HttpStatus.OK);
     }
+
 
     @RequestMapping(value = "candidate/{companyName}/{candidateId}", method = RequestMethod.PUT)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},

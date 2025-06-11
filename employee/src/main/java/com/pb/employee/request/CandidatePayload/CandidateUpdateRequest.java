@@ -38,11 +38,6 @@ public class CandidateUpdateRequest {
     @Pattern(regexp = "^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{lastname.format}")
     private String lastName;
 
-    @Schema(example = "emailId")
-    @Pattern(regexp = "^(?=.*[a-z])[a-z0-9._%+-]*[a-z][a-z0-9._%+-]*@[a-z0-9.-]+\\.[a-z]{2,6}$", message = "{invalid.emailId}")
-    @NotBlank(message = "{emailId.notnull.message}")
-    private String emailId;// "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$"
-
     @Schema(example = "designationId")
     @Size(min = 2, max = 100, message = "{designation.size.message}")
     private String designation;

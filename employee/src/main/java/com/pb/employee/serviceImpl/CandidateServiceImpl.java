@@ -71,7 +71,7 @@ public class CandidateServiceImpl implements CandidateService {
 
             String companyId = shortNameEntity.getFirst().getId();
 
-            Collection<CandidateEntity> candidates = candidateDao.getCandidates(candidateRequest.getCompanyName(), null, null,companyId );
+            Collection<CandidateEntity> candidates = candidateDao.getCandidates(candidateRequest.getCompanyName(), null,companyId );
 
             Map<String, Object> duplicateValues = CandidateUtils.duplicateValues(candidateRequest, List.copyOf(candidates));
 
@@ -117,11 +117,10 @@ public class CandidateServiceImpl implements CandidateService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        // Send the email with company details
         CompletableFuture.runAsync(() -> {
             try {
                 String companyUrl = EmailUtils.getBaseUrl(request)+candidateRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
-                log.info("The company url : "+companyUrl);// Example URL
+                log.info("The company url : "+companyUrl);
                 emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,defaultPassword);
             } catch (Exception e) {
                 log.error("Error sending email to candidate: {}", candidateRequest.getEmailId());
@@ -134,109 +133,82 @@ public class CandidateServiceImpl implements CandidateService {
 
     }
 
-    @Override
-    public ResponseEntity<CandidateResponse> getCandidateById(String companyName, String candidateId) throws EmployeeException, IOException {
-        log.info("Fetching candidate for companyName: {} and candidateId: {}", companyName, candidateId);
 
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
-        List<CompanyEntity> companyEntities = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
-
-        if (companyEntities == null || companyEntities.isEmpty()) {
-            log.error("Company not found with name {}", companyName);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
-        }
-
-        String companyId = companyEntities.getFirst().getId();
-        CandidateEntity candidate = candidateDao.getCandidateById(companyName, candidateId, companyId);
-
-        if (candidate == null) {
-            log.error("Candidate with ID {} not found for company {}", candidateId, companyName);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.NOT_FOUND);
-        }
-
-        CandidateResponse response = objectMapper.convertValue(candidate, CandidateResponse.class);
-        return ResponseEntity.ok(response);
-
-    }
-
-
-    @Override
-    public ResponseEntity<List<CandidateResponse>> getCandidates(String companyName) throws IOException, EmployeeException {
-        log.info("Fetching all candidates for companyName: {}", companyName);
-
-        String index = ResourceIdUtils.generateCompanyIndex(companyName);
-        List<CompanyEntity> companyEntities = openSearchOperations.getCompanyByData(null, Constants.COMPANY, companyName);
-
-        if (companyEntities == null || companyEntities.isEmpty()) {
-            log.error("Company not found with name {}", companyName);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
-        }
-
-        String companyId = companyEntities.getFirst().getId();
-        Collection<CandidateEntity> candidates = candidateDao.getCandidates(companyName, null, null, companyId);
-
-        List<CandidateResponse> candidateResponses = candidates.stream()
-                .map(candidate -> objectMapper.convertValue(candidate, CandidateResponse.class))
-                .toList();
-
-        return new ResponseEntity<>(candidateResponses, HttpStatus.OK);
-
-    }
+   @Override
+   public Collection<CandidateEntity> getCandidate(String companyName, String candidateId)
+           throws EmployeeException, IOException{
+       try {
+           CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+           if (companyEntity == null){
+               log.error("Exception while fetching the company calendar details");
+               throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+           }
+           log.debug("Getting Company Calendar by companyName: {}", companyName);
+           return candidateDao.getCandidates(companyName, candidateId, companyEntity.getId());
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+   }
 
     @Override
     public ResponseEntity<?> updateCandidate(String companyName, String candidateId, CandidateUpdateRequest candidateUpdateRequest) throws EmployeeException {
-        String index = null;
-        DepartmentEntity departmentEntity = null;
         try {
-            index = ResourceIdUtils.generateCompanyIndex(companyName);
+            log.debug("Validating candidate existence for id {} in company {}", candidateId, companyName);
+            CandidateEntity existingCandidate = null;
+            DepartmentEntity departmentEntity = null;
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
 
-            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
-            if (companyEntity == null) {
-                log.error("Company not found: {}", companyName);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
-            }
+            try {
+                // Company validation
+                CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+                if (companyEntity == null) {
+                    log.error("Company not found: {}", companyName);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+                }
 
-            CandidateEntity existingCandidate = candidateDao.getCandidateById(companyName, candidateId, companyEntity.getId());
-            if (existingCandidate == null) {
-                log.error("Candidate not found with ID {} in company {}", candidateId, companyName);
+                existingCandidate = candidateDao.get(candidateId, companyName).orElse(null);
+                if (existingCandidate == null) {
+                    log.error("Candidate not found with ID {} in company {}", candidateId, companyName);
+                    throw new RuntimeException();
+                }
+            } catch (EmployeeException e) {
+                log.error("Unable to fetch candidate with id {}", candidateId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), candidateId), HttpStatus.NOT_FOUND);
             }
 
-            if (candidateUpdateRequest.getDepartment() != null) {
-                departmentEntity = openSearchOperations.getDepartmentById(candidateUpdateRequest.getDepartment(), null, index);
-                if (departmentEntity == null) {
-                    log.error("Department not found: {}", candidateUpdateRequest.getDepartment());
-                    return new ResponseEntity<>(
-                            ResponseBuilder.builder().build()
-                                    .createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT))),
-                            HttpStatus.CONFLICT);
+            try {
+                if (candidateUpdateRequest.getDepartment() != null) {
+                    departmentEntity = openSearchOperations.getDepartmentById(candidateUpdateRequest.getDepartment(), null, index);
+                    if (departmentEntity == null) {
+                        log.error("Department not found: {}", candidateUpdateRequest.getDepartment());
+                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT), HttpStatus.CONFLICT);
+                    }
                 }
+
+                if ((candidateUpdateRequest.getFirstName() == null || candidateUpdateRequest.getFirstName().equals(existingCandidate.getFirstName()))
+                        && (candidateUpdateRequest.getLastName() == null || candidateUpdateRequest.getLastName().equals(existingCandidate.getLastName()))
+                        && Objects.equals(candidateUpdateRequest.getDepartment(), existingCandidate.getDepartment())) {
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE), HttpStatus.BAD_REQUEST);
+                }
+
+                CandidateEntity updatedData = objectMapper.convertValue(candidateUpdateRequest, CandidateEntity.class);
+                BeanUtils.copyProperties(updatedData, existingCandidate, getNullPropertyNames(updatedData));
+                candidateDao.save(existingCandidate, companyName);
+            } catch (EmployeeException ex) {
+                throw ex;
+            } catch (Exception e) {
+                log.error("Unable to update candidate with id {} due to {}", candidateId, e.getMessage());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            if ((candidateUpdateRequest.getFirstName() == null || candidateUpdateRequest.getFirstName().equals(existingCandidate.getFirstName()))
-                    && (candidateUpdateRequest.getLastName() == null || candidateUpdateRequest.getLastName().equals(existingCandidate.getLastName()))
-                    && Objects.equals(candidateUpdateRequest.getDepartment(), existingCandidate.getDepartment())
-                    && (candidateUpdateRequest.getEmailId() == null || candidateUpdateRequest.getEmailId().equals(existingCandidate.getEmailId()))) {
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE), HttpStatus.BAD_REQUEST);
-            }
-
-            CandidateEntity updatedData = objectMapper.convertValue(candidateUpdateRequest, CandidateEntity.class);
-            BeanUtils.copyProperties(updatedData, existingCandidate, getNullPropertyNames(updatedData));
-
-            candidateDao.save(existingCandidate, companyName);
-
-            return new ResponseEntity<>(
-                    ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS),
-                    HttpStatus.OK);
-
         } catch (EmployeeException e) {
-            log.error("Error during candidate update: {}", e.getMessage());
             throw e;
-        } catch (Exception ex) {
-            log.error("Unexpected error during candidate update: {}", ex.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            throw new EmployeeException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
+
 
     @Override
     public void deleteCandidateById(String companyName, String candidateId) throws EmployeeException, IOException {
@@ -247,13 +219,6 @@ public class CandidateServiceImpl implements CandidateService {
             if (companyEntity == null) {
                 log.error("Company not found while attempting to delete candidate: {}", companyName);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
-            }
-
-            CandidateEntity existingCandidate = candidateDao.getCandidateById(companyName, candidateId, companyEntity.getId());
-
-            if (existingCandidate == null) {
-                log.error("Candidate with ID {} not found in company {}", candidateId, companyName);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), candidateId), HttpStatus.NOT_FOUND);
             }
 
             candidateDao.delete(candidateId, companyName);
