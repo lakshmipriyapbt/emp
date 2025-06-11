@@ -24,7 +24,6 @@ const CompanyLogin = () => {
       password: "",
       otp: "",
     },
-    mode: "onChange",
   });
 
   const { setAuthUser } = useAuth();
