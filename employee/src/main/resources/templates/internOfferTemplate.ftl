@@ -16,7 +16,7 @@ background: url('${blurredImage}') no-repeat center center;
 .logo {
 position: fixed;
 top: 10px;
-right: 20px;
+right: 7px;
 }
 
 .logo img {
@@ -81,7 +81,7 @@ height: 90px;
 
   <div class="content">
 
-    <div class="title">OFFER LETTER INTERN</div>
+    <div class="title">INTERN OFFER LETTER</div>
 
     <p><b>Date:</b> ${offerLetter.date}</p>
 
