@@ -24,12 +24,13 @@ const CompanyTdsView = () => {
   const [tdsTypes, setTdsTypes] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedSlabs, setEditedSlabs] = useState({});
+  const [editedStandardDeduction, setEditedStandardDeduction] = useState({});
   const [showAddSlabForm, setShowAddSlabForm] = useState(false);
   const [newSlab, setNewSlab] = useState({ min: "", max: "", taxPercentage: "" });
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const [isFetching, setIsFetching] = useState(true);
   const { employee } = useAuth();
   const companyId = employee?.companyId;
   const { userRole } = useSelector((state) => state.auth);
@@ -154,6 +155,16 @@ const CompanyTdsView = () => {
     }
   };
 
+  // Handle standard deduction change
+  const handleStandardDeductionChange = (tdsId, value) => {
+    if (value === "" || /^\d*$/.test(value)) {
+      setEditedStandardDeduction(prev => ({
+        ...prev,
+        [tdsId]: value
+      }));
+    }
+  };
+
   // Handle adding a new slab with auto-suggested min value
   const handleAddNewSlab = (tdsId) => {
     const slabs = editedSlabs[tdsId];
@@ -187,89 +198,74 @@ const CompanyTdsView = () => {
     const newErrors = {};
 
     Object.keys(editedSlabs).forEach(tdsId => {
-      const tdsData = editedSlabs[tdsId];
-
-      // Validate standard deduction
-      if (tdsData.standardDeduction !== undefined && tdsData.standardDeduction !== "") {
-        if (!validateNumericInput(tdsData.standardDeduction, 9)) {
-          newErrors[`${tdsId}_standardDeduction`] = "Invalid amount (up to 9 digits)";
-        } else {
-          const stdDeduction = parseInt(tdsData.standardDeduction, 10);
-          if (stdDeduction < 0) {
-            newErrors[`${tdsId}_standardDeduction`] = "Cannot be negative";
-          }
+      editedSlabs[tdsId].forEach((slab, index) => {
+        // Validate min amount
+        if (!slab.min) {
+          newErrors[`${tdsId}_${index}_min`] = "Minimum amount is required";
+        } else if (!validateNumericInput(slab.min, 9)) {
+          newErrors[`${tdsId}_${index}_min`] = "Invalid amount (up to 9 digits)";
         }
-      }
 
-      // Validate slabs if they exist
-      if (tdsData.persentageEntityList && tdsData.persentageEntityList.length > 0) {
-        tdsData.persentageEntityList.forEach((slab, index) => {
-          // Validate min amount
-          if (!slab.min) {
-            newErrors[`${tdsId}_${index}_min`] = "Minimum amount is required";
-          } else if (!validateNumericInput(slab.min, 9)) {
-            newErrors[`${tdsId}_${index}_min`] = "Invalid amount (up to 9 digits)";
-          } else {
-            const minNum = parseInt(slab.min, 10);
+        // Validate max amount
+        if (!slab.max) {
+          newErrors[`${tdsId}_${index}_max`] = "Maximum amount is required";
+        } else if (!validateNumericInput(slab.max, 9)) {
+          newErrors[`${tdsId}_${index}_max`] = "Invalid amount (up to 9 digits)";
+        }
+
+        // Validate tax percentage
+        if (!slab.taxPercentage) {
+          newErrors[`${tdsId}_${index}_taxPercentage`] = "Tax percentage is required";
+        } else if (!validatePercentageInput(slab.taxPercentage)) {
+          newErrors[`${tdsId}_${index}_taxPercentage`] = "Must be between 0-99";
+        }
+
+        // Validate min < max when both exist
+        if (slab.min && slab.max) {
+          const minNum = parseInt(slab.min, 10);
+          const maxNum = parseInt(slab.max, 10);
+
+          if (!isNaN(minNum)) {
             if (minNum < 0) {
               newErrors[`${tdsId}_${index}_min`] = "Cannot be negative";
             }
           }
 
-          // Validate max amount
-          if (!slab.max) {
-            newErrors[`${tdsId}_${index}_max`] = "Maximum amount is required";
-          } else if (!validateNumericInput(slab.max, 9)) {
-            newErrors[`${tdsId}_${index}_max`] = "Invalid amount (up to 9 digits)";
-          } else {
-            const maxNum = parseInt(slab.max, 10);
+          if (!isNaN(maxNum)) {
             if (maxNum < 0) {
               newErrors[`${tdsId}_${index}_max`] = "Cannot be negative";
             }
           }
 
-          // Validate tax percentage
-          if (!slab.taxPercentage) {
-            newErrors[`${tdsId}_${index}_taxPercentage`] = "Tax percentage is required";
-          } else if (!validatePercentageInput(slab.taxPercentage)) {
-            newErrors[`${tdsId}_${index}_taxPercentage`] = "Must be between 0-99";
-          }
-
-          // Validate min < max when both exist
-          if (slab.min && slab.max) {
-            const minNum = parseInt(slab.min, 10);
-            const maxNum = parseInt(slab.max, 10);
-
-            if (!isNaN(minNum) && !isNaN(maxNum)) {
-              if (minNum >= maxNum) {
-                newErrors[`${tdsId}_${index}_min`] = "Must be less than Max amount";
-                newErrors[`${tdsId}_${index}_max`] = "Must be greater than Min amount";
-              }
+          if (!isNaN(minNum) && !isNaN(maxNum)) {
+            if (minNum >= maxNum) {
+              newErrors[`${tdsId}_${index}_min`] = "Must be less than Max amount";
+              newErrors[`${tdsId}_${index}_max`] = "Must be greater than Min amount";
             }
           }
+        }
 
-          // Validate slab ordering
-          if (index > 0 && slab.min) {
-            const prevMax = parseInt(tdsData.persentageEntityList[index - 1].max);
-            const currentMin = parseInt(slab.min);
+        // Validate slab ordering
+        if (index > 0 && slab.min) {
+          const prevMax = parseInt(editedSlabs[tdsId][index - 1].max);
+          const currentMin = parseInt(slab.min);
 
-            if (!isNaN(prevMax) && !isNaN(currentMin)) {
-              if (currentMin <= prevMax) {
-                newErrors[`${tdsId}_${index}_min`] =
-                  `Must be greater than previous slab's Max (${prevMax})`;
-                newErrors[`${tdsId}_${index - 1}_max`] =
-                  `Must be less than next slab's Min (${currentMin})`;
-              }
+          if (!isNaN(prevMax) && !isNaN(currentMin)) {
+            if (currentMin <= prevMax) {
+              newErrors[`${tdsId}_${index}_min`] =
+                `Must be greater than previous slab's Max (${prevMax})`;
+              newErrors[`${tdsId}_${index - 1}_max`] =
+                `Must be less than next slab's Min (${currentMin})`;
+            }
 
-              // Check for gap between slabs (optional)
-              if (currentMin !== prevMax + 1) {
-                newErrors[`${tdsId}_${index}_min`] =
-                  `Should be ${prevMax + 1} to avoid gaps`;
-              }
+            // Check for gap between slabs (optional)
+            if (currentMin !== prevMax + 1) {
+              newErrors[`${tdsId}_${index}_min`] =
+                `Should be ${prevMax + 1} to avoid gaps`;
             }
           }
-        });
-      }
+        }
+      });
     });
 
     setErrors(newErrors);
@@ -277,15 +273,15 @@ const CompanyTdsView = () => {
   };
 
   useEffect(() => {
-    if (companyId) {
+     if (companyId) {
       setIsFetching(true);
       const timer = setTimeout(() => {
-        dispatch(fetchTds(companyId)).finally(() => setIsFetching(false));
-      }, 500); // Delay of 1500ms
-
-      return () => clearTimeout(timer);
+    dispatch(fetchTds(companyId)).finally(() => setIsFetching(false));
+   }, 500); // Delay of 1500ms
+  
+      return () => clearTimeout(timer); 
     }
-  }, [dispatch, companyId]);
+  }, [dispatch, companyId]);  
 
   useEffect(() => {
     // This effect will process the Redux store data whenever tdsList or filters change
@@ -301,13 +297,15 @@ const CompanyTdsView = () => {
 
       // Initialize editedSlabs with current data
       const initialEditedSlabs = {};
+      const initialStandardDeductions = {};
+      
       filteredByType.forEach(tds => {
-        initialEditedSlabs[tds.id] = {
-          persentageEntityList: [...tds.persentageEntityList],
-          standardDeduction: tds.standardDeduction || ""
-        };
+        initialEditedSlabs[tds.id] = [...tds.persentageEntityList];
+        initialStandardDeductions[tds.id] = tds.standardDeduction || "";
       });
+      
       setEditedSlabs(initialEditedSlabs);
+      setEditedStandardDeduction(initialStandardDeductions);
 
       // Always include both 'old' and 'new' in the dropdown
       setTdsTypes(['old', 'new']);
@@ -315,6 +313,7 @@ const CompanyTdsView = () => {
       setFilteredData([]);
       setTdsTypes(['old', 'new']);
       setEditedSlabs({});
+      setEditedStandardDeduction({});
     }
   }, [tdsList, selectedYear, selectedTdsType]); // Add dependencies
 
@@ -325,6 +324,7 @@ const CompanyTdsView = () => {
       setFilteredData([]);
       setTdsTypes(['old', 'new']);
       setEditedSlabs({});
+      setEditedStandardDeduction({});
     }
   }, [error]);
 
@@ -340,10 +340,15 @@ const CompanyTdsView = () => {
     setIsEditing(false);
     // Reset to original data
     const originalSlabs = {};
+    const originalStandardDeductions = {};
+    
     filteredData.forEach(tds => {
       originalSlabs[tds.id] = [...tds.persentageEntityList];
+      originalStandardDeductions[tds.id] = tds.standardDeduction || "";
     });
+    
     setEditedSlabs(originalSlabs);
+    setEditedStandardDeduction(originalStandardDeductions);
     setErrors({});
   };
 
@@ -359,18 +364,20 @@ const CompanyTdsView = () => {
     // Check if any changes were made
     const hasChanges = Object.keys(editedSlabs).some(tdsId => {
       const originalTds = filteredData.find(tds => tds.id === tdsId);
-      const editedTds = editedSlabs[tdsId];
+      const originalSlabs = originalTds?.persentageEntityList || [];
+      const editedSlabsForTds = editedSlabs[tdsId];
+      const originalStandardDeduction = originalTds?.standardDeduction || "";
+      const editedStandardDeductionForTds = editedStandardDeduction[tdsId];
 
-      // Check standard deduction
-      if (originalTds.standardDeduction !== editedTds.standardDeduction) {
+      // Check if standard deduction changed
+      if (originalStandardDeduction !== editedStandardDeductionForTds) {
         return true;
       }
 
-      // Check slabs (existing logic)
-      const originalSlabs = originalTds.persentageEntityList || [];
-      const editedSlabsForTds = editedTds.persentageEntityList || [];
-
+      // If lengths are different, there are changes
       if (originalSlabs.length !== editedSlabsForTds.length) return true;
+
+      // Check each slab for changes
       return originalSlabs.some((originalSlab, index) => {
         const editedSlab = editedSlabsForTds[index];
         return (
@@ -394,10 +401,8 @@ const CompanyTdsView = () => {
     setIsSaving(true);
     try {
       const updatePromises = Object.keys(editedSlabs).map(tdsId => {
-        const editedData = editedSlabs[tdsId];
-
         // Convert string values to numbers before sending to API
-        const slabsToSend = (editedData.persentageEntityList || []).map(slab => ({
+        const slabsToSend = editedSlabs[tdsId].map(slab => ({
           min: slab.min ? parseInt(slab.min, 10) : 0,
           max: slab.max ? parseInt(slab.max, 10) : 0,
           taxPercentage: slab.taxPercentage ? parseInt(slab.taxPercentage, 10) : 0
@@ -405,7 +410,7 @@ const CompanyTdsView = () => {
 
         return TdsPatchApi(tdsId, {
           persentageEntityList: slabsToSend,
-          standardDeduction: editedData.standardDeduction ? parseInt(editedData.standardDeduction, 10) : 0
+          standardDeduction: editedStandardDeduction[tdsId] || "0"
         });
       });
 
@@ -415,17 +420,30 @@ const CompanyTdsView = () => {
       setFilteredData(prevData =>
         prevData.map(tds => ({
           ...tds,
-          persentageEntityList: editedSlabs[tds.id]?.persentageEntityList || tds.persentageEntityList,
-          standardDeduction: editedSlabs[tds.id]?.standardDeduction || tds.standardDeduction
+          persentageEntityList: editedSlabs[tds.id] || tds.persentageEntityList,
+          standardDeduction: editedStandardDeduction[tds.id] || tds.standardDeduction
         }))
       );
 
-      toast.success("TDS data updated successfully!");
+      toast.success("TDS structure updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error.response?.data);
       const backendMessage = error.response?.data?.error?.message;
-      toast.error(backendMessage || "Failed to update TDS data");
+
+      if (backendMessage?.includes("Tax percentage")) {
+        // Highlight all percentage fields if backend complains
+        const percentageErrors = {};
+        Object.keys(editedSlabs).forEach(tdsId => {
+          editedSlabs[tdsId].forEach((_, index) => {
+            percentageErrors[`${tdsId}_${index}_taxPercentage`] =
+              "Invalid percentage (backend validation failed)";
+          });
+        });
+        setErrors(percentageErrors);
+      }
+
+      toast.error(backendMessage || "Failed to update TDS structure");
     } finally {
       setIsSaving(false);
     }
@@ -453,13 +471,20 @@ const CompanyTdsView = () => {
 
       const updatedSlabs = [...(editedSlabs[tdsId] || []), newSlabEntry];
 
-      await TdsPatchApi(tdsId, { persentageEntityList: updatedSlabs });
+      await TdsPatchApi(tdsId, { 
+        persentageEntityList: updatedSlabs,
+        standardDeduction: editedStandardDeduction[tdsId] || "0"
+      });
 
       // Immediately update the local state
       setFilteredData(prevData =>
         prevData.map(tds =>
           tds.id === tdsId
-            ? { ...tds, persentageEntityList: updatedSlabs }
+            ? { 
+                ...tds, 
+                persentageEntityList: updatedSlabs,
+                standardDeduction: editedStandardDeduction[tdsId] || tds.standardDeduction
+              }
             : tds
         )
       );
@@ -483,8 +508,8 @@ const CompanyTdsView = () => {
 
   return (
     <LayOut>
-      <div className="container-fluid p-0">
-        {(isFetching || loading) ? (
+        <div className="container-fluid p-0">
+          {(isFetching || loading) ? (
           <div className="row">
             <div className="col-12">
               <Loader />
@@ -492,31 +517,85 @@ const CompanyTdsView = () => {
           </div>
         ) : (
           <>
-            <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-              <div className="col">
-                <h1 className="h3 mb-3">
-                  <strong>TDS Structure</strong>
-                </h1>
+          <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+            <div className="col">
+              <h1 className="h3 mb-3">
+                <strong>TDS Structure</strong>
+              </h1>
+            </div>
+            <div className="col-auto">
+              <nav aria-label="breadcrumb">
+                <ol className="breadcrumb mb-0">
+                  <li className="breadcrumb-item">
+                    <Link to="/main" className="custom-link">Home</Link>
+                  </li>
+                  <li className="breadcrumb-item active">TDS</li>
+                  <li className="breadcrumb-item active">TDS Structure</li>
+                </ol>
+              </nav>
+            </div>
+          </div>
+
+          {/* Filter Section */}
+          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <div>
+              <button
+                className="btn btn-primary me-3"
+                onClick={() => navigate('/addTaxSlab')}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-plus-lg me-1"></i> Add TDS Structure
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="d-flex gap-3">
+              <div style={{ width: "250px" }}>
+                <select
+                  className={`form-select ${loading ? 'pe-none opacity-75' : ''}`}
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                  disabled={isEditing || loading}
+                >
+                  {[...Array(31).keys()].map(i => {
+                    const year = 2020 + i;
+                    return (
+                      <option key={year} value={`${year}-${year + 1}`}>
+                        {year}-{year + 1}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-              <div className="col-auto">
-                <nav aria-label="breadcrumb">
-                  <ol className="breadcrumb mb-0">
-                    <li className="breadcrumb-item">
-                      <Link to="/main" className="custom-link">Home</Link>
-                    </li>
-                    <li className="breadcrumb-item active">TDS</li>
-                    <li className="breadcrumb-item active">TDS Structure</li>
-                  </ol>
-                </nav>
+              <div style={{ width: "250px" }}>
+                <select
+                  className={`form-select ${loading ? 'pe-none opacity-75' : ''}`}
+                  value={selectedTdsType}
+                  onChange={(e) => setSelectedTdsType(e.target.value)}
+                  disabled={isEditing || loading}
+                >
+                  <option value="">All TDS Types</option>
+                  <option value="old">Old</option>
+                  <option value="new">New</option>
+                </select>
               </div>
             </div>
+          </div>
 
-            {/* Filter Section */}
-            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-              <div>
+          {/* Edit/Save Controls */}
+          {userRole?.includes("company_admin") && filteredData.length > 0 && (
+            <div className="d-flex justify-content-end mb-3">
+              {!isEditing ? (
                 <button
-                  className="btn btn-primary me-3"
-                  onClick={() => navigate('/addTaxSlab')}
+                  className="btn btn-primary me-2"
+                  onClick={handleEditClick}
                   disabled={loading}
                 >
                   {loading ? (
@@ -526,412 +605,348 @@ const CompanyTdsView = () => {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-plus-lg me-1"></i> Add TDS Structure
+                      <i className="bi bi-pencil-square me-1"></i> Edit TDS Structure
                     </>
                   )}
                 </button>
-              </div>
-              <div className="d-flex gap-3">
-                <div style={{ width: "250px" }}>
-                  <select
-                    className={`form-select ${loading ? 'pe-none opacity-75' : ''}`}
-                    value={selectedYear}
-                    onChange={handleYearChange}
-                    disabled={isEditing || loading}
-                  >
-                    {[...Array(31).keys()].map(i => {
-                      const year = 2020 + i;
-                      return (
-                        <option key={year} value={`${year}-${year + 1}`}>
-                          {year}-{year + 1}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                <div style={{ width: "250px" }}>
-                  <select
-                    className={`form-select ${loading ? 'pe-none opacity-75' : ''}`}
-                    value={selectedTdsType}
-                    onChange={(e) => setSelectedTdsType(e.target.value)}
-                    disabled={isEditing || loading}
-                  >
-                    <option value="">All TDS Types</option>
-                    <option value="old">Old</option>
-                    <option value="new">New</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Edit/Save Controls */}
-            {userRole?.includes("company_admin") && filteredData.length > 0 && (
-              <div className="d-flex justify-content-end mb-3">
-                {!isEditing ? (
+              ) : (
+                <>
                   <button
-                    className="btn btn-primary me-2"
-                    onClick={handleEditClick}
-                    disabled={loading}
+                    className="btn btn-success me-2"
+                    onClick={handleSaveChanges}
+                    disabled={isSaving || loading}
                   >
-                    {loading ? (
+                    {isSaving ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                        Loading...
+                        Saving...
                       </>
                     ) : (
                       <>
-                        <i className="bi bi-pencil-square me-1"></i> Edit TDS Slabs
+                        <i className="bi bi-check-circle me-1"></i> Save Changes
                       </>
                     )}
                   </button>
-                ) : (
-                  <>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleCancelEdit}
+                    disabled={isSaving || loading}
+                  >
+                    <i className="bi bi-x-circle me-1"></i> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* TDS Structure Cards */}
+          <div className="row">
+            {loading && tdsList.length > 0 ? (
+              <div className="col-12 text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-2">Updating TDS data...</p>
+              </div>
+            ) : filteredData.length > 0 ? (
+              filteredData.map((tds) => (
+                <div key={tds.id} className="col-md-6 mb-3">
+                  <div className="card">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0 card-title">
+                        <span className="badge bg-info">{tds.tdsType}</span>
+                      </h5>
+                      <div className="text-muted">
+                        FY: {tds.startYear}-{tds.endYear}
+                      </div>
+                    </div>
+
+                    <div className="card-body pt-0">
+                      {/* Standard Deduction Field */}
+                      <div className="mb-3">
+                        <label className="form-label">
+                          <strong>Standard Deduction (₹)</strong>
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editedStandardDeduction[tds.id] ?? tds.standardDeduction ?? ""}
+                            onChange={(e) => handleStandardDeductionChange(tds.id, e.target.value)}
+                            maxLength={9}
+                            pattern="[0-9]*"
+                            inputMode="numeric"
+                            disabled={loading || isSaving}
+                          />
+                        ) : (
+                          <div className="form-control-plaintext">
+                            {tds.standardDeduction || "0"}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6>TDS Slabs</h6>
+                        {loading && (
+                          <small className="text-primary">
+                            <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                            Updating...
+                          </small>
+                        )}
+                      </div>
+
+                      {editedSlabs[tds.id]?.length > 0 ? (
+                        <div className="table-responsive">
+                          <table className="table table-sm">
+                            <thead>
+                              <tr>
+                                <th>Slab</th>
+                                <th>Min Amount</th>
+                                <th>Max Amount</th>
+                                <th>Tax %</th>
+                                {isEditing && <th>Action</th>}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {editedSlabs[tds.id]?.map((slab, index) => (
+                                <tr key={index}>
+                                  <td>{index + 1}</td>
+                                  <td>
+                                    {isEditing ? (
+                                      <>
+                                        <input
+                                          type="text"
+                                          className={`form-control form-control-sm ${errors[`${tds.id}_${index}_min`] ? 'is-invalid' : ''}`}
+                                          value={slab.min}
+                                          onChange={(e) => {
+                                            if (/^\d*$/.test(e.target.value)) {
+                                              handleSlabChange(tds.id, index, 'min', e.target.value);
+                                            }
+                                          }}
+                                          maxLength={9}
+                                          inputMode="numeric"
+                                          disabled={loading}
+                                        />
+                                        {errors[`${tds.id}_${index}_min`] && (
+                                          <div className="invalid-feedback d-block">
+                                            {errors[`${tds.id}_${index}_min`]}
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                      slab.min
+                                    )}
+                                  </td>
+                                  <td>
+                                    {isEditing ? (
+                                      <>
+                                        <input
+                                          type="text"
+                                          className={`form-control form-control-sm ${errors[`${tds.id}_${index}_max`] ? 'is-invalid' : ''}`}
+                                          value={slab.max}
+                                          onChange={(e) => {
+                                            if (/^\d*$/.test(e.target.value)) {
+                                              handleSlabChange(tds.id, index, 'max', e.target.value);
+                                            }
+                                          }}
+                                          maxLength={9}
+                                          inputMode="numeric"
+                                          disabled={loading}
+                                        />
+                                        {errors[`${tds.id}_${index}_max`] && (
+                                          <div className="invalid-feedback d-block">
+                                            {errors[`${tds.id}_${index}_max`]}
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                      slab.max
+                                    )}
+                                  </td>
+                                  <td>
+                                    {isEditing ? (
+                                      <>
+                                        <input
+                                          type="text"
+                                          className={`form-control form-control-sm ${errors[`${tds.id}_${index}_taxPercentage`] ? 'is-invalid' : ''}`}
+                                          value={slab.taxPercentage}
+                                          onChange={(e) => {
+                                            if (/^\d*$/.test(e.target.value) && e.target.value <= 99) {
+                                              handleSlabChange(tds.id, index, 'taxPercentage', e.target.value);
+                                            }
+                                          }}
+                                          maxLength={2}
+                                          inputMode="numeric"
+                                          disabled={loading}
+                                        />
+                                        {errors[`${tds.id}_${index}_taxPercentage`] && (
+                                          <div className="invalid-feedback d-block">
+                                            {errors[`${tds.id}_${index}_taxPercentage`]}
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                      `${slab.taxPercentage}%`
+                                    )}
+                                  </td>
+                                  {isEditing && (
+                                    <td>
+                                      <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => handleRemoveSlab(tds.id, index)}
+                                        disabled={loading}
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </button>
+                                    </td>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="alert alert-info mb-0">
+                          {loading ? 'Loading slabs...' : 'No slabs available.'}
+                        </div>
+                      )}
+
+                      {isEditing && (
+                        <button
+                          className="btn btn-sm btn-primary mt-2"
+                          onClick={() => handleAddNewSlab(tds.id)}
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <i className="bi bi-plus-lg me-1"></i> Add New Slab
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-12 d-flex justify-content-center">
+                <div className="alert alert-info text-center">
+                  {loading
+                    ? 'Loading TDS data...'
+                    : selectedTdsType
+                      ? `No TDS structure found for ${selectedYear} with type ${selectedTdsType}.`
+                      : `No TDS structure found for ${selectedYear}.`}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Add Slab Modal */}
+          {showAddSlabForm && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              className="fade modal show"
+              tabIndex="-1"
+              style={{ zIndex: "9999", display: "block" }}
+            >
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <div className="modal-header d-flex justify-content-between w-100">
+                    <h5 className="modal-title">Add New Tax Slab</h5>
                     <button
-                      className="btn btn-success me-2"
-                      onClick={handleSaveChanges}
+                      type="button"
+                      className="btn-close"
+                      aria-label="Close"
+                      onClick={() => {
+                        setShowAddSlabForm(false);
+                        setErrors({});
+                      }}
+                      disabled={loading || isSaving}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <label className="form-label">Minimum Amount</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.min ? 'is-invalid' : ''}`}
+                        value={newSlab.min}
+                        onChange={(e) => setNewSlab({ ...newSlab, min: e.target.value })}
+                        maxLength={9}
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        disabled={loading || isSaving}
+                      />
+                      {errors.min && <div className="invalid-feedback">{errors.min}</div>}
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Maximum Amount</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.max ? 'is-invalid' : ''}`}
+                        value={newSlab.max}
+                        onChange={(e) => setNewSlab({ ...newSlab, max: e.target.value })}
+                        maxLength={9}
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        disabled={loading || isSaving}
+                      />
+                      {errors.max && <div className="invalid-feedback">{errors.max}</div>}
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label">Tax Percentage</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.taxPercentage ? 'is-invalid' : ''}`}
+                        value={newSlab.taxPercentage}
+                        onChange={(e) => setNewSlab({ ...newSlab, taxPercentage: e.target.value })}
+                        maxLength={2}
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        disabled={loading || isSaving}
+                      />
+                      {errors.taxPercentage && <div className="invalid-feedback">{errors.taxPercentage}</div>}
+                    </div>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setShowAddSlabForm(false);
+                        setErrors({});
+                      }}
+                      disabled={loading || isSaving}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleAddSlab}
                       disabled={isSaving || loading}
                     >
-                      {isSaving ? (
+                      {isSaving || loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-1" role="status"></span>
                           Saving...
                         </>
                       ) : (
-                        <>
-                          <i className="bi bi-check-circle me-1"></i> Save Changes
-                        </>
+                        "Save Slab"
                       )}
                     </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={handleCancelEdit}
-                      disabled={isSaving || loading}
-                    >
-                      <i className="bi bi-x-circle me-1"></i> Cancel
-                    </button>
-                  </>
-                )}
+                  </div>
+                </div>
               </div>
-            )}
-
-            {/* TDS Structure Cards */}
-            <div className="row">
-              {loading && tdsList.length > 0 ? (
-                <div className="col-12 text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
-                  <p className="mt-2">Updating TDS data...</p>
-                </div>
-              ) : filteredData.length > 0 ? (
-                filteredData.map((tds) => (
-                  <div key={tds.id} className="col-md-6 mb-3">
-                    <div className="card">
-                      <div className="card-header d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 card-title">
-                          <span className="badge bg-info">{tds.tdsType}</span>
-                        </h5>
-                        <div className="text-muted">
-                          FY: {tds.startYear}-{tds.endYear}
-                        </div>
-                      </div>
-
-                      <div className="card-body pt-0">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h6>TDS Slabs</h6>
-                          {loading && (
-                            <small className="text-primary">
-                              <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                              Updating...
-                            </small>
-                          )}
-                        </div>
-
-                        {editedSlabs[tds.id]?.length > 0 ? (
-                          <div className="table-responsive">
-                            <table className="table table-sm">
-                              <thead>
-                                <tr>
-                                  <th>Slab</th>
-                                  <th>Min Amount</th>
-                                  <th>Max Amount</th>
-                                  <th>Tax %</th>
-                                  <th>Standard Deduction</th>
-                                  {isEditing && <th>Action</th>}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {editedSlabs[tds.id]?.map((slab, index) => (
-                                  <tr key={index}>
-                                    <td>{index + 1}</td>
-                                    <td>
-                                      {isEditing ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            className={`form-control form-control-sm ${errors[`${tds.id}_${index}_min`] ? 'is-invalid' : ''}`}
-                                            value={slab.min}
-                                            onChange={(e) => {
-                                              if (/^\d*$/.test(e.target.value)) {
-                                                handleSlabChange(tds.id, index, 'min', e.target.value);
-                                              }
-                                            }}
-                                            maxLength={9}
-                                            inputMode="numeric"
-                                            disabled={loading}
-                                          />
-                                          {errors[`${tds.id}_${index}_min`] && (
-                                            <div className="invalid-feedback d-block">
-                                              {errors[`${tds.id}_${index}_min`]}
-                                            </div>
-                                          )}
-                                        </>
-                                      ) : (
-                                        slab.min
-                                      )}
-                                    </td>
-                                    <td>
-                                      {isEditing ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            className={`form-control form-control-sm ${errors[`${tds.id}_${index}_max`] ? 'is-invalid' : ''}`}
-                                            value={slab.max}
-                                            onChange={(e) => {
-                                              if (/^\d*$/.test(e.target.value)) {
-                                                handleSlabChange(tds.id, index, 'max', e.target.value);
-                                              }
-                                            }}
-                                            maxLength={9}
-                                            inputMode="numeric"
-                                            disabled={loading}
-                                          />
-                                          {errors[`${tds.id}_${index}_max`] && (
-                                            <div className="invalid-feedback d-block">
-                                              {errors[`${tds.id}_${index}_max`]}
-                                            </div>
-                                          )}
-                                        </>
-                                      ) : (
-                                        slab.max
-                                      )}
-                                    </td>
-                                    <td>
-                                      {isEditing ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            className={`form-control form-control-sm ${errors[`${tds.id}_${index}_taxPercentage`] ? 'is-invalid' : ''}`}
-                                            value={slab.taxPercentage}
-                                            onChange={(e) => {
-                                              if (/^\d*$/.test(e.target.value) && e.target.value <= 99) {
-                                                handleSlabChange(tds.id, index, 'taxPercentage', e.target.value);
-                                              }
-                                            }}
-                                            maxLength={2}
-                                            inputMode="numeric"
-                                            disabled={loading}
-                                          />
-                                          {errors[`${tds.id}_${index}_taxPercentage`] && (
-                                            <div className="invalid-feedback d-block">
-                                              {errors[`${tds.id}_${index}_taxPercentage`]}
-                                            </div>
-                                          )}
-                                        </>
-                                      ) : (
-                                        `${slab.taxPercentage}%`
-                                      )}
-                                    </td>
-                                    <td>
-                                      {isEditing ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            className={`form-control form-control-sm ${errors[`${tds.id}_standardDeduction`] ? 'is-invalid' : ''}`}
-                                            value={editedSlabs[tds.id]?.standardDeduction || tds.standardDeduction || ""}
-                                            onChange={(e) => {
-                                              if (/^\d*$/.test(e.target.value)) {
-                                                setEditedSlabs(prev => ({
-                                                  ...prev,
-                                                  [tds.id]: {
-                                                    ...prev[tds.id],
-                                                    standardDeduction: e.target.value
-                                                  }
-                                                }));
-                                              }
-                                            }}
-                                            maxLength={9}
-                                            inputMode="numeric"
-                                            disabled={loading}
-                                          />
-                                          {errors[`${tds.id}_standardDeduction`] && (
-                                            <div className="invalid-feedback d-block">
-                                              {errors[`${tds.id}_standardDeduction`]}
-                                            </div>
-                                          )}
-                                        </>
-                                      ) : (
-                                        tds.standardDeduction || "N/A"
-                                      )}
-                                    </td>
-                                    {isEditing && (
-                                      <td>
-                                        <button
-                                          className="btn btn-sm btn-danger"
-                                          onClick={() => handleRemoveSlab(tds.id, index)}
-                                          disabled={loading}
-                                        >
-                                          <i className="bi bi-trash"></i>
-                                        </button>
-                                      </td>
-                                    )}
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="alert alert-info mb-0">
-                            {loading ? 'Loading slabs...' : 'No slabs available.'}
-                          </div>
-                        )}
-
-                        {isEditing && (
-                          <button
-                            className="btn btn-sm btn-primary mt-2"
-                            onClick={() => handleAddNewSlab(tds.id)}
-                            disabled={loading}
-                          >
-                            {loading ? (
-                              <>
-                                <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                                Loading...
-                              </>
-                            ) : (
-                              <>
-                                <i className="bi bi-plus-lg me-1"></i> Add New Slab
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-12 d-flex justify-content-center">
-                  <div className="alert alert-info text-center">
-                    {loading
-                      ? 'Loading TDS data...'
-                      : selectedTdsType
-                        ? `No TDS structure found for ${selectedYear} with type ${selectedTdsType}.`
-                        : `No TDS structure found for ${selectedYear}.`}
-                  </div>
-                </div>
-              )}
             </div>
-
-            {/* Add Slab Modal */}
-            {showAddSlabForm && (
-              <div
-                role="dialog"
-                aria-modal="true"
-                className="fade modal show"
-                tabIndex="-1"
-                style={{ zIndex: "9999", display: "block" }}
-              >
-                <div className="modal-dialog modal-dialog-centered">
-                  <div className="modal-content">
-                    <div className="modal-header d-flex justify-content-between w-100">
-                      <h5 className="modal-title">Add New Tax Slab</h5>
-                      <button
-                        type="button"
-                        className="btn-close"
-                        aria-label="Close"
-                        onClick={() => {
-                          setShowAddSlabForm(false);
-                          setErrors({});
-                        }}
-                        disabled={loading || isSaving}
-                      ></button>
-                    </div>
-                    <div className="modal-body">
-                      <div className="mb-3">
-                        <label className="form-label">Minimum Amount</label>
-                        <input
-                          type="text"
-                          className={`form-control ${errors.min ? 'is-invalid' : ''}`}
-                          value={newSlab.min}
-                          onChange={(e) => setNewSlab({ ...newSlab, min: e.target.value })}
-                          maxLength={9}
-                          pattern="[0-9]*"
-                          inputMode="numeric"
-                          disabled={loading || isSaving}
-                        />
-                        {errors.min && <div className="invalid-feedback">{errors.min}</div>}
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Maximum Amount</label>
-                        <input
-                          type="text"
-                          className={`form-control ${errors.max ? 'is-invalid' : ''}`}
-                          value={newSlab.max}
-                          onChange={(e) => setNewSlab({ ...newSlab, max: e.target.value })}
-                          maxLength={9}
-                          pattern="[0-9]*"
-                          inputMode="numeric"
-                          disabled={loading || isSaving}
-                        />
-                        {errors.max && <div className="invalid-feedback">{errors.max}</div>}
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Tax Percentage</label>
-                        <input
-                          type="text"
-                          className={`form-control ${errors.taxPercentage ? 'is-invalid' : ''}`}
-                          value={newSlab.taxPercentage}
-                          onChange={(e) => setNewSlab({ ...newSlab, taxPercentage: e.target.value })}
-                          maxLength={2}
-                          pattern="[0-9]*"
-                          inputMode="numeric"
-                          disabled={loading || isSaving}
-                        />
-                        {errors.taxPercentage && <div className="invalid-feedback">{errors.taxPercentage}</div>}
-                      </div>
-                    </div>
-                    <div className="modal-footer">
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => {
-                          setShowAddSlabForm(false);
-                          setErrors({});
-                        }}
-                        disabled={loading || isSaving}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleAddSlab}
-                        disabled={isSaving || loading}
-                      >
-                        {isSaving || loading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                            Saving...
-                          </>
-                        ) : (
-                          "Save Slab"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+          )}
           </>
         )}
-      </div>
+        </div>
     </LayOut>
   );
 };
