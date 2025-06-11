@@ -345,7 +345,7 @@ const ExperienceForm = () => {
               <p>
                 To set up the experience templates before proceeding, Please
                 select the Template from Settings{" "}
-                <Link to="/experienceLetter" className="custom-link text-bg-info bg-opacity-25">Expereince Templates </Link>
+                <Link to="/experienceLetter" className="custom-link text-primary bg-opacity-25">Expereince Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the experience

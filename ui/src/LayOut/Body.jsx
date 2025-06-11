@@ -61,7 +61,7 @@ const Body = () => {
   const isAccountant = userRole?.includes("Accountant");
   const isEmployee = userRole?.includes("employee");
 
-  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant ;
+  const showCompanyDashboard = isCompanyAdmin || isUserAdmin || isHR || isAccountant ;
   const showEmployeeDashboard = isEmployee;
 
   const handleTotalEmployeesClick = () => {

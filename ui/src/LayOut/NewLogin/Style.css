@@ -918,7 +918,7 @@ a:active,
 a:focus {
     /* Set color to your desired non-blue, non-changing color. */
     /* Use a variable if available, otherwise a direct hex/rgb value. */
-    color: var(--main-text-color-variable) !important; /* Example using variable */
+    color: rgba(var(--bs-primary-rgb),);
     /* Or directly: color: #060b1e !important; */
 }
 

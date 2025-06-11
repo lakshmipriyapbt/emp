@@ -24,12 +24,13 @@ const CompanyTdsView = () => {
   const [tdsTypes, setTdsTypes] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedSlabs, setEditedSlabs] = useState({});
+  const [editedStandardDeduction, setEditedStandardDeduction] = useState({});
   const [showAddSlabForm, setShowAddSlabForm] = useState(false);
   const [newSlab, setNewSlab] = useState({ min: "", max: "", taxPercentage: "" });
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const [isFetching, setIsFetching] = useState(true);
   const { employee } = useAuth();
   const companyId = employee?.companyId;
   const { userRole } = useSelector((state) => state.auth);
@@ -151,6 +152,16 @@ const CompanyTdsView = () => {
           [`${tdsId}_${slabIndex}_${field}`]: validationResult
         }));
       }
+    }
+  };
+
+  // Handle standard deduction change
+  const handleStandardDeductionChange = (tdsId, value) => {
+    if (value === "" || /^\d*$/.test(value)) {
+      setEditedStandardDeduction(prev => ({
+        ...prev,
+        [tdsId]: value
+      }));
     }
   };
 
@@ -286,10 +297,15 @@ const CompanyTdsView = () => {
 
       // Initialize editedSlabs with current data
       const initialEditedSlabs = {};
+      const initialStandardDeductions = {};
+      
       filteredByType.forEach(tds => {
         initialEditedSlabs[tds.id] = [...tds.persentageEntityList];
+        initialStandardDeductions[tds.id] = tds.standardDeduction || "";
       });
+      
       setEditedSlabs(initialEditedSlabs);
+      setEditedStandardDeduction(initialStandardDeductions);
 
       // Always include both 'old' and 'new' in the dropdown
       setTdsTypes(['old', 'new']);
@@ -297,6 +313,7 @@ const CompanyTdsView = () => {
       setFilteredData([]);
       setTdsTypes(['old', 'new']);
       setEditedSlabs({});
+      setEditedStandardDeduction({});
     }
   }, [tdsList, selectedYear, selectedTdsType]); // Add dependencies
 
@@ -307,6 +324,7 @@ const CompanyTdsView = () => {
       setFilteredData([]);
       setTdsTypes(['old', 'new']);
       setEditedSlabs({});
+      setEditedStandardDeduction({});
     }
   }, [error]);
 
@@ -322,10 +340,15 @@ const CompanyTdsView = () => {
     setIsEditing(false);
     // Reset to original data
     const originalSlabs = {};
+    const originalStandardDeductions = {};
+    
     filteredData.forEach(tds => {
       originalSlabs[tds.id] = [...tds.persentageEntityList];
+      originalStandardDeductions[tds.id] = tds.standardDeduction || "";
     });
+    
     setEditedSlabs(originalSlabs);
+    setEditedStandardDeduction(originalStandardDeductions);
     setErrors({});
   };
 
@@ -340,8 +363,16 @@ const CompanyTdsView = () => {
   const handleSaveChanges = async () => {
     // Check if any changes were made
     const hasChanges = Object.keys(editedSlabs).some(tdsId => {
-      const originalSlabs = filteredData.find(tds => tds.id === tdsId)?.persentageEntityList || [];
+      const originalTds = filteredData.find(tds => tds.id === tdsId);
+      const originalSlabs = originalTds?.persentageEntityList || [];
       const editedSlabsForTds = editedSlabs[tdsId];
+      const originalStandardDeduction = originalTds?.standardDeduction || "";
+      const editedStandardDeductionForTds = editedStandardDeduction[tdsId];
+
+      // Check if standard deduction changed
+      if (originalStandardDeduction !== editedStandardDeductionForTds) {
+        return true;
+      }
 
       // If lengths are different, there are changes
       if (originalSlabs.length !== editedSlabsForTds.length) return true;
@@ -378,7 +409,8 @@ const CompanyTdsView = () => {
         }));
 
         return TdsPatchApi(tdsId, {
-          persentageEntityList: slabsToSend
+          persentageEntityList: slabsToSend,
+          standardDeduction: editedStandardDeduction[tdsId] || "0"
         });
       });
 
@@ -388,11 +420,12 @@ const CompanyTdsView = () => {
       setFilteredData(prevData =>
         prevData.map(tds => ({
           ...tds,
-          persentageEntityList: editedSlabs[tds.id] || tds.persentageEntityList
+          persentageEntityList: editedSlabs[tds.id] || tds.persentageEntityList,
+          standardDeduction: editedStandardDeduction[tds.id] || tds.standardDeduction
         }))
       );
 
-      toast.success("TDS slabs updated successfully!");
+      toast.success("TDS structure updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Update error:", error.response?.data);
@@ -410,7 +443,7 @@ const CompanyTdsView = () => {
         setErrors(percentageErrors);
       }
 
-      toast.error(backendMessage || "Failed to update TDS slabs");
+      toast.error(backendMessage || "Failed to update TDS structure");
     } finally {
       setIsSaving(false);
     }
@@ -438,13 +471,20 @@ const CompanyTdsView = () => {
 
       const updatedSlabs = [...(editedSlabs[tdsId] || []), newSlabEntry];
 
-      await TdsPatchApi(tdsId, { persentageEntityList: updatedSlabs });
+      await TdsPatchApi(tdsId, { 
+        persentageEntityList: updatedSlabs,
+        standardDeduction: editedStandardDeduction[tdsId] || "0"
+      });
 
       // Immediately update the local state
       setFilteredData(prevData =>
         prevData.map(tds =>
           tds.id === tdsId
-            ? { ...tds, persentageEntityList: updatedSlabs }
+            ? { 
+                ...tds, 
+                persentageEntityList: updatedSlabs,
+                standardDeduction: editedStandardDeduction[tdsId] || tds.standardDeduction
+              }
             : tds
         )
       );
@@ -565,7 +605,7 @@ const CompanyTdsView = () => {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-pencil-square me-1"></i> Edit TDS Slabs
+                      <i className="bi bi-pencil-square me-1"></i> Edit TDS Structure
                     </>
                   )}
                 </button>
@@ -622,6 +662,29 @@ const CompanyTdsView = () => {
                     </div>
 
                     <div className="card-body pt-0">
+                      {/* Standard Deduction Field */}
+                      <div className="mb-3">
+                        <label className="form-label">
+                          <strong>Standard Deduction (₹)</strong>
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editedStandardDeduction[tds.id] ?? tds.standardDeduction ?? ""}
+                            onChange={(e) => handleStandardDeductionChange(tds.id, e.target.value)}
+                            maxLength={9}
+                            pattern="[0-9]*"
+                            inputMode="numeric"
+                            disabled={loading || isSaving}
+                          />
+                        ) : (
+                          <div className="form-control-plaintext">
+                            {tds.standardDeduction || "0"}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6>TDS Slabs</h6>
                         {loading && (

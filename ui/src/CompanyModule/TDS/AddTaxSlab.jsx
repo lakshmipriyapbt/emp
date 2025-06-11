@@ -27,6 +27,7 @@ const AddTaxSlab = () => {
       startYear: null,
       endYear: null,
       tdsType: null,
+      standardDeduction: "",
       persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
     },
   });
@@ -54,13 +55,13 @@ const AddTaxSlab = () => {
       "Delete"
     ];
     const isNumber = /^[0-9]$/.test(e.key);
-  
+
     if (isNumber || allowedKeys.includes(e.key)) {
       return true;
     }
     return false;
   };
-  
+
 
   // Validate slab ranges to ensure they are in ascending order without overlaps
   const validateSlabRanges = (index, value, type) => {
@@ -112,54 +113,56 @@ const AddTaxSlab = () => {
   };
 
   const onSubmit = async (data) => {
-  try {
-    console.log("Submitting Data:", data);
+    try {
+      console.log("Submitting Data:", data);
 
-    const formattedData = {
-      startYear: Number(data.startYear.value),
-      endYear: Number(data.endYear.value),
-      tdsType: data.tdsType.value.toString(),
-      persentageEntityList: data.persentageEntityList.map((entry) => ({
-        min: entry.min.toString(),
-        max: entry.max.toString(),
-        taxPercentage: entry.taxPercentage.toString(),
-      })),
-    };
+      const formattedData = {
+        startYear: Number(data.startYear.value),
+        endYear: Number(data.endYear.value),
+        tdsType: data.tdsType.value.toString(),
+        standardDeduction: data.standardDeduction.toString(),
+        persentageEntityList: data.persentageEntityList.map((entry) => ({
+          min: entry.min.toString(),
+          max: entry.max.toString(),
+          taxPercentage: entry.taxPercentage.toString(),
+        })),
+      };
 
-    console.log("Final API Request Payload:", JSON.stringify(formattedData));
+      console.log("Final API Request Payload:", JSON.stringify(formattedData));
 
-    const response = await TdsPostApi(formattedData);
-    console.log("API Response:", response.data);
+      const response = await TdsPostApi(formattedData);
+      console.log("API Response:", response.data);
 
-    toast.success("TDS Structure added successfully!", {
-      autoClose: 1000,
-      onClose: () => {
-        dispatch(fetchTds()); // Refresh the TDS list
-        navigate("/companyTdsView");
-      },
-    });
+      toast.success("TDS Structure added successfully!", {
+        autoClose: 1000,
+        onClose: () => {
+          dispatch(fetchTds()); // Refresh the TDS list
+          navigate("/companyTdsView");
+        },
+      });
 
-    // Reset form but preserve year and tdsType
-    reset({
-      startYear: data.startYear,
-      endYear: data.endYear,
-      tdsType: data.tdsType,
-      persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
-    });
-  } catch (error) {
-    console.error("API Error Details:", error.response?.data || error.message);
-    toast.error(
-      error.response?.data?.detail ||
+      // Reset form but preserve year and tdsType
+      reset({
+        startYear: data.startYear,
+        endYear: data.endYear,
+        tdsType: data.tdsType,
+        standardDeduction: "",
+        persentageEntityList: [{ min: "", max: "", taxPercentage: "" }],
+      });
+    } catch (error) {
+      console.error("API Error Details:", error.response?.data || error.message);
+      toast.error(
+        error.response?.data?.detail ||
         "TDS structure for the selected financial year already exists."
-    );
+      );
 
-    if (error.response) {
-      console.log("Status Code:", error.response.status);
-      console.log("Headers:", error.response.headers);
-      console.log("Response Data:", error.response.data);
+      if (error.response) {
+        console.log("Status Code:", error.response.status);
+        console.log("Headers:", error.response.headers);
+        console.log("Response Data:", error.response.data);
+      }
     }
-  }
-};
+  };
 
   useEffect(() => {
     if (startYear && watch("endYear")) {
@@ -186,7 +189,7 @@ const AddTaxSlab = () => {
     append({ min: newMin.toString(), max: "", taxPercentage: "" });
   };
 
- return (
+  return (
     <LayOut>
       <div className="container-fluid p-0">
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
@@ -291,7 +294,7 @@ const AddTaxSlab = () => {
 
                         <div className="col-12 col-md-4 mb-3">
                           <label className="form-label">
-                            TDS Type 
+                            TDS Type
                           </label>
                           <Controller
                             name="tdsType"
@@ -313,6 +316,40 @@ const AddTaxSlab = () => {
                             </p>
                           )}
                         </div>
+                        <div className="col-12 col-md-4 mb-3">
+                          <label className="form-label">
+                            Standard Deduction (₹)
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Enter Standard Deduction"
+                            maxLength={9}
+                            onKeyDown={(e) => {
+                              if (!handleNumericInput(e)) {
+                                e.preventDefault();
+                              }
+                            }}
+                            {...register("standardDeduction", {
+                              required: "Standard Deduction is required",
+                              pattern: {
+                                value: /^\d+$/,
+                                message: "Only numbers are allowed"
+                              },
+                              validate: (val) => {
+                                const parsed = parseInt(val);
+                                if (isNaN(parsed)) return "Enter a valid number";
+                                if (parsed < 0) return "Must be a positive number";
+                                return true;
+                              }
+                            })}
+                          />
+                          {errors.standardDeduction && (
+                            <p className="errorMsg">
+                              {errors.standardDeduction.message}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -324,7 +361,7 @@ const AddTaxSlab = () => {
                         <div className="row mb-3" key={field.id}>
                           <div className="col-12 col-md-4 mb-2">
                             <label className="form-label">
-                              Minimum Amount 
+                              Minimum Amount
                             </label>
                             <input
                               type="text"
