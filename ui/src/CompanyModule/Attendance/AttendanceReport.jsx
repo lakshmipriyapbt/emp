@@ -10,7 +10,7 @@ import {
 } from "../../Utils/Axios";
 import { PencilSquare } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ModalTitle, ModalHeader, ModalBody } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
@@ -326,7 +326,7 @@ const AttendanceReport = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Attendance</li>
                 <li className="breadcrumb-item active">Attendance Report</li>

@@ -273,6 +273,11 @@ export const NAV_CONFIG = {
     ],
     Accountant: [
         {
+            title: 'Dashboard',
+            path: '/main',
+            icon: 'speedometer2'
+        },
+        {
             title: 'Clients',
             icon: 'person-lines-fill',
             items: [

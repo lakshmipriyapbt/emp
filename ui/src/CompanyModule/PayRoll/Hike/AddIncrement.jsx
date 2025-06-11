@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import {
   AppraisalLetterDownload,
   CompanySalaryStructureGetApi,
@@ -1110,7 +1111,7 @@ const AddIncrement = () => {
               <p>
                 To set up the Appraisal templates before proceeding, Please
                 select the Template from Settings{" "}
-                <a href="/appraisalTemplates">Appraisal Templates </a>
+                <Link to="/appraisalTemplates" className="custom-link text-primary bg-opacity-25">Appraisal Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the Appraisal
@@ -1136,7 +1137,7 @@ const AddIncrement = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Appraisal From</li>
               </ol>
@@ -1922,6 +1923,12 @@ const AddIncrement = () => {
                           <ModalTitle className="text-center">
                             Confirm Provident Fund Option
                           </ModalTitle>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            aria-label="Close"
+                            onClick={() => setShowPfModal(false)}
+                          >X</button>
                         </ModalHeader>
                         <ModalBody className="text-center fs-bold">
                           <p>

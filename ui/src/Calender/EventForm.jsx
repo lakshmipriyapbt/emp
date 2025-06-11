@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CalendarDeleteByIdApi, calendarPatchAPIById, calendarPostAPI } from '../Utils/Axios';
 import { fetchCalendarData } from '../Redux/CalendarSlice';
 import LayOut from '../LayOut/LayOut';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 
@@ -517,7 +517,7 @@ const EventForm = () => {
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb mb-0">
               <li className="breadcrumb-item">
-                <a href="/main">Home</a>
+                <Link to="/main" className="custom-link">Home</Link>
               </li>
               <li className="breadcrumb-item active">
                 <a href="/AddEvent">Calendar</a>

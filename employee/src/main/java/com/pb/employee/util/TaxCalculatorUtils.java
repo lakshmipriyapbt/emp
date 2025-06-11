@@ -19,9 +19,12 @@ public class TaxCalculatorUtils {
                 double max = Double.parseDouble(tdsPercentageEntity.getMax());
                 double percentage = Double.parseDouble(tdsPercentageEntity.getTaxPercentage());
                 boolean hasNoUpperLimit = max == 0;
-
+                double standardDeduction = 0;
+                if (tdsResPayload.getStandardDeduction() != null && !tdsResPayload.getStandardDeduction().isBlank()) {
+                    standardDeduction = Double.parseDouble(tdsResPayload.getStandardDeduction());
+                }
                 if ((salary >= min && salary <= max) || (salary >= min && hasNoUpperLimit)) {
-                    return (percentage / 100) * salary;
+                    return (percentage / 100) * (salary - standardDeduction);
                 }
             }
         }

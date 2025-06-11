@@ -32,6 +32,10 @@ public class TDSCreatePayload {
     @Pattern(regexp = "^(new|old)$", message = "{tdsType.format}")
     private String tdsType;
 
+    @Schema(example = "standardDeduction")
+    @Pattern(regexp = "^\\d{1,13}$", message = "{invalid.standardDeduction}")
+    private String standardDeduction;
+
     @Valid
     private List<TDSPercentageEntity> persentageEntityList;
 }

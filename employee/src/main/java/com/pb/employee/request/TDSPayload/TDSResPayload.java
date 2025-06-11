@@ -33,6 +33,9 @@ public class TDSResPayload {
     @JsonProperty("tdsType")
     private String tdsType;
 
+    @JsonProperty("standardDeduction")
+    private String standardDeduction;
+
     private List<TDSPercentageEntity> persentageEntityList;
 
     @JsonProperty("type")

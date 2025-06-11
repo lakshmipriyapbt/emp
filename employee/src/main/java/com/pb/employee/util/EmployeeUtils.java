@@ -551,29 +551,41 @@ public class EmployeeUtils {
         return noOfChanges;
     }
 
-    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(List<EmployeeEntity> employees, List<AttendanceEntity> attendanceRecords, String month, String year) {
+    public static List<EmployeeEntity> filterEmployeesWithoutAttendance(
+            List<EmployeeEntity> employees,
+            List<AttendanceEntity> attendanceRecords,
+            String month,
+            String year
+    ) {
         Set<String> employeesWithAttendance = attendanceRecords.stream()
                 .map(AttendanceEntity::getEmployeeId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        Month monthEnum = Month.valueOf(month.toUpperCase(Locale.ENGLISH)); // Convert "march" to MARCH
-        int monthNumber = monthEnum.getValue(); // 3
+        Month monthEnum = Month.valueOf(month.toUpperCase(Locale.ENGLISH));
+        int monthNumber = monthEnum.getValue();
+        int yearNumber = Integer.parseInt(year);
 
-        LocalDate endOfMonth = LocalDate.of(Integer.parseInt(year), monthNumber, 1)
-                .withDayOfMonth(LocalDate.of(Integer.parseInt(year), monthNumber, 1).lengthOfMonth());
+        LocalDate endOfMonth = LocalDate.of(yearNumber, monthNumber, 1)
+                .withDayOfMonth(LocalDate.of(yearNumber, monthNumber, 1).lengthOfMonth());
 
         return employees.stream()
-                .filter(employee -> !employeesWithAttendance.contains(employee.getId()) &&
-                        !employeesWithAttendance.contains(employee.getEmployeeId())&& Constants.ACTIVE.equalsIgnoreCase(employee.getStatus()))
+                .filter(emp -> Constants.ACTIVE.equalsIgnoreCase(emp.getStatus()))
                 .filter(emp -> {
                     try {
-                        LocalDate dateOfHiring = LocalDate.parse(emp.getDateOfHiring()); // expects yyyy-MM-dd format
-                        return dateOfHiring.isBefore(endOfMonth);
-                    } catch (DateTimeParseException e) {
-                        // optionally log invalid date and skip employee
+                        String hiringDateStr = emp.getDateOfHiring();
+                        if (hiringDateStr == null || hiringDateStr.isBlank()) return false;
+                        LocalDate dateOfHiring = LocalDate.parse(hiringDateStr);
+                        return !dateOfHiring.isAfter(endOfMonth);
+                    } catch (Exception e) {
                         return false;
                     }
                 })
+                .filter(emp -> {
+                    String id = emp.getId();
+                    return (id == null || !employeesWithAttendance.contains(id));
+                })
                 .collect(Collectors.toList());
     }
+
 }

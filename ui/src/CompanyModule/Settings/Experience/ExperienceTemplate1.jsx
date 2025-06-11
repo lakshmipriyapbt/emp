@@ -49,7 +49,7 @@ const ExperienceTemplate1 = ({
           top: "30%",
           left: "20%",
           right: "30%",
-          width: "50%",
+          width: "100%",
           height: "50%",
           backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
           transform: "rotate(340deg)",

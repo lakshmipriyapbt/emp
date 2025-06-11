@@ -27,11 +27,12 @@ const UpdateUser = () => {
     try {
       await UserPatchApi(id, data);
       toast.success("User updated successfully", {
-        autoClose: 2000,  // Show for 2 seconds
+        autoClose: 1000,  // Show for 2 seconds
         onClose: () => {
-          navigate('/viewUser', { state: { refresh: Date.now() } })
+          navigate(-1); // 👈 Go back to the previous page
         }
       });
+      
     } catch (err) {
       console.error('Error updating user:', err);
       toast.error("no changes detected");

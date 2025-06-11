@@ -12,7 +12,7 @@ import {
 } from "../../Utils/Axios";
 import { useAuth } from "../../Context/AuthContext";
 import { PencilSquare } from "react-bootstrap-icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
@@ -302,7 +302,7 @@ const GeneratePaySlip = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>     
                 </li>
                 <li className="breadcrumb-item active">Payroll</li>
                 <li className="breadcrumb-item active">Generate Payslips</li>

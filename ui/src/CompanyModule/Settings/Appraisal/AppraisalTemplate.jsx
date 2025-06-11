@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import AppraisalTemplate1 from "./AppraisalTemplate1";
 import AppraisalTemplate2 from "./AppraisalTemplate2";
+import { Link } from "react-router-dom";
 
 const AppraisalTemplate = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -182,7 +183,7 @@ const AppraisalTemplate = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link> 
                 </li>
                 <li className="breadcrumb-item active">Appraisal Templates</li>
               </ol>

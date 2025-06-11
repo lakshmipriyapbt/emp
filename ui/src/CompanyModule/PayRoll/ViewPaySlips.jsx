@@ -4,7 +4,7 @@ import Select from "react-select";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { Eye } from "react-bootstrap-icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   EmployeePayslipsGet,
   AllEmployeePayslipsGet,
@@ -280,7 +280,7 @@ const ViewPaySlips = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>    
                 </li>
                 <li className="breadcrumb-item active">Payroll</li>
                 <li className="breadcrumb-item active">PaySlips</li>

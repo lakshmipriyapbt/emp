@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { DepartmentGetApi, DesignationGetApi, InternOfferLetterDownload } from "../../../../Utils/Axios";
@@ -504,7 +504,7 @@ const InternOfferForm = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>  
                 </li>
                 <li className="breadcrumb-item active">
                   Generate Offer Letter

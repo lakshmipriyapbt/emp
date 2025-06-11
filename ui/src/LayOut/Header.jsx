@@ -75,7 +75,7 @@ const Header = ({ toggleSidebar }) => {
   
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (role === "company_admin" && companyName) {
+    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" || companyName) {
       navigate(`/${companyName}/login`, { replace: true });
     } else {
       navigate("/", { replace: true });
@@ -230,6 +230,12 @@ const Header = ({ toggleSidebar }) => {
       <Modal show={showErrorModal} onHide={closeModal} centered style={{ zIndex: "1050" }}>
         <ModalHeader closeButton>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+                    type="button"
+                    className="btn-close text-dark" // Bootstrap's close button class
+                    aria-label="Close"
+                    onClick={closeModal} // Function to close the modal
+                  >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">
           Session Timeout! Please log in.

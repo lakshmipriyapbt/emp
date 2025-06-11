@@ -36,6 +36,8 @@ public class Constants {
     public static final String HR = "HR";
     public static final String DEPARTMENT = "department";
     public static final String USER = "user";
+    public static final String PENDING = "pending";
+    public static final String ACTIVE = "active";
 }
 
 

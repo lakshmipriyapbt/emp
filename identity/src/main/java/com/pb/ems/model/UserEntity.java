@@ -17,6 +17,7 @@ public class UserEntity implements Entity {
     private String id;
     private String userType;
     private String companyId;
+    private String employeeId;
     private String userId;
     private String firstName;
     private String lastName;
