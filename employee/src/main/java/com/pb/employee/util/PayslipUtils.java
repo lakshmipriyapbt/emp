@@ -76,32 +76,6 @@ public class PayslipUtils {
             salary.setGrossAmount(String.valueOf(gross));
         }
 
-        if (noOfWorkingDays == 0){
-            tax = 0.0;
-            ttax = 0.0;
-            itax=0.0;
-            salary.setTotalTax(String.valueOf(ttax));
-            salary.setPfTax(String.valueOf(tax));
-            salary.setIncomeTax(String.valueOf(itax));
-        }else {
-            if (salaryRequest.getPfTax() != null) {
-                byte[] decodedTax = Base64.getDecoder().decode(salaryRequest.getPfTax());
-                tax = Double.parseDouble(new String(decodedTax));
-                tax = tax / 12.0;
-                salary.setPfTax(String.valueOf(Math.round(tax)));
-            }
-            if (salaryRequest.getIncomeTax() != null) {
-                itax = TaxCalculatorUtils.getTax(gross, tdsResPayload);
-                itax = itax / 12.0;
-                salary.setIncomeTax(String.valueOf(Math.round(itax)));
-
-            }
-            if (salaryRequest.getTotalTax() != null) {
-                ttax = tax + itax;
-                ttax = (double) Math.round(ttax);
-                salary.setTotalTax(String.valueOf(ttax));
-            }
-        }
         double allowance = 0.0;
         if(salaryRequest.getSalaryConfigurationEntity().getAllowances() != null) {
             Map<String, String> decodedAllowances = new HashMap<>();
@@ -140,11 +114,43 @@ public class PayslipUtils {
                         // Divide by 2 if noOfWorkingDays < 15 for PF Employee and PF Employer
                         calculatedValue = String.valueOf(Double.parseDouble(calculatedValue) / 2);
                     }
+                    if (key.equalsIgnoreCase(Constants.PF_EMPLOYER)){
+                        pfEmployer = Double.valueOf(calculatedValue);
+                    }
+
+
                     decodeDeductions.put(key, calculatedValue);
                     totalDeduction += Double.parseDouble(calculatedValue);
                 }
 
                 salary.getSalaryConfigurationEntity().setDeductions(decodeDeductions);
+            }
+        }
+        if (noOfWorkingDays == 0){
+            tax = 0.0;
+            ttax = 0.0;
+            itax=0.0;
+            salary.setTotalTax(String.valueOf(ttax));
+            salary.setPfTax(String.valueOf(tax));
+            salary.setIncomeTax(String.valueOf(itax));
+        }else {
+            if (salaryRequest.getPfTax() != null) {
+                byte[] decodedTax = Base64.getDecoder().decode(salaryRequest.getPfTax());
+                tax = Double.parseDouble(new String(decodedTax));
+                tax = tax / 12.0;
+                salary.setPfTax(String.valueOf(Math.round(tax)));
+            }
+            if (salaryRequest.getIncomeTax() != null) {
+                double salaryWithoutPFEmployer = (gross - pfEmployer);
+                itax = TaxCalculatorUtils.getTax(salaryWithoutPFEmployer, tdsResPayload);
+                itax = itax / 12.0;
+                salary.setIncomeTax(String.valueOf(Math.round(itax)));
+
+            }
+            if (salaryRequest.getTotalTax() != null) {
+                ttax = tax + itax;
+                ttax = (double) Math.round(ttax);
+                salary.setTotalTax(String.valueOf(ttax));
             }
         }
 
