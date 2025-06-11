@@ -5,7 +5,7 @@ import { Bounce, toast } from "react-toastify";
 import DeletePopup from "../../Utils/DeletePopup";
 import LayOut from "../../LayOut/LayOut";
 import { companyDeleteByIdApi, companyViewApi, updateCompanyStatusApi } from "../../Utils/Axios";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CompanyView = () => {
   const [view, setView] = useState([]);
@@ -17,7 +17,7 @@ const CompanyView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showStatusModal, setShowStatusModal] = useState(false);
-const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: "" });
+  const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: "" });
   const Navigate = useNavigate();
 
   const getUser = async () => {
@@ -132,7 +132,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       name: <h6><b>Company Name</b></h6>,
       selector: row => (
         <div title={row.companyName}>
-           {row.companyName.length > 20 ? `${row.companyName.slice(0, 20)}...` : row.companyName}
+          {row.companyName.length > 20 ? `${row.companyName.slice(0, 20)}...` : row.companyName}
         </div>
       ),
       width: "220px",
@@ -143,7 +143,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       selector: row => (
         <div title={row.emailId}>
           {row.emailId.length > 20 ? `${row.emailId.slice(0, 20)}...` : row.emailId}
-          </div>
+        </div>
       ),
       width: "200px",
     },
@@ -152,10 +152,10 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       selector: row => (
         <div title={row.mobileNo}>
           {row.mobileNo.length > 20 ? `${row.mobileNo.slice(0, 20)}...` : row.mobileNo}
-          </div>
+        </div>
       ),
       width: "150px",
-      wrap: true, 
+      wrap: true,
     },
     {
       name: <h6><b>Type</b></h6>,
@@ -206,16 +206,17 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
           value={row.status}
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
           style={{ width: "120px" }}
+          defaultValue=""
+          placeholder="Status"
         >
-          <option value="">Status</option>
+          <option value="" disabled hidden>Status</option>
           <option value="Active">Active</option>
           <option value="Inactive">InActive</option>
           <option value="pending">Pending</option>
         </select>
       ),
       width: "150px",
-    },
-    
+    }
   ];
 
   const getFilteredList = (searchTerm) => {
@@ -223,7 +224,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
     const filtered = view.filter((item) => {
       const lowerCasedSearchTerm = searchTerm.toLowerCase();
       return (
-        item.companyName.toLowerCase().includes(lowerCasedSearchTerm) 
+        item.companyName.toLowerCase().includes(lowerCasedSearchTerm)
         // item.name.toLowerCase().includes(lowerCasedSearchTerm)
       );
     });
@@ -292,7 +293,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       </div>
       {showStatusModal && (
         <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex="-1" role="dialog">
-          <div className="modal-dialog modal-dialog-centered"role="document">
+          <div className="modal-dialog modal-dialog-centered" role="document">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Confirm Status Change</h5>
