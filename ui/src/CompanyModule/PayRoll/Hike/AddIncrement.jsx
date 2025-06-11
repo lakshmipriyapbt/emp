@@ -1111,7 +1111,7 @@ const AddIncrement = () => {
               <p>
                 To set up the Appraisal templates before proceeding, Please
                 select the Template from Settings{" "}
-                <Link to="/appraisalTemplates" className="custom-link text-bg-info bg-opacity-25">Appraisal Templates </Link>
+                <Link to="/appraisalTemplates" className="custom-link text-primary bg-opacity-25">Appraisal Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the Appraisal

@@ -366,7 +366,7 @@ const InternShipForm = () => {
               <p>
                 To set up the Internship templates before proceeding, Please
                 select the Template from Settings{" "}
-                <Link to="/internsTemplates" className="custom-link text-bg-info bg-opacity-25">Internship Templates </Link>
+                <Link to="/internsTemplates" className="custom-link text-primary bg-opacity-25">Internship Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the Internship
