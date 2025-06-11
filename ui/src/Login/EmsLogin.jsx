@@ -18,7 +18,6 @@ const EmsLogin = () => {
     formState: { errors },
   } = useForm({
     defaultValues: { username: "", password: "" },
-    mode: "onChange",
   });
   const { setAuthUser } = useAuth();
   const navigate = useNavigate();
