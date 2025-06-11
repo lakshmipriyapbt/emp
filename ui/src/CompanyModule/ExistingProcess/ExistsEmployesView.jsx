@@ -247,7 +247,7 @@ const handleConfirmSubmission = async () => {
               <div className="col-8 text-center mt-5">
                 <h2>No Relieving Template Available</h2>
                 <p>To set up the Relieving templates before proceeding, Please select the Template from Settings{" "} 
-                  <Link to="/relievingTemplates" className="custom-link">Relieving Templates </Link>
+                  <Link to="/relievingTemplates" className="custom-link text-bg-info bg-opacity-25">Relieving Templates </Link>
                 </p>
                 <p>Please contact the administrator to set up the experience templates before proceeding.</p>
               </div>
