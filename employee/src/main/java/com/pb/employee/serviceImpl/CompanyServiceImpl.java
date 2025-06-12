@@ -226,6 +226,12 @@ public class CompanyServiceImpl implements CompanyService {
                         HttpStatus.CONFLICT
                 );
             }
+            String companyFolderPath = folderPath + user.getShortName();
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the company Folder");
+            }
             companyEntities.removeIf(company -> company.getId().equals(companyId));
             Map<String, Object> duplicateValues = CompanyUtils.duplicateUpdateValues(companyUpdateRequest, companyEntities);
             if (!duplicateValues.isEmpty()) {

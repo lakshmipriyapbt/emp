@@ -316,6 +316,27 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        try {
+            String companyFolderPath = folderPath + employeeUpdateRequest.getCompanyName();
+            File companyFolder = new File(companyFolderPath);
+            if (!companyFolder.exists()) {
+                log.error("Company folder does not exist: {}", companyFolderPath);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
+                        HttpStatus.NOT_FOUND);
+            }
+
+            String employeeFolderPath = folderPath + employeeUpdateRequest.getCompanyName() + "/" + user.getFirstName() + "_" + user.getEmployeeId();
+            File folder = new File(employeeFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the employee Folder");
+            }
+        }catch (EmployeeException exception) {
+            log.error("Company folder does not exist");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
+                    HttpStatus.NOT_FOUND);
+        }
+
         DesignationEntity designationEntity = null;
         DepartmentEntity departmentEntity = null;
         departmentEntity = openSearchOperations.getDepartmentById(employeeUpdateRequest.getDepartment(), null, index);
