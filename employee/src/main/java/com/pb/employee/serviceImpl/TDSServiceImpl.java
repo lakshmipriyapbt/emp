@@ -109,7 +109,7 @@ public class TDSServiceImpl implements TDSService {
                 Collection<TDSResPayload> companyTDSEntities = this.getCompanyTDS(companyName, id, null);
                 if (Objects.isNull(companyTDSEntities) || companyTDSEntities.isEmpty()) {
                     log.error("Company TDS does not existed for id {}", id);
-                    throw new RuntimeException();
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_TDS_NOT_FOUND), HttpStatus.NOT_FOUND);
                 }
 
                 tds = dao.get(companyTDSEntities.stream().findFirst().get().getId(), companyName).orElseThrow();
