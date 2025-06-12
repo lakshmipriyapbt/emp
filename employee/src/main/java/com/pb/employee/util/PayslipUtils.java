@@ -141,7 +141,7 @@ public class PayslipUtils {
                 salary.setPfTax(String.valueOf(Math.round(tax)));
             }
             if (salaryRequest.getIncomeTax() != null) {
-                double salaryWithoutPFEmployer = (gross - pfEmployer);
+                double salaryWithoutPFEmployer = (gross - (pfEmployer*12));
                 itax = TaxCalculatorUtils.getTax(salaryWithoutPFEmployer, tdsResPayload);
                 itax = itax / 12.0;
                 salary.setIncomeTax(String.valueOf(Math.round(itax)));
