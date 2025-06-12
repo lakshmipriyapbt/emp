@@ -316,6 +316,7 @@ const AddTaxSlab = () => {
                             </p>
                           )}
                         </div>
+                        {watch("tdsType") && (
                         <div className="col-12 col-md-4 mb-3">
                           <label className="form-label">
                             Standard Deduction (₹)
@@ -350,6 +351,7 @@ const AddTaxSlab = () => {
                             </p>
                           )}
                         </div>
+                        )}
                       </div>
                     </div>
 
