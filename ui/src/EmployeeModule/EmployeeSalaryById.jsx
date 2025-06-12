@@ -83,7 +83,7 @@ const EmployeeSalaryById = () => {
                 className="card-header d-flex justify-content-between align-items-center"
                 onClick={(e) => handleEditClick(item.salaryId, e)}
               >
-                <h5 style={{ color: "#fff" }} className="mb-0">
+                <h5 style={{ color: "#000000" }} className="mb-0">
                   {" "}
                   {index + 1}. Net Salary: {item.netSalary}
                 </h5>
@@ -91,7 +91,7 @@ const EmployeeSalaryById = () => {
                   <span className="me-3" style={getStatusStyle(item.status)}>
                     {item.status}
                   </span>
-                  <ChevronRight size={18} color="#fff" />
+                  <ChevronRight size={18} color="#000000" />
                 </div>
               </div>
               {expanded[index] && (

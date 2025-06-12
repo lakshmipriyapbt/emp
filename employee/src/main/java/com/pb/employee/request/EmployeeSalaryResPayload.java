@@ -31,5 +31,6 @@ public class EmployeeSalaryResPayload {
     private String tdsTax;
     private String totalTax;
     private String status;
+    private String addSalaryDate;
     private String type;
 }

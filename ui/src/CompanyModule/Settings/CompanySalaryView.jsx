@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import LayOut from "../../LayOut/LayOut";
 import { useForm } from "react-hook-form";
 import { CompanySalaryStructureGetApi } from "../../Utils/Axios";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   ChevronBarDown,
@@ -17,7 +18,7 @@ const CompanySalaryView = () => {
   } = useForm({ mode: "onChange" });
   const [salaryStructures, setSalaryStructures] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const { authUser } = useAuth();
+  const { userRole } = useSelector((state) => state.auth);
 
   const fetchSalary = async () => {
     try {
@@ -93,14 +94,14 @@ const CompanySalaryView = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to="/main">Home</Link>
+                  <Link to="/main" className="custom-link">Home</Link>  
                 </li>
                 <li className="breadcrumb-item active">Salary View</li>
               </ol>
             </nav>
           </div>
         </div>
-        {authUser && authUser.userRole && authUser.userRole.includes("company_admin") && (
+        {userRole?.includes("company_admin") && (
           <div className="col-12 col-md-6 col-lg-4 mb-3">
             <Link to="/companySalaryStructure">
               <button className="btn btn-primary">Add Salary Structure</button>
@@ -127,7 +128,7 @@ const CompanySalaryView = () => {
                       </span>
                       <ChevronDown
                         size={22}
-                        color="#fff"
+                        color="#000000"
                         onClick={() => {
                           toggleExpand(structure.id); // Use id from the response
                         }}

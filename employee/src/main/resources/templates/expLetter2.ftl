@@ -8,6 +8,11 @@
     <style>
         body {
             position: relative;
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            margin: 30px;
+            line-height: 1.5;
+
         }
 
         .watermark {
@@ -81,7 +86,7 @@
                 as a <#if employee.designationName?has_content>
                     <b>${employee.designationName}</b>
                 </#if> in the <#if employee.designationName?has_content> ${employee.departmentName}
-                </#if> Department from <b>${employee.dateOfHiring}</b> to <b>${request.date}.</b>
+                </#if> Department from <b>${employee.dateOfHiring}</b> to <b>${request.lastWorkingDate}.</b>
             </p>
             <p>During ${employee.firstName} ${employee.lastName}’s employment, he/she exhibited exceptional proficiency
                 in coding and <#if employee.designationName?has_content>

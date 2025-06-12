@@ -166,19 +166,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 }
                 EmployeeUtils.unmaskEmployeeProperties(employee, entity, designationEntity);
 
-                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId());
-
-                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()){
-                    employeeSalaryEntity.forEach(EmployeeUtils::unMaskEmployeeSalaryProperties);
-                    String grossAmounts = employeeSalaryEntity.stream()
-                            .filter(salary -> "Active".equalsIgnoreCase(salary.getStatus()))
-                            .map(EmployeeSalaryEntity::getGrossAmount)
-                            .findFirst()
-                            .map(String::valueOf) // Convert the value inside the Optional to a String
-                            .orElse("0");
-
-                    employee.setCurrentGross(grossAmounts);
+                List<EmployeeSalaryEntity> employeeSalaryEntity =  openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), Constants.ACTIVE);
+                if (employeeSalaryEntity != null && !employeeSalaryEntity.isEmpty()) {
+                    EmployeeSalaryEntity activeSalary = employeeSalaryEntity.get(0);
+                    EmployeeUtils.unMaskEmployeeSalaryProperties(activeSalary);
+                    employee.setCurrentGross(activeSalary.getGrossAmount());
                 }
+
                 RelievingEntity relievingDetails = openSearchOperations.getRelievingByEmployeeId(employee.getId(),null,companyName);
                 // Set status only if relieving details are found
                 if (relievingDetails != null) {
@@ -187,9 +181,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                     if (startDate != null && endDate != null) {
                         String status = null;
-                        if ((currentDate.isEqual(startDate) || currentDate.isAfter(startDate)) && currentDate.isBefore(endDate)) {
-                            status = Constants.NOTICE_PERIOD;
-                        } else if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
+                        if (currentDate.isEqual(endDate) || currentDate.isAfter(endDate)) {
                             status = Constants.RELIEVED;
                         }
 
@@ -199,6 +191,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                             // Perform partial update for status only
                             Map<String, Object> partialUpdate = new HashMap<>();
                             partialUpdate.put(Constants.STATUS, status);
+                            List<EmployeeSalaryEntity> employeeSalaryEntities = openSearchOperations.getEmployeeSalaries(companyName, employee.getId(), null);
+                            if (!employeeSalaryEntities.isEmpty() && employeeSalaryEntities.size() != 0) {
+                                for (EmployeeSalaryEntity salaryEntity : employeeSalaryEntities) {
+                                    salaryEntity.setStatus(Constants.IN_ACTIVE);
+                                    openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
+                                }
+                            }
                             openSearchOperations.partialUpdate(employee.getId(), partialUpdate, index);
                         }
                     }
@@ -288,7 +287,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
                         HttpStatus.BAD_REQUEST);
             }
-            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId);
+            salaryEntities = openSearchOperations.getEmployeeSalaries(employeeUpdateRequest.getCompanyName(), employeeId, null);
 
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
@@ -322,7 +321,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         // Step 7: Deactivate Salaries if Employee is Made Relieved
         if (Constants.RELIEVED.equalsIgnoreCase(employeeUpdateRequest.getStatus()) && salaryEntities != null) {
             for (EmployeeSalaryEntity salaryEntity : salaryEntities) {
-                salaryEntity.setStatus(Constants.RELIEVED);
+                salaryEntity.setStatus(Constants.IN_ACTIVE);
                 openSearchOperations.saveEntity(salaryEntity, salaryEntity.getSalaryId(), index);
             }
             log.info("Salaries set to Relieved for employee: {}", employeeId);
@@ -455,10 +454,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
-
             List<AttendanceEntity> attendanceEntities = openSearchOperations.getAttendanceByMonthAndYear(companyName,null,month,year);
 
-            List<EmployeeEntity> employeesWithoutAttendance = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities);
+            List<EmployeeEntity> employeesWithoutAttendance = EmployeeUtils.filterEmployeesWithoutAttendance(employeeEntities, attendanceEntities, month, year);
 
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createSuccessResponse(employeesWithoutAttendance), HttpStatus.OK);

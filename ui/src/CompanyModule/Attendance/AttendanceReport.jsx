@@ -10,7 +10,7 @@ import {
 } from "../../Utils/Axios";
 import { PencilSquare } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ModalTitle, ModalHeader, ModalBody } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
@@ -23,7 +23,7 @@ const AttendanceReport = () => {
     reset,
     watch,
   } = useForm({ mode: "onChange" });
-  const [emp,setEmp]=useState([])
+  const [emp, setEmp] = useState([])
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -41,9 +41,10 @@ const AttendanceReport = () => {
   const [noDataFound, setNoDataFound] = useState(false); // State to track if no data is found
   const [isFilterClicked, setIsFilterClicked] = useState(false); // New state to track "Go" button click
   const dispatch = useDispatch();
+  const [selectedDownloadFormat, setSelectedDownloadFormat] = useState("");
 
   // Fetch employees from Redux store
-  const { data: employees} = useSelector((state) => state.employees);
+  const { data: employees } = useSelector((state) => state.employees);
 
   // Fetch employees when the component mounts
   useEffect(() => {
@@ -162,28 +163,37 @@ const AttendanceReport = () => {
   const showToast = (message, type) => {
     toast[type](message);
   };
-  
+
   const handleDownloadAttendance = (format) => {
     if (!format) {
       showToast("Please select a file format!", "warning");
       return;
     }
-  
+
     let message = `You are about to download the employee attendance data in ${format.toUpperCase()} format.\n\n`;
-  
+
     if (selectedYear && selectedMonth && employeeId) {
-      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
+      message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}\n👤 Employee: ${selectedEmployee?.label || ''}`;
     } else if (selectedYear && selectedMonth) {
       message += `📅 Month: ${selectedMonth}, Year: ${selectedYear}`;
     } else if (employeeId) {
-      message += `👤 Employee: ${selectedEmployee?.firstName} ${selectedEmployee?.lastName} (ID: ${selectedEmployee.employeeId})`;
+      message += `👤 Employee: ${selectedEmployee?.label || ''}`;
     }
-  
+
     // Show confirmation popup
     if (window.confirm(message)) {
-      downloadAttendanceFileAPI(format, selectedYear || null, selectedMonth || null, employeeId || null, showToast);
+      downloadAttendanceFileAPI(
+        format,
+        selectedYear || null,
+        selectedMonth || null,
+        employeeId || null,
+        showToast
+      ).finally(() => {
+        // Reset the dropdown after download
+        setSelectedDownloadFormat("");
+      });
     }
-  };  
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -245,8 +255,8 @@ const AttendanceReport = () => {
       name: <h6><b>Name</b></h6>,
       selector: row => (
         <div title={`${row.firstName} ${row.lastName}`}>
-           {`${row.firstName.length > 18 ? row.firstName.slice(0, 10) + '...' : row.firstName} ${row.lastName.length > 10 ? row.lastName.slice(0, 10) + '...' : row.lastName}`}
-        </div>      
+          {`${row.firstName.length > 18 ? row.firstName.slice(0, 10) + '...' : row.firstName} ${row.lastName.length > 10 ? row.lastName.slice(0, 10) + '...' : row.lastName}`}
+        </div>
       ),
       width: "190px",
     },
@@ -316,7 +326,7 @@ const AttendanceReport = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Attendance</li>
                 <li className="breadcrumb-item active">Attendance Report</li>
@@ -334,7 +344,10 @@ const AttendanceReport = () => {
                       Select Employee
                     </label>
                     <Select
-                      options={emp}
+                       options={[
+                        { label: "Select Employee", value: "" }, // Placeholder option
+                        ...emp, // Spread existing employee options
+                      ]}
                       onChange={handleEmployeeChange}
                       placeholder="Select Employee"
                       menuPortalTarget={document.body}
@@ -407,7 +420,11 @@ const AttendanceReport = () => {
                   >
                     <select
                       className="form-select bg-primary border-0 text-white"
-                      onChange={(e) => handleDownloadAttendance(e.target.value)}
+                      value={selectedDownloadFormat}
+                      onChange={(e) => {
+                        setSelectedDownloadFormat(e.target.value);
+                        handleDownloadAttendance(e.target.value);
+                      }}
                     >
                       <option value="">Download Attendance Data</option>
                       <option value="excel">Excel (.xlsx)</option>

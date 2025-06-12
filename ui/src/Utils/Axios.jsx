@@ -88,9 +88,12 @@ export const resetPassword = (data, employeeId) => {
   return axiosInstance.patch(`/company/employee/${employeeId}/password`, data);
 }
 
-
 export const CompanyRegistrationApi = (data) => {
   return axiosInstance.post("/company", data);
+};
+
+export const CompanyAddApi = (data) => {
+  return axios.post(`${BASE_URL}/company/add`,data)
 };
 
 export const companyViewApi = async () => {
@@ -120,6 +123,10 @@ export const companyUpdateByIdApi = async (companyId, data) => {
   }
 };
 
+export const updateCompanyStatusApi = (id, status) => {
+  return axiosInstance.patch(`company/${id}/status/${status}`)
+};
+
 export const companyPasswordUpdateById = async (companyId) => {
   axiosInstance.patch(`/company/password/${companyId}`);
 }
@@ -129,9 +136,37 @@ export const DepartmentGetApi = () => {
   return axiosInstance.get(`${company}/department`);
 }
 
-export const DepartmentPostApi = (data) => {
-  return axiosInstance.post("/department", data);
-}
+export const DepartmentPostApi = async (departmentData) => {
+  try {
+    const response = await axiosInstance.post("/department", departmentData);
+    
+    // Debug the raw response
+    console.log('API Response:', response.data);
+    
+    // Handle case where API returns just {path, message, data: 'success'}
+    if (response.data?.data === 'success') {
+      return {
+        id: `temp-${Date.now()}`, // Temporary ID
+        name: departmentData.name,
+        companyName: departmentData.companyName,
+        type: "department"
+      };
+    }
+    
+    // Handle case where API returns the full department
+    if (response.data?.data?.name) {
+      return response.data.data;
+    }
+    
+    throw new Error('API returned unexpected format');
+  } catch (error) {
+    console.error('DepartmentPostApi error:', {
+      error: error.response?.data || error.message,
+      request: departmentData
+    });
+    throw error;
+  }
+};
 export const DepartmentGetApiById = (departmentId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`${company}/department/${departmentId}`)
@@ -170,24 +205,33 @@ export const DesignationGetApi = async (departmentId) => {
       `/${company}/department/${departmentId}/designation`
     );
     
-    // Ensure response has expected structure
-    if (!response.data?.data) {
-      throw new Error('Invalid response structure');
+    // Check if response exists and has data with expected structure
+    if (!response?.data) {
+      console.warn("No data in response");
+      throw new Error("No data received from server");
     }
+
+    // Validate response structure
+    if (response.data.message !== "Success") {
+      console.warn("API did not return success message");
+      throw new Error("API request was not successful");
+    }
+
+    if (!Array.isArray(response.data.data)) {
+      console.warn("Unexpected data format in response");
+      throw new Error("Invalid data format received");
+    }
+
+    return response.data.data; // Return the array of designations
     
-    return Array.isArray(response.data.data) 
-      ? response.data.data 
-      : [response.data.data]; // Handle single object case
   } catch (error) {
     console.error('Designation API Error:', {
       departmentId,
       status: error.response?.status,
       url: error.config?.url,
-      error: error.message
+      error: error.message,
     });
-    
-    // Return empty array instead of throwing error
-    return [];
+    throw error; // Re-throw the error to be caught by the thunk
   }
 };
 
@@ -597,27 +641,25 @@ export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
     const response = await axiosInstance.get(`/${companyName}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
-        'Accept': 'application/pdf', // Accept PDF format
+        'Accept': 'application/json', // Change from application/pdf to application/json
       }
     });
 
-    // Create a URL for the blob and trigger the download
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+     const url = window.URL.createObjectURL(new Blob([response.data]));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `payslip_${employeeId}.pdf`; // Customize file name as needed
+    a.download = `payslip.pdf`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-
-    return true; // Indicate success
-
+    return true;
   } catch (error) {
     console.error('Download error:', error);
-    throw error; // Rethrow error for handling in the calling function
+    throw error;
   }
 };
+
 
 export const EmployeePayslipDeleteById = (employeeId, payslipId) => {
   const company = localStorage.getItem("comapnyName")
@@ -1119,9 +1161,65 @@ export const getCompanyTdsByYear = (year) => {
   return axiosInstance.get(`/company/${company}/tds/${year}/year`);
 };
 
+export const calendarPostAPI=async (data)=>{
+  const company = localStorage.getItem("companyName")
+    try {
+    const response = await axiosInstance.post(`/company/${company}/calendar`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }  
+}
 
+export const CalendarGetApi=()=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar`);
+}
 
+export const CalendarGetApiById=(id)=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar/${id}`);
+}
 
+export const TodayCalendarGetApi=()=>{
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.get(`/company/${company}/calendar/today`);
+}
 
+export const calendarPatchAPIById=async (data,id)=>{
+  const company = localStorage.getItem("companyName")
+    try {
+    const response = await axiosInstance.patch(`/company/${company}/calendar/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }  
+}
 
+export const CalendarDeleteByIdApi = async (id) => {
+  const company = localStorage.getItem("companyName")
+  return axiosInstance.delete(`/company/${company}/calendar/${id}`);
+};
 
+export const UserGetApi = () => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${company}/users`);
+};
+export const UserPostApi = (data) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.post(`/${company}/user`, data);
+};
+export const UserPatchApi = (id, data) => {
+  const company = localStorage.getItem("companyName"); // Retrieve company name
+  return axiosInstance.patch(`/${company}/user/${id}`, data);
+};
+export const getUserById = (id) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${company}/user/${id}`);
+};
+export const DeleteUserById = (id) => {
+  const company = localStorage.getItem("companyName");
+  return axiosInstance.delete(`/${company}/user/${id}`);
+};

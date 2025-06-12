@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation,Link } from "react-router-dom";
 import Select from "react-select";
 import { Bounce, toast } from "react-toastify";
 import LayOut from "../../../LayOut/LayOut";
@@ -56,7 +56,7 @@ const ExperienceForm = () => {
     const today = new Date();
     if (experienceDate > today) {
       return "Experience Date cannot be in the Future";
-    }  
+    }
     if (experienceDate < dateOfHiring) {
       return "Experience Date must be after Date of Hired.";
     }
@@ -66,7 +66,7 @@ const ExperienceForm = () => {
   useEffect(() => {
     fetchTemplate();
   }, []);
-  
+
   const fetchTemplate = async (companyId) => {
     try {
       const res = await TemplateGetAPI(companyId);
@@ -168,7 +168,8 @@ const ExperienceForm = () => {
     const submissionData = {
       employeeId: data.employeeId,
       companyName: authUser.company,
-      date: data.experienceDate,
+      lastWorkingDate: data.experienceDate,
+      date:data.generatedDate,
       aboutEmployee:data.aboutEmployee,
       draft:draftValue,
 
@@ -188,15 +189,15 @@ const ExperienceForm = () => {
       departmentName: data.departmentName || "",
       joiningDate: formattedHiringDate || "",
       aboutEmployee:data.aboutEmployee || "",
-      experienceDate: formattedExperinceDate || "", // Resignation date formatted
-      date: formattedLastWorkingDate || "",
+      lastWorkingDate: formattedExperinceDate || "", // Resignation date formatted
+      date: data.generatedDate || "",
       noticePeriod,
       companyName: authUser.company,
       companyData: companyData,
-      draft:draftValue,
+      draft: draftValue,
 
     };
-   console.log("previewData",preview)
+    console.log("previewData", preview)
     setPreviewData(preview);
     setShowPreview(true);
     setSubmissionData(submissionData);
@@ -299,8 +300,8 @@ const ExperienceForm = () => {
       departmentName: "",
       dateOfHiring: "",
       experienceDate: "",
-      aboutEmployee:"",
-      draft:"",
+      aboutEmployee: "",
+      draft: "",
     });
   };
 
@@ -344,7 +345,7 @@ const ExperienceForm = () => {
               <p>
                 To set up the experience templates before proceeding, Please
                 select the Template from Settings{" "}
-                <a href="/experienceLetter">Expereince Templates </a>
+                <Link to="/experienceLetter" className="custom-link text-primary bg-opacity-25">Expereince Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the experience
@@ -370,7 +371,7 @@ const ExperienceForm = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Generate Experience</li>
               </ol>
@@ -502,6 +503,7 @@ const ExperienceForm = () => {
                         </p>
                       )}
                     </div>
+                    <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-6 mb-3">
                       <label className="form-label">About Employee</label>
                       <textarea
@@ -538,39 +540,70 @@ const ExperienceForm = () => {
                         </p>
                       )}
                     </div>
+                      <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                    <input
+                       type="date"
+                       name="generatedDate"
+                       placeholder="Enter Generated Date"
+                       className="form-control"
+                       autoComplete="off"
+                       onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                       required: "Generated Date is required",
+                        validate: {
 
+                       notBeforeLastWorkingDate: (value) => {
+                        const lastWorkingDate = watch("experienceDate");
+                       if (!lastWorkingDate) return true; // Skip this check if lastWorkingDate isn't selected yet
+                     return (
+                      new Date(value) >= new Date(lastWorkingDate) ||
+                      "Generated Date cannot be before Last Working Date"
+                       );
+                      },
+                    },
+                  })}
+                 />
+                      {errors.generatedDate && (
+                     <p className="errorMsg">{errors.generatedDate.message}</p>
+                         )}
+
+                </div>
+                <div className="col-lg-1"></div>
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">Select Mode</label>
-                       <div className="form-check">
-                         <input
-                          type="radio"
-                           className="form-check-input"
+                      <label className="form-label mb-2">Select Mode</label>
+                      <div className="d-flex align-items-center gap-3"> {/* Flexbox for side-by-side alignment */}
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
                             id="draft"
-                              name="draft"
-                               value={true}
-                                {...register("draft", { required: true })}
-                                 />
-                                    <label className="form-check-label" htmlFor="draft">
-                                      Draft Copy
-                                      </label>
-                                      </div>
-                                      <div className="form-check">
-                                          <input
-                                           type="radio"
-                                           className="form-check-input"
-                                           id="undraft"
-                                           name="draft"
-                                           value={false}
-                                           {...register("draft", { required: true })}
-                                           />
-                                           <label className="form-check-label" htmlFor="undraft">
-                                            Digital Copy
-                                            </label>
-                                            </div>
-                                            {errors.draft && (
-                                               <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
-                                                )}
-                                                </div>
+                            name="draft"
+                            value={true}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value={false}
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
+                      </div>
+                      {errors.draft && (
+                        <p className="errorMsg">Please select Draft Copy or Digital Copy</p>
+                      )}
+                    </div>
 
                     <div className="col-12 d-flex align-items-start mt-5">
                       {error && (
@@ -579,9 +612,8 @@ const ExperienceForm = () => {
                         </div>
                       )}
                       <div
-                        className={`col-${
-                          error ? "3" : "12"
-                        } d-flex justify-content-end mt-4`}
+                        className={`col-${error ? "3" : "12"
+                          } d-flex justify-content-end mt-4`}
                       >
                         <button
                           className="btn btn-secondary me-2"

@@ -24,7 +24,6 @@ const CompanyLogin = () => {
       password: "",
       otp: "",
     },
-    mode: "onChange",
   });
 
   const { setAuthUser } = useAuth();
@@ -101,7 +100,6 @@ const CompanyLogin = () => {
       })
       .catch((error) => {
         setLoading(false);
-  
         // Ensure we're accessing the error message properly
         const errorMessage = error.message || "Login failed. Please try again later.";
         console.error('sendOtp error:', errorMessage); // Log the error
@@ -130,7 +128,7 @@ const CompanyLogin = () => {
           autoClose: 2000,
         });
         setTimeout(() => {
-          window.location.href = "/main";        
+          navigate("/main");        
         }, 1000);
 
       })
@@ -348,8 +346,14 @@ const CompanyLogin = () => {
         style={{ zIndex: "1050"}}
         className="custom-modal"
       >
-        <ModalHeader closeButton>
+        <ModalHeader>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+            type="button"
+            className="text-dark"
+            aria-label="Close"
+            onClick={closeModal}
+          > X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">
           {errorMessage}

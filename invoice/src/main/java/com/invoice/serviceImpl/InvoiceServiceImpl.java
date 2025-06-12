@@ -60,6 +60,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     public ResponseEntity<?> generateInvoice(String companyId, String customerId, InvoiceRequest request) throws InvoiceException, IOException {
         CompanyEntity companyEntity;
         BankEntity bankEntity;
+        List<InvoiceModel> purchaseOrderNo;
 
         companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
         if (companyEntity == null) {
@@ -81,19 +82,20 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (bankEntity == null) {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
+        purchaseOrderNo = openSearchOperations.getPurchaseOrderNo(index,request.getPurchaseOrder());
+        if(!purchaseOrderNo.isEmpty()){
+            log.error("Purchase order number already exist ");
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.PURCHASE_ORDER_ALREADY_EXISTS), HttpStatus.CONFLICT);
+        }
 
         try {
             InvoiceModel invoiceModel;
             // Generate a timestamped invoiceId
             LocalDateTime currentDateTime = LocalDateTime.now();
             String timestamp = currentDateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
             String invoiceId = ResourceIdUtils.generateInvoiceResourceId(companyId, customerId, timestamp);
-
             String invoiceNo = InvoiceUtils.generateNextInvoiceNumber(invoiceId,companyEntity.getShortName(),openSearchOperations); // Assuming this method increments invoice numbers correctly
-            // Create invoice entity
             Entity invoiceEntity = InvoiceUtils.maskInvoiceProperties(request, invoiceId, invoiceNo, companyEntity, customer, bankEntity);
-            // Save to OpenSearch
             openSearchOperations.saveEntity(invoiceEntity, invoiceId, index);
 
             log.info("Invoice created successfully for customer: {}", customerId);
@@ -103,13 +105,13 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new InvoiceException(e.getMessage(), e.getMessage()); // Preserve original error message
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage(), e);
-            throw new InvoiceException(InvoiceErrorMessageKey.UNEXPECTED_ERROR.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNEXPECTED_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public void validateInvoiceDate(String invoiceDate) throws InvoiceException {
         if (!DateValidator.isPastOrPresent(invoiceDate)) {
-            throw new InvoiceException(InvoiceErrorMessageKey.INVALID_INVOICE_DATE.getMessage(),HttpStatus.BAD_REQUEST);
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVALID_INVOICE_DATE),HttpStatus.BAD_REQUEST);
         }
     }
 

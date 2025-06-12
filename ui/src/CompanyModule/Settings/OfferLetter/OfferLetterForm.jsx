@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import LayOut from "../../../LayOut/LayOut";
 import { DepartmentGetApi, DesignationGetApi } from "../../../Utils/Axios";
 
 const OfferLetterForm = () => {
+  const location = useLocation();
+  const initialFormData = location.state?.formData || null;
+  const formData = location.state?.formData || null;
   const {
     register,
     handleSubmit,
@@ -14,7 +17,25 @@ const OfferLetterForm = () => {
     formState: { errors },
     reset,
     trigger
-  } = useForm({ mode: "onChange" });
+  } = useForm({
+    mode: "onChange",
+    defaultValues: initialFormData || {
+      offerDate: "",
+      referenceNo: "",
+      employeeName: "",
+      employeeFatherName: "",
+      employeeAddress: "",
+      employeeContactNo: "+91 ",
+      joiningDate: "",
+      jobLocation: "",
+      salaryPackage: "",
+      salaryConfigurationId: "",
+      department: "",
+      designation: "",
+      draft: undefined,
+      generatedDate: "",
+    }
+  });
   const [designations, setDesignations] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -69,9 +90,24 @@ const OfferLetterForm = () => {
     fetchDesignations();
   }, []);
 
+  useEffect(() => {
+    if (formData?.department && departments.length > 0) {
+      const selectedDept = departments.find(dept => dept.name === formData.department);
+      if (selectedDept) {
+        fetchDesignations(selectedDept.id).then(() => {
+          setTimeout(() => {
+            if (formData.designation) {
+              setValue("designation", formData.designation);
+            }
+          }, 100);
+        });
+      }
+    }
+  }, [formData, departments, setValue]);
+
   const onSubmit = (data) => {
     const draftValue = data.draft === "true";
-    console.log("offerLetter",data)
+    console.log("offerLetter", data)
 
     const previewData = {
       offerDate: data.offerDate,
@@ -84,19 +120,25 @@ const OfferLetterForm = () => {
       jobLocation: data.jobLocation,
       salaryPackage: data.salaryPackage,
       salaryConfigurationId: data.salaryConfigurationId,
-      department:data.department,
-      designation:data.designation,
-      draft:draftValue,
+      department: data.department,
+      designation: data.designation,
+      draft: draftValue,
+      generatedDate: data.generatedDate,
 
     };
     setPreviewData(previewData);
     console.log("preview:", previewData);
 
-    navigate("/offerLetterPreview", { state: { previewData } });
+    navigate("/offerLetterPreview", {
+      state: {
+        previewData,
+        formData: data
+      }
+    });
   };
 
   const clearForm = () => {
-    reset({
+    reset(initialFormData || {
       offerDate: "",
       referenceNo: "",
       employeeName: "",
@@ -109,6 +151,7 @@ const OfferLetterForm = () => {
       salaryConfigurationId: "",
       employeePosition: "",
       draft: "",
+      generatedDate: "",
     });
   };
 
@@ -168,7 +211,7 @@ const OfferLetterForm = () => {
       e.preventDefault();
     }
   };
-  
+
   const noTrailingSpaces = (value, fieldName) => {
     // Check if the value ends with a space
     if (value.endsWith(' ')) {
@@ -188,35 +231,41 @@ const OfferLetterForm = () => {
     if (!validPattern.test(value)) {
       return "Only letters, numbers, and - _ / are allowed";
     }
-  
+
     const hasLetter = /[A-Z]/.test(value);
     const hasNumber = /\d/.test(value);
-  
+
     if (!hasLetter || !hasNumber) {
       return "Invalid Reference Number format: Must contain both letters and numbers";
     }
-  
+
     return true;
   };
-  
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+    
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
+  };
+
 
   // Capitalize the first letter of each word expect email
   const handleInputChange = (e, fieldName) => {
     let value = e.target.value;
-  
+
     // Allow only letters, numbers, and - _ /
     value = value.replace(/[^A-Z0-9\-_\/ ]/gi, ""); // keep space for now if needed for uppercase logic
     value = value.trimStart().replace(/ {2,}/g, " "); // remove leading and multiple spaces
-  
+
     // Convert to uppercase
     if (fieldName !== "email") {
       value = value.toUpperCase();
     }
-  
+
     setValue(fieldName, value);
     trigger(fieldName); // Trigger validation
   };
-  
+
   const toInputAddressCase = (e) => {
     const input = e.target;
     let value = input.value;
@@ -389,7 +438,7 @@ const OfferLetterForm = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">
                   Generate Offer Letter
@@ -474,9 +523,9 @@ const OfferLetterForm = () => {
                         name="referenceNo"
                         {...register("referenceNo", {
                           required: "Reference Number is required",
-                          maxLength:{
-                            value : 20,
-                            message : "Maximum 20 Characters allowed"
+                          maxLength: {
+                            value: 20,
+                            message: "Maximum 20 Characters allowed"
                           },
                           validate: {
                             noTrailingSpaces: (value) => noTrailingSpaces(value, "referenceNo"),
@@ -610,7 +659,7 @@ const OfferLetterForm = () => {
                         })}
                       />
                       {errors.jobLocation && (
-                        <p className="errorMsg text-danger">
+                        <p className="errorMsg">
                           {errors.jobLocation.message}
                         </p>
                       )}
@@ -692,7 +741,7 @@ const OfferLetterForm = () => {
                         placeholder="Enter Salary Package"
                         name="salaryPackage"
                         {...register("salaryPackage", {
-                          required: "Saalry Package is required",
+                          required: "Salary Package is required",
                           min: {
                             value: 5,
                             message: "Minimum 5 Numbers Required",
@@ -707,6 +756,35 @@ const OfferLetterForm = () => {
                         <p className="errorMsg">
                           {errors.salaryPackage.message}
                         </p>
+                      )}
+                    </div>
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">Letter Generated Date</label>
+                      <input
+                        type="date"
+                        name="generatedDate"
+                        placeholder="Enter Genatated Date"
+                        className="form-control"
+                        autoComplete="off"
+                        onClick={(e) => e.target.showPicker()}
+                        {...register("generatedDate", {
+                          required: "Generated Date is required",
+                          validate: {
+                              notAfterJoiningDate: (value) => {
+                                const joiningDate = watch("joiningDate");
+                                if (!joiningDate) return true; // Skip this check if joiningDate isn't selected yet
+                                return (
+                                  new Date(value) <= new Date(joiningDate) ||
+                                  "Generated Date cannot be after Joining Date"
+                                );
+                              },
+                              validateYear: (value) => validateYear(value),                           
+                          },
+                        })}
+                      />
+                      {errors.generatedDate && (
+                        <p className="errorMsg">{errors.generatedDate.message}</p>
                       )}
                     </div>
                     <div className="col-lg-1"></div>
@@ -747,39 +825,39 @@ const OfferLetterForm = () => {
                       )}
                     </div>
                     <div className="col-lg-1"></div>
-
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
-                           <label className="form-label">Select Mode</label>
-                          <div className="form-check">
-                                     <input
-                                        type="radio"
-                                        className="form-check-input"
-                                         id="draft"
-                                        name="draft"
-                                          value={true}
-                                {...register("draft", { required: true })}
-                                />
-                         <label className="form-check-label" htmlFor="draft">
-                          Draft Copy
-                         </label>
-                          </div>
+                      <label className="form-label mb-3">Select Mode</label>
+                      <div className="d-flex">
+                        <div className="form-check me-3">
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="draft"
+                            name="draft"
+                            value="true"
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="draft">
+                            Draft Copy
+                          </label>
+                        </div>
                         <div className="form-check">
-                            <input
-                               type="radio"
-                                className="form-check-input"
-                               id="undraft"
-                               name="draft"
-                               value={false}
-                                {...register("draft", { required: true })}
-                              />
-                        <label className="form-check-label" htmlFor="undraft">
-                             Digital Copy
-                           </label>
-                       </div>
-
-                       {errors.draft && (
-                            <p className="errorMsg">Please select draft copy or digital copy</p>
-                       )}
+                          <input
+                            type="radio"
+                            className="form-check-input"
+                            id="undraft"
+                            name="draft"
+                            value="false"
+                            {...register("draft", { required: true })}
+                          />
+                          <label className="form-check-label" htmlFor="undraft">
+                            Digital Copy
+                          </label>
+                        </div>
+                      </div>
+                      {errors.draft && (
+                        <p className="errorMsg">Please select draft copy or digital copy</p>
+                      )}
                     </div>
                   </div>
                 </div>

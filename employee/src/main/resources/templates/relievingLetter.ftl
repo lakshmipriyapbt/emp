@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Relieving Letter</title>
     <style>
+         body {
+            position: relative;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            margin: 30px;
+            line-height: 1.9;
+        }
         .watermarked {
             position: relative;
             width: 100%;
@@ -58,7 +65,7 @@
         <div class="content">
             <div class="row d-flex align-items-center p-1">
                 <div>
-                    <p class="mb-2">${relieving.relievingDate}</p>
+                    <p class="mb-2">${relieving.date}</p>
                     <p style= "font-size: 15px;"><h4>${employee.firstName} ${employee.lastName},</h4></p>
                     <h5>${employee.employeeId}.</h5>
                 </div>

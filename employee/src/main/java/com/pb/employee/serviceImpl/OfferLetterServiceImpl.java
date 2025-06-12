@@ -154,12 +154,12 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 );
             }
 
-            if(internshipOfferLetterRequest.getHrMobileNo() .equals( internshipOfferLetterRequest.getMobileNo())){
+            if(internshipOfferLetterRequest.getHrMobileNo().equals(internshipOfferLetterRequest.getMobileNo())){
                 log.error("Mobile number {}  HrMobile number can't be same {}",internshipOfferLetterRequest.getMobileNo(),internshipOfferLetterRequest.getHrMobileNo());
                 throw new EmployeeException(ErrorMessageHandler.getMessage((EmployeeErrorMessageKey.MOBILE_NUMBER_MISMATCH)),
                         HttpStatus.BAD_REQUEST);
             }
-            if(internshipOfferLetterRequest.getHrEmail() .equals(internshipOfferLetterRequest.getInternEmail())){
+            if(internshipOfferLetterRequest.getHrEmail().equals(internshipOfferLetterRequest.getInternEmail())){
                 log.error("HrEmail {} internEmail can't be same{}",internshipOfferLetterRequest.getHrEmail(),internshipOfferLetterRequest.getInternEmail());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ID_MISS_MATCH),
                         HttpStatus.BAD_REQUEST);

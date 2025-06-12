@@ -13,6 +13,7 @@ const InvoiceView = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { invoices, loading, error } = useSelector((state) => state.invoices);
+  const [isFetching, setIsFetching] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -23,9 +24,10 @@ const InvoiceView = () => {
   // Fetch invoices on component mount
   useEffect(() => {
     if (companyId) {
+      setIsFetching(true);
       const timer = setTimeout(() => {
-        dispatch(fetchInvoices(companyId))
-      }, 0); // Delay of 1500m
+        dispatch(fetchInvoices(companyId)).finally(()=>setIsFetching(false));
+      }, 500); // Delay of 500ms
       // Clear the timeout if the component unmounts or companyId changes
       return () => clearTimeout(timer);
     }
@@ -167,11 +169,17 @@ const InvoiceView = () => {
     setSearch(searchTerm);
   };
 
-  if (loading) return  <Loader/>;
-
   return (
     <LayOut>
       <div className="container-fluid p-0">
+        {(isFetching || loading) ? (
+          <div className="row">
+            <div className="col-12">
+              <Loader />
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
           <div className="col">
             <h1 className="h3 mb-3">
@@ -182,7 +190,7 @@ const InvoiceView = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to={"/"}>Home</Link>
+                <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Invoices</li>
                 <li className="breadcrumb-item active">Invoice View</li>
@@ -224,6 +232,8 @@ const InvoiceView = () => {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </LayOut>
   );

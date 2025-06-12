@@ -270,7 +270,7 @@ const CustomersRegistration = () => {
                   <a href="/main">Home</a>
                 </li>
                 <li className="breadcrumb-item">
-                  <a href="/employeeView">Customers</a>
+                  <a href="/customersView">Customers</a>
                 </li>
                 <li className="breadcrumb-item active">Registration</li>
               </ol>

@@ -18,7 +18,6 @@ const EmsLogin = () => {
     formState: { errors },
   } = useForm({
     defaultValues: { username: "", password: "" },
-    mode: "onChange",
   });
   const { setAuthUser } = useAuth();
   const navigate = useNavigate();
@@ -154,8 +153,7 @@ const EmsLogin = () => {
                         pattern: {
                           value:
                             /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                          message:
-                            "Invalid email Id format. Only .com, .in, .org, .net, .edu, .gov are allowed.",
+                          message: "Invalid Email Id Format",
                         },
                       })}
                     />
@@ -213,8 +211,14 @@ const EmsLogin = () => {
         style={{ zIndex: "1050" }}
         className="custom-modal"
       >
-        <ModalHeader closeButton>
+        <ModalHeader>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+            type="button"
+            className="text-dark"
+            aria-label="Close"
+            onClick={closeModal}
+          >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">{errorMessage}</ModalBody>
       </Modal>

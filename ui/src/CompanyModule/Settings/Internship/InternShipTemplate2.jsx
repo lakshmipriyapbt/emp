@@ -9,6 +9,7 @@ const InternShipTemplate2 = ({
   startDate,
   endDate,
   draft,
+  generatedDate,
 }) => {
   return (
     <div
@@ -67,7 +68,7 @@ const InternShipTemplate2 = ({
       />)}
       <h4 className="text-center p-3">INTERNSHIP CERTIFICATION</h4>
       <p className="text-start p-2">
-        <strong>{new Date().toLocaleDateString()}</strong>
+        <strong>{generatedDate}</strong>
       </p>
 
       {/* Content div */}

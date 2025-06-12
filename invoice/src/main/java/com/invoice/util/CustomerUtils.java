@@ -136,7 +136,20 @@ public class CustomerUtils {
     public static CustomerModel maskCustomerUpdateProperties(CustomerUpdateRequest customerRequest, CustomerModel customerModel) {
         // Declare unmasked variables
         String address = null, state = null, city = null, status=null,
-                gst = null, pinCode = null, stateCode = null;
+                gst = null, pinCode = null, stateCode = null, name=null, mobile=null, email=null;
+
+        if (customerRequest.getCustomerName() != null) {
+            name = Base64.getEncoder().encodeToString(customerRequest.getCustomerName().getBytes());
+        }
+        if (customerRequest.getEmail() != null) {
+            // Masking the branch name as an example
+            email = Base64.getEncoder().encodeToString(customerRequest.getEmail().getBytes());
+        }
+
+        if (customerRequest.getMobileNumber() != null) {
+            // Masking the state information
+            mobile = Base64.getEncoder().encodeToString(customerRequest.getMobileNumber().getBytes());
+        }
 
         if (customerRequest.getAddress() != null) {
             address = Base64.getEncoder().encodeToString(customerRequest.getAddress().getBytes());
@@ -168,6 +181,9 @@ public class CustomerUtils {
             stateCode = Base64.getEncoder().encodeToString(customerRequest.getStateCode().getBytes());
         }
 
+        customerModel.setCustomerName(name);
+        customerModel.setEmail(email);
+        customerModel.setMobileNumber(mobile);
         customerModel.setCity(city);
         customerModel.setCustomerGstNo(gst);
         customerModel.setState(state);
@@ -198,6 +214,24 @@ public class CustomerUtils {
         if (customerModel.getAddress() != null && customerUpdateRequest.getAddress() != null) {
             String address = new String(Base64.getDecoder().decode(customerModel.getAddress()));
             if (!address.equals(customerUpdateRequest.getAddress())) {
+                noOfChanges += 1;
+            }
+        }
+        if (customerModel.getCustomerName() != null && customerUpdateRequest.getCustomerName() != null) {
+            String name = new String(Base64.getDecoder().decode(customerModel.getCustomerName()));
+            if (!name.equals(customerUpdateRequest.getCustomerName())) {
+                noOfChanges += 1;
+            }
+        }
+        if (customerModel.getEmail() != null && customerUpdateRequest.getEmail() != null) {
+            String email = new String(Base64.getDecoder().decode(customerModel.getEmail()));
+            if (!email.equals(customerUpdateRequest.getEmail())) {
+                noOfChanges += 1;
+            }
+        }
+        if (customerModel.getMobileNumber() != null && customerUpdateRequest.getMobileNumber() != null) {
+            String mobile = new String(Base64.getDecoder().decode(customerModel.getMobileNumber()));
+            if (!mobile.equals(customerUpdateRequest.getMobileNumber())) {
                 noOfChanges += 1;
             }
         }

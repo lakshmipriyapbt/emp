@@ -45,10 +45,8 @@ const Reset = ({ companyName, onClose, show }) => {
     const fetchData = async () => {
       try {
         const response = await EmployeeGetApiById(authUser.userId);
-        console.log("Fetched employee data:", response);
         if (response && response.data && response.data.employeeId) {
           setEmployeeId(response.data.employeeId);
-          console.log("Employee ID:", response.data.employeeId);
         } else {
           console.error("Employee ID is missing in the response");
         }
@@ -70,13 +68,20 @@ const Reset = ({ companyName, onClose, show }) => {
 
     try {
       setLoading(true);
-      const response = await resetPassword(formData, authUser.userId);
-      console.log("Password Reset Successful:", response.data);
+      await resetPassword(formData, authUser.userId);
       setLoading(false);
-      onClose(); 
+      onClose();
       toast.success("Password Reset Successful");
-      navigate(`/${companyName}/login`);
-      } catch (error) {
+
+      // Delay pop-up message slightly to ensure smooth UI experience
+      setTimeout(() => {
+        toast.info("Login using new password"); // Show additional prompt
+        navigate(`/${companyName}/login`);
+      }, 1000); // 1-second delay before redirect
+
+      setLoading(false);
+      onClose();
+    } catch (error) {
       handleApiErrors(error);
       setLoading(false);
     }
@@ -131,9 +136,12 @@ const Reset = ({ companyName, onClose, show }) => {
 
   const handlePaste = (e) => {
     const pastedText = e.clipboardData.getData('Text');
-    const sanitizedText = pastedText.replace(/[^A-Za-z0-9]/g, ''); // Keep only alphanumeric characters
-    e.preventDefault(); // Prevent the default paste action
-    e.target.value = sanitizedText; // Insert the sanitized text back into the input
+
+    // Allow numbers, letters, and special characters while removing spaces
+    const sanitizedText = pastedText.replace(/[^A-Za-z0-9!@#$%^&*()_+={}[\]:;"'<>,.?/\\|-]/g, '');
+
+    e.preventDefault(); // Prevent default paste action
+    e.target.value = sanitizedText; // Insert sanitized text into the input
   };
 
   const validatePassword = (value) => {
@@ -169,8 +177,18 @@ const Reset = ({ companyName, onClose, show }) => {
       backdrop="static"
       keyboard={false}
     >
-      <Modal.Header closeButton>
-        <Modal.Title>Reset Password</Modal.Title>
+      <Modal.Header >
+        <Modal.Title>
+          Reset Password
+          <button
+            type="button"
+            className="custom-close-btn left"
+            aria-label="Close"
+            onClick={handleClose}
+          >
+            ×
+          </button>
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div>
@@ -203,7 +221,7 @@ const Reset = ({ companyName, onClose, show }) => {
                       message:
                         "Old Password must be at least 6 characters long",
                     },
-                     validate:validatePassword
+                    validate: validatePassword
                   })}
                 />
               </div>

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
 import * as XLSX from "xlsx";
+import { Link } from "react-router-dom";
 
 const ManageAttendance = () => {
   const {
@@ -135,7 +136,7 @@ const ManageAttendance = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Attendance</li>
                 <li className="breadcrumb-item active">Manage Attendance</li>
@@ -155,7 +156,7 @@ const ManageAttendance = () => {
 
   {/* Select Month Dropdown */}
   <div className="col-12 col-md-3 col-lg-3">
-    <label className="card-title text-white">
+    <label className="card-title">
       Select Month <span className="text-danger fw-100">*</span>
     </label>
     <select className="form-select" onChange={(e) => setSelectedMonth(e.target.value)}>
@@ -173,7 +174,7 @@ const ManageAttendance = () => {
 
   {/* Select Year Dropdown */}
   <div className="col-12 col-md-3 col-lg-3">
-    <label className="card-title text-white">
+    <label className="card-title">
       Select Year <span className="text-danger fw-100">*</span>
     </label>
     <select className="form-select" onChange={(e) => setSelectedYear(e.target.value)}>

@@ -4,6 +4,7 @@ import { useAuth } from "../../../../Context/AuthContext";
 import { companyViewByIdApi, EmployeeGetApiById } from "../../../../Utils/Axios";
 import InternOfferLetterTemplate from "./InternOfferLetterTemplate";
 import LayOut from "../../../../LayOut/LayOut";
+import { Link } from "react-router-dom";
 
 const InternOfferLetter = () => {
   const [companyData, setCompanyData] = useState({});
@@ -60,7 +61,7 @@ const InternOfferLetter = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>         
                 </li>
                 <li className="breadcrumb-item active">
                   Internship Offer Letter

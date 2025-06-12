@@ -28,12 +28,8 @@ const ExperienceTemplate1 = ({
 
       <div className="row d-flex align-items-center p-1">
         <div className="col-6 d-flex align-items-center">
-          <p className="mb-0">
-          {new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })}
+          <p className="mb-0">Date: 
+          {date}
           </p>
         </div>
         <div className="col-6 d-flex justify-content-end">
@@ -53,7 +49,7 @@ const ExperienceTemplate1 = ({
           top: "30%",
           left: "20%",
           right: "30%",
-          width: "50%",
+          width: "100%",
           height: "50%",
           backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
           transform: "rotate(340deg)",

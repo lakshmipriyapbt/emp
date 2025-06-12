@@ -111,14 +111,14 @@ public class PayslipController {
             summary = "${api.getPayslip.tag}", description = "${api.getPayslip.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<ResponseObject<byte[]>> downloadPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+    public ResponseEntity<byte[]> downloadPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                                   @PathVariable String companyName,
                                                                   @PathVariable String payslipId,
                                                                   @PathVariable String employeeId,
                                                                   HttpServletRequest request) throws EmployeeException {
         byte[] pdfBytes = payslipService.downloadPayslip(companyName, payslipId, employeeId, request);
-        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(pdfBytes), HttpStatus.CREATED);
+        return new ResponseEntity<>(pdfBytes, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/payslip", method = RequestMethod.POST)
@@ -128,9 +128,8 @@ public class PayslipController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
     public ResponseEntity<?> generateEmployeeAllPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                     @RequestParam(required = false, name = Constants.SALARY_ID) String salaryId,
                                                      @RequestBody @Valid PayslipRequest payslipRequest) throws EmployeeException, IOException {
-        return payslipService.generatePaySlipForEmployees(salaryId,payslipRequest);
+        return payslipService.generatePaySlipForEmployees(payslipRequest);
     }
 
     @RequestMapping(value = "/employee/{employeeId}/payslip/{payslipId}", method = RequestMethod.POST)

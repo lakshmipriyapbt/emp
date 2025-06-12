@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Relieving Letter</title>
     <style>
+        body {
+            position: relative;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            margin: 30px;
+            line-height: 1.9;
+        }
 
          .watermark {
            position: fixed;
@@ -47,7 +54,7 @@
 
     <div class="header">
       <h4>Relieving Letter</h4>
-      <h5 class= "date"><strong>${relieving.relievingDate}</strong></h5>
+      <h5 class= "date"><strong>${relieving.date}</strong></h5>
                         <#if !draft>
 
      <div class="logo">

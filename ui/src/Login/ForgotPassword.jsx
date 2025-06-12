@@ -221,7 +221,6 @@ const ForgotPassword = () => {
                   placeholder='Enter Your Email Id'
                   className="form-control"
                   onKeyDown={handleEmailChange}
-                  onPaste={handlePaste}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
@@ -407,7 +406,7 @@ const ForgotPassword = () => {
                   <div className="text-center">
                     <p className="lead">Forgot Password</p>
                   </div>
-                  <button className='btn text-white' style={{ marginBottom: "6px" }} onClick={closeButton}>X</button>
+                  <button className='btn text-dark' style={{ marginBottom: "6px" }} onClick={closeButton}>X</button>
                 </div>
 
                 <div className="card-body" style={{ marginRight: '60px', paddingTop: '0px' }}>
@@ -427,8 +426,14 @@ const ForgotPassword = () => {
         style={{ zIndex: "1050" }}
         className="custom-modal"
       >
-        <ModalHeader closeButton>
+        <ModalHeader>
           <ModalTitle className="text-center">Error</ModalTitle>
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close"
+            onClick={closeModal}
+          ></button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">
           {errorMessage}

@@ -86,7 +86,8 @@ export default function EmployeeRegister() {
     control, name: "employeeExperience"
   });
 
-  const onNext = async () => {
+  const onNext = async (e) => {
+    e.preventDefault();
     const isValid = await trigger(); // Validate current step fields
 
     if (isValid) {
@@ -233,13 +234,6 @@ export default function EmployeeRegister() {
     }
   }, [dispatch, status]);
 
-  useEffect(() => {
-    if (watchDepartment) {
-      fetchDesignations(watchDepartment);
-    } else {
-      setDesignations([]); // Clear designations when no department selected
-    }
-  }, [watchDepartment]);
 
   // Filter employees whose designation starts or ends with "Manager"
   const managerEmployees = employees.filter(
@@ -298,51 +292,78 @@ export default function EmployeeRegister() {
 
   useEffect(() => {
     fetchDepartments();
-    fetchDesignations();
     fetchBankNames();
   }, []);
+
+  useEffect(() => {
+    if (watchDepartment) {
+      fetchDesignations(watchDepartment);
+    } else {
+      setDesignations([]); // Clear designations when no department selected
+    }
+  }, [watchDepartment]);
 
   useEffect(() => {
     if (location && location.state && location.state.id) {
       const fetchData = async () => {
         try {
           const response = await EmployeeGetApiById(location.state.id);
-          // Reset the entire form data
-          reset(response.data.data);
+          const employeeData = response.data.data;
+          
+          // First reset the form with all data except department/designation
+          reset({
+            ...employeeData,
+            department: '', // Clear these initially
+            designation: ''
+          });
+  
           // Set status manually
-          const status = response.data.data.status;
+          const status = employeeData.status;
           setValue("status", status.toString());
           setLoading(true);
-          // Conditionally show "Notice Period" option based on status
-          // if (status === "NoticePeriod") {
-          //   setShowNoticePeriodOption(true);
-          // }
-
+  
+          // Set department first
+          const departmentId = employeeData.department;
+          if (departmentId) {
+            setValue("department", departmentId);
+            // Fetch designations for this department
+            const designations = await DesignationGetApi(departmentId);
+            setDesignations(designations);
+            
+            // Now set the designation after designations are loaded
+            if (employeeData.designation) {
+              setTimeout(() => {
+                setValue("designation", employeeData.designation);
+              }, 100); // Small delay to ensure select is populated
+            }
+          }
+  
           // Set employeeEducation data
-          if (response.data.data.personnelEntity?.employeeEducation?.length) {
+          if (employeeData.personnelEntity?.employeeEducation?.length) {
             reset((prev) => ({
               ...prev,
-              employeeEducation: response.data.data.personnelEntity.employeeEducation
+              employeeEducation: employeeData.personnelEntity.employeeEducation
             }));
           }
-
+  
           // Set employeeExperience data
-          if (response.data.data.personnelEntity?.employeeExperience?.length) {
+          if (employeeData.personnelEntity?.employeeExperience?.length) {
             reset((prev) => ({
               ...prev,
-              employeeExperience: response.data.data.personnelEntity.employeeExperience
+              employeeExperience: employeeData.personnelEntity.employeeExperience
             }));
           }
-
+  
         } catch (error) {
           handleApiErrors(error);
         }
       };
-
+  
       fetchData();
     } else {
       reset();
       setValue("employeeId", "");
+      setDesignations([]); // Clear designations when creating new employee
     }
   }, [location, location.state, reset, setValue]);
 
@@ -350,6 +371,13 @@ export default function EmployeeRegister() {
     const startDate = getValues(`employeeExperience.${index}.startDate`);
     if (!startDate || !value) return true; // Allow empty values (if optional)
     return new Date(value) >= new Date(startDate) || "End Date cannot be before Start Date";
+  };
+
+  const validateYear = (dateString) => {
+    if (!dateString) return true; // Skip validation if empty
+    
+    const year = new Date(dateString).getFullYear();
+    return year.toString().length === 4 || "Year must be exactly 4 digits";
   };
 
   const calculateTenure = (index, startDate, endDate) => {
@@ -380,29 +408,47 @@ export default function EmployeeRegister() {
 
   // Custom Validation Function
   const validateDOB = (value) => {
-    if (!value) return "Date of Birth is required";
+  if (!value) return "Date of Birth is required";
 
-    const dobDate = new Date(value);
-    const minHiringDate = new Date(dobDate);
-    minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+  // Validate year format (must be 4 digits)
+  const year = new Date(value).getFullYear();
+  if (year.toString().length !== 4) {
+    return "Year must be exactly 4 digits";
+  }
 
-    if (hiringDate && new Date(hiringDate) < minHiringDate) {
-      return "Employee must be at least 16 years old at hiring.";
-    }
-    return true;
-  };
+  const dobDate = new Date(value);
+  const minHiringDate = new Date(dobDate);
+  minHiringDate.setFullYear(minHiringDate.getFullYear() + 16); // Add 16 years
+
+  if (hiringDate && new Date(hiringDate) < minHiringDate) {
+    return "Employee must be at least 16 years old at hiring.";
+  }
+
+  return true;
+};
 
   const validateHiringDate = (value) => {
-    if (!value) return "Date of Hiring is required";
+  if (!value) return "Date of Hiring is required";
 
-    const hiringDate = new Date(value);
-    const dobDate = new Date(dob);
+  // Validate year format (must be 4-digit)
+  const year = new Date(value).getFullYear();
+  if (year.toString().length !== 4) {
+    return "Year must be exactly 4 digits";
+  }
 
-    if (dob && hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))) {
-      return "Hiring date must be at least 16 years after DOB.";
-    }
-    return true;
-  };
+  // Validate hiring date is at least 16 years after DOB
+  const hiringDate = new Date(value);
+  const dobDate = new Date(dob);
+
+  if (
+    dob &&
+    hiringDate < new Date(dobDate.setFullYear(dobDate.getFullYear() + 16))
+  ) {
+    return "Hiring date must be at least 16 years after DOB.";
+  }
+
+  return true;
+};
 
   const handleClear = () => {
     reset(); // Reset form fields
@@ -570,7 +616,7 @@ export default function EmployeeRegister() {
                         className="form-select"
                         id='designation'
                         name='designation'
-                        disabled={!watch("department")} // Disable if no department selected
+                        disabled={!watch("department") || designations.length === 0}
                         {...register("designation", {
                           required: {
                             value: true,
@@ -641,7 +687,7 @@ export default function EmployeeRegister() {
                       >
                         <option value="">Select Status</option>
                         <option value='Active'>Active</option>
-                        <option value='InActive'>Relieved</option>
+                        <option value='relieved'>Relieved</option>
                         {/* <option value='OnBoard'>OnBoard</option> */}
                         {/* {showNoticePeriodOption && <option value='NoticePeriod'>Notice Period</option>} */}
                       </select>
@@ -982,8 +1028,8 @@ export default function EmployeeRegister() {
                         {...register("accountNo", {
                           required: "Account Number is required",
                           pattern: {
-                            value: /^\d{6,18}$/,
-                            message: "Enter a valid Account Number (6-18 digits only)",
+                            value: /^\d{9,18}$/,
+                            message: "Enter a valid Account Number (8-18 digits only)",
                           },
                         })}
                       />

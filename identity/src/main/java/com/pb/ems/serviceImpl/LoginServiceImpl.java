@@ -82,16 +82,16 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException {
-        EmployeeEntity employee;
+        EmployeeEntity employee = null;
         UserEntity userEntity = null;
         Object entity = null;
         DepartmentEntity department;
         String password = null;
         try {
-            employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
-            if (employee != null && employee.getPassword() != null) {
-                password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+            userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
+
+            if (userEntity != null && userEntity.getPassword() != null) {
+                password = new String(Base64.getDecoder().decode(userEntity.getPassword()), StandardCharsets.UTF_8);
                 if (request.getPassword().equals(password)) {
                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
                 } else {
@@ -99,29 +99,33 @@ public class LoginServiceImpl implements LoginService {
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                             HttpStatus.FORBIDDEN);
                 }
+            }else {
+                employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+                if (employee != null && employee.getPassword() != null) {
+                    validateEmployee(employee);
+                    password = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+                    if (request.getPassword().equals(password)) {
+                        log.debug("Successfully logged into ems portal for {}", request.getUsername());
+                    } else {
+                        log.error("Invalid credentials");
+                        throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
+                                HttpStatus.FORBIDDEN);
+                    }
+                }
             }
-            else if (userEntity != null && userEntity.getPassword() != null){
-                 password = new String(Base64.getDecoder().decode(userEntity.getPassword()),StandardCharsets.UTF_8);
-                 if (request.getPassword().equals(password)){
-                     log.debug("Successfully logged into ems portal for {}", request.getUsername());
-                 }else {
-                     log.error("Invalid credentials");
-                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
-                             HttpStatus.FORBIDDEN);
-                 }
-            }
-            else {
+            if (employee == null && userEntity == null) {
                 log.error("Invalid credentials");
                 throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                         HttpStatus.FORBIDDEN);
             }
+        }catch (IdentityException identityException){
+            throw identityException;
         } catch (Exception e) {
             log.error("Invalid creds {}", e.getMessage(), e);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                     HttpStatus.FORBIDDEN);
         }
         Long otp = generateOtp();
-
         CompletableFuture.runAsync(() -> {
             try {
                 sendOtpByEmail(request.getUsername(), otp);
@@ -130,58 +134,35 @@ public class LoginServiceImpl implements LoginService {
                 throw new RuntimeException(e);
             }
         });
+        List<String> roles = new ArrayList<>();
+        String token = "";
         if(userEntity==null) {
             openSearchOperations.saveOtpToEmployee(employee, otp, request.getCompany());
-        }else {
-            openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
-        }
-        List<String> roles = new ArrayList<>();
-        String token= null;
-        if(userEntity==null) {
             if (employee.getEmployeeType().equals(Constants.EMPLOYEE_TYPE)) {
                 roles.add(Constants.COMPANY_ADMIN);
-            } else {
-                department = openSearchOperations.getDepartmentById(employee.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
-
-                if (department != null) {
-                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.ACCOUNTANT);
-                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.HR);
-                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(employee.getEmployeeType())) {
-                        roles.add(Constants.ASSOCIATE);
-                    } else {
-                        roles.add(Constants.EMPLOYEE);
-                    }
-                }
-            }
-        }
-        if (employee==null) {
-            if (userEntity.getUserType().equals(Constants.EMPLOYEE_TYPE)) {
-                roles.add(Constants.COMPANY_ADMIN);
             }else {
-                department = openSearchOperations.getDepartmentById(userEntity.getDepartment(), null, Constants.INDEX_EMS + "_" + request.getCompany());
-
-                if (department != null) {
-                    if (Constants.ACCOUNTANT.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.ACCOUNTANT);
-                    } else if (Constants.HR.equalsIgnoreCase(department.getName())) {
-                        roles.add(Constants.HR);
-                    } else if (Constants.ASSOCIATE.equalsIgnoreCase(userEntity.getUserType())) {
-                        roles.add(Constants.ASSOCIATE);
-                    } else {
-                        roles.add(Constants.EMPLOYEE);
-                    }
-                }
+                roles.add(Constants.EMPLOYEE);
             }
-        }
-        if(userEntity==null) {
             token = JwtTokenUtil.generateEmployeeToken(employee.getId(), roles, request.getCompany(), request.getUsername());
         }else {
+            openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
+            roles.add(userEntity.getUserType());
             token = JwtTokenUtil.generateEmployeeToken(userEntity.getId(), roles, request.getCompany(), request.getUsername());
         }
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
+    }
+
+    private void validateEmployee(EmployeeEntity employee) throws IdentityException {
+        if (employee.getStatus().equalsIgnoreCase(Constants.PENDING)){
+            log.error("Employee is not active");
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.COMPANY_UNDER_REVIEW),
+                    HttpStatus.FORBIDDEN);
+        }else if (!employee.getStatus().equalsIgnoreCase(Constants.ACTIVE)){
+            log.error("Employee is not active");
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.EMPLOYEE_INACTIVE),
+                    HttpStatus.FORBIDDEN);
+        }
     }
 
     private void sendOtpByEmail(String emailId, Long otp) {
@@ -215,42 +196,21 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseEntity<?> validateCompanyOtp(OTPRequest request) throws IdentityException {
-        EmployeeEntity user;
+        EmployeeEntity user = null;
         UserEntity userEntity=null;
         try {
-            user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-            if (user == null) {
-                userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
-                if (userEntity==null) {
+            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
+
+            if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+
+                if (user==null) {
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
             }
-            if (user != null && user.getOtp() != null) {
-                Long otp = user.getOtp();
-                long currentTime = Instant.now().getEpochSecond();
-                log.debug("the user found checking the otp..");
-
-                Long userOtp = Long.valueOf(request.getOtp());
-                if (!userOtp.equals(otp)) {
-                    log.error("Invalid OTP for user.. ");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
-                            HttpStatus.FORBIDDEN);
-                }
-
-                if (currentTime > user.getExpiryTime()) {
-                    log.error("OTP expired for user..." );
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
-                            HttpStatus.FORBIDDEN);
-                }
-                // Clear OTP and expiry time
-                user.setOtp(null);
-                user.setExpiryTime(null);
-
-                openSearchOperations.updateEmployee(user,request.getCompany());
-            }
-            else if (userEntity != null && userEntity.getOtp() != null) {
+            if (userEntity != null && userEntity.getOtp() != null) {
                 Long otp = userEntity.getOtp();
                 long currentTime = Instant.now().getEpochSecond();
                 log.debug("the user found checking the otp..");
@@ -272,6 +232,30 @@ public class LoginServiceImpl implements LoginService {
                 userEntity.setExpiryTime(null);
 
                 openSearchOperations.updateUser(userEntity,request.getCompany());
+
+            }
+            else if (user != null && user.getOtp() != null) {
+                Long otp = user.getOtp();
+                long currentTime = Instant.now().getEpochSecond();
+                log.debug("the user found checking the otp..");
+
+                Long userOtp = Long.valueOf(request.getOtp());
+                if (!userOtp.equals(otp)) {
+                    log.error("Invalid OTP for user.. ");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                            HttpStatus.FORBIDDEN);
+                }
+
+                if (currentTime > user.getExpiryTime()) {
+                    log.error("OTP expired for user..." );
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
+                            HttpStatus.FORBIDDEN);
+                }
+                // Clear OTP and expiry time
+                user.setOtp(null);
+                user.setExpiryTime(null);
+                openSearchOperations.updateEmployee(user,request.getCompany());
+
 
             }
             else {
@@ -328,22 +312,20 @@ public class LoginServiceImpl implements LoginService {
         UserEntity userEntity = null;
 
         try {
-            user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
-            if (user == null) {
-                userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
-                if(userEntity==null) {
+            userEntity = openSearchOperations.getUserById(loginRequest.getUsername(), loginRequest.getCompany());
+            if (userEntity != null){
+                Long otp = generateOtp();
+                sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
+                openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
+            }else if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(loginRequest.getUsername(), loginRequest.getCompany());
+                if(user==null) {
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
-
-            }
-            Long otp = generateOtp();
-            sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
-            if(user==null){
-                openSearchOperations.saveOtpToUser(userEntity, otp, loginRequest.getCompany());
-            }
-            else {
+                Long otp = generateOtp();
+                sendOtpByEmailForPassword(loginRequest.getUsername(), otp);
                 openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
             }
 
@@ -364,20 +346,19 @@ public class LoginServiceImpl implements LoginService {
         String oldPassword = null;
 
         try {
-            user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
-          List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
-            if (user == null) {
-                userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
-                if (userEntity == null){
+            userEntity = openSearchOperations.getUserById(otpRequest.getUsername(), otpRequest.getCompany());
+
+            List<CompanyEntity>  employee = openSearchOperations.getCompanyByData(null, Constants.COMPANY, otpRequest.getCompany());
+            if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(otpRequest.getUsername(), otpRequest.getCompany());
+                if (user == null){
                     log.debug("checking the user details..");
                     throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
                             HttpStatus.NOT_FOUND);
                 }
-            }
-            if(user==null){
+                oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
+            } else {
                  oldPassword = new String(Base64.getDecoder().decode(userEntity.getPassword().getBytes()));
-            }else {
-                 oldPassword = new String(Base64.getDecoder().decode(user.getPassword().getBytes()));
             }
             if (otpRequest.getPassword().equals(oldPassword)) {
                 log.error("you can't update with the previous password");

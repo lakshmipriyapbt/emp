@@ -6,12 +6,16 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import javax.annotation.Nullable;
+
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRequest {
+
+    private String employeeId;
 
     @Schema(example = "firstName")
     @Pattern(regexp ="^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{firstname.format}")
@@ -28,7 +32,7 @@ public class UserRequest {
 
     @Schema(example = "userType")
     @Pattern(regexp = "^(?!.*\\\\b([A-Z])\\\\s\\\\1\\\\s\\\\1)(?:[A-Z][a-z]+(?: [A-Z][a-z]+)*|[A-Z](?:\\\\.? ?[A-Z])? ?[A-Z][a-z]+)$|^[A-Z][a-zA-Z]*$", message = "{user.type}")
-    @Size(min = 3, max = 20, message = "{userType.size.message}")
+    @Size(min = 2, max = 20, message = "{userType.size.message}")
     private String userType;
 
     @Schema(example = "departmentId")

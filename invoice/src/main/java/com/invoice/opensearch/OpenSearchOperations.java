@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import org.opensearch.client.opensearch.core.*;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -160,6 +161,7 @@ public class OpenSearchOperations {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     public List<InvoiceModel> getInvoicesByCompanyId(String companyId, String index) throws InvoiceException {
         logger.debug("Getting invoices for company {} from index {}", companyId, index);
 
@@ -231,5 +233,35 @@ public class OpenSearchOperations {
         }
         // ✅ Return first invoice number if no invoices exist
         return null;
+    }
+
+    public List<InvoiceModel> getPurchaseOrderNo(String index, String purchaseOrderNo) {
+        List<InvoiceModel> invoiceModels = new ArrayList<>();
+        try {
+            // Encode the input to base64
+            String base64Encoded = Base64.getEncoder().encodeToString(purchaseOrderNo.getBytes(StandardCharsets.UTF_8));
+
+            // Search in OpenSearch using the base64 encoded value
+            SearchResponse<InvoiceModel> response = esClient.search(s -> s
+                            .index(index)
+                            .size(1)
+                            .query(q -> q
+                                    .matchPhrase(m -> m
+                                            .field("purchaseOrder")
+                                            .query(base64Encoded)
+                                    )
+                            ),
+                    InvoiceModel.class
+            );
+            List<Hit<InvoiceModel>> hits = response.hits().hits();
+            for (Hit<InvoiceModel> hit : hits) {
+                invoiceModels.add(hit.source()); // ✅ Return last invoice number found
+            }
+
+        } catch (IOException e) {
+            logger.error("Error while searching for purchase order number : " ,e);
+        }
+        return invoiceModels;
+
     }
 }

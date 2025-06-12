@@ -7,15 +7,32 @@ import {
   ChevronDown,
   ChevronUp,
 } from "react-bootstrap-icons";
-import { DepartmentDeleteApiById, DepartmentGetApi, DepartmentPostApi, DepartmentPutApiById } from "../../Utils/Axios";
 import { useForm } from "react-hook-form";
 import { ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import { useAuth } from "../../Context/AuthContext";
 import { Bounce, toast } from "react-toastify";
 import DeletePopup from "../../Utils/DeletePopup";
-import { DesignationGetApi, DesignationPostApi, DesignationDeleteApiById, DesignationPutApiById } from "../../Utils/Axios";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchDepartments, removeDepartmentFromState } from '../../Redux/DepartmentSlice';
+import { fetchDesignations, removeDesignationFromState } from '../../Redux/DesignationSlice';
+import { DepartmentPostApi, DepartmentPutApiById, DepartmentDeleteApiById } from "../../Utils/Axios";
+import { DesignationPostApi, DesignationPutApiById, DesignationDeleteApiById } from "../../Utils/Axios";
+import Loader from "../../Utils/Loader";
 
 const Department = () => {
+  const dispatch = useDispatch();
+  const {
+    departments,
+    loading: departmentsLoading,
+    error: departmentsError
+  } = useSelector(state => state.departments);
+
+  const {
+    designations: reduxDesignations,
+    loading: designationsLoading,
+    error: designationsError
+  } = useSelector(state => state.designations);
+
   const {
     register,
     handleSubmit,
@@ -24,20 +41,20 @@ const Department = () => {
     formState: { errors },
   } = useForm({ mode: "onChange" });
   const [expandedId, setExpandedId] = useState(null);
-  const [departments, setDepartments] = useState([]);
   const [addDepartment, setAddDeparment] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(false);
   const { authUser } = useAuth();
-  const [designations, setDesignations] = useState({});
   const [addDesignation, setAddDesignation] = useState(false);
   const [editingDesignationId, setEditingDesignationId] = useState(null);
   const [currentDepartmentId, setCurrentDepartmentId] = useState(null);
-  const [loadingDesignations, setLoadingDesignations] = useState({});
   const [showDeleteDesignationModal, setShowDeleteDesignationModal] = useState(false);
   const [selectedDesignationInfo, setSelectedDesignationInfo] = useState({ departmentId: null, designationId: null });
+  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const { employee } = useAuth();
+  const companyId = employee?.companyId;
 
   const {
     register: registerDesignation,
@@ -73,39 +90,37 @@ const Department = () => {
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
 
-  const getDepartments = async () => {
-    try {
-      const response = await DepartmentGetApi();
-      const sortedDepartments = response.data.data.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      setDepartments(sortedDepartments);
-    } catch (error) {
-      handleApiErrors(error);
+  useEffect(() => {
+    if (companyId) {
+      setIsFetching(true);
+      const timer = setTimeout(() => {
+        dispatch(fetchDepartments()).finally(() => setIsFetching(false));
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  };
+  }, [dispatch, companyId]);
 
   useEffect(() => {
-    getDepartments();
-  }, []);
+    if (departmentsError) {
+      handleApiErrors(departmentsError);
+    }
+  }, [departmentsError]);
+
+  useEffect(() => {
+    if (designationsError) {
+      handleApiErrors(designationsError);
+    }
+  }, [designationsError]);
 
 
-  const fetchDesignations = async (departmentId) => {
-    setLoadingDesignations(prev => ({ ...prev, [departmentId]: true }));
+  const fetchDesignationsForDepartment = async (departmentId) => {
     try {
-      const result = await DesignationGetApi(departmentId);
-      setDesignations(prev => ({
-        ...prev,
-        [departmentId]: Array.isArray(result) ? result : []
-      }));
+      await dispatch(fetchDesignations(departmentId));
     } catch (error) {
-      console.error('Failed to load designations:', error);
-      setDesignations(prev => ({
-        ...prev,
-        [departmentId]: []
-      }));
-    } finally {
-      setLoadingDesignations(prev => ({ ...prev, [departmentId]: false }));
+      // Only show errors that aren't 404
+      if (error.response?.status !== 404) {
+        handleApiErrors(error);
+      }
     }
   };
 
@@ -119,7 +134,7 @@ const Department = () => {
   };
 
   const handleEditDesignation = (departmentId, designationId) => {
-    const designationToEdit = designations[departmentId]?.find(d => d.id === designationId);
+    const designationToEdit = reduxDesignations[departmentId]?.find(d => d.id === designationId);
     if (designationToEdit) {
       setValueDesignation("name", designationToEdit.name);
       setEditingDesignationId(designationId);
@@ -156,8 +171,8 @@ const Department = () => {
       setExpandedId(null);
     } else {
       setExpandedId(id);
-      if (!designations[id]) {
-        fetchDesignations(id);
+      if (!reduxDesignations[id]) {
+        fetchDesignationsForDepartment(id);
       }
     }
   };
@@ -181,23 +196,16 @@ const Department = () => {
 
       if (editingId) {
         await DepartmentPutApiById(editingId, formData);
-        setDepartments(prev =>
-          prev.map(dept =>
-            dept.id === editingId ? { ...dept, name: data.name } : dept
-          )
-        );
-        toast.success("Department Updated Successfully");
+        toast.success("Department Updated Successfully", {
+          autoClose: 500,
+          onClose: () => dispatch(fetchDepartments()),
+        });
       } else {
         await DepartmentPostApi(formData);
-
-        // Temporary solution - refetch all departments
-        const updatedResponse = await DepartmentGetApi();
-        const sortedDepartments = updatedResponse.data.data.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setDepartments(sortedDepartments);
-
-        toast.success("Department Created Successfully");
+        toast.success("Department Created Successfully", {
+          autoClose: 500,
+          onClose: () => dispatch(fetchDepartments()),
+        });
       }
 
       handleCloseAddDepartmentModal();
@@ -210,6 +218,7 @@ const Department = () => {
     }
   };
 
+
   const onSubmitDesignation = async (data) => {
     try {
       const formData = {
@@ -219,21 +228,16 @@ const Department = () => {
 
       if (editingDesignationId) {
         await DesignationPutApiById(currentDepartmentId, editingDesignationId, formData);
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: prev[currentDepartmentId].map(desig =>
-            desig.id === editingDesignationId ? { ...desig, name: data.name } : desig
-          )
-        }));
-        toast.success("Designation Updated Successfully");
+        toast.success("Designation Updated Successfully", {
+          autoClose: 500,
+          onClose: () => dispatch(fetchDesignations(currentDepartmentId)),
+        });
       } else {
-        const response = await DesignationPostApi(currentDepartmentId, formData);
-        // Immediately add the new designation to the state
-        setDesignations(prev => ({
-          ...prev,
-          [currentDepartmentId]: [...(prev[currentDepartmentId] || []), response.data.data]
-        }));
-        toast.success("Designation Created Successfully");
+        await DesignationPostApi(currentDepartmentId, formData);
+        toast.success("Designation Created Successfully", {
+          autoClose: 500,
+          onClose: () => dispatch(fetchDesignations(currentDepartmentId)),
+        });
       }
 
       handleCloseAddDesignationModal();
@@ -247,6 +251,7 @@ const Department = () => {
     if (selectedItemId) {
       try {
         await DepartmentDeleteApiById(selectedItemId);
+        dispatch(removeDepartmentFromState(selectedItemId));
         toast.success("Department Deleted Successfully", {
           position: "top-right",
           transition: Bounce,
@@ -255,10 +260,6 @@ const Department = () => {
           autoClose: 1000,
         });
 
-        // Update local state immediately
-        setDepartments(prev => prev.filter(dept => dept.id !== selectedItemId));
-
-        // Reset selection and close modal
         setSelectedItemId(null);
         setShowDeleteModal(false);
       } catch (error) {
@@ -272,7 +273,6 @@ const Department = () => {
     }
   };
 
-
   const handleDeleteDesignation = (departmentId, designationId) => {
     setSelectedDesignationInfo({ departmentId, designationId });
     setShowDeleteDesignationModal(true);
@@ -282,13 +282,8 @@ const Department = () => {
     const { departmentId, designationId } = selectedDesignationInfo;
     try {
       await DesignationDeleteApiById(departmentId, designationId);
+      dispatch(removeDesignationFromState({ departmentId, designationId }));
       toast.success("Designation Deleted Successfully");
-
-      // Update local state
-      setDesignations(prev => ({
-        ...prev,
-        [departmentId]: prev[departmentId].filter(desig => desig.id !== designationId)
-      }));
     } catch (error) {
       handleApiErrors(error);
     } finally {
@@ -299,209 +294,231 @@ const Department = () => {
 
 
   const handleApiErrors = (error) => {
-    if (error.response?.data?.error?.message) {
-      const errorMessage = error.response.data.error.message;
-      toast.error(errorMessage);
-    } else {
-      toast.error("Network Error!");
+    console.error('API Error:', error);
+
+    // Skip showing error for 404 (not found) since it's expected for empty designations
+    if (error.response?.status === 404) {
+      return;
     }
-    console.error(error.response);
+
+    if (error.response) {
+      const status = error.response.status;
+      const message = error.response.data?.error?.message || error.response.statusText;
+      toast.error(`${status}: ${message}`);
+    } else if (error.request) {
+      toast.error("Network Error - No response from server");
+    } else {
+      toast.error(error.message || "Request setup error");
+    }
   };
 
-  const validateName = (value) => {
+  const validateName = (value, fieldType) => {
     const trimmedValue = value.trim();
+    const entityName = fieldType === "designation" ? "Designation" : "Department";
+
     if (trimmedValue.length === 0) {
-      return "Department Name is Required.";
+      return `${entityName} Name is Required.`;
     } else if (!/^[A-Za-z\s/]+$/.test(trimmedValue)) {
-      return "Only Alphabetic Characters, Spaces, and '/' are Allowed.";
+      return `Only Alphabetic Characters, Spaces, and '/' are Allowed in ${entityName}.`;
     } else {
       const words = trimmedValue.split(" ");
       for (const word of words) {
         if (word.length < 2 && words.length === 1) {
-          return "Minimum Length 2 Characters Required.";
+          return `Minimum Length 2 Characters Required for ${entityName}.`;
         } else if (word.length > 40) {
-          return "Max Length 40 Characters Required.";
+          return `Max Length 40 Characters Required for ${entityName}.`;
         }
       }
       if (trimmedValue.length > 40) {
-        return "Department name must not exceed 40 characters.";
+        return `${entityName} name must not exceed 40 characters.`;
       }
       if (/\s{2,}/.test(trimmedValue)) {
-        return "No Multiple Spaces Between Words Allowed.";
+        return `No Multiple Spaces Between Words Allowed in ${entityName}.`;
       }
       if (/^\s/.test(value)) {
-        return "Leading space not allowed.";
+        return `Leading space not allowed in ${entityName}.`;
       } else if (/\s$/.test(value)) {
-        return "Spaces at the end are not allowed.";
+        return `Spaces at the end are not allowed in ${entityName}.`;
       }
     }
     return true;
   };
 
+  const sortedDepartments = [...departments].sort((a, b) => a.name.localeCompare(b.name));
+  
   return (
     <LayOut>
       <div className="container-fluid p-0">
-        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-          <div className="col">
-            <h1 className="h3 mb-3">
-              <strong>Departments</strong>
-            </h1>
+        {(isFetching || departmentsLoading) ? (
+          <div className="row">
+            <div className="col-12">
+              <Loader />
+            </div>
           </div>
-          <div className="col-auto">
-            <nav aria-label="breadcrumb">
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                  <Link to="/main">Home</Link>
-                </li>
-                <li className="breadcrumb-item active">Departments</li>
-              </ol>
-            </nav>
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+              <div className="col">
+                <h1 className="h3 mb-3">
+                  <strong>Departments</strong>
+                </h1>
+              </div>
+              <div className="col-auto">
+                <nav aria-label="breadcrumb">
+                  <ol className="breadcrumb mb-0">
+                    <li className="breadcrumb-item">
+                      <Link to="/main" className="custom-link">Home</Link>
+                    </li>
+                    <li className="breadcrumb-item active">Departments</li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
 
-        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-          <div style={{ width: "250px" }}>
-            <select
-              className="form-select"
-              onChange={handleDropdownSelect}
-              value={expandedId || ""}
-            >
-              <option value="">-- Select Department --</option>
-              {departments?.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <button
-              className="btn btn-primary"
-              onClick={() => setAddDeparment(true)}
-            >
-              <i className="bi bi-plus-lg me-1"></i> Add Department
-            </button>
-          </div>
-        </div>
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+              <div style={{ width: "250px" }}>
+                <select
+                  className="form-select"
+                  onChange={handleDropdownSelect}
+                  value={expandedId || ""}
+                >
+                  <option value="">-- Select Department --</option>
+                  {sortedDepartments?.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setAddDeparment(true)}
+                >
+                  <i className="bi bi-plus-lg me-1"></i> Add Department
+                </button>
+              </div>
+            </div>
 
-        <div className="row">
-          {departments?.map((dept) => (
-            <div key={`dept-${dept.id}`} className="mb-3">
-              <div className="card">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0 card-title">{dept.name}</h5>
-                  <div className="d-flex align-items-center">
-                    <button
-                      className="btn btn-sm"
-                      style={{
-                        backgroundColor: "transparent",
-                        border: "none",
-                        padding: "0",
-                        marginRight: "10px",
-                      }}
-                      onClick={() => handleEdit(dept.id)}
-                      title="Edit"
-                      aria-label={`Edit ${dept.name}`}
-                    >
-                      <PencilSquare size={22} color="#2255a4" />
-                    </button>
-                    <button
-                      className="btn btn-sm"
-                      style={{ backgroundColor: "transparent", border: "none" }}
-                      title="Delete"
-                      onClick={() => handleShowDeleteModal(dept.id)}
-                      aria-label={`Delete ${dept.name}`}
-                    >
-                      <XSquareFill size={22} color="#da542e" />
-                    </button>
-                    <button
-                      className="btn btn-sm"
-                      style={{
-                        backgroundColor: "transparent",
-                        border: "none",
-                        marginLeft: "10px",
-                      }}
-                      onClick={() => toggleAccordion(dept.id)}
-                      aria-label={`${expandedId === dept.id ? 'Collapse' : 'Expand'} ${dept.name}`}
-                    >
-                      {expandedId === dept.id ? (
-                        <ChevronUp size={22} />
-                      ) : (
-                        <ChevronDown size={22} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {expandedId === dept.id && (
-                  <div className="card-body pt-0">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h6>Designations:</h6>
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => {
-                          setCurrentDepartmentId(dept.id);
-                          setAddDesignation(true);
-                        }}
-                        disabled={loadingDesignations[dept.id]}
-                      >
-                        {loadingDesignations[dept.id] ? (
-                          <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                        ) : (
-                          <i className="bi bi-plus-lg me-1"></i>
-                        )}
-                        Add Designation
-                      </button>
-                    </div>
-
-                    {loadingDesignations[dept.id] ? (
-                      <div className="text-center py-3">
-                        <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
+            <div className="row">
+              {sortedDepartments?.map((dept) => (
+                <div key={`dept-${dept.id}`} className="mb-3">
+                  <div className="card">
+                    <div className="card-header d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0 card-title">{dept.name}</h5>
+                      <div className="d-flex align-items-center">
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            padding: "0",
+                            marginRight: "10px",
+                          }}
+                          onClick={() => handleEdit(dept.id)}
+                          title="Edit"
+                          aria-label={`Edit ${dept.name}`}
+                        >
+                          <PencilSquare size={22} color="#2255a4" />
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{ backgroundColor: "transparent", border: "none" }}
+                          title="Delete"
+                          onClick={() => handleShowDeleteModal(dept.id)}
+                          aria-label={`Delete ${dept.name}`}
+                        >
+                          <XSquareFill size={22} color="#da542e" />
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            marginLeft: "10px",
+                          }}
+                          onClick={() => toggleAccordion(dept.id)}
+                          aria-label={`${expandedId === dept.id ? 'Collapse' : 'Expand'} ${dept.name}`}
+                        >
+                          {expandedId === dept.id ? (
+                            <ChevronUp size={22} color="#000000" />
+                          ) : (
+                            <ChevronDown size={22} color="#000000" />
+                          )}
+                        </button>
                       </div>
-                    ) : (
-                      <div className="list-group">
-                        {designations[dept.id]?.length > 0 ? (
-                          designations[dept.id].map((designation) => (
-                            <div
-                              key={`desig-${designation.id}`}
-                              className="list-group-item d-flex justify-content-between align-items-center"
-                            >
-                              <span>{designation.name}</span>
-                              <div>
-                                <button
-                                  className="btn btn-sm me-2"
-                                  onClick={() => handleEditDesignation(dept.id, designation.id)}
-                                  title="Edit"
-                                  aria-label={`Edit ${designation.name}`}
-                                >
-                                  <PencilSquare size={18} color="#2255a4" />
-                                </button>
-                                <button
-                                  className="btn btn-sm"
-                                  onClick={() => handleDeleteDesignation(dept.id, designation.id)}
-                                  title="Delete"
-                                  aria-label={`Delete ${designation.name}`}
-                                >
-                                  <XSquareFill size={18} color="#da542e" />
-                                </button>
-                              </div>
+                    </div>
+                    {expandedId === dept.id && (
+                      <div className="card-body pt-0">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <h6>Designations:</h6>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => {
+                              setCurrentDepartmentId(dept.id);
+                              setAddDesignation(true);
+                            }}
+                            disabled={designationsLoading}
+                          >
+                            {designationsLoading ? (
+                              <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            ) : (
+                              <i className="bi bi-plus-lg me-1"></i>
+                            )}
+                            Add Designation
+                          </button>
+                        </div>
+
+                        {reduxDesignations[dept.id] === undefined ? (
+                          <div className="text-center py-3">
+                            <div className="spinner-border text-primary" role="status">
+                              <span className="visually-hidden">Loading...</span>
                             </div>
-                          ))
+                          </div>
                         ) : (
-                          <div className="list-group-item text-muted">
-                            No designations found
+                          <div className="list-group">
+                            {reduxDesignations[dept.id]?.length > 0 ? (
+                              reduxDesignations[dept.id].map((designation) => (
+                                <div
+                                  key={`desig-${designation.id}`}
+                                  className="list-group-item d-flex justify-content-between align-items-center"
+                                >
+                                  <span>{designation.name}</span>
+                                  <div>
+                                    <button
+                                      className="btn btn-sm me-2"
+                                      onClick={() => handleEditDesignation(dept.id, designation.id)}
+                                      title="Edit"
+                                      aria-label={`Edit ${designation.name}`}
+                                    >
+                                      <PencilSquare size={18} color="#2255a4" />
+                                    </button>
+                                    <button
+                                      className="btn btn-sm"
+                                      onClick={() => handleDeleteDesignation(dept.id, designation.id)}
+                                      title="Delete"
+                                      aria-label={`Delete ${designation.name}`}
+                                    >
+                                      <XSquareFill size={18} color="#da542e" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="list-group-item text-muted">
+                                No designations found
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
 
         {/* Department Modal */}
         {addDepartment && (
@@ -520,10 +537,12 @@ const Department = () => {
                   </ModalTitle>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="custom-close-btn"
                     aria-label="Close"
                     onClick={handleCloseAddDepartmentModal}
-                  ></button>
+                  >
+                     x
+                  </button>
                 </div>
                 <ModalBody>
                   <form onSubmit={handleSubmit(onSubmit)} id="departmentForm">
@@ -539,9 +558,7 @@ const Department = () => {
                             autoComplete="off"
                             {...register("name", {
                               required: "Department is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "department"),
                             })}
                           />
                           {errors.name && (
@@ -594,10 +611,12 @@ const Department = () => {
                   </ModalTitle>
                   <button
                     type="button"
-                    className="btn-close"
+                    className="custom-close-btn"
                     aria-label="Close"
                     onClick={handleCloseAddDesignationModal}
-                  ></button>
+                  >
+                    x
+                  </button>
                 </div>
                 <ModalBody>
                   <form onSubmit={handleSubmitDesignation(onSubmitDesignation)}>
@@ -613,9 +632,7 @@ const Department = () => {
                             autoComplete="off"
                             {...registerDesignation("name", {
                               required: "Designation is Required",
-                              validate: {
-                                validateName,
-                              },
+                              validate: (value) => validateName(value, "designation"),
                             })}
                           />
                           {errorsDesignation.name && (
@@ -658,15 +675,15 @@ const Department = () => {
           pageName="Department"
         />
         <DeletePopup
-        show={showDeleteDesignationModal}
-        handleClose={() => {
-          setShowDeleteDesignationModal(false);
-          setSelectedDesignationInfo({ departmentId: null, designationId: null });
-        }}
-        handleConfirm={handleConfirmDesignationDelete}
-        id={selectedDesignationInfo.designationId}
-        pageName="Designation"
-      />
+          show={showDeleteDesignationModal}
+          handleClose={() => {
+            setShowDeleteDesignationModal(false);
+            setSelectedDesignationInfo({ departmentId: null, designationId: null });
+          }}
+          handleConfirm={handleConfirmDesignationDelete}
+          id={selectedDesignationInfo.designationId}
+          pageName="Designation"
+        />
       </div>
     </LayOut>
   );

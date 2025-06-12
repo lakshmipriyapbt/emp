@@ -1,48 +1,45 @@
-// Import necessary functions from Redux Toolkit
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { EmployeeGetApi } from "../Utils/Axios";
 
-// Step 1: Define an Async Thunk to Fetch Employee Data
+// Async thunk to fetch employee data
 export const fetchEmployees = createAsyncThunk(
   "employees/fetchEmployees",
   async (_, { rejectWithValue }) => {
     try {
-      // Replace 'YOUR_API_URL_HERE' with the actual EmployeeGetApi() URL
       const response = await EmployeeGetApi();
-      return response.data.data; // Return API response data
-
+      return response.data.data;
     } catch (error) {
-      // Handle API errors
-      return rejectWithValue(error.response.data?.data || "Something went wrong");
+      return rejectWithValue(error.response?.data?.data || "Something went wrong");
     }
   }
 );
 
-// Step 2: Create Employee Slice
+// Employee slice
 const employeeSlice = createSlice({
-  name: "employees", // Slice name
+  name: "employees",
   initialState: {
-    data: [],      // Stores employee data
-    status:"loading", // 'idle' | 'loading' | 'succeeded' | 'failed'
-    error: null,    // Stores error message (if any)
+    data: [],
+    status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
+    error: null,
   },
-  reducers: {}, // No standard reducers, since we're using async thunk
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchEmployees.pending, (state) => {
-        state.status = "loading"; // Set loading state
+        state.status = "loading";
+        state.error = null;
       })
       .addCase(fetchEmployees.fulfilled, (state, action) => {
-        state.status = "succeeded"; // Data fetched successfully
+        state.status = "succeeded";
         state.data = action.payload.filter(emp => emp.employeeType !== "CompanyAdmin");
-        console.log('Action Payload (employees):', action.payload); // Log the action payload
+        state.error = null;
       })
       .addCase(fetchEmployees.rejected, (state, action) => {
-        state.status = "failed"; // Set failed state
-        state.error = action.payload; // Store error message
+        state.status = "failed";
+        state.error = action.payload || "Failed to fetch employees";
+        state.data = []; // Clear data on error
       });
   },
 });
 
-// Step 3: Export the reducer to use in the store
 export default employeeSlice.reducer;

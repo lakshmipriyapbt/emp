@@ -131,11 +131,18 @@ public enum EmployeeErrorMessageKey {
     COMPANY_TDS_ALREADY_EXIST("company.tds.already.exist"),
     UNABLE_UPDATE_COMPANY_TDS("unable.update.company.tds"),
     COMPANY_TDS_NOT_FOUND("company.tds.not.found"),
+    TDS_NOT_FOUND("tds.not.found"),
     USER_ID_ALREADY_EXISTS("user.id.already.exist"),
     UNABLE_GET_USER("unable.to.get.user"),
     USER_NOT_FOUND("user.not.found"),
     UNABLE_DELETE_USER("unable.delete.user"),
-    ERROR_RETRIEVING_SALARY("error.retrieving.salary");
+    ERROR_RETRIEVING_SALARY("error.retrieving.salary"),
+    INVALID_ADD_SALARY_DATE("invalid.add.salary.date"),
+    APPRAISAL_IS_ALREADY_EXIST("appraisal.is.already.exist"),
+    INVALID_USER("invalid.user"),
+    EMAIL_ALREADY_EXIST("email.already.exist"),
+    EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found"),
+    UNABLE_UPDATE_STATUS("unable.update.status");
 
     private final String key;
 

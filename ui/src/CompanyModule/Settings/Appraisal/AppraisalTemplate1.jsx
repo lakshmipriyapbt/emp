@@ -14,6 +14,7 @@ const AppraisalTemplate1 = ({
   basicSalary,
   allowances,
   draft,
+  date,
 }) => {
   console.log("Basic Salary: ", basicSalary);
 
@@ -29,7 +30,7 @@ const AppraisalTemplate1 = ({
         overflow: "hidden",
       }}
     >
-      {!draft && (<div style={{ textAlign: "right" }}>
+      {!draft && (<div>
         {companyData ? (
           <img
             className="align-middle"
@@ -78,7 +79,7 @@ const AppraisalTemplate1 = ({
         </div>
         <div className="col-6">
           <p className="mb-0 text-end">
-            {new Date().toISOString().split("T")[0]}
+            {date}
           </p>
         </div>
       </div>

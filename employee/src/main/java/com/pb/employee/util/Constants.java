@@ -114,6 +114,7 @@ public class Constants {
     public static final String ATTACHMENT = "attachment";
     public static final String OFFER_LETTER = "offer_letter.pdf";
     public static final String ACTIVE = "Active";
+    public static final String IN_ACTIVE = "InActive";
     public static final String RELIEVING = "relieving";
     public static final String STAMP = "stamp";
     public static final String EXPERIENCE_LETTER_PDF = "experience_letter.pdf";
@@ -193,4 +194,10 @@ public class Constants {
     public static final String START_YEAR = "startYear";
     public static final String TDS_TYPE = "tdsType";
     public static final String DRAFT = "draft";
+    public static final String APPRAISAL = "Appraisal";
+    public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
+    public static final String USER_ADMIN = "Admin";
+    public static final Object PENDING = "pending";
+    public static final String REJECTED = "rejected";
+    public static final String INACTIVE = "inactive";
 }
