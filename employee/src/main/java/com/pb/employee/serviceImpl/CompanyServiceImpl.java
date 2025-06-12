@@ -122,6 +122,14 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        String companyFolderPath = folderPath + companyRequest.getShortName();
+        File folder = new File(companyFolderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+            log.info("Creating the company Folder");
+        }
+
         openSearchOperations.createIndex(companyRequest.getShortName());
         log.info("Creating the employee of company admin");
 
