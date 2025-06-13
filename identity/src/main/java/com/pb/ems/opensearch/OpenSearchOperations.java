@@ -128,7 +128,7 @@ public class OpenSearchOperations {
 
     public void saveOtpToUser(UserEntity user, Long otp, String company) throws IdentityException {
         user.setOtp(otp);
-        user.setExpiryTime(Instant.now().plus(60, ChronoUnit.SECONDS).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
+        user.setExpiryTime(Instant.now().plus(3, ChronoUnit.MINUTES).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
         String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
         String id = Constants.USER+"-"+resourceIdUtils.generateCompanyResourceId(user.getEmailId());
         saveEntity(user,id , index);  // Ensure this method saves the user entity to the correct index
@@ -137,7 +137,7 @@ public class OpenSearchOperations {
 
     public void saveOtpToEmployee(EmployeeEntity user, Long otp, String company) throws IdentityException {
         user.setOtp(otp);
-        user.setExpiryTime(Instant.now().plus(60, ChronoUnit.SECONDS).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
+        user.setExpiryTime(Instant.now().plus(3, ChronoUnit.MINUTES).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
         String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
         String id = Constants.EMPLOYEE+"-"+resourceIdUtils.generateCompanyResourceId(user.getEmailId());
         saveEntity(user,id , index);  // Ensure this method saves the user entity to the correct index
