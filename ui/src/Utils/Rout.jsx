@@ -87,6 +87,10 @@ import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
 import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
 import LandingPage from '../LayOut/NewLogin/LandingPage';
+import CandidateRegistration from '../CompanyModule/Candidate/CandidateRegistration';
+import CandidatesView from '../CompanyModule/Candidate/CandidatesView';
+import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumentUpload';
+import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -165,6 +169,10 @@ export const allAvailableRoutes = [
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
+  {path: '/candidateRegistration', allowedTypes: ['HR'] },
+  {path: '/candidatesView', allowedTypes: ['HR'] },
+  {path: '/candidateDocumentUpload', allowedTypes: ['HR'] },
+  {path: '/uploadSuccess', allowedTypes: ['HR'] },
 ];
 
 const Routing = () => {
@@ -232,7 +240,23 @@ const Routing = () => {
         path="/employeeSalariesView"
         element={<ProtectedRoute element={<EmployeeSalaryById/>} allowedTypes={['employee']} />}
       />
-        
+      {/* HR-specific routes */}
+      <Route
+        path="/candidateRegistration"
+        element={<ProtectedRoute element={<CandidateRegistration/>} allowedTypes={['HR']} />}
+      />
+      <Route
+        path="/candidatesView"
+        element={<ProtectedRoute element={<CandidatesView/>} allowedTypes={['HR']} />}
+      />
+      <Route
+        path="/candidateDocumentUpload"
+        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['HR']} />}
+      /> 
+      <Route
+        path="/uploadSuccess"
+        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['HR']} />}
+      />    
       {/* Company Admin & HR shared routes */}
       <Route
         path="/department"
