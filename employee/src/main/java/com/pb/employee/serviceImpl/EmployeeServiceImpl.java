@@ -264,27 +264,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(entity, departmentEntity, designationEntity);
 
             }
-            try {
-                String companyFolderPath = folderPath + companyName;
-                File companyFolder = new File(companyFolderPath);
-                if (!companyFolder.exists()) {
-                    log.error("Company folder does not exist: {}", companyFolderPath);
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
-                            HttpStatus.NOT_FOUND);
-                }
-
-                String employeeFolderPath = folderPath + companyName + "/" + entity.getFirstName() + "_" + entity.getEmployeeId();
-                File folder = new File(employeeFolderPath);
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                    log.info("Creating the employee Folder");
-                }
-            }catch (EmployeeException exception) {
-                log.error("Company folder does not exist");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
-                        HttpStatus.NOT_FOUND);
-            }
-
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
             }
