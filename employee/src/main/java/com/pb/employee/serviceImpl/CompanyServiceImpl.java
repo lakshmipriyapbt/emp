@@ -122,6 +122,14 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        String companyFolderPath = folderPath + companyRequest.getShortName();
+        File folder = new File(companyFolderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+            log.info("Creating the company Folder");
+        }
+
         openSearchOperations.createIndex(companyRequest.getShortName());
         log.info("Creating the employee of company admin");
 
@@ -192,6 +200,12 @@ public class CompanyServiceImpl implements CompanyService {
         try {
             companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
+            String companyFolderPath = folderPath + companyEntity.getShortName();
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the company Folder");
+            }
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),

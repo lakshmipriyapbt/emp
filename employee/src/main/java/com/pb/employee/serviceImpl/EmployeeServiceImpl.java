@@ -28,6 +28,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
@@ -35,10 +36,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
@@ -57,6 +55,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private OpenSearchOperations openSearchOperations;
     @Autowired
     private EmailUtils emailUtils;
+
+    @Value("${file.upload.path}")
+    private  String folderPath;
 
     @Autowired
     private Configuration freemarkerConfig;
@@ -98,6 +99,27 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), employeeRequest.getEmployeeId()),
                     HttpStatus.CONFLICT);
         }
+        try {
+            String companyFolderPath = folderPath + employeeRequest.getCompanyName();
+            File companyFolder = new File(companyFolderPath);
+            if (!companyFolder.exists()) {
+                log.error("Company folder does not exist: {}", companyFolderPath);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
+                        HttpStatus.NOT_FOUND);
+            }
+
+            String employeeFolderPath = folderPath + employeeRequest.getCompanyName() + "/" + employeeRequest.getFirstName() + "_" + employeeRequest.getEmployeeId();
+            File folder = new File(employeeFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the employee Folder");
+            }
+        }catch (EmployeeException exception){
+             log.error("Company folder does not exist");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
+                    HttpStatus.NOT_FOUND);
+        }
+
         try{
             DepartmentEntity departmentEntity =null;
             DesignationEntity designationEntity = null;
@@ -240,6 +262,27 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(entity, departmentEntity, designationEntity);
 
             }
+            try {
+                String companyFolderPath = folderPath + companyName;
+                File companyFolder = new File(companyFolderPath);
+                if (!companyFolder.exists()) {
+                    log.error("Company folder does not exist: {}", companyFolderPath);
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
+                            HttpStatus.NOT_FOUND);
+                }
+
+                String employeeFolderPath = folderPath + companyName + "/" + entity.getFirstName() + "_" + entity.getEmployeeId();
+                File folder = new File(employeeFolderPath);
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                    log.info("Creating the employee Folder");
+                }
+            }catch (EmployeeException exception) {
+                log.error("Company folder does not exist");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
+                        HttpStatus.NOT_FOUND);
+            }
+
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
             }
@@ -294,6 +337,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
         DesignationEntity designationEntity = null;
         DepartmentEntity departmentEntity = null;
         departmentEntity = openSearchOperations.getDepartmentById(employeeUpdateRequest.getDepartment(), null, index);

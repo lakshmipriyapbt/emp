@@ -142,6 +142,8 @@ public enum EmployeeErrorMessageKey {
     INVALID_USER("invalid.user"),
     EMAIL_ALREADY_EXIST("email.already.exist"),
     EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found"),
+    UNABLE_UPDATE_STATUS("unable.update.status"),
+    COMPANY_FOLDER_NOT_EXIST("company.folder.not.exist");
     CANDIDATE_ALREADY_EXIST("candidate.already.exist"),
     UNABLE_SAVE_CANDIDATE("unable.save.candidate"),
     CANDIDATE_EMAILID_ALREADY_EXISTS("candidate.email.already.exists"),
