@@ -41,6 +41,7 @@ const CompanySalaryStructure = () => {
     allowances: {},
     deductions: {},
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const addField = (fieldName) => {
@@ -301,6 +302,7 @@ const CompanySalaryStructure = () => {
   };
 
   const onSubmit = async () => {
+    setIsSubmitting(true);
     const jsonData = {
       companyName: authUser.company,
       status: "Active",
@@ -414,6 +416,7 @@ const CompanySalaryStructure = () => {
         window.location.href = "/companySalaryView";
       }, 2000);
     } catch (error) {
+       setIsSubmitting(false);
       if (error.response) {
         console.error("Error response from backend:", error.response.data);
         toast.error(
@@ -982,9 +985,9 @@ const CompanySalaryStructure = () => {
                     <button
                       type="submit"
                       className="btn btn-primary"
-                      disabled={!isSubmitEnabled()}
+                      disabled={!isSubmitEnabled() || isSubmitting}
                     >
-                      Submit All
+                      {isSubmitting ? 'Submitting...' : 'Submit All'}
                     </button>
                   </div>
                 </div>

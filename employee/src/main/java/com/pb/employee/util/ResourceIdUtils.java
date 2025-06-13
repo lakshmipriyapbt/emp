@@ -24,6 +24,10 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateCandidateResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.CANDIDATE, id);
+    }
+
     public static String generateUserResourceId(String id) {
         return generateGlobalResourceId(ResourceType.USER, id);
     }
@@ -81,6 +85,7 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
 
     }
+
     /**
      * Generate a global resource ID based on the resource type
      *
@@ -148,6 +153,10 @@ public class ResourceIdUtils {
             prefix = Constants.COMPANY_TDS + "-";
 
         }
+        if (type == ResourceType.CANDIDATE) {
+            prefix = Constants.CANDIDATE + "-";
+        }
+
 
 
         StringBuilder md5Input = new StringBuilder();
