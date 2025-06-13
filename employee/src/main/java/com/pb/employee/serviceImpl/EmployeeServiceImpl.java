@@ -122,13 +122,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         try{
             DepartmentEntity departmentEntity =null;
-            DesignationEntity designationEntity = null;
+            List<DesignationEntity> designationEntity = null;
             departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
             if (departmentEntity == null){
-
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
+                        HttpStatus.CONFLICT);
             }
-            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-            if (designationEntity == null){
+            designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeRequest.getCompanyName(), employeeRequest.getDepartment(), employeeRequest.getDesignation());
+            if (designationEntity == null && designationEntity.size() <= 0){
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
@@ -338,16 +340,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        DesignationEntity designationEntity = null;
-        DepartmentEntity departmentEntity = null;
+        DepartmentEntity departmentEntity =null;
+        List<DesignationEntity> designationEntity = null;
         departmentEntity = openSearchOperations.getDepartmentById(employeeUpdateRequest.getDepartment(), null, index);
         if (departmentEntity == null){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
                     HttpStatus.CONFLICT);
         }
-        designationEntity = openSearchOperations.getDesignationById(employeeUpdateRequest.getDesignation(), null, index);
-        if (designationEntity == null){
+        designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeUpdateRequest.getCompanyName(), employeeUpdateRequest.getDepartment(), employeeUpdateRequest.getDesignation());
+        if (designationEntity == null && designationEntity.size() <= 0){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                     HttpStatus.CONFLICT);

@@ -71,10 +71,9 @@ public class CandidateServiceImpl implements CandidateService {
 
             String companyId = shortNameEntity.getFirst().getId();
 
-            Collection<CandidateEntity> candidates = candidateDao.getCandidates(candidateRequest.getCompanyName(), null,companyId );
+            Collection<CandidateEntity> candidates = candidateDao.getCandidates(candidateRequest.getCompanyName(), null, companyId);
 
             Map<String, Object> duplicateValues = CandidateUtils.duplicateValues(candidateRequest, List.copyOf(candidates));
-
             if (!duplicateValues.isEmpty()) {
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().failureResponse(duplicateValues),
