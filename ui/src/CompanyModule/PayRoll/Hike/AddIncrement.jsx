@@ -109,6 +109,10 @@ const AddIncrement = () => {
     old: [],
     new: []
   });
+  const [standardDeductions, setStandardDeductions] = useState({
+    new: 0,
+    old: 0
+  });
   const [applicableSlab, setApplicableSlab] = useState(null);
   const [tdsAmount, setTdsAmount] = useState(0);
   const [selectedTdsSlabs, setSelectedTdsSlabs] = useState([]);
@@ -275,36 +279,38 @@ const AddIncrement = () => {
         const financialYear = getCurrentFinancialYear();
         const [startYear, endYear] = financialYear.split('-').map(Number);
 
-        // Fetch all TDS data
         const response = await TdsGetApi();
         const allTdsData = response.data.data;
 
-        // Filter for current financial year
         const currentYearTds = allTdsData.filter(tds =>
           parseInt(tds.startYear) === startYear &&
           parseInt(tds.endYear) === endYear
         );
 
-        // Separate old and new regime slabs
-        const newRegimeSlabs = currentYearTds
-          .filter(tds => tds.tdsType === "new")
-          .flatMap(tds => tds.persentageEntityList);
+        // Extract data for both regimes
+        const newRegimeData = currentYearTds.find(tds => tds.tdsType === "new");
+        const oldRegimeData = currentYearTds.find(tds => tds.tdsType === "old");
 
-        const oldRegimeSlabs = currentYearTds
-          .filter(tds => tds.tdsType === "old")
-          .flatMap(tds => tds.persentageEntityList);
-
-        setTdsSlabs({
-          new: newRegimeSlabs,
-          old: oldRegimeSlabs
+        // Update standard deductions separately
+        setStandardDeductions({
+          new: parseInt(newRegimeData?.standardDeduction) || 0,
+          old: parseInt(oldRegimeData?.standardDeduction) || 0
         });
 
-        // Set initial selected slabs based on current regime
+        // Keep existing slab structure
+        setTdsSlabs({
+          new: newRegimeData?.persentageEntityList || [],
+          old: oldRegimeData?.persentageEntityList || []
+        });
+
         setSelectedTdsSlabs(
-          selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
+          selectedTaxRegime === "new"
+            ? newRegimeData?.persentageEntityList || []
+            : oldRegimeData?.persentageEntityList || []
         );
       } catch (error) {
         console.error("Error fetching TDS slabs:", error);
+        setStandardDeductions({ new: 0, old: 0 });
         setTdsSlabs({
           new: [],
           old: []
@@ -1529,6 +1535,18 @@ const AddIncrement = () => {
                                     <span className="text-muted">No applicable slab found</span>
                                   )}
                                 </div>
+                              </div>
+                              {/* In your TDS card section */}
+                              <div className="col-md-12 mb-3">
+                                <label className="form-label">Standard Deduction</label>
+                                  <div className="d-flex align-items-center">
+                                    <span className="badge bg-primary me-2">
+                                      ₹{standardDeductions[selectedTaxRegime].toLocaleString('en-IN')}
+                                    </span>
+                                    <span>
+                                      {selectedTaxRegime === "new" ? "New" : "Old"} regime standard deduction
+                                    </span>
+                                  </div>
                               </div>
 
                               {/* TDS Calculation Results */}

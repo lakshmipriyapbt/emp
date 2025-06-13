@@ -276,7 +276,7 @@ public class LoginServiceImpl implements LoginService {
 
     private Long generateOtp() {
         Random random = new Random();
-        //Long otp = 100000 + random.nextLong(900000);
+//        Long otp = 100000 + random.nextLong(900000);
         //TODO for now harding  the OTP value
         Long otp = 123456L;
         return otp;
@@ -329,7 +329,11 @@ public class LoginServiceImpl implements LoginService {
                 openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
             }
 
-        } catch (Exception ex) {
+        }catch (IdentityException identityException){
+            log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), identityException.getMessage());
+            throw identityException;
+        }
+        catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), ex);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_USERNAME),
                     HttpStatus.INTERNAL_SERVER_ERROR);

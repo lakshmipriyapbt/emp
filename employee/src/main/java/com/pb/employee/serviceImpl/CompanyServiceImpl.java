@@ -477,7 +477,7 @@ public class CompanyServiceImpl implements CompanyService {
             }
             String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
             employee.setPassword(newPassword);
-            if (employee.getCompanyId() != null) {
+            if (employee.getCompanyId() != null && employee.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 CompanyEntity companyEntity = openSearchOperations.getCompanyById(employee.getCompanyId(), null, Constants.INDEX_EMS);
                 companyEntity.setPassword(newPassword);
                 openSearchOperations.saveEntity(companyEntity, employee.getCompanyId(), Constants.INDEX_EMS);
