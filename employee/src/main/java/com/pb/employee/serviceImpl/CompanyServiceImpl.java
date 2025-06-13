@@ -200,6 +200,12 @@ public class CompanyServiceImpl implements CompanyService {
         try {
             companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
+            String companyFolderPath = folderPath + companyEntity.getShortName();
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the company Folder");
+            }
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),
