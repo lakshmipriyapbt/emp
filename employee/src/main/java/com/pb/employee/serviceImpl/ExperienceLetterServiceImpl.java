@@ -1,9 +1,12 @@
 package com.pb.employee.serviceImpl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.dao.ExperienceDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
+import com.pb.employee.model.ResourceType;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
@@ -46,6 +49,12 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
     @Autowired
     private Configuration freeMarkerConfig;
+
+    @Autowired
+    private ExperienceDao experienceDao;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
@@ -148,6 +157,21 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             // Convert HTML to PDF
             byte[] pdfBytes = generatePdfFromHtml(htmlContent);
+
+            try {
+                String experienceId = ResourceIdUtils.generateExperienceResourceId(experienceLetterFieldsRequest.getEmployeeId());
+                ExperienceEntity experienceEntity = objectMapper.convertValue(experienceLetterFieldsRequest, ExperienceEntity.class);
+
+                experienceEntity.setId(experienceId);
+                experienceEntity.setCompanyId(companyEntity.getFirst().getId());
+                experienceEntity.setCompanyName(experienceLetterFieldsRequest.getCompanyName());
+                experienceEntity.setType(ResourceType.EXPERIENCE.value());
+
+                experienceDao.save(experienceEntity, experienceLetterFieldsRequest.getCompanyName());
+                log.info("Saved ExperienceEntity: {}", experienceId);
+            } catch (Exception e) {
+                log.error("Failed to save ExperienceEntity", e);
+            }
 
             // Set HTTP headers
             HttpHeaders headers = new HttpHeaders();

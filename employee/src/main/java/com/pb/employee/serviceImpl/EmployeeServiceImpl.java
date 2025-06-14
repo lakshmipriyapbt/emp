@@ -115,7 +115,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 log.info("Creating the employee Folder");
             }
         }catch (EmployeeException exception){
-             log.error("Company folder does not exist");
+            log.error("Company folder does not exist");
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
                     HttpStatus.NOT_FOUND);
         }
@@ -266,18 +266,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                 String companyFolderPath = folderPath + companyName;
                 File companyFolder = new File(companyFolderPath);
                 if (!companyFolder.exists()) {
-                    log.error("Company folder does not exist: {}", companyFolderPath);
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
-                            HttpStatus.NOT_FOUND);
+                    String employeeFolderPath = folderPath + companyName + "/" + entity.getFirstName() + "_" + entity.getEmployeeId();
+                    File folder = new File(employeeFolderPath);
+                    if (!folder.exists()) {
+                        folder.mkdirs();
+                        log.info("Creating the employee Folder");
+                    }
                 }
-
-                String employeeFolderPath = folderPath + companyName + "/" + entity.getFirstName() + "_" + entity.getEmployeeId();
-                File folder = new File(employeeFolderPath);
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                    log.info("Creating the employee Folder");
-                }
-            }catch (EmployeeException exception) {
+            } catch (Exception exception) {
                 log.error("Company folder does not exist");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
                         HttpStatus.NOT_FOUND);
@@ -299,7 +295,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public ResponseEntity<?> updateEmployeeById(String employeeId, EmployeeUpdateRequest employeeUpdateRequest) throws IOException, EmployeeException {
-          log.info("getting details of {}", employeeId);
+        log.info("getting details of {}", employeeId);
         EmployeeEntity user;
         EmployeePersonnelEntity employeePersonnelEntity;
         List<EmployeeSalaryEntity> salaryEntities;
