@@ -1,6 +1,10 @@
 package com.pb.employee.controller;
 
+import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.exception.EmployeeException;
+import com.pb.employee.persistance.model.ExperienceEntity;
 import com.pb.employee.request.ExperienceLetterFieldsRequest;
+import com.pb.employee.request.ExperienceLetterFieldsUpdateRequest;
 import com.pb.employee.request.ExperienceLetterRequest;
 import com.pb.employee.service.ExperienceLetterService;
 import com.pb.employee.util.Constants;
@@ -11,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.Collection;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -32,6 +39,37 @@ public class ExperienceLetterController {
                                                   @RequestBody @Valid ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
         return serviceLetterService.downloadServiceLetter(request, experienceLetterFieldsRequest);
     }
+
+    @RequestMapping(value = "/{companyName}/experienceletter/{experienceId}", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getExperienceLetterById.tag}", description = "${api.getExperienceLetterById.description}")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> getExperienceLetterById(
+            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+            @RequestHeader(Constants.AUTH_KEY) String authToken,
+            @PathVariable String companyName,
+            @PathVariable String experienceId) throws EmployeeException {
+
+        Collection<ExperienceEntity> experienceEntities = serviceLetterService.getExperienceLetter(companyName, experienceId);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(experienceEntities), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/{companyName}/experienceletter/{experienceId}", method = RequestMethod.PATCH)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.updateExperienceLetterById.tag}", description = "${api.updateExperienceLetterById.description}")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> updateExperienceById(
+            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+            @RequestHeader(Constants.AUTH_KEY) String authToken,
+            @PathVariable String companyName,
+            @PathVariable String experienceId,
+
+            @Valid @RequestBody ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest
+    ) throws EmployeeException, IOException {
+
+        return serviceLetterService.updateExperienceById(companyName, experienceId, experienceLetterFieldsUpdateRequest);
+    }
+
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},

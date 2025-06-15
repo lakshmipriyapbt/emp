@@ -17,7 +17,9 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,13 +27,8 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
@@ -213,6 +210,64 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
         }
     }
 
+    @Override
+    public Collection<ExperienceEntity> getExperienceLetter(String companyName, String experienceId)
+            throws EmployeeException {
+        try {
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null){
+                log.error("Exception while fetching the experience letter details");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+            log.debug("Getting experience by companyName: {}", companyName);
+            return experienceDao.getExperienceLetter(companyName, experienceId, companyEntity.getId());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> updateExperienceById(String companyName, String experienceId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest)
+            throws EmployeeException, IOException {
+        try {
+            log.debug("Validating experience existence for id {} in company {}", experienceId, companyName);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company not found: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
+            ExperienceEntity existingExperience = experienceDao.get(experienceId, companyName).orElse(null);
+            if (existingExperience == null) {
+                log.error("Experience not found with ID {} in company {}", experienceId, companyName);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPERIENCE_NOT_FOUND), experienceId), HttpStatus.NOT_FOUND);
+            }
+
+            boolean isDateSame = experienceLetterFieldsUpdateRequest.getDate().equals(existingExperience.getDate());
+            boolean isLastWorkingDateSame = experienceLetterFieldsUpdateRequest.getLastWorkingDate().equals(existingExperience.getLastWorkingDate());
+            boolean isAboutEmployeeSame = Objects.equals(experienceLetterFieldsUpdateRequest.getAboutEmployee(), existingExperience.getAboutEmployee());
+
+            if (isDateSame && isLastWorkingDateSame && isAboutEmployeeSame) {
+                log.warn("No changes detected for Experience with ID: {}", experienceId);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_UPDATE_DONE), HttpStatus.BAD_REQUEST);
+            }
+
+            ExperienceEntity updatedData = objectMapper.convertValue(experienceLetterFieldsUpdateRequest, ExperienceEntity.class);
+            BeanUtils.copyProperties(updatedData, existingExperience, getNullPropertyNames(updatedData));
+            experienceDao.update(existingExperience, companyName);
+
+            log.info("Successfully updated ExperienceEntity with ID: {}", experienceId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+
+        } catch (EmployeeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error while updating ExperienceEntity: {}", e.getMessage(), e);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_UPDATE_EXPERIENCE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     private String generateHtmlFromTemplate(ExperienceLetterRequest request) throws Exception {
         Template template = freeMarkerConfig.getTemplate("dynamicExpLetter.ftl");
         return FreeMarkerTemplateUtils.processTemplateIntoString(template, request);
@@ -231,5 +286,17 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
         } catch (Exception e) {
             throw new IOException("Error generating PDF: " + e.getMessage(), e);
         }
+    }
+
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        Set<String> emptyNames = new HashSet<>();
+        for (var pd : src.getPropertyDescriptors()) {
+            Object value = src.getPropertyValue(pd.getName());
+            if (value == null) {
+                emptyNames.add(pd.getName());
+            }
+        }
+        return emptyNames.toArray(new String[0]);
     }
 }
