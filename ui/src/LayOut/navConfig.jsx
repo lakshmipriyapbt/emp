@@ -97,7 +97,8 @@ export const NAV_CONFIG = {
                 { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+                { title: 'Invoice Template', path: '/invoiceTemplates' }
             ]
         }
     ],
@@ -184,7 +185,8 @@ export const NAV_CONFIG = {
                 { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+                { title: 'Invoice Template', path: '/invoiceTemplates' }
             ]
         }
     ],

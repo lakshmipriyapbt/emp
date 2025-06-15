@@ -91,6 +91,7 @@ import CandidateRegistration from '../CompanyModule/Candidate/CandidateRegistrat
 import CandidatesView from '../CompanyModule/Candidate/CandidatesView';
 import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumentUpload';
 import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
+import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -159,6 +160,7 @@ export const allAvailableRoutes = [
   {path: '/invoiceRegistartion', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/invoiceView', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/invoicePdf', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
+  {path: '/invoiceTemplates', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/employeePayslip', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc1', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc2', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
@@ -464,6 +466,10 @@ const Routing = () => {
       <Route
         path="/invoicePdf"
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
+      />
+      <Route
+        path="/invoiceTemplates"
+        element={<ProtectedRoute element={<InvoiceTemplates/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
 
 
