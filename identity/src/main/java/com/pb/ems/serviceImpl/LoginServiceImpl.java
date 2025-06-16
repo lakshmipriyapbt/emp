@@ -82,7 +82,7 @@ public class LoginServiceImpl implements LoginService {
 
 
     @Override
-    public ResponseEntity<?> CandidateLogin(CandidateLoginRequest request) throws IdentityException {
+    public ResponseEntity<?> candidateLogin(CandidateLoginRequest request) throws IdentityException {
         String token = "";
         try {
             CandidateEntity candidate = openSearchOperations.getCandidateByEmailId(request.getUsername(), request.getCompany()) ;
@@ -104,7 +104,7 @@ public class LoginServiceImpl implements LoginService {
                 List<String> roles = new ArrayList<>();
                 openSearchOperations.saveOtpToCandidate(candidate, otp, request.getCompany());
                 roles.add(candidate.getType());
-               JwtTokenUtil.generateEmployeeToken(candidate.getId(), roles, request.getCompany(), request.getUsername());
+                JwtTokenUtil.generateEmployeeToken(candidate.getId(), roles, request.getCompany(), request.getUsername());
 
 
             } else {
