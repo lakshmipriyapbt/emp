@@ -4,8 +4,8 @@ import Header from "./Header";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { CompanyImageGetApi, EmployeeGetApiById, getUserById } from "../Utils/Axios";
-import AutoLogout from "../Utils/AutoLogOut";
 import { useSelector } from "react-redux";
+import AutoLogout from "../Utils/AutoLogOut";
 
 const LayOut = ({ children }) => {
   const name = localStorage.getItem("name");
