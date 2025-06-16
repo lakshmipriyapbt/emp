@@ -37,8 +37,6 @@ public class CandidateDaoImpl extends AbstractDao<CandidateEntity> implements Ca
             filters.add(new Filter(Constants.ID, Operator.EQ, candidateId));
         }
 
-        filters.add(new Filter(Constants.TYPE, Operator.EQ, "candidate"));
-
         return search(filters, companyName);
     }
 
