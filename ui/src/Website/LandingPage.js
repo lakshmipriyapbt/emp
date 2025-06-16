@@ -5,7 +5,7 @@ import "./Style.css";
 import "./Odometer.css";
 import "./Swiper.min.css";
 import "./plugins/plugin-custom.js";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { ModalTitle } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
@@ -17,8 +17,6 @@ import "swiper/css/autoplay";
 import {
   ArrowUp,
   ArrowUpRight,
-  FileEarmark,
-  FileEarmarkText,
   List,
   Telephone,
 } from "react-bootstrap-icons";
@@ -101,20 +99,20 @@ const LandingPage = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const companyLogos = [
-    { id: 1, src: "assets/images/logo1.png", alt: "Company Logo 1" },
-    { id: 2, src: "assets/images/logo2.png", alt: "Company Logo 2" },
-    { id: 3, src: "assets/images/logo3.png", alt: "Company Logo 3" },
-    { id: 4, src: "assets/images/logo2.png", alt: "Company Logo 4" }, // Duplicate for example
-    { id: 5, src: "assets/images/logo3.png", alt: "Company Logo 5" }, // Duplicate for example
-    { id: 6, src: "assets/images/logo1.png", alt: "Company Logo 6" },
-    { id: 7, src: "assets/images/logo2.png", alt: "Company Logo 7" },
-    { id: 8, src: "assets/images/logo3.png", alt: "Company Logo 8" },
-    { id: 9, src: "assets/images/logo3.png", alt: "Company Logo 9" },
-    { id: 10, src: "assets/images/logo2.png", alt: "Company Logo 10" },
-    { id: 11, src: "assets/images/logo3.png", alt: "Company Logo 11" },
-    { id: 12, src: "assets/images/logo1.png", alt: "Company Logo 12" },
-  ];
+  // const companyLogos = [
+  //   { id: 1, src: "assets/images/logo1.png", alt: "Company Logo 1" },
+  //   { id: 2, src: "assets/images/logo2.png", alt: "Company Logo 2" },
+  //   { id: 3, src: "assets/images/logo3.png", alt: "Company Logo 3" },
+  //   { id: 4, src: "assets/images/logo2.png", alt: "Company Logo 4" }, // Duplicate for example
+  //   { id: 5, src: "assets/images/logo3.png", alt: "Company Logo 5" }, // Duplicate for example
+  //   { id: 6, src: "assets/images/logo1.png", alt: "Company Logo 6" },
+  //   { id: 7, src: "assets/images/logo2.png", alt: "Company Logo 7" },
+  //   { id: 8, src: "assets/images/logo3.png", alt: "Company Logo 8" },
+  //   { id: 9, src: "assets/images/logo3.png", alt: "Company Logo 9" },
+  //   { id: 10, src: "assets/images/logo2.png", alt: "Company Logo 10" },
+  //   { id: 11, src: "assets/images/logo3.png", alt: "Company Logo 11" },
+  //   { id: 12, src: "assets/images/logo1.png", alt: "Company Logo 12" },
+  // ];
 
   return (
     <>
@@ -138,7 +136,7 @@ const LandingPage = () => {
               <ul className="flex justify-center items-center gap-3">
                 <li>
                   <a
-                    href="#"
+                    href=" "
                     className="menu hover:header_menu_shadow duration-700 px-2 py-3 rounded-lg"
                   >
                     Home
@@ -381,10 +379,9 @@ const LandingPage = () => {
               Painless.
             </div>
             <p className="max-w-[550px]">
-              We get your employees paid while providing online access to
-              paystubs, tax reports & HRM tax filings.
+              We simplifying workforce management through smart,seamless automation.
             </p>
-            <div className="flex justify-start items-center gap-4 pt-6 lg:pt-8 pb-15">
+            {/* <div className="flex justify-start items-center gap-4 pt-6 lg:pt-8 pb-15">
               <a
                 href=" "
                 className="font-medium bg-s2 py-2 lg:py-3 px-4 lg:px-6 rounded-full text-mainTextColor"
@@ -394,7 +391,7 @@ const LandingPage = () => {
               <a href=" " class="underline font-medium">
                 Learn More
               </a>
-            </div>
+            </div> */}
           </div>
           <div className="col-span-12 lg:col-span-6 lg:col-start-7">
             <img src="assets/images/hero_illus.png" alt="illustration" />
@@ -1340,13 +1337,13 @@ const LandingPage = () => {
             </ul> */}
             <div className="py-1">
          <a
-  href="#contact"
+  href="/anonymouseCmpRegistration"
   className="flex justify-center max-sm:text-sm items-center gap-3 py-2 md:py-3 px-3 md:px-6 rounded-full 
              bg-blue-600 hover:bg-s1
              border border-mainTextColor 
              text-white group font-medium transition-colors duration-300"
 >
-  Contact Us
+ Register Now
   <span className="group-hover:rotate-[45deg] duration-500 text-base sm:text-xl lg:text-2xl">
     <i className="ph-bold ph-arrow-up-right"></i>
   </span>
