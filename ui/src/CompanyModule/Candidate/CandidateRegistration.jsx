@@ -111,6 +111,10 @@ const CandidateRegistration = () => {
             e.preventDefault();
         }
     };
+    const statusOptions = [
+        { label: 'Active', value: 'Active' },
+        { label: 'Inactive', value: 'InActive' },
+    ];
 
     const validateField = (value, type) => {
         switch (type) {
@@ -147,6 +151,7 @@ const CandidateRegistration = () => {
     const preventInvalidInput = (e, type) => {
         const key = e.key;
         if (type === "alpha" && /[^a-zA-Z\s.,'-]/.test(key)) e.preventDefault();
+        if (type === "alphanumeric" && /[^a-zA-Z0-9]/.test(key)) e.preventDefault();
         if (type === "numeric" && !/^[0-9]$/.test(key)) e.preventDefault();
         if (type === "whitespace" && key === " ") e.preventDefault();
         if (type === 'address' && !/[a-zA-Z0-9\s&,-\/]/.test(key)) e.preventDefault();
@@ -170,6 +175,7 @@ const CandidateRegistration = () => {
     const handleClear = () => {
         reset();
         setValue("position", null);
+        setValue("status",null);
     };
 
     return (
@@ -207,27 +213,78 @@ const CandidateRegistration = () => {
                                         {/* Personal Information */}
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
-                                                Full Name <span className="text-danger">*</span>
+                                                First Name <span className="text-danger">*</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 className="form-control"
-                                                name="fullName"
+                                                name="firstname"
                                                 autoComplete="off"
-                                                placeholder="Enter candidate's full name"
-                                                {...register("fullName", {
-                                                    required: "Full name is required",
+                                                placeholder="Enter candidate's first name"
+                                                {...register("firstname", {
+                                                    required: "First name is required",
                                                     validate: noTrailingSpaces,
                                                     maxLength: {
                                                         value: 100,
                                                         message: "Maximum 100 characters allowed"
                                                     }
                                                 })}
-                                                onChange={(e) => handleInputChange(e, "fullName")}
+                                                onChange={(e) => handleInputChange(e, "firstname")}
                                                 onKeyPress={(e) => preventInvalidInput(e, "alpha")}
                                             />
-                                            {errors.fullName && (
-                                                <p className="errorMsg">{errors.fullName.message}</p>
+                                            {errors.firstname && (
+                                                <p className="errorMsg">{errors.firstname.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="col-lg-1"></div>
+                                        <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                            <label className="form-label">
+                                                Last Name <span className="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="lastname"
+                                                autoComplete="off"
+                                                placeholder="Enter candidate's last name"
+                                                {...register("lastname", {
+                                                    required: "Last name is required",
+                                                    validate: noTrailingSpaces,
+                                                    maxLength: {
+                                                        value: 100,
+                                                        message: "Maximum 100 characters allowed"
+                                                    }
+                                                })}
+                                                onChange={(e) => handleInputChange(e, "lastname")}
+                                                onKeyPress={(e) => preventInvalidInput(e, "alpha")}
+                                            />
+                                            {errors.lastname && (
+                                                <p className="errorMsg">{errors.lastname.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                            <label className="form-label">
+                                                Candidate ID <span className="text-danger">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="candidateId"
+                                                autoComplete="off"
+                                                placeholder="Enter candidateId"
+                                                {...register("candidateId", {
+                                                    required: "candidateId is required",
+                                                    validate: noTrailingSpaces,
+                                                    maxLength: {
+                                                        value: 100,
+                                                        message: "Maximum 100 characters allowed"
+                                                    }
+                                                })}
+                                                onChange={(e) => handleInputChange(e, "candidateId")}
+                                                onKeyPress={(e) => preventInvalidInput(e, "alphanumeric")}
+                                            />
+                                            {errors.candidateId && (
+                                                <p className="errorMsg">{errors.candidateId.message}</p>
                                             )}
                                         </div>
                                         <div className="col-lg-1"></div>
@@ -303,7 +360,28 @@ const CandidateRegistration = () => {
                                                 <p className="errorMsg">{errors.position.message}</p>
                                             )}
                                         </div>
-
+                                        <div className="col-12 col-md-6 col-lg-5 mb-3">
+                                            <label className="form-label">
+                                                Status <span style={{ color: "red" }}>*</span>
+                                            </label>
+                                            <Controller
+                                                name="status"  // The name you want for the field
+                                                control={control}
+                                                 rules={{ required: "status is required" }}
+                                                render={({ field }) => (
+                                                    <Select
+                                                        {...field}
+                                                        options={statusOptions}  // Dropdown options for Active and Inactive
+                                                        getOptionLabel={(e) => e.label}  // What to display in the dropdown
+                                                        getOptionValue={(e) => e.value}  // Value submitted with the form
+                                                    />
+                                                )}
+                                            />
+                                            {errors.status && (
+                                                <p className="errorMsg">{errors.status.message || "Status is required"}</p>
+                                            )}
+                                        </div>
+                                        <div className="col-lg-1"></div>
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
                                                 Address <span className="text-danger">*</span>
