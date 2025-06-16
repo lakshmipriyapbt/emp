@@ -9,15 +9,14 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ExperienceEntity implements Entity, IDEntity {
-    private String id;
+public class ExperienceEntity extends AbstractEntity {
+
     private String companyName;
     private String employeeId;
     private String companyId;
-    private String experienceId;
     private String date;
     private String lastWorkingDate;
     private String aboutEmployee;
     private boolean draft;
-    private String type;
+
 }

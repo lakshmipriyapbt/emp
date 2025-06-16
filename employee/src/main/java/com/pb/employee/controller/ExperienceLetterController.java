@@ -40,36 +40,33 @@ public class ExperienceLetterController {
         return serviceLetterService.downloadServiceLetter(request, experienceLetterFieldsRequest);
     }
 
-    @RequestMapping(value = "/{companyName}/experienceletter/{experienceId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{companyName}/experienceletter/employee/{employeeId}", method = RequestMethod.GET)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.getExperienceLetterById.tag}", description = "${api.getExperienceLetterById.description}")
+            summary = "${api.getExperienceLetterByEmployeeId.tag}", description = "${api.getExperienceLetterByEmployeeId.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> getExperienceLetterById(
+    public ResponseEntity<?> getExperienceLetterByEmployeeId(
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @PathVariable String companyName,
-            @PathVariable String experienceId) throws EmployeeException {
+            @PathVariable String employeeId) throws EmployeeException {
 
-        Collection<ExperienceEntity> experienceEntities = serviceLetterService.getExperienceLetter(companyName, experienceId);
+        Collection<ExperienceEntity> experienceEntities = serviceLetterService.getExperienceLetter(companyName, employeeId);
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(experienceEntities), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{companyName}/experienceletter/{experienceId}", method = RequestMethod.PATCH)
-    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.updateExperienceLetterById.tag}", description = "${api.updateExperienceLetterById.description}")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> updateExperienceById(
-            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-            @RequestHeader(Constants.AUTH_KEY) String authToken,
-            @PathVariable String companyName,
-            @PathVariable String experienceId,
+ @RequestMapping(value = "/{companyName}/employee/{employeeId}/experience", method = RequestMethod.PATCH)
+ @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+         summary = "${api.updateExperienceLetterByEmployeeId.tag}", description = "${api.updateExperienceLetterByEmployeeId.description}")
+ @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+ public ResponseEntity<?> updateExperienceByEmployeeId(
+         @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+         @RequestHeader(Constants.AUTH_KEY) String authToken,
+         @PathVariable String companyName,
+         @PathVariable String employeeId,
+         @Valid @RequestBody ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException {
 
-            @Valid @RequestBody ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest
-    ) throws EmployeeException, IOException {
-
-        return serviceLetterService.updateExperienceById(companyName, experienceId, experienceLetterFieldsUpdateRequest);
-    }
-
+     return serviceLetterService.updateExperienceById(companyName, employeeId, experienceLetterFieldsUpdateRequest);
+ }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},

@@ -15,7 +15,7 @@ public interface ExperienceLetterService {
 
     ResponseEntity<byte[]> uploadExperienceLetter(ExperienceLetterRequest request);
 
-    Collection<ExperienceEntity> getExperienceLetter(String companyName, String experienceId) throws EmployeeException;
+    Collection<ExperienceEntity> getExperienceLetter(String companyName, String employeeId) throws EmployeeException;
 
-    ResponseEntity<?> updateExperienceById(String companyName, String experienceId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException;
+    ResponseEntity<?> updateExperienceById(String companyName, String employeeId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException;
 }

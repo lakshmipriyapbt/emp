@@ -22,13 +22,13 @@ public class ExperienceDaoImpl extends AbstractDao<ExperienceEntity>implements E
     public ExperienceDaoImpl(Repository repository) {super(repository);}
 
     @Override
-    public Collection<ExperienceEntity> getExperienceLetter(String companyName, String experienceId, String companyId) throws  EmployeeException {
+    public Collection<ExperienceEntity> getExperienceLetter(String companyName, String employeeId, String companyId) throws  EmployeeException {
         Collection<Filter> filters = new ArrayList<>();
         if (StringUtils.isNotBlank(companyName)) {
             filters.add(new Filter(Constants.COMPANY_ID, Operator.EQ, companyId));
         }
-        if (StringUtils.isNotBlank(experienceId)) {
-            filters.add(new Filter(Constants.ID, Operator.EQ, experienceId));
+        if (StringUtils.isNotBlank(employeeId)) {
+            filters.add(new Filter(Constants.EMPLOYEE_ID, Operator.EQ, employeeId));
         }
         return search(filters, companyName);
     }

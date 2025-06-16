@@ -9,6 +9,6 @@ public interface ExperienceDao extends Dao<ExperienceEntity>{
 
     default Class<ExperienceEntity> getEntityClass() {return ExperienceEntity.class;}
 
-    Collection<ExperienceEntity> getExperienceLetter(String companyName, String experienceId, String companyId) throws EmployeeException;
+    Collection<ExperienceEntity> getExperienceLetter(String companyName, String employeeId, String companyId) throws EmployeeException;
 
 }
