@@ -5,10 +5,7 @@ import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
-import com.pb.employee.persistance.model.CompanyEntity;
-import com.pb.employee.persistance.model.Entity;
-import com.pb.employee.persistance.model.PayslipEntity;
-import com.pb.employee.persistance.model.SalaryConfigurationEntity;
+import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.InternshipOfferLetterRequest;
 import com.pb.employee.request.OfferLetterRequest;
 import com.pb.employee.service.OfferLetterService;
@@ -23,17 +20,13 @@ import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -46,80 +39,46 @@ public class OfferLetterServiceImpl implements OfferLetterService {
     private Configuration freeMarkerConfig;
 
     @Override
-    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request) {
-        CompanyEntity entity;
-        Entity companyEntity;
-        SalaryConfigurationEntity salaryConfiguration;
+    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest request, HttpServletRequest httpRequest) {
         try {
             SSLUtil.disableSSLVerification();
-            // Fetch companyEntity by companyId
-            entity = openSearchOperations.getCompanyById(offerLetterRequest.getCompanyId(), null, Constants.INDEX_EMS);
-            if (entity == null) {
-                log.error("Company not found: {}", offerLetterRequest.getCompanyId());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), offerLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-            }
-            companyEntity = CompanyUtils.unmaskCompanyProperties(entity,request);
-            salaryConfiguration =  openSearchOperations.getSalaryStructureById(offerLetterRequest.getSalaryConfigurationId(),null,Constants.INDEX_EMS+"_"+entity.getShortName());
-            CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfiguration);
-            Map<String, Map<String, String>> salaryComponents = PayslipUtils.calculateSalaryComponents(salaryConfiguration,offerLetterRequest.getSalaryPackage());
 
-            // Check if the salary configuration is active
-            if (salaryConfiguration==null || !salaryConfiguration.getStatus().equals(Constants.ACTIVE)) {
-                log.error("Active salary configuration not found: {}", offerLetterRequest.getSalaryConfigurationId());
+            CompanyEntity rawCompany = openSearchOperations.getCompanyById(request.getCompanyId(), null, Constants.INDEX_EMS);
+            if (rawCompany == null) throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), request.getCompanyId()), HttpStatus.NOT_FOUND);
+
+            Entity companyDetails = CompanyUtils.unmaskCompanyProperties(rawCompany, httpRequest);
+            SalaryConfigurationEntity salaryConfig = openSearchOperations.getSalaryStructureById(request.getSalaryConfigurationId(), null, Constants.INDEX_EMS + "_" + rawCompany.getShortName());
+            CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfig);
+
+            if (salaryConfig == null || !Constants.ACTIVE.equals(salaryConfig.getStatus()))
                 throw new EmployeeException("Salary configuration is not active or does not exist", HttpStatus.NOT_FOUND);
-            }
-            // Prepare the data model for FreeMarker template
-            Map<String, Object> dataModel = new HashMap<>();
-            dataModel.put(Constants.COMPANY, companyEntity);
-            dataModel.put(Constants.OFFER_LETTER_REQUEST, offerLetterRequest);
-            dataModel.put(Constants.SALARY, salaryComponents);
 
-            if (!offerLetterRequest.isDraft()) {
-                // Load the company image from a URL
-                String imageUrl = entity.getImageFile();
-                BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
-                if (originalImage == null) {
-                    log.error("Failed to load image from URL: {}", imageUrl);
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-                // Apply the watermark effect
-                float opacity = 0.5f;
-                double scaleFactor = 1.6d;
-                BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+            Map<String, Object> model = new HashMap<>();
+            model.put(Constants.COMPANY, companyDetails);
+            model.put(Constants.OFFER_LETTER_REQUEST, request);
+            model.put(Constants.SALARY, PayslipUtils.calculateSalaryComponents(salaryConfig, request.getSalaryPackage()));
 
-                // Convert BufferedImage to Base64 string for HTML
+            if (!request.isDraft()) {
+                String imageUrl = rawCompany.getImageFile();
+                BufferedImage image = ImageIO.read(new URL(imageUrl));
+                if (image == null) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
+
+                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.5f, 1.6d, 30);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(watermarkedImage, "png", baos);
-                String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
-                dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
+                ImageIO.write(watermark, "png", baos);
+                model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
             }
 
-                // Get FreeMarker template and process it with the dataModel
-                Template template = freeMarkerConfig.getTemplate(Constants.OFFER_LETTER_TEMPLATE1);
-                StringWriter stringWriter = new StringWriter();
+            Template template = freeMarkerConfig.getTemplate(Constants.OFFER_LETTER_TEMPLATE1);
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
 
-            try {
-                // Process the template with the data model
-                template.process(dataModel, stringWriter);
-            } catch (Exception e) {
-                log.error("Exception occurred while processing the offer letter: {}", e.getMessage(), e);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            // Get the processed HTML content
-            String htmlContent = stringWriter.toString();
-            // Convert the HTML content to PDF
-            byte[] pdfBytes = generatePdfFromHtml(htmlContent);
-            // Set HTTP headers for PDF download
+            byte[] pdf = generatePdfFromHtml(writer.toString());
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT)
-                    .filename(Constants.OFFER_LETTER)
-                    .build());
-
-            // Return the PDF as the HTTP response
-            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER).build());
+            return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("Error occurred while generating offer letter: {}", e.getMessage(), e);
@@ -128,105 +87,90 @@ public class OfferLetterServiceImpl implements OfferLetterService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadInternShipOfferLetter(InternshipOfferLetterRequest internshipOfferLetterRequest, HttpServletRequest request) throws EmployeeException {
-        CompanyEntity entity;
-        Entity companyEntity;
+    public ResponseEntity<byte[]> downloadInternShipOfferLetter(InternshipOfferLetterRequest req, HttpServletRequest httpReq) throws EmployeeException {
         try {
             SSLUtil.disableSSLVerification();
-            // Fetch companyEntity by companyId
-            entity = openSearchOperations.getCompanyById(internshipOfferLetterRequest.getCompanyId(), null, Constants.INDEX_EMS);
-            if (entity == null) {
-                log.error("Company not found: {}", internshipOfferLetterRequest.getCompanyId());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), internshipOfferLetterRequest.getCompanyId()), HttpStatus.NOT_FOUND);
-            }
-            companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
 
-            LocalDate startDate;
-            LocalDate endDate;
-            startDate = LocalDate.parse(internshipOfferLetterRequest.getStartDate());
-            endDate = LocalDate.parse(internshipOfferLetterRequest.getEndDate());
+            CompanyEntity rawCompany = openSearchOperations.getCompanyById(req.getCompanyId(), null, Constants.INDEX_EMS);
+            if (rawCompany == null) throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), req.getCompanyId()), HttpStatus.NOT_FOUND);
 
-            if (!endDate.isAfter(startDate) && startDate != endDate) {
-                log.error("End Date {} can't be same as or before Start Date {}", internshipOfferLetterRequest.getEndDate(), internshipOfferLetterRequest.getStartDate());
-                throw new EmployeeException(
-                        ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.END_DATE_BEFORE_START_DATE),
-                        HttpStatus.BAD_REQUEST
-                );
-            }
+            Entity company = CompanyUtils.unmaskCompanyProperties(rawCompany, httpReq);
 
-            if(internshipOfferLetterRequest.getHrMobileNo().equals(internshipOfferLetterRequest.getMobileNo())){
-                log.error("Mobile number {}  HrMobile number can't be same {}",internshipOfferLetterRequest.getMobileNo(),internshipOfferLetterRequest.getHrMobileNo());
-                throw new EmployeeException(ErrorMessageHandler.getMessage((EmployeeErrorMessageKey.MOBILE_NUMBER_MISMATCH)),
-                        HttpStatus.BAD_REQUEST);
-            }
-            if(internshipOfferLetterRequest.getHrEmail().equals(internshipOfferLetterRequest.getInternEmail())){
-                log.error("HrEmail {} internEmail can't be same{}",internshipOfferLetterRequest.getHrEmail(),internshipOfferLetterRequest.getInternEmail());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ID_MISS_MATCH),
-                        HttpStatus.BAD_REQUEST);
-            }
+            LocalDate start = LocalDate.parse(req.getStartDate());
+            LocalDate end = LocalDate.parse(req.getEndDate());
 
-            // Prepare the data model for FreeMarker template
-            Map<String, Object> dataModel = new HashMap<>();
-            dataModel.put(Constants.COMPANY, companyEntity);
-            dataModel.put(Constants.OFFER_LETTER_REQUEST, internshipOfferLetterRequest);
+            if (!end.isAfter(start)) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.END_DATE_BEFORE_START_DATE), HttpStatus.BAD_REQUEST);
+            if (Objects.equals(req.getHrMobileNo(), req.getMobileNo())) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.MOBILE_NUMBER_MISMATCH), HttpStatus.BAD_REQUEST);
+            if (Objects.equals(req.getHrEmail(), req.getInternEmail())) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ID_MISS_MATCH), HttpStatus.BAD_REQUEST);
 
-            if (!internshipOfferLetterRequest.isDraft()) {
-                // Load the company image from a URL
-                String imageUrl = entity.getImageFile();
-                BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
-                if (originalImage == null) {
-                    log.error("Failed to load image from URL: {}", imageUrl);
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE),
-                            HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-                // Apply the watermark effect
-                float opacity = 0.5f;
-                double scaleFactor = 1.6d;
-                BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
+            Map<String, Object> model = new HashMap<>();
+            model.put(Constants.COMPANY, company);
+            model.put(Constants.OFFER_LETTER_REQUEST, req);
 
-                // Convert BufferedImage to Base64 string for HTML
+            if (!req.isDraft()) {
+                String imageUrl = rawCompany.getImageFile();
+                BufferedImage image = ImageIO.read(new URL(imageUrl));
+                if (image == null) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
+                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.5f, 1.6d, 30);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(watermarkedImage, "png", baos);
-                String base64Image = Base64.getEncoder().encodeToString(baos.toByteArray());
-                dataModel.put(Constants.BLURRED_IMAGE, Constants.DATA + base64Image);
-            }
-            else {
-                // Ensure the key exists to avoid FreeMarker failure
-                dataModel.put(Constants.BLURRED_IMAGE, "");
-            }
+                ImageIO.write(watermark, "png", baos);
+                model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
+            } else model.put(Constants.BLURRED_IMAGE, "");
 
-            // Get FreeMarker template and process it with the dataModel
             Template template = freeMarkerConfig.getTemplate(Constants.INTERNSHIP_OFFER_LETTER_TEMPLATE);
-            StringWriter stringWriter = new StringWriter();
+            StringWriter writer = new StringWriter();
+            template.process(model, writer);
 
-            try {
-                // Process the template with the data model
-                template.process(dataModel, stringWriter);
-            } catch (Exception e) {
-                log.error("Exception occurred while processing the internShip offer letter: {}", e.getMessage(), e);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_PROCESS),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            // Get the processed HTML content
-            String htmlContent = stringWriter.toString();
-            // Convert the HTML content to PDF
-            byte[] pdfBytes = generatePdfFromHtml(htmlContent);
-            // Set HTTP headers for PDF download
+            byte[] pdf = generatePdfFromHtml(writer.toString());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT)
-                    .filename(Constants.OFFER_LETTER)
-                    .build());
+            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER).build());
+            return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
 
-            // Return the PDF as the HTTP response
-            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-        } catch (EmployeeException exception) {
-            log.error("Exception occurred while generating InternShip offer latter{}", exception.getMessage());
-            throw exception;
-
+        } catch (EmployeeException ex) {
+            log.error("Business error: {}", ex.getMessage());
+            throw ex;
         } catch (Exception e) {
-            log.error("Error occurred while generating InterShip offer letter: {}", e.getMessage(), e);
+            log.error("System error: {}", e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> saveOfferLetter(OfferLetterRequest request, HttpServletRequest httpRequest) {
+        try {
+            SSLUtil.disableSSLVerification();
+
+            CompanyEntity company = openSearchOperations.getCompanyById(request.getCompanyId(), null, Constants.INDEX_EMS);
+            if (company == null) throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), request.getCompanyId()), HttpStatus.NOT_FOUND);
+
+            if (Objects.equals(request.getHrMobileNo(), request.getMobileNo())) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.MOBILE_NUMBER_MISMATCH), HttpStatus.BAD_REQUEST);
+            if (Objects.equals(request.getHrEmail(), request.getInternEmail())) throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ID_MISS_MATCH), HttpStatus.BAD_REQUEST);
+
+            OfferLetterEntity entity = new OfferLetterEntity();
+            entity.setCompanyId(request.getCompanyId());
+            entity.setInternName(request.getInternName());
+            entity.setInternEmail(request.getInternEmail());
+            entity.setMobileNo(request.getMobileNo());
+            entity.setDesignation(request.getDesignation());
+            entity.setSalaryPackage(request.getSalaryPackage());
+            entity.setSalaryConfigurationId(request.getSalaryConfigurationId());
+            entity.setJoiningDate(request.getJoiningDate());
+            entity.setHrName(request.getHrName());
+            entity.setHrEmail(request.getHrEmail());
+            entity.setHrMobileNo(request.getHrMobileNo());
+            entity.setDraft(request.isDraft());
+            entity.setCreatedDate(LocalDate.now().toString());
+
+            openSearchOperations.saveEntity(entity, Constants.OFFER_LETTER_INDEX);
+            log.info("Offer letter saved successfully for intern: {}", request.getInternName());
+            return new ResponseEntity<>("Offer letter saved successfully.", HttpStatus.CREATED);
+
+        } catch (EmployeeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to save offer letter: {}", e.getMessage(), e);
+            return new ResponseEntity<>("Failed to save offer letter.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
