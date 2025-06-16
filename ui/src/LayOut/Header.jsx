@@ -82,9 +82,6 @@ const Header = ({ toggleSidebar }) => {
     }
   };
   
-  
-  
-
   const closeModal = () => {
     setShowErrorModal(false);
     navigate("/");

@@ -71,7 +71,6 @@ public class EmployeeUtils {
         return entity;
     }
 
-
     public static Entity unmaskEmployeeProperties(EmployeeEntity employeeEntity, DepartmentEntity entity, DesignationEntity designationEntity) {
         String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null, alterNo=null;
         if(employeeEntity.getPanNo() != null) {

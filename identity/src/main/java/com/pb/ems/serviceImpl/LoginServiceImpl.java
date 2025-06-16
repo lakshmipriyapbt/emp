@@ -329,7 +329,11 @@ public class LoginServiceImpl implements LoginService {
                 openSearchOperations.saveOtpToEmployee(user, otp, loginRequest.getCompany());
             }
 
-        } catch (Exception ex) {
+        }catch (IdentityException identityException){
+            log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), identityException.getMessage());
+            throw identityException;
+        }
+        catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", loginRequest.getUsername(), ex);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_USERNAME),
                     HttpStatus.INTERNAL_SERVER_ERROR);

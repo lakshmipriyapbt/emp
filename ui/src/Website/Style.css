@@ -508,14 +508,6 @@ video {
 .container{
   width: 100%;
 }
-
-.d-flex {
-	display: flex !important;
-
-	background-color: transparent;
-
-	/* background-color: whitesmoke; */
-}
 @media (min-width: 576px){
 
   .container{
@@ -918,7 +910,7 @@ a:active,
 a:focus {
     /* Set color to your desired non-blue, non-changing color. */
     /* Use a variable if available, otherwise a direct hex/rgb value. */
-    color: rgba(var(--bs-primary-rgb),);
+    color: var(--main-text-color-variable) !important; /* Example using variable */
     /* Or directly: color: #060b1e !important; */
 }
 
