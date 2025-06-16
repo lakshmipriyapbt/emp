@@ -54,6 +54,7 @@ public class CandidateServiceImpl implements CandidateService {
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
         Object entity = null;
         CompanyEntity companyEntity;
+        EmployeeEntity employee;
         String index = ResourceIdUtils.generateCompanyIndex(candidateRequest.getCompanyName());
         try {
             companyEntity = openSearchOperations.getCompanyByCompanyName(candidateRequest.getCompanyName(), Constants.INDEX_EMS);
@@ -66,6 +67,12 @@ public class CandidateServiceImpl implements CandidateService {
             if (entity != null) {
                 log.error("Candidate details existed");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ID_ALREADY_EXISTS),
+                        HttpStatus.CONFLICT);
+            }
+            employee = openSearchOperations.getEmployeeByEmailId(candidateRequest.getEmailId(), candidateRequest.getCompanyName());
+            if (employee != null) {
+                log.error("Employee with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
             }
 
@@ -150,7 +157,9 @@ public class CandidateServiceImpl implements CandidateService {
                 if ((candidateUpdateRequest.getFirstName() .equals(existingCandidate.getFirstName()))
                         && (candidateUpdateRequest.getLastName().equals(existingCandidate.getLastName()))
                         && candidateUpdateRequest.getMobileNo().equals(existingCandidate.getMobileNo())
-                        && candidateUpdateRequest.getDateOfHiring().equals(existingCandidate.getDateOfHiring())) {
+                        && candidateUpdateRequest.getDateOfHiring().equals(existingCandidate.getDateOfHiring())
+                        && candidateUpdateRequest.getStatus().equals(existingCandidate.getStatus())
+                        && candidateUpdateRequest.getExpiryDate().equals(existingCandidate.getExpiryDate())) {
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE), HttpStatus.BAD_REQUEST);
                 }
 
