@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -79,11 +80,9 @@ public class CandidateServiceImpl implements CandidateService {
             LocalDate hiringDate = LocalDate.parse(candidateRequest.getDateOfHiring());
             LocalDate expiryDate = hiringDate.plusDays(3);
 
-            defaultPassword = PasswordUtils.generateStrongPassword();
             CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
-            candidate.setPassword(defaultPassword);
             candidate.setExpiryDate(expiryDate.toString());
             candidate.setType(Constants.CANDIDATE);
             candidateDao.save(candidate, candidateRequest.getCompanyName());
@@ -100,7 +99,7 @@ public class CandidateServiceImpl implements CandidateService {
             try {
                 String companyUrl = " " ;
                 log.info("The company url : "+companyUrl);
-                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,defaultPassword);
+                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,null);
             } catch (Exception e) {
                 log.error("Error sending email to candidate: {}", candidateRequest.getEmailId());
                 throw new RuntimeException(e);
@@ -151,6 +150,13 @@ public class CandidateServiceImpl implements CandidateService {
             } catch (EmployeeException e) {
                 log.error("Unable to fetch candidate with id {}", candidateId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), candidateId), HttpStatus.NOT_FOUND);
+            }
+            LocalDate expiryDate = LocalDate.parse(candidateUpdateRequest.getExpiryDate());
+
+            if (expiryDate.isAfter(LocalDate.now())) {
+                log.error("Expiry date cannot be before today");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY),
+                        HttpStatus.BAD_REQUEST);
             }
 
             try {
