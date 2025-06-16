@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -53,65 +54,42 @@ public class CandidateServiceImpl implements CandidateService {
         log.debug("validating name {} candidate Id {} exsited ", candidateRequest.getLastName(), candidateRequest.getCandidateId());
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
         Object entity = null;
+        CompanyEntity companyEntity;
+        EmployeeEntity employee;
         String index = ResourceIdUtils.generateCompanyIndex(candidateRequest.getCompanyName());
-        try{
-            entity = openSearchOperations.getById(resourceId, null, index);
-            if(entity != null) {
-                log.error("Candidate details existed{}", candidateRequest.getCompanyName());
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_EMAILID_ALREADY_EXISTS), candidateRequest.getEmailId()),
-                        HttpStatus.CONFLICT);
-            }
-
-            List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, candidateRequest.getCompanyName());
-
-            if (shortNameEntity == null || shortNameEntity.isEmpty()) {
+        try {
+            companyEntity = openSearchOperations.getCompanyByCompanyName(candidateRequest.getCompanyName(), Constants.INDEX_EMS);
+            if (companyEntity == null) {
                 log.error("Company not found with name {}", candidateRequest.getCompanyName());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            String companyId = shortNameEntity.getFirst().getId();
-
-            Collection<CandidateEntity> candidates = candidateDao.getCandidates(candidateRequest.getCompanyName(), null,companyId );
-
-            Map<String, Object> duplicateValues = CandidateUtils.duplicateValues(candidateRequest, List.copyOf(candidates));
-
-            if (!duplicateValues.isEmpty()) {
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().failureResponse(duplicateValues),
-                        HttpStatus.CONFLICT
-                );
-            }
-        } catch (IOException e) {
-            log.error("Unable to get the company details {}", candidateRequest.getCompanyName());
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_CANDIDATE), candidateRequest.getEmailId()),
-                    HttpStatus.BAD_REQUEST);
-        }
-        List<EmployeeEntity> employeeByData = openSearchOperations.getCompanyEmployeeByData(candidateRequest.getCompanyName(), candidateRequest.getCandidateId(),
-                candidateRequest.getEmailId());
-        if(employeeByData !=null && employeeByData.size() > 0) {
-            log.error("Candidate with emailId {} already existed", candidateRequest.getCandidateId());
-            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ID_ALREADY_EXISTS), candidateRequest.getCandidateId()),
-                    HttpStatus.CONFLICT);
-        }
-        try{
-            DepartmentEntity departmentEntity =null;
-            DesignationEntity designationEntity = null;
-            departmentEntity = openSearchOperations.getDepartmentById(candidateRequest.getDepartment(), null, index);
-            if (departmentEntity == null){
-
-            }
-            designationEntity = openSearchOperations.getDesignationById(candidateRequest.getDesignation(), null, index);
-            if (designationEntity == null){
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
+            entity = openSearchOperations.getById(resourceId, null, index);
+            if (entity != null) {
+                log.error("Candidate details existed");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
             }
-            List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, candidateRequest.getCompanyName());
+            employee = openSearchOperations.getEmployeeByEmailId(candidateRequest.getEmailId(), candidateRequest.getCompanyName());
+            if (employee != null) {
+                log.error("Employee with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS),
+                        HttpStatus.CONFLICT);
+            }
 
-            defaultPassword = PasswordUtils.generateStrongPassword();
-            Entity companyEntity = CandidateUtils.maskCandidateProperties(candidateRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword);
-            Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, index);
+            LocalDate hiringDate = LocalDate.parse(candidateRequest.getDateOfHiring());
+            LocalDate expiryDate = hiringDate.plusDays(3);
 
+            CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
+            candidate.setId(resourceId);
+            candidate.setCompanyId(companyEntity.getId());
+            candidate.setExpiryDate(expiryDate.toString());
+            candidate.setType(Constants.CANDIDATE);
+            candidateDao.save(candidate, candidateRequest.getCompanyName());
+
+        } catch (EmployeeException employeeException) {
+            log.error("Error while saving candidate details: {}", employeeException.getMessage());
+            throw employeeException;
         } catch (Exception exception) {
             log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(),exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
@@ -119,9 +97,9 @@ public class CandidateServiceImpl implements CandidateService {
         }
         CompletableFuture.runAsync(() -> {
             try {
-                String companyUrl = EmailUtils.getBaseUrl(request)+candidateRequest.getCompanyName()+Constants.SLASH+Constants.LOGIN ;
+                String companyUrl = " " ;
                 log.info("The company url : "+companyUrl);
-                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,defaultPassword);
+                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,null);
             } catch (Exception e) {
                 log.error("Error sending email to candidate: {}", candidateRequest.getEmailId());
                 throw new RuntimeException(e);
@@ -130,9 +108,7 @@ public class CandidateServiceImpl implements CandidateService {
 
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
-
     }
-
 
    @Override
    public Collection<CandidateEntity> getCandidate(String companyName, String candidateId)
@@ -175,19 +151,21 @@ public class CandidateServiceImpl implements CandidateService {
                 log.error("Unable to fetch candidate with id {}", candidateId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), candidateId), HttpStatus.NOT_FOUND);
             }
+            LocalDate expiryDate = LocalDate.parse(candidateUpdateRequest.getExpiryDate());
+
+            if (!expiryDate.isAfter(LocalDate.now())) {
+                log.error("Expiry date cannot be before today");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY),
+                        HttpStatus.BAD_REQUEST);
+            }
 
             try {
-                if (candidateUpdateRequest.getDepartment() != null) {
-                    departmentEntity = openSearchOperations.getDepartmentById(candidateUpdateRequest.getDepartment(), null, index);
-                    if (departmentEntity == null) {
-                        log.error("Department not found: {}", candidateUpdateRequest.getDepartment());
-                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT), HttpStatus.CONFLICT);
-                    }
-                }
-
-                if ((candidateUpdateRequest.getFirstName() == null || candidateUpdateRequest.getFirstName().equals(existingCandidate.getFirstName()))
-                        && (candidateUpdateRequest.getLastName() == null || candidateUpdateRequest.getLastName().equals(existingCandidate.getLastName()))
-                        && Objects.equals(candidateUpdateRequest.getDepartment(), existingCandidate.getDepartment())) {
+                if ((candidateUpdateRequest.getFirstName() .equals(existingCandidate.getFirstName()))
+                        && (candidateUpdateRequest.getLastName().equals(existingCandidate.getLastName()))
+                        && candidateUpdateRequest.getMobileNo().equals(existingCandidate.getMobileNo())
+                        && candidateUpdateRequest.getDateOfHiring().equals(existingCandidate.getDateOfHiring())
+                        && candidateUpdateRequest.getStatus().equals(existingCandidate.getStatus())
+                        && candidateUpdateRequest.getExpiryDate().equals(existingCandidate.getExpiryDate())) {
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_CHANGES_DONE), HttpStatus.BAD_REQUEST);
                 }
 

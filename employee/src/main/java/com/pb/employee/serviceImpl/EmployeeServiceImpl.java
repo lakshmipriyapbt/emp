@@ -122,13 +122,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         try{
             DepartmentEntity departmentEntity =null;
-            DesignationEntity designationEntity = null;
+            List<DesignationEntity> designationEntity = null;
             departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
             if (departmentEntity == null){
-
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
+                        HttpStatus.CONFLICT);
             }
-            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-            if (designationEntity == null){
+            designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeRequest.getCompanyName(), employeeRequest.getDepartment(), employeeRequest.getDesignation());
+            if (designationEntity == null && designationEntity.size() <= 0){
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
@@ -262,27 +264,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeUtils.unmaskEmployeeProperties(entity, departmentEntity, designationEntity);
 
             }
-            try {
-                String companyFolderPath = folderPath + companyName;
-                File companyFolder = new File(companyFolderPath);
-                if (!companyFolder.exists()) {
-                    log.error("Company folder does not exist: {}", companyFolderPath);
-                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
-                            HttpStatus.NOT_FOUND);
-                }
-
-                String employeeFolderPath = folderPath + companyName + "/" + entity.getFirstName() + "_" + entity.getEmployeeId();
-                File folder = new File(employeeFolderPath);
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                    log.info("Creating the employee Folder");
-                }
-            }catch (EmployeeException exception) {
-                log.error("Company folder does not exist");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
-                        HttpStatus.NOT_FOUND);
-            }
-
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
             }
@@ -338,16 +319,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        DesignationEntity designationEntity = null;
-        DepartmentEntity departmentEntity = null;
+        DepartmentEntity departmentEntity =null;
+        List<DesignationEntity> designationEntity = null;
         departmentEntity = openSearchOperations.getDepartmentById(employeeUpdateRequest.getDepartment(), null, index);
         if (departmentEntity == null){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
                     HttpStatus.CONFLICT);
         }
-        designationEntity = openSearchOperations.getDesignationById(employeeUpdateRequest.getDesignation(), null, index);
-        if (designationEntity == null){
+        designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeUpdateRequest.getCompanyName(), employeeUpdateRequest.getDepartment(), employeeUpdateRequest.getDesignation());
+        if (designationEntity == null && designationEntity.size() <= 0){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                     HttpStatus.CONFLICT);
