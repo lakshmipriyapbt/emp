@@ -995,7 +995,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Educational Certificates</strong>
             </p>
-            <ul style={{ marginTop: "-15px" }}>
+            <ul >
               <li>10"& 12" Certificate</li>
               <li>
                 Diploma / Graduation Level / Post Graduation Certifications
@@ -1005,7 +1005,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Work Experience Related Details</strong>
             </p>
-            <ul style={{ marginTop: "-15px" }}>
+            <ul >
               <li>Accepted designation letter of the last organization</li>
               <li>Relieving letter from previous employer</li>
               <li>Experience / Appointment letter of the last organization</li>
@@ -1013,7 +1013,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Photographs Required</strong>
             </p>
-            <ul style={{ marginTop: "-15px" }}>
+            <ul >
               <li>3 Passport Size Photograph</li>
               <li>
                 2 Postcard Size Photograph (Need to produce if ESI is
@@ -1026,7 +1026,7 @@ const OfferLetterPreview = () => {
                 address proof)
               </strong>
             </p>
-            <ul style={{ marginTop: "-15px" }}>
+            <ul >
               <li>Ration Card / Voter ID Card</li>
               <li>AADHAR Card</li>
             </ul>
