@@ -171,10 +171,10 @@ export const allAvailableRoutes = [
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
-  {path: '/candidateRegistration', allowedTypes: ['HR'] },
-  {path: '/candidatesView', allowedTypes: ['HR'] },
-  {path: '/candidateDocumentUpload', allowedTypes: ['HR'] },
-  {path: '/uploadSuccess', allowedTypes: ['HR'] },
+  {path: '/candidateRegistration', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/candidatesView', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/candidateDocumentUpload', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/uploadSuccess', allowedTypes: ['company_admin', 'Admin','HR'] },
 ];
 
 const Routing = () => {
@@ -245,19 +245,19 @@ const Routing = () => {
       {/* HR-specific routes */}
       <Route
         path="/candidateRegistration"
-        element={<ProtectedRoute element={<CandidateRegistration/>} allowedTypes={['HR']} />}
+        element={<ProtectedRoute element={<CandidateRegistration/>} allowedTypes={['company_admin', 'Admin','HR']} />}
       />
       <Route
         path="/candidatesView"
-        element={<ProtectedRoute element={<CandidatesView/>} allowedTypes={['HR']} />}
+        element={<ProtectedRoute element={<CandidatesView/>} allowedTypes={['company_admin', 'Admin','HR']} />}
       />
       <Route
         path="/candidateDocumentUpload"
-        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['HR']} />}
+        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['company_admin', 'Admin','HR']} />}
       /> 
       <Route
         path="/uploadSuccess"
-        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['HR']} />}
+        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['company_admin', 'Admin','HR']} />}
       />    
       {/* Company Admin & HR shared routes */}
       <Route

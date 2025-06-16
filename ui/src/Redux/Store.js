@@ -10,6 +10,7 @@ import TdsReducer from './TdsSlice'
 import departmentReducer from './DepartmentSlice'
 import designationReducer from './DesignationSlice'
 import UserReducer from './UserSlice'
+import CandidateReducer from './CandidateSlice'
 
 const store = configureStore({
   reducer: {
@@ -23,7 +24,8 @@ const store = configureStore({
     tds:TdsReducer,
     departments:departmentReducer,
     designations:designationReducer,
-    users:UserReducer
+    users:UserReducer,
+    candidates:CandidateReducer
   },
 });
 

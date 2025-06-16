@@ -26,6 +26,16 @@ export const NAV_CONFIG = {
             icon: 'building' // 🏢
         },
         {
+            title: 'Candidate',
+            icon: 'person-check',
+            items: [
+                { title: 'Candidate Registration', path: '/candidateRegistration' },
+                { title: 'Candidates View', path: '/candidatesView' },
+                { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
+                { title: 'Upload Success', path: '/uploadSuccess' }
+            ] 
+        },
+        {
             title: 'Employees',
             path: '/employeeView',
             icon: 'people' // 👥
@@ -112,6 +122,16 @@ export const NAV_CONFIG = {
             title: 'Department',
             path: '/department',
             icon: 'building' // 🏢
+        },
+        {
+            title: 'Candidate',
+            icon: 'person-check',
+            items: [
+                { title: 'Candidate Registration', path: '/candidateRegistration' },
+                { title: 'Candidates View', path: '/candidatesView' },
+                { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
+                { title: 'Upload Success', path: '/uploadSuccess' }
+            ] 
         },
         {
             title: 'Employees',

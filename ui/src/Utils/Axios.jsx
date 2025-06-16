@@ -1221,3 +1221,78 @@ export const DeleteUserById = (id) => {
   const company = localStorage.getItem("companyName");
   return axiosInstance.delete(`/${company}/user/${id}`);
 };
+
+// Candidate apis
+export const CandidatePostApi = async (candidateData) => {
+    try {
+        const response = await axiosInstance.post("/candidate", candidateData);
+        
+        // Return the full response object
+        return {
+            status: response.status,
+            data: response.data,
+            fullResponse: response
+        };
+    } catch (error) {
+        console.error('API Error:', {
+            config: error.config,
+            response: error.response,
+            message: error.message
+        });
+        
+        // Return a consistent error structure
+        return {
+            status: error.response?.status || 500,
+            error: true,
+            message: error.response?.data?.message || error.message,
+            fullResponse: error.response
+        };
+    }
+};
+export const CandidateGetAllApi = () => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company name not found in localStorage");
+  }
+  
+  return axiosInstance.get(`/candidate/${company}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateGetByIdApi = (candidateId) => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company name not found in localStorage");
+  }
+  
+  return axiosInstance.get(`/candidate/${company}/${candidateId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateDeleteApi = (id) => {  // Changed parameter name to be more clear
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company name not found in localStorage");
+  }
+  
+  return axiosInstance.delete(`/${company}/candidate/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  })
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Delete Candidate Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  });
+};

@@ -313,7 +313,7 @@ const CompanyLogin = () => {
                       )}
                       <div className="otp-timer">
                         {otpTimeLimit > 0 ? (
-                          <span>OTP expires in: {otpTimeLimit} seconds</span>
+                          <span className="text-primary">OTP expires in: {otpTimeLimit} seconds</span>
                         ) : (
                           <span>OTP expired</span>
                         )}
