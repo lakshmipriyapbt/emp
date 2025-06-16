@@ -3,10 +3,7 @@ package com.pb.ems.opensearch;
 import com.pb.ems.exception.ErrorMessageHandler;
 import com.pb.ems.exception.IdentityErrorMessageKey;
 import com.pb.ems.exception.IdentityException;
-import com.pb.ems.model.CompanyEntity;
-import com.pb.ems.model.DepartmentEntity;
-import com.pb.ems.model.EmployeeEntity;
-import com.pb.ems.model.UserEntity;
+import com.pb.ems.model.*;
 import com.pb.ems.persistance.Entity;
 import com.pb.ems.util.Constants;
 import com.pb.ems.util.ResourceUtils;
@@ -132,6 +129,14 @@ public class OpenSearchOperations {
         String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
         String id = Constants.USER+"-"+resourceIdUtils.generateCompanyResourceId(user.getEmailId());
         saveEntity(user,id , index);  // Ensure this method saves the user entity to the correct index
+        logger.info("The otp and expiry time saved into the db for index: " + index);
+    }//save the entity
+
+    public void saveOtpToCandidate(CandidateEntity candidate, Long otp, String company) throws IdentityException {
+        candidate.setOtp(otp);
+        candidate.setExpiryTime(Instant.now().plus(3, ChronoUnit.MINUTES).getEpochSecond()); // Set expiry time, for example, 1 minutes from now
+        String index =  Constants.INDEX_EMS +"_"+ company; // Use dynamic index
+        saveEntity(candidate, candidate.getId() , index);  // Ensure this method saves the user entity to the correct index
         logger.info("The otp and expiry time saved into the db for index: " + index);
     }//save the entity
 
@@ -266,5 +271,38 @@ public class OpenSearchOperations {
             }
         }
         return null;
+    }
+
+    public CandidateEntity getCandidateByEmailId(String emailId, String companyName) throws IdentityException {
+        logger.debug("Getting employees for company {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.CANDIDATE)));
+        boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.EMAIL_ID).query(emailId)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<CandidateEntity> searchResponse = null;
+        String index = Constants.INDEX_EMS+"_"+companyName;
+
+        try {
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), CandidateEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<CandidateEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of candidateEntities hits for company {}: {}", companyName, hits.size());
+
+        List<CandidateEntity> candidateEntities = new ArrayList<>();
+        if(hits.size() > 0) {
+            for (Hit<CandidateEntity> hit : hits) {
+                candidateEntities.add(hit.source());
+            }
+            return candidateEntities.get(0);
+        }
+            return null;
+
     }
 }
