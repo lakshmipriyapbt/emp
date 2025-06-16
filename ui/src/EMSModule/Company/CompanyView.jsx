@@ -81,8 +81,7 @@ const CompanyView = () => {
       }
     }
   };
-  const handleStatusChange = (e,id, newStatus) => {
-    e.preventDefault();
+  const handleStatusChange = (id, newStatus) => {
     setStatusUpdateData({ id, newStatus });
     setShowStatusModal(true);
   };

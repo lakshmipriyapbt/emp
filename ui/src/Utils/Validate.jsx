@@ -286,15 +286,10 @@ export const validateFirstName = (value) => {
 
     return true; // Return true if all validations pass
   };
+
   export const validateLocation = (value) => {
     // Trim leading and trailing spaces before further validation
     const trimmedValue = value.trim();
-  
-    // Check if value is empty after trimming (meaning it only had spaces)
-    if (trimmedValue.length === 0) {
-      return "Location is Required.";
-    }
-    
     // Check for trailing spaces
     if (/\s$/.test(value)) {
       return "Spaces at the end are not allowed.";
