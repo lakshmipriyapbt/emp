@@ -23,4 +23,5 @@ public class CandidateEntity extends AbstractEntity {
     private String expiryDate;
     private String status;
     private String Otp;
+    private String expiryTime;
 }
