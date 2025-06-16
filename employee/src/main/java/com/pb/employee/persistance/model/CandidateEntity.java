@@ -22,6 +22,6 @@ public class CandidateEntity extends AbstractEntity {
     private String mobileNo;
     private String expiryDate;
     private String status;
-    private String Otp;
-    private String expiryTime;
+    private long otp;
+    private long expiryTime;
 }

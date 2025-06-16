@@ -153,7 +153,7 @@ public class CandidateServiceImpl implements CandidateService {
             }
             LocalDate expiryDate = LocalDate.parse(candidateUpdateRequest.getExpiryDate());
 
-            if (expiryDate.isAfter(LocalDate.now())) {
+            if (!expiryDate.isAfter(LocalDate.now())) {
                 log.error("Expiry date cannot be before today");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY),
                         HttpStatus.BAD_REQUEST);
