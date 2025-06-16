@@ -583,8 +583,6 @@ const OfferLetterPreview = () => {
             </p>
             <p>
               <strong> Notice Period without Cause:</strong>
-            </p>
-            <p style={{ marginTop: "-15px" }}>
               In the event that the employment is ceased without cause, you will
               be provided 30 days’ notice prior to such cessation or paid
               severance pay in lieu of thereof equivalent to the consolidated
@@ -601,8 +599,6 @@ const OfferLetterPreview = () => {
             <p>
               You are requested to keep the compensation information highly
               confidential.
-            </p>
-            <p style={{ marginTop: "-15px" }}>
               We look forward to your joining <strong> {company?.companyName}</strong>{" "}
               soon.
             </p>
@@ -999,7 +995,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Educational Certificates</strong>
             </p>
-            <ul>
+            <ul style={{ marginTop: "-15px" }}>
               <li>10"& 12" Certificate</li>
               <li>
                 Diploma / Graduation Level / Post Graduation Certifications
@@ -1009,7 +1005,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Work Experience Related Details</strong>
             </p>
-            <ul>
+            <ul style={{ marginTop: "-15px" }}>
               <li>Accepted designation letter of the last organization</li>
               <li>Relieving letter from previous employer</li>
               <li>Experience / Appointment letter of the last organization</li>
@@ -1017,7 +1013,7 @@ const OfferLetterPreview = () => {
             <p>
               <strong>Photographs Required</strong>
             </p>
-            <ul>
+            <ul style={{ marginTop: "-15px" }}>
               <li>3 Passport Size Photograph</li>
               <li>
                 2 Postcard Size Photograph (Need to produce if ESI is
@@ -1030,7 +1026,7 @@ const OfferLetterPreview = () => {
                 address proof)
               </strong>
             </p>
-            <ul>
+            <ul style={{ marginTop: "-15px" }}>
               <li>Ration Card / Voter ID Card</li>
               <li>AADHAR Card</li>
             </ul>

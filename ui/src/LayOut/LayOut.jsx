@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import SideNav from "./SideNav";
 import Header from "./Header";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { CompanyImageGetApi, EmployeeGetApiById, getUserById } from "../Utils/Axios";
+import AutoLogout from "../Utils/AutoLogOut";
+import { useSelector } from "react-redux";
 
 const LayOut = ({ children }) => {
   const name = localStorage.getItem("name");
@@ -12,6 +14,8 @@ const LayOut = ({ children }) => {
   const [error, setError] = useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+    const { userRole } = useSelector((state) => state.auth);
+
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -69,9 +73,9 @@ const LayOut = ({ children }) => {
     fetchData();
   }, [authData, isInitialized]);
   
-
   return (
     <div className="wrapper">
+       <AutoLogout userRole={userRole} />
       <div className={`fixed-sideNav ${isSidebarVisible ? "" : "collapsed"}`}>
         <SideNav />
       </div>

@@ -5,7 +5,7 @@ import {
 } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import "./Style.css"
 
 const AnonymouseCmpRegistration = () => {
   const {
@@ -56,8 +56,7 @@ const AnonymouseCmpRegistration = () => {
         updateData.companyRegistrationNumber = data.companyRegistrationNumber;
       }
        await CompanyAddApi(data);
-       toast.success("Company Created Successfully")
-      navigate("/");
+       toast.success("Company Created Successfully");
       reset();
     } catch (error) {
       console.log("Entered catch block"); // Add this line

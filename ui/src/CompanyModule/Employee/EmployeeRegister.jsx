@@ -811,7 +811,6 @@ export default function EmployeeRegister() {
                       <label htmlFor="tempAddress" className="form-label">Temporary Address</label>
                       <textarea type="text" className="form-control" onInput={toInputAddressCase}
                         {...register("tempAddress", {
-                          required: "Temporary Address is required",
                           validate: validateLocation
                         })}
                       />
