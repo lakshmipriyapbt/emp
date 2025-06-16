@@ -17,6 +17,9 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,8 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+
 
     @Override
     public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
@@ -158,8 +163,8 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
                 experienceEntity.setId(experienceId);
                 experienceEntity.setCompanyId(companyEntity.getFirst().getId());
-                experienceEntity.setCompanyName(experienceLetterFieldsRequest.getCompanyName());
                 experienceEntity.setType(ResourceType.EXPERIENCE.value());
+                experienceEntity.setEmployeeId(experienceLetterFieldsRequest.getEmployeeId());
 
                 experienceDao.save(experienceEntity, experienceLetterFieldsRequest.getCompanyName());
                 log.info("Saved ExperienceEntity: {}", experienceId);
@@ -226,11 +231,16 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
     @Override
     public ResponseEntity<?> updateExperienceById(String companyName, String employeeId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest)
             throws EmployeeException, IOException {
+
         EmployeeEntity employee = null;
+
         try {
             log.debug("Validating experience existence for employeeId {} in company {}", employeeId, companyName);
 
-            // Validate company
+            // Generate index based on companyName
+            String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+            // Validate company existence
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null) {
                 log.error("Company not found: {}", companyName);
@@ -247,6 +257,14 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPERIENCE_NOT_FOUND), employeeId), HttpStatus.NOT_FOUND);
             }
 
+            // Fetch employee details using employeeId and index
+            employee = openSearchOperations.getEmployeeById(employeeId, null, index);
+            if (employee == null) {
+                log.error("Employee does not exist with this Id: {}", employeeId);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), employeeId), HttpStatus.NOT_FOUND);
+            }
+
+            // Validate experience date >= hiring date
             String experienceDate = experienceLetterFieldsUpdateRequest.getDate();
             String hiringDate = employee.getDateOfHiring();
 
@@ -259,7 +277,7 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EXPERIENCE_DATE_NOT_VALID), employeeId), HttpStatus.NOT_FOUND);
             }
 
-            // Check if any actual update is required
+            // Check if any changes exist
             boolean isDateSame = experienceLetterFieldsUpdateRequest.getDate().equals(existingExperience.getDate());
             boolean isLastWorkingDateSame = experienceLetterFieldsUpdateRequest.getLastWorkingDate().equals(existingExperience.getLastWorkingDate());
             boolean isAboutEmployeeSame = Objects.equals(experienceLetterFieldsUpdateRequest.getAboutEmployee(), existingExperience.getAboutEmployee());
@@ -269,9 +287,9 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_UPDATE_DONE), HttpStatus.BAD_REQUEST);
             }
 
-            existingExperience.setDate(experienceLetterFieldsUpdateRequest.getDate());
-            existingExperience.setLastWorkingDate(experienceLetterFieldsUpdateRequest.getLastWorkingDate());
-            existingExperience.setAboutEmployee(experienceLetterFieldsUpdateRequest.getAboutEmployee());
+            // Update only non-null fields
+            ExperienceEntity updatedExperience = objectMapper.convertValue(experienceLetterFieldsUpdateRequest, ExperienceEntity.class);
+            BeanUtils.copyProperties(updatedExperience, existingExperience, getNullPropertyNames(updatedExperience));
 
             experienceDao.update(existingExperience, companyName);
 
@@ -306,6 +324,18 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
         } catch (Exception e) {
             throw new IOException("Error generating PDF: " + e.getMessage(), e);
         }
+    }
+
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        Set<String> emptyNames = new HashSet<>();
+        for (var pd : src.getPropertyDescriptors()) {
+            Object value = src.getPropertyValue(pd.getName());
+            if (value == null) {
+                emptyNames.add(pd.getName());
+            }
+        }
+        return emptyNames.toArray(new String[0]);
     }
 
 }

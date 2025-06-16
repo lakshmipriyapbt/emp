@@ -11,7 +11,6 @@ import lombok.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExperienceEntity extends AbstractEntity {
 
-    private String companyName;
     private String employeeId;
     private String companyId;
     private String date;
