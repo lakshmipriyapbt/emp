@@ -12,6 +12,9 @@ public interface LoginService {
 
     ResponseEntity<?> login(LoginRequest request) throws IdentityException;
     ResponseEntity<?> updateEmsAdmin(LoginRequest request) throws IdentityException;
+
+    ResponseEntity<?> candidateLogin(CandidateLoginRequest request) throws IdentityException;
+
     ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException;
 
     ResponseEntity<?> logout(OTPRequest loginRequest);

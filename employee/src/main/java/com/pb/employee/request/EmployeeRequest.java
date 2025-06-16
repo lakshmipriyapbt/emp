@@ -72,7 +72,7 @@ public class EmployeeRequest {
     private String location;
 
     @Schema(example = "tempAddress")
-    @Pattern(regexp = "^(?!\\s)(.*?)(?<!\\s)$", message = "{tempAddress.format}")
+    @Pattern(regexp = "^((?!\\s)(.*?)(?<!\\s)|null|)$", message = "{tempAddress.format}")
     @Size(min = 2, max = 200, message = "{tempAddress.notnull.message}")
     private String tempAddress;
 
