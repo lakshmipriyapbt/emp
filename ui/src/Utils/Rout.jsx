@@ -86,7 +86,7 @@ import UpdateUser from '../CompanyModule/UserModue/UpdateUser';
 import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
 import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
-import LandingPage from '../LayOut/NewLogin/LandingPage';
+import LandingPage from '../Website/LandingPage';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
