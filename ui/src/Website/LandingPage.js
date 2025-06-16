@@ -11,11 +11,6 @@ import { useForm } from "react-hook-form";
 
 import "./main.js";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper modules (e.g., Autoplay for the continuous scroll)
-import { Autoplay } from "swiper/modules";
-
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/autoplay";
