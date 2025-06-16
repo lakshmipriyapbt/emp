@@ -737,6 +737,7 @@ const OfferLetterForm = () => {
                       <input
                         type="text"
                         className="form-control"
+                        minLength={5}
                         maxLength={10}
                         placeholder="Enter Salary Package"
                         name="salaryPackage"

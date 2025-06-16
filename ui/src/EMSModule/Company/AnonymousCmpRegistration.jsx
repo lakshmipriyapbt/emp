@@ -5,7 +5,6 @@ import {
 } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import '../../LayOut/NewLogin/Style.css';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 

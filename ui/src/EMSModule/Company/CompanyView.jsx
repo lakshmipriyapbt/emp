@@ -85,15 +85,22 @@ const CompanyView = () => {
     const { id, newStatus } = statusUpdateData;
     try {
       const response = await updateCompanyStatusApi(id, newStatus);
-      if (response.status === 200) {
-        toast.success("Status updated successfully!");
-        setTimeout(() => {
-          getUser();
-          if (search) {
-            getFilteredList(search); // maintain filtered view
-          }
-        }, 1000); // Delay of 1 second
-      } else {
+     if (response.status === 200) {
+  toast.success("Status updated successfully!");
+
+  // Update local state immediately
+  setView(prev =>
+    prev.map(user =>
+      user.id === id ? { ...user, status: newStatus } : user
+    )
+  );
+
+  setTimeout(() => {
+    getUser(); // Optional: refetch from server
+    if (search) getFilteredList(search);
+  }, 1000);
+}
+ else {
         toast.error("Failed to update status.");
       }
     } catch (error) {
@@ -202,18 +209,17 @@ const CompanyView = () => {
       selector: (row) => row.status,
       cell: (row) => (
         <select
-          className="form-select form-select-sm"
-          value={row.status}
-          onChange={(e) => handleStatusChange(row.id, e.target.value)}
-          style={{ width: "120px" }}
-          defaultValue=""
-          placeholder="Status"
-        >
-          <option value="" disabled hidden>Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">InActive</option>
-          <option value="pending">Pending</option>
-        </select>
+  className="form-select form-select-sm"
+  value={row.status || ""}
+  onChange={(e) => handleStatusChange(row.id, e.target.value)}
+  style={{ width: "120px" }}
+>
+  <option value="" disabled hidden>Status</option>
+  <option value="Active">Active</option>
+  <option value="Inactive">Inactive</option>
+  <option value="pending">Pending</option>
+</select>
+
       ),
       width: "150px",
     }

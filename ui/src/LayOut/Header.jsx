@@ -90,9 +90,6 @@ useEffect(() => {
     }
   };
   
-  
-  
-
   const closeModal = () => {
     setShowErrorModal(false);
     navigate("/");

@@ -80,6 +80,47 @@ public class LoginServiceImpl implements LoginService {
                 ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
     }
 
+
+    @Override
+    public ResponseEntity<?> candidateLogin(CandidateLoginRequest request) throws IdentityException {
+        String token = "";
+        try {
+            CandidateEntity candidate = openSearchOperations.getCandidateByEmailId(request.getUsername(), request.getCompany()) ;
+            if (candidate != null) {
+                Long otp = generateOtp();
+                if (candidate.getExpiryDate() != null && Instant.now().isAfter(Instant.parse(candidate.getExpiryDate()))) {
+                    log.error("Candidate is not active");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.CANDIDATE_INACTIVE),
+                            HttpStatus.FORBIDDEN);
+                }
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        sendOtpByEmail(request.getUsername(), otp);
+                    } catch (Exception e) {
+                        log.error("Unable to generate and send otp ");
+                        throw new RuntimeException(e);
+                    }
+                });
+                List<String> roles = new ArrayList<>();
+                openSearchOperations.saveOtpToCandidate(candidate, otp, request.getCompany());
+                roles.add(candidate.getType());
+                JwtTokenUtil.generateEmployeeToken(candidate.getId(), roles, request.getCompany(), request.getUsername());
+
+
+            } else {
+                log.error("Invalid credentials");
+                throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
+                        HttpStatus.FORBIDDEN);
+            }
+        } catch (Exception e) {
+            log.error("Invalid creds {}", e.getMessage(), e);
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
+                    HttpStatus.FORBIDDEN);
+        }
+        return new ResponseEntity<>(
+                ResponseBuilder.builder().build().createSuccessResponse(new LoginResponse(token, null)), HttpStatus.OK);
+    }
+
     @Override
     public ResponseEntity<?> employeeLogin(EmployeeLoginRequest request) throws IdentityException, IOException {
         EmployeeEntity employee = null;

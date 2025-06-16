@@ -1,6 +1,7 @@
 /* eslint-disable */
 import jQuery from "jquery";
-import WOW from 'wowjs'; // This correctly imports the WOW constructor
+import WOW from 'wow.js' 
+// This correctly imports the WOW constructor
 /* 
 
 1. Jquery Plugin
