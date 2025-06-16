@@ -152,6 +152,7 @@ public enum EmployeeErrorMessageKey {
     CANDIDATE_NOT_FOUND("candidate.not.found"),
     UNABLE_DELETE_CANDIDATE("unable.delete.candidate");
 
+    
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {
