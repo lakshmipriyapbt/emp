@@ -394,8 +394,6 @@ const Template = () => {
                         </p>
                         <p>
                             <strong> Notice Period without Cause:</strong>
-                        </p>
-                        <p style={{ marginTop: "-15px" }}>
                             In the event that the employment is ceased without cause, you will be provided 30 days’ notice prior to such cessation or paid severance pay in lieu of thereof equivalent to the consolidated compensation package for period of 60 days calculated on the basis of last gross salary.
                         </p>
                         <ul>
@@ -405,8 +403,6 @@ const Template = () => {
                         </ul>
                         <p>
                             You are requested to keep the compensation information highly confidential.
-                        </p>
-                        <p style={{ marginTop: "-15px" }}>
                             We look forward to your joining <strong> {companyName}</strong> soon.
                         </p>
                         <p>
@@ -637,7 +633,7 @@ const Template = () => {
                         <p><strong>
                             Address Proof (Any one of the following can be taken as an address proof)
                         </strong></p>
-                        <ul style={{ marginTop: "-15px" }}>
+                        <ul>
                             <li>Ration Card / Voter ID Card</li>
                             <li>AADHAR Card</li>
                         </ul>
