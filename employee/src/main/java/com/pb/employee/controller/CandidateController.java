@@ -8,6 +8,7 @@ import com.pb.employee.request.CandidatePayload.CandidateRequest;
 import com.pb.employee.request.CandidatePayload.CandidateUpdateRequest;
 import com.pb.employee.service.CandidateService;
 import com.pb.employee.util.Constants;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class CandidateController {
 
     @Autowired
     private CandidateService candidateService;
+
 
     @RequestMapping(value = "candidate", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
@@ -66,7 +68,7 @@ public class CandidateController {
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(candidateEntities), HttpStatus.OK);
     }
 
-
+    @Hidden
     @RequestMapping(value = "candidate/{companyName}/{candidateId}", method = RequestMethod.PUT)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
             summary = "${api.updateCandidate.tag}", description = "${api.updateCandidate.description}")
