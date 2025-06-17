@@ -71,6 +71,22 @@ export const CompanyloginApi = (data) => {
     });
 };
 
+export const CandidateloginApi = (data) => {
+  return axios.post(`${Login_URL}/candidate/login`, data)
+    .then(response => {
+      const { token, refreshToken } = response.data?.data || {};
+      if (token && refreshToken) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      return response.data; // Return the full response
+    })
+    .catch(error => {
+      const errorMessage = error.response?.data?.error?.message || "An unknown error occurred.";
+      console.error(errorMessage); // Log the error for debugging
+      throw new Error(errorMessage); // Throw an error with the message
+    });
+};
 
 export const ValidateOtp = (data) => {
   return axiosInstance.post(`${Login_URL}/validate`, data);
@@ -175,7 +191,7 @@ export const DepartmentGetApiById = (departmentId) => {
 export const DepartmentDeleteApiById = (departmentId) => {
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
   
   return axiosInstance.delete(`/${company}/department/${departmentId}`, {
@@ -1252,7 +1268,7 @@ export const CandidatePostApi = async (candidateData) => {
 export const CandidateGetAllApi = () => {
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
   
   return axiosInstance.get(`/candidate/${company}`, {
@@ -1265,9 +1281,8 @@ export const CandidateGetAllApi = () => {
 export const CandidateGetByIdApi = (candidateId) => {
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
-  
   return axiosInstance.get(`/candidate/${company}/${candidateId}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1278,7 +1293,7 @@ export const CandidateGetByIdApi = (candidateId) => {
 export const CandidateDeleteApi = (id) => {  // Changed parameter name to be more clear
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
   
   return axiosInstance.delete(`/${company}/candidate/${id}`, {

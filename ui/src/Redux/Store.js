@@ -20,7 +20,7 @@ const store = configureStore({
     products:ProductReducer,
     invoices:InvoiceReducer,
     employees: employeeReducer, // Add employee slice reducer to store
-    calendar:calendarReducer,
+    calendar:calendarReducer, 
     tds:TdsReducer,
     departments:departmentReducer,
     designations:designationReducer,

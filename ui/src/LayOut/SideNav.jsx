@@ -152,7 +152,7 @@ const SideNav = () => {
           />
         ) : (
           <div className="default-logo" onClick={() => navigate('/main')} tabIndex="0" role="button">
-            <i className="bi bi-building"></i>
+             <span>Logo</span>
           </div>
         )}
       </div>
