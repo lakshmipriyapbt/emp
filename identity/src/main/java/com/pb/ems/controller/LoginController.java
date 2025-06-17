@@ -141,5 +141,14 @@ public class LoginController {
         return Constants.SUCCESS;
     }
 
+    @PostMapping("resend/otp")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "${api.resendPassword.tag}", description = "${api.resendPassword.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
+    public ResponseEntity<?> resendOtp(@RequestBody @Valid ResendOtpRequest request) throws IdentityException {
+        return loginService.resendOtp(request);
+    }
+
 
 }

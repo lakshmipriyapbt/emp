@@ -438,4 +438,41 @@ public class LoginServiceImpl implements LoginService {
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
+
+    @Override
+    public ResponseEntity<?> resendOtp(ResendOtpRequest request) throws IdentityException {
+        EmployeeEntity user ;
+        UserEntity userEntity = null;
+
+        try {
+            userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
+            if (userEntity != null){
+                Long otp = generateOtp();
+                sendOtpByEmailForPassword(request.getUsername(), otp);
+                openSearchOperations.saveOtpToUser(userEntity, otp, request.getCompany());
+            }else if (userEntity == null) {
+                user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+                if(user==null) {
+                    log.debug("checking the user details..");
+                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
+                            HttpStatus.NOT_FOUND);
+                }
+                Long otp = generateOtp();
+                sendOtpByEmail(request.getUsername(), otp);
+                openSearchOperations.saveOtpToEmployee(user, otp, request.getCompany());
+            }
+
+        } catch (IdentityException identityException){
+            log.error("Exception while fetching user {}, {}", request.getUsername(), identityException.getMessage());
+            throw identityException;
+        } catch (Exception ex) {
+            log.error("Exception while sending the otp to user {}, {}", request.getUsername(), ex.getMessage());
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_USERNAME),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+        return new ResponseEntity<>(
+                ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+    }
+
 }
