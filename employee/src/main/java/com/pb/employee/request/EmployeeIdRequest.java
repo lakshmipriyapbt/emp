@@ -10,7 +10,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmployeeErrorRequest {
+public class EmployeeIdRequest {
 
     @Schema(example = "employeeId")
     @Size(min = 2, max = 20, message = "{employeeId.size.message}")

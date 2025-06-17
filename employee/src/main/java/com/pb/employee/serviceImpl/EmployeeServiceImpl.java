@@ -1,17 +1,14 @@
 package com.pb.employee.serviceImpl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
-import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.EmployeeErrorRequest;
-import com.pb.employee.request.EmployeeExperience;
+import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
 import com.pb.employee.response.EmployeeResponse;
@@ -32,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
@@ -682,7 +678,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<?> getEmployeeId(String companyName, EmployeeErrorRequest employeeErrorRequest) throws IOException, EmployeeException {
+    public ResponseEntity<?> getEmployeeId(String companyName, EmployeeIdRequest employeeIdRequest) throws IOException, EmployeeException {
 
         log.info("Getting employee ID for company: {}", companyName);
         try {
@@ -691,20 +687,13 @@ public class EmployeeServiceImpl implements EmployeeService {
                 log.error("Company not found: {}", companyName);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
+            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployeeByData(companyName,employeeIdRequest.getEmployeeId(),null);
 
-            boolean employeeIdExists = employeeEntities.stream()
-                    .anyMatch(employee -> employee.getEmployeeId().equals(employeeErrorRequest.getEmployeeId()));
-
-            if (employeeIdExists) {
-                String existingId = employeeErrorRequest.getEmployeeId();
-                log.error("Employee ID already exists: {}", existingId);
-                throw new EmployeeException(
-                        String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), existingId),
-                        HttpStatus.CONFLICT
-                );
+            if (employeeEntities !=null && employeeEntities.size() > 0)  {
+                log.error("Employee ID already exist: {}", employeeIdRequest.getEmployeeId());
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS),employeeIdRequest.getEmployeeId()), HttpStatus.NOT_FOUND);
             }
-            log.info("Employee ID is available: {}", employeeErrorRequest.getEmployeeId());
+            log.info("Employee ID is null: {}", employeeIdRequest.getEmployeeId());
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
         }catch (EmployeeException exception){
