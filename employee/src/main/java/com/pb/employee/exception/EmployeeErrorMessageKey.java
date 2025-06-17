@@ -152,7 +152,7 @@ public enum EmployeeErrorMessageKey {
     CANDIDATE_NOT_FOUND("candidate.not.found"),
     UNABLE_DELETE_CANDIDATE("unable.delete.candidate"),
     EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY("expiry.date.cannot.be.before.today");
-    
+
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {
