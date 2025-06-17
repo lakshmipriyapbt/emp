@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,10 +90,15 @@ public class LoginServiceImpl implements LoginService {
             CandidateEntity candidate = openSearchOperations.getCandidateByEmailId(request.getUsername(), request.getCompany()) ;
             if (candidate != null) {
                 Long otp = generateOtp();
-                if (candidate.getExpiryDate() != null && Instant.now().isAfter(Instant.parse(candidate.getExpiryDate()))) {
-                    log.error("Candidate is not active");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.CANDIDATE_INACTIVE),
-                            HttpStatus.FORBIDDEN);
+                if (candidate.getExpiryDate() != null) {
+                    LocalDate expiryDate = LocalDate.parse(candidate.getExpiryDate(), DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+                    LocalDate today = LocalDate.now();
+
+                    if (today.isAfter(expiryDate)) {
+                        log.error("Candidate is not active");
+                        throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.CANDIDATE_INACTIVE),
+                                HttpStatus.FORBIDDEN);
+                    }
                 }
                 CompletableFuture.runAsync(() -> {
                     try {
@@ -104,8 +111,7 @@ public class LoginServiceImpl implements LoginService {
                 List<String> roles = new ArrayList<>();
                 openSearchOperations.saveOtpToCandidate(candidate, otp, request.getCompany());
                 roles.add(candidate.getType());
-                JwtTokenUtil.generateEmployeeToken(candidate.getId(), roles, request.getCompany(), request.getUsername());
-
+                token = JwtTokenUtil.generateEmployeeToken(candidate.getId(), roles, request.getCompany(), request.getUsername());
 
             } else {
                 log.error("Invalid credentials");
@@ -237,82 +243,85 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public ResponseEntity<?> validateCompanyOtp(OTPRequest request) throws IdentityException {
-        EmployeeEntity user = null;
-        UserEntity userEntity=null;
         try {
-            userEntity = openSearchOperations.getUserById(request.getUsername(),request.getCompany());
-
-            if (userEntity == null) {
-                user = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
-
-                if (user==null) {
-                    log.debug("checking the user details..");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
-                            HttpStatus.NOT_FOUND);
-                }
+            // 1. Try UserEntity
+            UserEntity userEntity = openSearchOperations.getUserById(request.getUsername(), request.getCompany());
+            if (userEntity != null) {
+                validateOtpForUser(userEntity, request);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
             }
-            if (userEntity != null && userEntity.getOtp() != null) {
-                Long otp = userEntity.getOtp();
-                long currentTime = Instant.now().getEpochSecond();
-                log.debug("the user found checking the otp..");
 
-                Long userOtp = Long.valueOf(request.getOtp());
-                if (!userOtp.equals(otp)) {
-                    log.error("Invalid OTP for user.. ");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
-                            HttpStatus.FORBIDDEN);
-                }
-
-                if (currentTime > userEntity.getExpiryTime()) {
-                    log.error("OTP expired for user..." );
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
-                            HttpStatus.FORBIDDEN);
-                }
-                // Clear OTP and expiry time
-                userEntity.setOtp(null);
-                userEntity.setExpiryTime(null);
-
-                openSearchOperations.updateUser(userEntity,request.getCompany());
-
+            // 2. Try EmployeeEntity
+            EmployeeEntity employee = openSearchOperations.getEmployeeById(request.getUsername(), request.getCompany());
+            if (employee != null) {
+                validateOtpForEmployee(employee, request);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
             }
-            else if (user != null && user.getOtp() != null) {
-                Long otp = user.getOtp();
-                long currentTime = Instant.now().getEpochSecond();
-                log.debug("the user found checking the otp..");
 
-                Long userOtp = Long.valueOf(request.getOtp());
-                if (!userOtp.equals(otp)) {
-                    log.error("Invalid OTP for user.. ");
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
-                            HttpStatus.FORBIDDEN);
-                }
-
-                if (currentTime > user.getExpiryTime()) {
-                    log.error("OTP expired for user..." );
-                    throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
-                            HttpStatus.FORBIDDEN);
-                }
-                // Clear OTP and expiry time
-                user.setOtp(null);
-                user.setExpiryTime(null);
-                openSearchOperations.updateEmployee(user,request.getCompany());
-
-
+            // 3. Try CandidateEntity
+            CandidateEntity candidate = openSearchOperations.getCandidateByEmailId(request.getUsername(), request.getCompany());
+            if (candidate != null) {
+                validateOtpForCandidate(candidate, request);
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
             }
-            else {
-                log.error("Invalid credentials for user..");
-                throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
-                        HttpStatus.FORBIDDEN);
-            }
+
+            // If all are null
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.USER_NOT_FOUND),
+                    HttpStatus.NOT_FOUND);
+
         } catch (IdentityException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error validating OTP for user.." ,e.getMessage(), e);
+            log.error("Error validating OTP for user: {}", e.getMessage(), e);
             throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_CREDENTIALS),
                     HttpStatus.FORBIDDEN);
         }
-        return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+    }
+
+    private void validateOtpForUser(UserEntity userEntity, OTPRequest request) throws IdentityException, IOException {
+        checkOtp(userEntity.getOtp(), request.getOtp(), userEntity.getExpiryTime());
+        userEntity.setOtp(null);
+        userEntity.setExpiryTime(null);
+        openSearchOperations.updateUser(userEntity, request.getCompany());
+    }
+
+    private void validateOtpForEmployee(EmployeeEntity employee, OTPRequest request) throws IdentityException, IOException {
+        checkOtp(employee.getOtp(), request.getOtp(), employee.getExpiryTime());
+        employee.setOtp(null);
+        employee.setExpiryTime(null);
+        openSearchOperations.updateEmployee(employee, request.getCompany());
+    }
+
+    private void validateOtpForCandidate(CandidateEntity candidate, OTPRequest request) throws IdentityException {
+
+        String index = Constants.INDEX_EMS+"_"+request.getCompany();
+        checkOtp(candidate.getOtp(), request.getOtp(), candidate.getExpiryTime());
+        candidate.setOtp(null);
+        candidate.setExpiryTime(null);
+        openSearchOperations.saveEntity(candidate, candidate.getId(), index);
+    }
+
+
+    private void checkOtp(Long expectedOtp, String providedOtpStr, Long expiryTime) throws IdentityException {
+        if (expectedOtp == null || providedOtpStr == null) {
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                    HttpStatus.FORBIDDEN);
+        }
+
+        Long providedOtp = Long.valueOf(providedOtpStr);
+        if (!providedOtp.equals(expectedOtp)) {
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.INVALID_OTP),
+                    HttpStatus.FORBIDDEN);
+        }
+
+        long currentTime = Instant.now().getEpochSecond();
+        if (expiryTime != null && currentTime > expiryTime) {
+            throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.OTP_EXPIRED),
+                    HttpStatus.FORBIDDEN);
+        }
     }
 
     private Long generateOtp() {
