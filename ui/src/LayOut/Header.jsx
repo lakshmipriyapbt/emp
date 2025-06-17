@@ -13,8 +13,8 @@ const Header = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const {company,employee,authUser} = useAuth();
-  console.log("authUser******",authUser)
-  console.log("employee*****",employee);
+  console.log("company",company);
+  console.log("employee",employee);
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -83,13 +83,14 @@ useEffect(() => {
   
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" || companyName) {
+    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" ||companyName) {
       navigate(`/${companyName}/login`, { replace: true });
-    } else {
+    } else if(role === "candidate") {
+      navigate(`/${companyName}/candidateLogin`, { replace: true });
+    }else {
       navigate("/", { replace: true });
     }
   };
-  
   const closeModal = () => {
     setShowErrorModal(false);
     navigate("/");
@@ -244,6 +245,32 @@ useEffect(() => {
                 </div>
               )}
             </li>
+          )}
+            {roles.includes("candidate") && (
+            <>
+             <span className="mt-3">{employee?.firstName} {employee?.lastName}</span>
+            <li className="nav-item">
+              <a
+                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                href
+                onClick={toggleProfile}
+              >
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+              </a>
+              {isProfileOpen && (
+                <div
+                  className="dropdown-menu dropdown-menu-end py-0 show"
+                  aria-labelledby="profileDropdown"
+                  style={{ left: "auto", right: "3%" }}
+                >
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                    Logout
+                  </a>
+                </div>
+              )}
+            </li>
+            </>
           )}
         </ul>
       </div>
