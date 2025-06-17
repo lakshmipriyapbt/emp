@@ -8,11 +8,13 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 
 const Header = ({ toggleSidebar }) => {
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const {company,employee,authUser} = useAuth();
   console.log("authUser******",authUser)
+  console.log("employee*****",employee);
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -64,6 +66,12 @@ const Header = ({ toggleSidebar }) => {
     };
   }, []);
 
+useEffect(() => {
+  if (employee?.photoUrl) {
+    setProfilePhoto(employee.photoUrl);
+  }
+}, [employee]);
+
   const handleLogOut = () => {
     const role = userRole?.[0];
     const companyName = localStorage.getItem("companyName");
@@ -89,6 +97,26 @@ const Header = ({ toggleSidebar }) => {
 
   const handleResetPasswordClick = () => {
     setShowResetPasswordModal(true);
+  };
+
+  // Function to render profile icon or photo
+  const renderProfileImage = () => {
+    if (profilePhoto) {
+      return (
+        <img 
+          src={profilePhoto} 
+          alt="Profile" 
+          className="rounded-circle"
+          style={{
+            width: "30px",
+            height: "30px",
+            objectFit: "cover",
+            border: "1px solid #dee2e6"
+          }}
+        />
+      );
+    }
+    return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
   };
 
   return (
@@ -163,7 +191,7 @@ const Header = ({ toggleSidebar }) => {
                 onClick={toggleProfile}
               >
                 <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
-                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+                {renderProfileImage()}
               </a>
               {isProfileOpen && (
                 <div
