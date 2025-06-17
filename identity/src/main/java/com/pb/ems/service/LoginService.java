@@ -24,4 +24,6 @@ public interface LoginService {
     ResponseEntity<?> forgotPassword(EmployeePasswordRequest loginRequest) throws IdentityException;
 
     ResponseEntity<?> updatePasswordForForgot(@Valid EmployeePasswordforgot otpRequest) throws IdentityException;
+
+    ResponseEntity<?> resendOtp(ResendOtpRequest request) throws IdentityException;
 }

@@ -330,5 +330,12 @@ export const NAV_CONFIG = {
             path: '/employeePayslip',
             icon: 'wallet2'
         }
-    ]
+    ],
+    candidate: [
+        {
+            title: 'Documents',
+            path: '/documentUpload',
+            icon: 'upload', // 📤
+        }
+    ],
 };

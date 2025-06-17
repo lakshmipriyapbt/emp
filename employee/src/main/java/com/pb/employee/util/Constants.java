@@ -201,4 +201,5 @@ public class Constants {
     public static final String REJECTED = "rejected";
     public static final String INACTIVE = "inactive";
     public static final String CANDIDATE = "candidate";
+    public static final String EXPERIENCE = "experience";
 }

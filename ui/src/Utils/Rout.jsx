@@ -91,7 +91,8 @@ import CandidateRegistration from '../CompanyModule/Candidate/CandidateRegistrat
 import CandidatesView from '../CompanyModule/Candidate/CandidatesView';
 import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumentUpload';
 import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
-import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
+import CandidateLogin from '../Login/CandidateLogin';
+// import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -175,6 +176,8 @@ export const allAvailableRoutes = [
   {path: '/candidatesView', allowedTypes: ['company_admin', 'Admin','HR'] },
   {path: '/candidateDocumentUpload', allowedTypes: ['company_admin', 'Admin','HR'] },
   {path: '/uploadSuccess', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/candidateDashboard', allowedTypes: ['candidate'] },
+  {path: '/documentUpload', allowedTypes: ['candidate'] },
 ];
 
 const Routing = () => {
@@ -183,6 +186,7 @@ const Routing = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path='/:company/candidateLogin' element={<CandidateLogin/>}/>
       <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
@@ -467,12 +471,10 @@ const Routing = () => {
         path="/invoicePdf"
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
-      <Route
+      {/* <Route
         path="/invoiceTemplates"
         element={<ProtectedRoute element={<InvoiceTemplates/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
-      />
-
-
+      /> */}
       {/* employee & Accountant shared routes */}
       <Route
         path="/employeePayslip"
