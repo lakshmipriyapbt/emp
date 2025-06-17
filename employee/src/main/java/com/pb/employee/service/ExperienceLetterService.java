@@ -17,5 +17,5 @@ public interface ExperienceLetterService {
 
     Collection<ExperienceEntity> getExperienceLetter(String companyName, String employeeId) throws EmployeeException;
 
-    ResponseEntity<?> updateExperienceById(String companyName, String employeeId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException;
+    ResponseEntity<?> updateExperienceById(String employeeId, ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException;
 }

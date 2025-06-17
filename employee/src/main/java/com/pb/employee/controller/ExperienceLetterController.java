@@ -54,19 +54,18 @@ public class ExperienceLetterController {
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(experienceEntities), HttpStatus.OK);
     }
 
- @RequestMapping(value = "/{companyName}/employee/{employeeId}/experience", method = RequestMethod.PATCH)
- @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-         summary = "${api.updateExperienceLetterByEmployeeId.tag}", description = "${api.updateExperienceLetterByEmployeeId.description}")
- @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
- public ResponseEntity<?> updateExperienceByEmployeeId(
-         @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-         @RequestHeader(Constants.AUTH_KEY) String authToken,
-         @PathVariable String companyName,
-         @PathVariable String employeeId,
-         @Valid @RequestBody ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException {
+    @PatchMapping(value = "/employee/{employeeId}/experience")
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.updateExperienceLetterByEmployeeId.tag}", description = "${api.updateExperienceLetterByEmployeeId.description}")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<?> updateExperienceByEmployeeId(
+            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+            @RequestHeader(Constants.AUTH_KEY) String authToken,
+            @PathVariable String employeeId,
+            @Valid @RequestBody ExperienceLetterFieldsUpdateRequest experienceLetterFieldsUpdateRequest) throws EmployeeException, IOException {
 
-     return serviceLetterService.updateExperienceById(companyName, employeeId, experienceLetterFieldsUpdateRequest);
- }
+        return serviceLetterService.updateExperienceById(employeeId, experienceLetterFieldsUpdateRequest);
+    }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
