@@ -10,6 +10,7 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
+import com.pb.employee.request.EmployeeErrorRequest;
 import com.pb.employee.request.EmployeeExperience;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
@@ -678,5 +679,40 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
         }
         return emptyNames.toArray(new String[0]);
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeId(String companyName, EmployeeErrorRequest employeeErrorRequest) throws IOException, EmployeeException {
+
+        log.info("Getting employee ID for company: {}", companyName);
+        try {
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company not found: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployees(companyName);
+
+            boolean employeeIdExists = employeeEntities.stream()
+                    .anyMatch(employee -> employee.getEmployeeId().equals(employeeErrorRequest.getEmployeeId()));
+
+            if (employeeIdExists) {
+                String existingId = employeeErrorRequest.getEmployeeId();
+                log.error("Employee ID already exists: {}", existingId);
+                throw new EmployeeException(
+                        String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), existingId),
+                        HttpStatus.CONFLICT
+                );
+            }
+            log.info("Employee ID is available: {}", employeeErrorRequest.getEmployeeId());
+            return new ResponseEntity<>(
+                    ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        }catch (EmployeeException exception){
+            log.error("Exception while fetching employee ID: {}", exception.getMessage());
+            throw exception;
+        } catch (Exception e) {
+            log.error("An unexpected error occurred: {}", e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
