@@ -140,14 +140,7 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
 
             try {
                 String Id = ResourceIdUtils.generateAppraisalResourceId(appraisalLetterRequest.getDateOfSalaryIncrement());
-                AppraisalEntity appraisalEntity = objectMapper.convertValue(appraisalLetterRequest, AppraisalEntity.class);
-
-                appraisalEntity.setId(Id);
-                appraisalEntity.setCompanyId(appraisalLetterRequest.getCompanyId());
-                appraisalEntity.setType(ResourceType.APPRAISAL.value());
-                appraisalEntity.setEmployeeId(appraisalLetterRequest.getEmployeeId());
-                appraisalEntity.setGrossCompensation(Base64.getEncoder().encodeToString(appraisalLetterRequest.getGrossCompensation().getBytes(StandardCharsets.UTF_8)));
-                appraisalEntity.setSalaryHikePersentage(Base64.getEncoder().encodeToString(appraisalLetterRequest.getSalaryHikePersentage().getBytes(StandardCharsets.UTF_8)));
+                AppraisalEntity appraisalEntity = EmployeeUtils.maskAppraisalProperties(appraisalLetterRequest,Id,appraisalLetterRequest.getCompanyId(),appraisalLetterRequest.getEmployeeId());
 
                 appraisalDao.save(appraisalEntity,entity.getShortName());
                 log.info("Saved AppraisalEntity: {}", Id);
@@ -216,23 +209,20 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.APPRAISAL_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
             // Unmask the existing appraisal properties
-             String existingGrossCompensation = new String(Base64.getDecoder().decode(existingAppraisal.getGrossCompensation()), StandardCharsets.UTF_8);
-             String existingSalaryHikePercentage = new String(Base64.getDecoder().decode(existingAppraisal.getSalaryHikePersentage()), StandardCharsets.UTF_8);
+            existingAppraisal = EmployeeUtils.unmaskAppraisalProperties(existingAppraisal);
             // checking the update the fields done or not checking from db
             if (appraisalUpdateRequest.getDateOfSalaryIncrement().equals(existingAppraisal.getDateOfSalaryIncrement()) &&
-                    appraisalUpdateRequest.getSalaryHikePersentage().equals(existingSalaryHikePercentage) &&
-                    appraisalUpdateRequest.getGrossCompensation().equals(existingGrossCompensation) &&
+                    appraisalUpdateRequest.getSalaryHikePersentage().equals(existingAppraisal.getGrossCompensation()) &&
+                    appraisalUpdateRequest.getGrossCompensation().equals(existingAppraisal.getSalaryHikePersentage()) &&
                     appraisalUpdateRequest.getDate().equals(existingAppraisal.getDate())) {
                 log.error("No changes done in the appraisal letter for employeeId {} in company {}", employeeId, companyId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_UPDATE_DONE_IN_APPRAISAL), HttpStatus.NOT_MODIFIED);
             }
-
+            appraisalUpdateRequest = EmployeeUtils.maskAppraisalUpdateProperties(appraisalUpdateRequest);
             AppraisalEntity updatedAppraisal = objectMapper.convertValue(appraisalUpdateRequest, AppraisalEntity.class);
-            updatedAppraisal.setGrossCompensation(Base64.getEncoder().encodeToString(appraisalUpdateRequest.getGrossCompensation().getBytes(StandardCharsets.UTF_8)));
-            updatedAppraisal.setSalaryHikePersentage(Base64.getEncoder().encodeToString(appraisalUpdateRequest.getSalaryHikePersentage().getBytes(StandardCharsets.UTF_8)));
             BeanUtils.copyProperties(updatedAppraisal,existingAppraisal, getNullPropertyNames(updatedAppraisal));
             appraisalDao.update(existingAppraisal, entity.getShortName());
-            log.info("Updated AppraisalEntity: {}", updatedAppraisal.getId());
+            log.info("Updated AppraisalEntity");
 
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
         }catch (EmployeeException employeeException) {
@@ -294,7 +284,7 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
         }
     }
 
-    private String[] getNullPropertyNames(Object source) {
+    private static String[] getNullPropertyNames(Object source) {
         final BeanWrapper src = new BeanWrapperImpl(source);
         Set<String> emptyNames = new HashSet<>();
         for (var pd : src.getPropertyDescriptors()) {
@@ -305,4 +295,5 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
         }
         return emptyNames.toArray(new String[0]);
     }
+
 }

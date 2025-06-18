@@ -31,6 +31,7 @@ public enum ResourceType {
     COMPANY_TDS("company_tds"),
     CANDIDATE("candidate"),
     EXPERIENCE("experience"),
+    DOCUMENT("document"),
     APPRAISAL("appraisal");
 
 
