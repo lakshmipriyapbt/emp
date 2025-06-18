@@ -201,4 +201,9 @@ public class Constants {
     public static final String REJECTED = "rejected";
     public static final String INACTIVE = "inactive";
     public static final String CANDIDATE = "candidate";
+    public static final String FILE_PDF = "application/pdf";
+    public static final String FILE_DOC = "application/msword";
+    public static final String FILE_DOCX="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    public static final String DOCUMENT = "document";
+    public static final String CANDIDATE_ID="candidateId";
 }

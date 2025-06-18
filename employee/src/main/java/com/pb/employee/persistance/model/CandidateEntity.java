@@ -14,7 +14,6 @@ import java.util.List;
 public class CandidateEntity extends AbstractEntity {
 
     private String companyId;
-    private String candidateId;
     private String firstName;
     private String lastName;
     private String emailId;

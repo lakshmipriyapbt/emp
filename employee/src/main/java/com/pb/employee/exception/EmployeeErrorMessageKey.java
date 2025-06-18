@@ -151,8 +151,16 @@ public enum EmployeeErrorMessageKey {
     CANDIDATE_ID_ALREADY_EXISTS("candidate.id.already.exist"),
     CANDIDATE_NOT_FOUND("candidate.not.found"),
     UNABLE_DELETE_CANDIDATE("unable.delete.candidate"),
-    EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY("expiry.date.cannot.be.before.today");
-    
+    EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY("expiry.date.cannot.be.before.today"),
+    FILES_OR_DOC_NAMES_EMPTY ("files.or.doc.names.empty"),
+    FILES_AND_DOC_NAMES_SIZE_MISMATCH ("files.and.doc.names.size.mismatch"),
+    FILE_IS_EMPTY ("file.is.empty"),
+    INVALID_FILE_TYPE ("invalid.file.type"),
+    DOCUMENT_FOLDER_NOT_FOUND("document.folder.not.found"),
+    NO_DOCUMENTS_FOUND("no.documents.found"),
+    FAILED_TO_FETCH_DOCUMENTS("failed.to.fetch.documents"),
+    FAILED_TO_DELETE_DOCUMENTS("failed.to.delete.documents");
+
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {

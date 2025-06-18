@@ -32,5 +32,6 @@ public class DocumentType {
     public static final DocumentType COMPANY_TDS = new DocumentType("company_tds", TDSEntity.class);
     public static final DocumentType USER = new DocumentType("user", UserEntity.class);
     public static final DocumentType CANDIDATE = new DocumentType("candidate" , CandidateEntity.class);
+    public static final DocumentType DOCUMENT = new DocumentType("document" , EmployeeDocumentEntity.class);
 
 }
