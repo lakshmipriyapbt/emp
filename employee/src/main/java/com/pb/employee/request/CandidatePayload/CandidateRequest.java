@@ -20,11 +20,6 @@ public class CandidateRequest {
     @Size(min = 2, max = 30, message = "{size.message}")
     private String companyName;
 
-    @Schema(example = "candidateId")
-    @Size(min = 2, max = 20, message = "{candidate.size.message}")
-    @Pattern(regexp = "^[A-Z0-9]+$", message = "{candidateId.format}")
-    private String candidateId;
-
     @Schema(example = "firstName")
     @Pattern(regexp ="^(?:[A-Z]{2,}(?:\\s[A-Z][a-z]+)*|[A-Z][a-z]+(?:\\s[A-Z][a-z]+)*|[A-Z]+(?:\\s[A-Z]+)*)$", message = "{firstname.format}")
     private String firstName;
