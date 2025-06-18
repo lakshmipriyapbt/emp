@@ -4,20 +4,20 @@ import { toast } from 'react-toastify';
 import { useForm, Controller } from 'react-hook-form';
 import LayOut from '../../LayOut/LayOut';
 import { Link } from 'react-router-dom';
-import { 
-  Upload as FiUpload, 
-  X as FiX, 
-  Plus as FiPlus, 
-  Trash as FiTrash2, 
-  File as FiFile,
-  FileEarmarkPdf as FiFilePdf,
-  FileEarmarkWord as FiFileWord,
-  FileEarmarkImage as FiFileImage,
-  ChevronDown,
-  ChevronUp,
-  CheckCircleFill,
-  InfoCircle,
-  ExclamationTriangle
+import {
+    Upload as FiUpload,
+    X as FiX,
+    Plus as FiPlus,
+    Trash as FiTrash2,
+    File as FiFile,
+    FileEarmarkPdf as FiFilePdf,
+    FileEarmarkWord as FiFileWord,
+    FileEarmarkImage as FiFileImage,
+    ChevronDown,
+    ChevronUp,
+    CheckCircleFill,
+    InfoCircle,
+    ExclamationTriangle
 } from 'react-bootstrap-icons';
 
 const CandidateDocumentUpload = () => {
@@ -72,29 +72,40 @@ const CandidateDocumentUpload = () => {
     useEffect(() => {
         const checkSectionCompletion = () => {
             const basicCompleted = !!formValues.resume && !!formValues.idProof;
-            
+
             const educationCompleted = educationQualifications.every(qual => {
                 if (!qual.required) return true;
-                return !!formValues.education?.[qual.id]?.file;
+                return !!formValues.education?.[qual.id]?.file && !errors.education?.[qual.id]?.file;
             });
-            
-            const experienceCompleted = 
-                !formValues.experience?.length || 
-                formValues.experience.every(exp => exp.company && exp.file);
-            
-            setCompletedSections(prev => {
-                const newState = {
-                    basic: basicCompleted,
-                    education: educationCompleted,
-                    experience: experienceCompleted
-                };
-                return JSON.stringify(prev) === JSON.stringify(newState) ? prev : newState;
+
+            const experienceCompleted = (() => {
+                // If no experience entries, section is complete
+                if (!formValues.experience || formValues.experience.length === 0) return true;
+
+                // Check each experience entry
+                return formValues.experience.every((exp, idx) => {
+                    const hasCompany = exp.company?.trim();
+                    const hasFile = exp.file;
+
+                    // Both must be present or both must be absent
+                    if ((hasCompany && hasFile) || (!hasCompany && !hasFile)) {
+                        return !errors.experience?.[idx]?.company && !errors.experience?.[idx]?.file;
+                    }
+                    return false;
+                });
+            })();
+
+            setCompletedSections({
+                basic: basicCompleted,
+                education: educationCompleted,
+                experience: experienceCompleted
             });
         };
 
         const subscription = watch(checkSectionCompletion);
         return () => subscription.unsubscribe();
-    }, [educationQualifications]);
+    }, [watch, errors]);
+
 
     const validateFile = (file, isRequired = true, fieldName = '', maxSizeMB = 5) => {
         if (isRequired && !file) return `${fieldName} is required`;
@@ -152,10 +163,11 @@ const CandidateDocumentUpload = () => {
         currentExperience[index][field] = value;
         setValue("experience", currentExperience);
 
-        if (field === 'company' && value && !currentExperience[index].file) {
-            await trigger(`experience.${index}.file`);
-        } else if (field === 'file' && value && !currentExperience[index].company) {
+        // Trigger validation for the opposite field only if needed
+        if (field === 'company' && getValues(`experience.${index}.file`)) {
             await trigger(`experience.${index}.company`);
+        } else if (field === 'file' && getValues(`experience.${index}.company`)?.trim()) {
+            await trigger(`experience.${index}.file`);
         }
     };
 
@@ -209,7 +221,6 @@ const CandidateDocumentUpload = () => {
             setIsSubmitting(false);
         }
     };
-
     const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false }) => {
         const [previewUrl, setPreviewUrl] = useState(null);
         const [showFullPreview, setShowFullPreview] = useState(false);
@@ -233,15 +244,15 @@ const CandidateDocumentUpload = () => {
         if (thumbnail) {
             return (
                 <>
-                    <div 
-                        className="thumbnail-preview" 
+                    <div
+                        className="thumbnail-preview"
                         onClick={() => setShowFullPreview(true)}
                         style={{ cursor: 'pointer' }}
                     >
                         {isImage && previewUrl ? (
-                            <img 
-                                src={previewUrl} 
-                                alt="Thumbnail" 
+                            <img
+                                src={previewUrl}
+                                alt="Thumbnail"
                                 className="img-thumbnail"
                                 style={{
                                     width: "60px",
@@ -250,46 +261,54 @@ const CandidateDocumentUpload = () => {
                                 }}
                             />
                         ) : (
-                            <div className="file-thumbnail d-flex align-items-center justify-content-center bg-light rounded">
-                                <FiFile size={24} className="text-primary" />
+                            <div className="file-thumbnail d-flex flex-column align-items-center justify-content-center bg-light rounded p-1">
+                                {isPDF ? (
+                                    <FiFilePdf size={24} className="text-danger" />
+                                ) : file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
+                                    <FiFileWord size={24} className="text-primary" />
+                                ) : (
+                                    <FiFile size={24} className="text-primary" />
+                                )}
+                                <small className="text-truncate mt-1" style={{ maxWidth: '60px' }}>
+                                    {file.name.split('.')[0].substring(0, 6)}...
+                                </small>
                             </div>
                         )}
                     </div>
-
                     {showFullPreview && (
                         <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                             <div className="modal-dialog modal-lg modal-dialog-centered">
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title">{file.name}</h5>
-                                        <button 
-                                            type="button" 
-                                            className="btn-close" 
+                                        <button
+                                            type="button"
+                                            className="btn-close"
                                             onClick={() => setShowFullPreview(false)}
                                             aria-label="Close"
                                         ></button>
                                     </div>
                                     <div className="modal-body text-center">
                                         {isImage ? (
-                                            <img 
-                                                src={previewUrl} 
-                                                alt="Full Preview" 
+                                            <img
+                                                src={previewUrl}
+                                                alt="Full Preview"
                                                 className="img-fluid"
                                                 style={{ maxHeight: '70vh' }}
                                             />
                                         ) : isPDF ? (
-                                            <embed 
-                                                src={previewUrl} 
-                                                type="application/pdf" 
-                                                width="100%" 
+                                            <embed
+                                                src={previewUrl}
+                                                type="application/pdf"
+                                                width="100%"
                                                 height="600px"
                                             />
                                         ) : (
                                             <div className="d-flex flex-column align-items-center justify-content-center p-5">
                                                 <FiFile size={48} className="text-muted mb-3" />
                                                 <p>No preview available for this file type</p>
-                                                <a 
-                                                    href={previewUrl} 
+                                                <a
+                                                    href={previewUrl}
                                                     download={file.name}
                                                     className="btn btn-primary mt-2"
                                                 >
@@ -299,15 +318,15 @@ const CandidateDocumentUpload = () => {
                                         )}
                                     </div>
                                     <div className="modal-footer">
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-secondary" 
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
                                             onClick={() => setShowFullPreview(false)}
                                         >
                                             Close
                                         </button>
-                                        <a 
-                                            href={previewUrl} 
+                                        <a
+                                            href={previewUrl}
                                             download={file.name}
                                             className="btn btn-primary"
                                         >
@@ -326,9 +345,9 @@ const CandidateDocumentUpload = () => {
             <div className="file-preview-container">
                 {isImage && previewUrl ? (
                     <div className="image-preview-wrapper">
-                        <img 
-                            src={previewUrl} 
-                            alt="Preview" 
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
                             className="img-thumbnail"
                             style={{
                                 width: "150px",
@@ -343,8 +362,8 @@ const CandidateDocumentUpload = () => {
                             </div>
                         </div>
                         {showRemove && (
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
                                 onClick={() => {
                                     setValue(fieldName, null);
@@ -372,8 +391,8 @@ const CandidateDocumentUpload = () => {
                                 </div>
                             </div>
                             {showRemove && (
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className="btn btn-sm btn-link text-danger ms-2"
                                     onClick={() => {
                                         setValue(fieldName, null);
@@ -395,12 +414,12 @@ const CandidateDocumentUpload = () => {
         const file = getValues(fieldName);
         const fileInputRef = useRef(null);
         const isImageField = accept.includes('.png') || accept.includes('.jpg') || accept.includes('.jpeg');
-        
+
         const handleClick = (e) => {
             e.stopPropagation();
             fileInputRef.current?.click();
         };
-        
+
         const handleFileChange = useCallback((e) => {
             if (e.target.files && e.target.files[0]) {
                 const file = e.target.files[0];
@@ -411,13 +430,13 @@ const CandidateDocumentUpload = () => {
 
         return (
             <div className="row g-3 align-items-center">
-                <div className="col-md-8">
+                <div className="col-md-6">
                     <label className="form-label d-block fw-medium">
                         {label} {required && <span className="text-danger">*</span>}
                     </label>
                     {description && <p className="text-muted small mb-2">{description}</p>}
                     {!file ? (
-                        <div 
+                        <div
                             className={`drag-drop-area ${dragActive ? 'drag-active' : ''} ${errors[fieldName] ? 'is-invalid' : ''}`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
@@ -454,13 +473,13 @@ const CandidateDocumentUpload = () => {
                                 accept={accept}
                                 onChange={handleFileChange}
                             />
-                            <label 
-                                htmlFor={fieldName} 
+                            <label
+                                htmlFor={fieldName}
                                 className="btn btn-sm btn-outline-primary me-2"
                             >
                                 <FiUpload className="me-1" /> Change File
                             </label>
-                            <button 
+                            <button
                                 onClick={() => {
                                     setValue(fieldName, null);
                                     trigger(fieldName);
@@ -478,8 +497,8 @@ const CandidateDocumentUpload = () => {
                 <div className="col-md-4">
                     {file && (
                         <div className="d-flex justify-content-center">
-                            <FilePreview 
-                                file={file} 
+                            <FilePreview
+                                file={file}
                                 fieldName={fieldName}
                                 onRemove={() => {
                                     setValue(fieldName, null);
@@ -494,10 +513,11 @@ const CandidateDocumentUpload = () => {
         );
     };
 
+
     const ExperienceFileUpload = ({ index }) => {
         const fileInputRef = useRef(null);
         const file = getValues(`experience.${index}.file`);
-        
+
         const handleClick = () => {
             fileInputRef.current.click();
         };
@@ -505,51 +525,70 @@ const CandidateDocumentUpload = () => {
         return (
             <div className="row g-3 align-items-center">
                 <div className="col-md-6">
-                    <div 
-                        className="drag-drop-area small" 
-                        onClick={handleClick} 
-                        style={{ cursor: 'pointer' }}
-                        aria-describedby={`experience-${index}-file-help`}
-                    >
-                        {!file ? (
-                            <>
-                                <FiUpload className="upload-icon mb-2" size={18} />
-                                <p className="mb-1">
-                                    <span className="text-primary">Click to upload</span> or drag and drop
-                                </p>
-                                <small className="text-muted">
-                                    PDF, DOC, DOCX (Max 5MB)
-                                </small>
-                                <input
-                                    type="file"
-                                    className="d-none"
-                                    ref={fileInputRef}
-                                    accept=".pdf,.doc,.docx"
-                                    onChange={(e) => {
-                                        setValue(`experience.${index}.file`, e.target.files[0]);
-                                        handleExperienceChange(index, 'file', e.target.files[0]);
-                                    }}
-                                    aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
-                                />
-                            </>
-                        ) : (
-                            <div className="text-center py-2">
-                                <FiUpload className="upload-icon mb-1" size={18} />
-                                <p className="mb-0 text-primary">Replace file</p>
+                    <div className="mb-2">
+                        <label className="form-label">Experience Letter</label>
+                    </div>
+                    <Controller
+                        name={`experience.${index}.file`}
+                        control={control}
+                        rules={{
+                            validate: (file) => {
+                                const company = getValues(`experience.${index}.company`)?.trim();
+                                if (file && !company) return true; // Let company field handle its own validation
+                                if (company && !file) return 'Experience certificate is required when company name is provided';
+                                return validateFile(file, false, 'Experience Certificate');
+                            }
+                        }}
+                        render={({ field }) => (
+                            <div
+                                className={`drag-drop-area small ${errors.experience?.[index]?.file ? 'is-invalid' : ''}`}
+                                onClick={handleClick}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                {!file ? (
+                                    <>
+                                        <FiUpload className="upload-icon mb-2" size={18} />
+                                        <p className="mb-1">
+                                            <span className="text-primary">Click to upload</span> or drag and drop
+                                        </p>
+                                        <small className="text-muted">
+                                            PDF, DOC, DOCX (Max 5MB)
+                                        </small>
+                                        <input
+                                            type="file"
+                                            className="d-none"
+                                            ref={fileInputRef}
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={(e) => {
+                                                field.onChange(e.target.files[0]);
+                                                handleExperienceChange(index, 'file', e.target.files[0]);
+                                            }}
+                                            aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="text-center py-2">
+                                        <FiUpload className="upload-icon mb-1" size={18} />
+                                        <p className="mb-0 text-primary">Replace file</p>
+                                    </div>
+                                )}
                             </div>
                         )}
-                    </div>
+                    />
                     {errors.experience?.[index]?.file && (
                         <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
                     )}
                 </div>
-                <div className="col-md-6">
+                <div className="col-md-4">
                     {file && (
-                        <FilePreview 
-                            file={file} 
-                            fieldName={`experience.${index}.file`}
-                            onRemove={() => handleExperienceChange(index, 'file', null)}
-                        />
+                        <div className="d-flex justify-content-center">
+                            <FilePreview
+                                file={file}
+                                fieldName={`experience.${index}.file`}
+                                onRemove={() => handleExperienceChange(index, 'file', null)}
+                                thumbnail={true}
+                            />
+                        </div>
                     )}
                 </div>
             </div>
@@ -559,17 +598,17 @@ const CandidateDocumentUpload = () => {
     const EducationFileUpload = ({ qualification }) => {
         const fileInputRef = useRef(null);
         const file = getValues(`education.${qualification.id}.file`);
-        
+
         const handleClick = () => {
             fileInputRef.current.click();
         };
 
         return (
             <div className="row g-3 align-items-center">
-                <div className="col-md-8">
-                    <div 
-                        className="drag-drop-area small" 
-                        onClick={handleClick} 
+                <div className="col-md-6">
+                    <div
+                        className="drag-drop-area small"
+                        onClick={handleClick}
                         style={{ cursor: 'pointer' }}
                         aria-describedby={`education-${qualification.id}-help`}
                     >
@@ -610,8 +649,8 @@ const CandidateDocumentUpload = () => {
                 <div className="col-md-4">
                     {file && (
                         <div className="d-flex justify-content-center">
-                            <FilePreview 
-                                file={file} 
+                            <FilePreview
+                                file={file}
                                 fieldName={`education.${qualification.id}.file`}
                                 onRemove={() => {
                                     setValue(`education.${qualification.id}.file`, null);
@@ -700,7 +739,7 @@ const CandidateDocumentUpload = () => {
                                                 <InfoCircle className="me-2" size={18} />
                                                 <small>Please upload clear scans of your documents. Make sure all text is readable.</small>
                                             </div>
-                                            
+
                                             <div className="row g-4">
                                                 <div className="col-12">
                                                     <Controller
@@ -710,7 +749,7 @@ const CandidateDocumentUpload = () => {
                                                             validate: (file) => validateFile(file, true, 'Resume/CV')
                                                         }}
                                                         render={({ field }) => (
-                                                            <DragDropArea 
+                                                            <DragDropArea
                                                                 fieldName="resume"
                                                                 label="Resume/CV"
                                                                 required
@@ -719,7 +758,7 @@ const CandidateDocumentUpload = () => {
                                                         )}
                                                     />
                                                 </div>
-                                                
+
                                                 <div className="col-12">
                                                     <Controller
                                                         name="idProof"
@@ -728,7 +767,7 @@ const CandidateDocumentUpload = () => {
                                                             validate: (file) => validateFile(file, true, 'ID Proof')
                                                         }}
                                                         render={({ field }) => (
-                                                            <DragDropArea 
+                                                            <DragDropArea
                                                                 fieldName="idProof"
                                                                 label="ID Proof"
                                                                 required
@@ -748,12 +787,12 @@ const CandidateDocumentUpload = () => {
                                                     <CheckCircleFill className="text-success ms-2" size={16} />
                                                 )}
                                             </div>
-                                            
+
                                             <div className="alert alert-warning d-flex align-items-center">
                                                 <ExclamationTriangle className="me-2" size={16} />
                                                 <small>Documents marked with <span className="text-danger">*</span> are mandatory</small>
                                             </div>
-                                            
+
                                             <div className="accordion" id="educationAccordion">
                                                 {educationQualifications.map((qualification) => (
                                                     <div key={qualification.id} className="accordion-item mb-2">
@@ -765,7 +804,7 @@ const CandidateDocumentUpload = () => {
                                                                 aria-expanded={expandedQualification === qualification.id}
                                                             >
                                                                 <span>
-                                                                    {qualification.name} 
+                                                                    {qualification.name}
                                                                     {qualification.required && <span className="text-danger ms-1">*</span>}
                                                                     {formValues.education?.[qualification.id]?.file && (
                                                                         <CheckCircleFill className="text-success ms-2" size={14} />
@@ -778,12 +817,12 @@ const CandidateDocumentUpload = () => {
                                                                 )}
                                                             </button>
                                                         </div>
-                                                        <div 
+                                                        <div
                                                             className={`accordion-collapse collapse ${expandedQualification === qualification.id ? 'show' : ''}`}
                                                         >
                                                             <div className="accordion-body p-3">
                                                                 <p className="text-muted small mb-3">{qualification.description}</p>
-                                                                <EducationFileUpload 
+                                                                <EducationFileUpload
                                                                     qualification={qualification}
                                                                 />
                                                             </div>
@@ -814,7 +853,7 @@ const CandidateDocumentUpload = () => {
                                                 </div>
                                                 <p className="text-muted small mb-0">Add your work experience documents (optional)</p>
                                             </div>
-                                            
+
                                             {(!formValues.experience || formValues.experience.length === 0) && (
                                                 <div className="alert alert-info mb-0 d-flex align-items-center">
                                                     <InfoCircle className="me-2" size={16} />
@@ -827,36 +866,42 @@ const CandidateDocumentUpload = () => {
                                                     <div className="card-body">
                                                         <div className="row g-3 align-items-end">
                                                             <div className="col-md-5">
-                                                                <label className="form-label">Company Name</label>
+                                                                <label className="form-label">
+                                                                    Company Name
+                                                                    {getValues(`experience.${index}.file`) && <span className="text-danger"> *</span>}
+                                                                </label>
                                                                 <input
                                                                     type="text"
-                                                                    className={`form-control ${errors.experience?.[index]?.company ? 'is-invalid' : ''}`}
+                                                                    className="form-control"
+                                                                    placeholder="Company name"
+                                                                    disabled={isSubmitting}
                                                                     {...register(`experience.${index}.company`, {
                                                                         validate: (value) => {
                                                                             const file = getValues(`experience.${index}.file`);
                                                                             if (file && !value?.trim()) {
                                                                                 return 'Company name is required when uploading experience letter';
                                                                             }
-                                                                            if (value?.trim() && !file) {
-                                                                                return true;
-                                                                            }
                                                                             return true;
                                                                         }
                                                                     })}
-                                                                    onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
-                                                                    placeholder="Company name"
-                                                                    disabled={isSubmitting}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value;
+                                                                        setValue(`experience.${index}.company`, value);
+                                                                        // Only trigger validation if we have a file
+                                                                        if (getValues(`experience.${index}.file`)) {
+                                                                            trigger(`experience.${index}.company`);
+                                                                        }
+                                                                    }}
                                                                 />
                                                                 {errors.experience?.[index]?.company && (
-                                                                    <div className="invalid-feedback">{errors.experience[index].company.message}</div>
+                                                                    <p className="errorMsg">{errors.experience[index].company.message}</p>
                                                                 )}
                                                             </div>
-                                                            
                                                             <div className="col-md-7">
                                                                 <ExperienceFileUpload index={index} />
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <div className="mt-3 text-end">
                                                             <button
                                                                 type="button"

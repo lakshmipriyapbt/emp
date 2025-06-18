@@ -133,11 +133,6 @@ const CandidatesView = () => {
       width: "45px",
     },
     {
-      name: <h6><b>Candidate ID</b></h6>,
-      selector: (row) => row.candidateId || "N/A",
-      width: "140px",
-    },
-    {
       name: <h6><b>Full Name</b></h6>,
       selector: (row) => (
         <div title={`${row.firstName || ""} ${row.lastName || ""}`}>

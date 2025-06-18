@@ -92,6 +92,7 @@ import CandidatesView from '../CompanyModule/Candidate/CandidatesView';
 import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumentUpload';
 import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
 import CandidateLogin from '../Login/CandidateLogin';
+import CandidateProfile from '../CompanyModule/Candidate/CandidateProfile';
 // import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
 
 export const allAvailableRoutes = [
@@ -174,10 +175,11 @@ export const allAvailableRoutes = [
   {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/candidateRegistration', allowedTypes: ['company_admin', 'Admin','HR'] },
   {path: '/candidatesView', allowedTypes: ['company_admin', 'Admin','HR'] },
-  {path: '/candidateDocumentUpload', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/candidateDocumentUpload', allowedTypes: ['company_admin', 'Admin','HR','candidate'] },
   {path: '/uploadSuccess', allowedTypes: ['company_admin', 'Admin','HR'] },
   {path: '/candidateDashboard', allowedTypes: ['candidate'] },
   {path: '/documentUpload', allowedTypes: ['candidate'] },
+  {path: '/candidateProfile', allowedTypes: ['candidate'] },
 ];
 
 const Routing = () => {
@@ -257,7 +259,7 @@ const Routing = () => {
       />
       <Route
         path="/candidateDocumentUpload"
-        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['company_admin', 'Admin','HR']} />}
+        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['company_admin', 'Admin','HR', 'candidate']} />}
       /> 
       <Route
         path="/uploadSuccess"
@@ -514,6 +516,10 @@ const Routing = () => {
       <Route
         path="/employeeList/:status"
         element={<ProtectedRoute element={<EmployeeList/>} allowedTypes={['company_admin', 'Admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/candidateProfile"
+        element={<ProtectedRoute element={<CandidateProfile/>} allowedTypes={['candidate']} />}
       />
     </Routes>
   );

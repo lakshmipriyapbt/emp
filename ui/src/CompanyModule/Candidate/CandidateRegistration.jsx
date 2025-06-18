@@ -130,7 +130,6 @@ const CandidateRegistration = () => {
         try {
             const payload = {
                 companyName: authUser.company,
-                candidateId: data.candidateId,
                 firstName: data.firstname,
                 lastName: data.lastname,
                 emailId: data.email,
@@ -277,32 +276,7 @@ const CandidateRegistration = () => {
                                                 <p className="errorMsg">{errors.lastname.message}</p>
                                             )}
                                         </div>
-                                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                                            <label className="form-label">
-                                                Candidate ID <span className="text-danger">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="candidateId"
-                                                autoComplete="off"
-                                                placeholder="Enter candidateId"
-                                                {...register("candidateId", {
-                                                    required: "candidateId is required",
-                                                    validate: (value) => noTrailingSpaces(value, true), // enforces min length
-                                                    maxLength: {
-                                                        value: 100,
-                                                        message: "Maximum 100 characters allowed"
-                                                    }
-                                                })}
-                                                onChange={(e) => handleInputChange(e, "candidateId")}
-                                                onKeyPress={(e) => preventInvalidInput(e, "alphanumeric")}
-                                            />
-                                            {errors.candidateId && (
-                                                <p className="errorMsg">{errors.candidateId.message}</p>
-                                            )}
-                                        </div>
-                                        <div className="col-lg-1"></div>
+                                        
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
                                                 Email <span className="text-danger">*</span>
@@ -328,6 +302,7 @@ const CandidateRegistration = () => {
                                                 <p className="errorMsg">{errors.email.message}</p>
                                             )}
                                         </div>
+                                        <div className="col-lg-1"></div>
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
                                                 Mobile Number <span className="text-danger">*</span>
@@ -359,7 +334,6 @@ const CandidateRegistration = () => {
                                                 <p className="errorMsg">{errors.mobileNo.message}</p>
                                             )}
                                         </div>
-                                        <div className="col-lg-1"></div>
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
                                                 Date of Registration <span className="text-danger">*</span>
@@ -376,6 +350,7 @@ const CandidateRegistration = () => {
                                                 <p className="errorMsg">{errors.dateOfHiring.message}</p>
                                             )}
                                         </div>
+                                        <div className="col-lg-1"></div>
                                         <div className="col-12 col-md-6 col-lg-5 mb-3">
                                             <label className="form-label">
                                                 Status <span style={{ color: "red" }}>*</span>
