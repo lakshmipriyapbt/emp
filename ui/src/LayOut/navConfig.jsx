@@ -333,14 +333,14 @@ export const NAV_CONFIG = {
     ],
     candidate: [
         {
-            title: 'Documents Upload',
-            path: '/candidateDocumentUpload',
-            icon: 'file-earmark-arrow-up' // Recommended
-        },
-        {
             title: 'Details',
             path: '/candidateProfile',
             icon: 'person-badge'
+        },
+        {
+            title: 'Documents Upload',
+            path: '/candidateDocumentUpload',
+            icon: 'file-earmark-arrow-up' // Recommended
         }
     ]
 };

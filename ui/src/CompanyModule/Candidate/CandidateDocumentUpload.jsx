@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -30,7 +31,19 @@ const CandidateDocumentUpload = () => {
     const [completedSections, setCompletedSections] = useState({
         basic: false,
         education: false,
-        experience: false
+        experience: true
+    });
+    const [touchedFields, setTouchedFields] = useState({
+        resume: false,
+        idProof: false,
+        education: {
+            tenth: false,
+            twelfth: false,
+            ug: false,
+            pg: false,
+            others: false
+        },
+        experience: []
     });
 
     const educationQualifications = [
@@ -72,26 +85,14 @@ const CandidateDocumentUpload = () => {
     useEffect(() => {
         const checkSectionCompletion = () => {
             const basicCompleted = !!formValues.resume && !!formValues.idProof;
-
             const educationCompleted = educationQualifications.every(qual => {
                 if (!qual.required) return true;
-                return !!formValues.education?.[qual.id]?.file && !errors.education?.[qual.id]?.file;
+                return !!formValues.education?.[qual.id]?.file;
             });
-
             const experienceCompleted = (() => {
-                // If no experience entries, section is complete
                 if (!formValues.experience || formValues.experience.length === 0) return true;
-
-                // Check each experience entry
-                return formValues.experience.every((exp, idx) => {
-                    const hasCompany = exp.company?.trim();
-                    const hasFile = exp.file;
-
-                    // Both must be present or both must be absent
-                    if ((hasCompany && hasFile) || (!hasCompany && !hasFile)) {
-                        return !errors.experience?.[idx]?.company && !errors.experience?.[idx]?.file;
-                    }
-                    return false;
+                return formValues.experience.every(exp => {
+                    return exp.company?.trim() && exp.file;
                 });
             })();
 
@@ -102,10 +103,11 @@ const CandidateDocumentUpload = () => {
             });
         };
 
-        const subscription = watch(checkSectionCompletion);
+        const subscription = watch(() => {
+            checkSectionCompletion();
+        });
         return () => subscription.unsubscribe();
-    }, [watch, errors]);
-
+    }, [watch, formValues]);
 
     const validateFile = (file, isRequired = true, fieldName = '', maxSizeMB = 5) => {
         if (isRequired && !file) return `${fieldName} is required`;
@@ -141,21 +143,33 @@ const CandidateDocumentUpload = () => {
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0];
             setValue(fieldName, file);
+            setTouchedFields(prev => ({
+                ...prev,
+                [fieldName]: true
+            }));
             trigger(fieldName);
         }
     };
 
-    const handleFileChange = (fieldName) => (e) => {
+    const handleFileChange = useCallback((e, fieldName) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setValue(fieldName, file);
+            setTouchedFields(prev => ({
+                ...prev,
+                [fieldName]: true
+            }));
             trigger(fieldName);
         }
-    };
+    }, [setValue, trigger]);
 
     const handleAddExperience = () => {
         const currentExperience = getValues("experience") || [];
         setValue("experience", [...currentExperience, { file: null, company: '' }]);
+        setTouchedFields(prev => ({
+            ...prev,
+            experience: [...prev.experience, false]
+        }));
     };
 
     const handleExperienceChange = async (index, field, value) => {
@@ -163,7 +177,15 @@ const CandidateDocumentUpload = () => {
         currentExperience[index][field] = value;
         setValue("experience", currentExperience);
 
-        // Trigger validation for the opposite field only if needed
+        // Mark the field as touched
+        if (field === 'company') {
+            setTouchedFields(prev => {
+                const newExperience = [...prev.experience];
+                newExperience[index] = true;
+                return { ...prev, experience: newExperience };
+            });
+        }
+
         if (field === 'company' && getValues(`experience.${index}.file`)) {
             await trigger(`experience.${index}.company`);
         } else if (field === 'file' && getValues(`experience.${index}.company`)?.trim()) {
@@ -175,27 +197,36 @@ const CandidateDocumentUpload = () => {
         const currentExperience = [...getValues("experience")];
         currentExperience.splice(index, 1);
         setValue("experience", currentExperience);
-    };
-
-    const handleClear = () => {
-        if (window.confirm('Are you sure you want to clear all uploaded documents?')) {
-            reset({
-                resume: null,
-                idProof: null,
-                education: {
-                    tenth: { file: null, verified: false },
-                    twelfth: { file: null, verified: false },
-                    ug: { file: null, verified: false },
-                    pg: { file: null, verified: false },
-                    others: []
-                },
-                experience: []
-            });
-            toast.info('All documents cleared');
-        }
+        setTouchedFields(prev => {
+            const newExperience = [...prev.experience];
+            newExperience.splice(index, 1);
+            return { ...prev, experience: newExperience };
+        });
     };
 
     const onSubmit = async (data) => {
+        // Mark all fields as touched before validation
+        setTouchedFields({
+            resume: true,
+            idProof: true,
+            education: {
+                tenth: true,
+                twelfth: true,
+                ug: true,
+                pg: true,
+                others: true
+            },
+            experience: formValues.experience?.map(() => true) || []
+        });
+
+        // Trigger validation for all fields
+        const isValid = await trigger();
+
+        if (!isValid) {
+            toast.error('Please complete all required fields');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             setUploadProgress(0);
@@ -221,6 +252,7 @@ const CandidateDocumentUpload = () => {
             setIsSubmitting(false);
         }
     };
+
     const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false }) => {
         const [previewUrl, setPreviewUrl] = useState(null);
         const [showFullPreview, setShowFullPreview] = useState(false);
@@ -420,28 +452,30 @@ const CandidateDocumentUpload = () => {
             fileInputRef.current?.click();
         };
 
-        const handleFileChange = useCallback((e) => {
-            if (e.target.files && e.target.files[0]) {
-                const file = e.target.files[0];
-                setValue(fieldName, file);
-                trigger(fieldName);
-            }
-        }, [fieldName, setValue, trigger]);
+        const handleFileChangeWrapper = (e) => {
+            handleFileChange(e, fieldName);
+        };
 
         return (
             <div className="row g-3 align-items-center">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     <label className="form-label d-block fw-medium">
                         {label} {required && <span className="text-danger">*</span>}
                     </label>
                     {description && <p className="text-muted small mb-2">{description}</p>}
                     {!file ? (
                         <div
-                            className={`drag-drop-area ${dragActive ? 'drag-active' : ''} ${errors[fieldName] ? 'is-invalid' : ''}`}
+                            className={`drag-drop-area ${dragActive ? 'drag-active' : ''} ${errors[fieldName] && touchedFields[fieldName] ? 'is-invalid' : ''}`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
                             onDragOver={handleDrag}
-                            onDrop={(e) => handleDrop(e, fieldName)}
+                            onDrop={(e) => {
+                                handleDrop(e, fieldName);
+                                setTouchedFields(prev => ({
+                                    ...prev,
+                                    [fieldName]: true
+                                }));
+                            }}
                             onClick={handleClick}
                             style={{ cursor: 'pointer' }}
                             aria-describedby={`${fieldName}-help`}
@@ -459,7 +493,7 @@ const CandidateDocumentUpload = () => {
                                 id={fieldName}
                                 ref={fileInputRef}
                                 accept={accept}
-                                onChange={handleFileChange}
+                                onChange={handleFileChangeWrapper}
                                 aria-invalid={errors[fieldName] ? "true" : "false"}
                             />
                         </div>
@@ -471,7 +505,7 @@ const CandidateDocumentUpload = () => {
                                 id={fieldName}
                                 ref={fileInputRef}
                                 accept={accept}
-                                onChange={handleFileChange}
+                                onChange={handleFileChangeWrapper}
                             />
                             <label
                                 htmlFor={fieldName}
@@ -490,7 +524,7 @@ const CandidateDocumentUpload = () => {
                             </button>
                         </div>
                     )}
-                    {errors[fieldName] && (
+                    {errors[fieldName] && touchedFields[fieldName] && (
                         <div className="invalid-feedback d-block">{errors[fieldName].message}</div>
                     )}
                 </div>
@@ -513,7 +547,6 @@ const CandidateDocumentUpload = () => {
         );
     };
 
-
     const ExperienceFileUpload = ({ index }) => {
         const fileInputRef = useRef(null);
         const file = getValues(`experience.${index}.file`);
@@ -524,7 +557,7 @@ const CandidateDocumentUpload = () => {
 
         return (
             <div className="row g-3 align-items-center">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     <div className="mb-2">
                         <label className="form-label">Experience Letter</label>
                     </div>
@@ -534,14 +567,14 @@ const CandidateDocumentUpload = () => {
                         rules={{
                             validate: (file) => {
                                 const company = getValues(`experience.${index}.company`)?.trim();
-                                if (file && !company) return true; // Let company field handle its own validation
+                                if (file && !company) return true;
                                 if (company && !file) return 'Experience certificate is required when company name is provided';
                                 return validateFile(file, false, 'Experience Certificate');
                             }
                         }}
                         render={({ field }) => (
                             <div
-                                className={`drag-drop-area small ${errors.experience?.[index]?.file ? 'is-invalid' : ''}`}
+                                className={`drag-drop-area small ${errors.experience?.[index]?.file && touchedFields.experience?.[index] ? 'is-invalid' : ''}`}
                                 onClick={handleClick}
                                 style={{ cursor: 'pointer' }}
                             >
@@ -562,6 +595,11 @@ const CandidateDocumentUpload = () => {
                                             onChange={(e) => {
                                                 field.onChange(e.target.files[0]);
                                                 handleExperienceChange(index, 'file', e.target.files[0]);
+                                                setTouchedFields(prev => {
+                                                    const newExperience = [...prev.experience];
+                                                    newExperience[index] = true;
+                                                    return { ...prev, experience: newExperience };
+                                                });
                                             }}
                                             aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
                                         />
@@ -575,7 +613,7 @@ const CandidateDocumentUpload = () => {
                             </div>
                         )}
                     />
-                    {errors.experience?.[index]?.file && (
+                    {errors.experience?.[index]?.file && touchedFields.experience?.[index] && (
                         <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
                     )}
                 </div>
@@ -605,42 +643,74 @@ const CandidateDocumentUpload = () => {
 
         return (
             <div className="row g-3 align-items-center">
-                <div className="col-md-6">
-                    <div
-                        className="drag-drop-area small"
-                        onClick={handleClick}
-                        style={{ cursor: 'pointer' }}
-                        aria-describedby={`education-${qualification.id}-help`}
-                    >
-                        {!file ? (
-                            <>
-                                <FiUpload className="upload-icon mb-2" size={18} />
-                                <p className="mb-1">
-                                    <span className="text-primary">Click to upload</span> or drag and drop
-                                </p>
-                                <small className="text-muted">
-                                    PDF, DOC, DOCX, PNG, JPG (Max 5MB)
-                                </small>
-                                <input
-                                    type="file"
-                                    className="d-none"
-                                    ref={fileInputRef}
-                                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                    onChange={(e) => {
-                                        setValue(`education.${qualification.id}.file`, e.target.files[0]);
-                                        trigger(`education.${qualification.id}.file`);
-                                    }}
-                                    aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
-                                />
-                            </>
-                        ) : (
-                            <div className="text-center py-2">
-                                <FiUpload className="upload-icon mb-1" size={18} />
-                                <p className="mb-0 text-primary">Replace file</p>
-                            </div>
-                        )}
-                    </div>
-                    {errors.education?.[qualification.id]?.file && (
+                <div className="col-md-4">
+                    <label className="form-label d-block fw-medium">
+                        {qualification.name} {qualification.required && <span className="text-danger">*</span>}
+                    </label>
+                    {qualification.description && <p className="text-muted small mb-2">{qualification.description}</p>}
+                    {!file ? (
+                        <div
+                            className={`drag-drop-area small ${errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] ? 'is-invalid' : ''}`}
+                            onClick={handleClick}
+                            style={{ cursor: 'pointer' }}
+                            aria-describedby={`education-${qualification.id}-help`}
+                        >
+                            <FiUpload className="upload-icon mb-2" size={18} />
+                            <p className="mb-1">
+                                <span className="text-primary">Click to upload</span> or drag and drop
+                            </p>
+                            <small className="text-muted">
+                                PDF, DOC, DOCX, PNG, JPG (Max 5MB)
+                            </small>
+                            <input
+                                type="file"
+                                className="d-none"
+                                ref={fileInputRef}
+                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                onChange={(e) => {
+                                    setValue(`education.${qualification.id}.file`, e.target.files[0]);
+                                    setTouchedFields(prev => ({
+                                        ...prev,
+                                        education: {
+                                            ...prev.education,
+                                            [qualification.id]: true
+                                        }
+                                    }));
+                                    trigger(`education.${qualification.id}.file`);
+                                }}
+                                aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
+                            />
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <input
+                                type="file"
+                                className="d-none"
+                                ref={fileInputRef}
+                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                onChange={(e) => {
+                                    setValue(`education.${qualification.id}.file`, e.target.files[0]);
+                                    trigger(`education.${qualification.id}.file`);
+                                }}
+                            />
+                            <label
+                                htmlFor={fileInputRef}
+                                className="btn btn-sm btn-outline-primary me-2"
+                            >
+                                <FiUpload className="me-1" /> Change File
+                            </label>
+                            <button
+                                onClick={() => {
+                                    setValue(`education.${qualification.id}.file`, null);
+                                    trigger(`education.${qualification.id}.file`);
+                                }}
+                                className="btn btn-sm btn-outline-danger"
+                            >
+                                <FiX className="me-1" /> Remove
+                            </button>
+                        </div>
+                    )}
+                    {errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] && (
                         <div className="invalid-feedback d-block">
                             {errors.education[qualification.id].file.message}
                         </div>
@@ -673,12 +743,6 @@ const CandidateDocumentUpload = () => {
         }
     };
 
-    const CompletionStatus = ({ completed }) => (
-        <span className={`badge rounded-pill ${completed ? 'bg-success' : 'bg-warning'} ms-2`}>
-            {completed ? 'Complete' : 'Pending'}
-        </span>
-    );
-
     return (
         <LayOut>
             <div className="container-fluid p-0">
@@ -706,20 +770,6 @@ const CandidateDocumentUpload = () => {
                                     <div>
                                         <h5 className="card-title mb-0">Complete Your Profile</h5>
                                         <p className="text-muted mb-0">Upload the required documents to proceed with your application</p>
-                                    </div>
-                                    <div className="text-end">
-                                        <small className="text-muted d-block">Completion Status</small>
-                                        <div className="d-flex gap-2">
-                                            <small className="text-nowrap">
-                                                Basic <CompletionStatus completed={completedSections.basic} />
-                                            </small>
-                                            <small className="text-nowrap">
-                                                Education <CompletionStatus completed={completedSections.education} />
-                                            </small>
-                                            <small className="text-nowrap">
-                                                Experience <CompletionStatus completed={completedSections.experience} />
-                                            </small>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -821,7 +871,6 @@ const CandidateDocumentUpload = () => {
                                                             className={`accordion-collapse collapse ${expandedQualification === qualification.id ? 'show' : ''}`}
                                                         >
                                                             <div className="accordion-body p-3">
-                                                                <p className="text-muted small mb-3">{qualification.description}</p>
                                                                 <EducationFileUpload
                                                                     qualification={qualification}
                                                                 />
@@ -887,7 +936,6 @@ const CandidateDocumentUpload = () => {
                                                                     onChange={(e) => {
                                                                         const value = e.target.value;
                                                                         setValue(`experience.${index}.company`, value);
-                                                                        // Only trigger validation if we have a file
                                                                         if (getValues(`experience.${index}.file`)) {
                                                                             trigger(`experience.${index}.company`);
                                                                         }
@@ -941,15 +989,7 @@ const CandidateDocumentUpload = () => {
 
                                         {/* Form Actions */}
                                         <div className="col-12 mt-2">
-                                            <div className="d-flex justify-content-between border-top pt-4">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-outline-secondary"
-                                                    onClick={handleClear}
-                                                    disabled={isSubmitting || !isDirty}
-                                                >
-                                                    <FiX className="me-1" /> Clear All
-                                                </button>
+                                            <div className="d-flex justify-content-end border-top pt-4">
                                                 <div className="d-flex align-items-center">
                                                     {!isValid && (
                                                         <div className="text-danger me-3 small d-flex align-items-center">
@@ -1088,8 +1128,10 @@ const CandidateDocumentUpload = () => {
                     border-color: rgba(13, 110, 253, 0.25);
                 }
             `}</style>
-        </LayOut>
+                    </LayOut>
     );
 };
 
 export default CandidateDocumentUpload;
+
+       
