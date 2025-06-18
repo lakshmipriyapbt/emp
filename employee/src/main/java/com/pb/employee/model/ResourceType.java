@@ -30,7 +30,8 @@ public enum ResourceType {
     COMPANY_CALENDAR("company_calendar"),
     COMPANY_TDS("company_tds"),
     CANDIDATE("candidate"),
-    EXPERIENCE("experience");
+    EXPERIENCE("experience"),
+    APPRAISAL("appraisal");
 
 
 
