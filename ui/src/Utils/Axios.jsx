@@ -71,6 +71,22 @@ export const CompanyloginApi = (data) => {
     });
 };
 
+export const CandidateloginApi = (data) => {
+  return axios.post(`${Login_URL}/candidate/login`, data)
+    .then(response => {
+      const { token, refreshToken } = response.data?.data || {};
+      if (token && refreshToken) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      return response.data; // Return the full response
+    })
+    .catch(error => {
+      const errorMessage = error.response?.data?.error?.message || "An unknown error occurred.";
+      console.error(errorMessage); // Log the error for debugging
+      throw new Error(errorMessage); // Throw an error with the message
+    });
+};
 
 export const ValidateOtp = (data) => {
   return axiosInstance.post(`${Login_URL}/validate`, data);
@@ -175,7 +191,7 @@ export const DepartmentGetApiById = (departmentId) => {
 export const DepartmentDeleteApiById = (departmentId) => {
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
   
   return axiosInstance.delete(`/${company}/department/${departmentId}`, {
@@ -1220,4 +1236,78 @@ export const getUserById = (id) => {
 export const DeleteUserById = (id) => {
   const company = localStorage.getItem("companyName");
   return axiosInstance.delete(`/${company}/user/${id}`);
+};
+
+// Candidate apis
+export const CandidatePostApi = async (candidateData) => {
+    try {
+        const response = await axiosInstance.post("/candidate", candidateData);
+        
+        // Return the full response object
+        return {
+            status: response.status,
+            data: response.data,
+            fullResponse: response
+        };
+    } catch (error) {
+        console.error('API Error:', {
+            config: error.config,
+            response: error.response,
+            message: error.message
+        });
+        
+        // Return a consistent error structure
+        return {
+            status: error.response?.status || 500,
+            error: true,
+            message: error.response?.data?.message || error.message,
+            fullResponse: error.response
+        };
+    }
+};
+export const CandidateGetAllApi = () => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  
+  return axiosInstance.get(`/candidate/${company}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateGetByIdApi = (candidateId) => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  return axiosInstance.get(`/candidate/${company}/${candidateId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateDeleteApi = (id) => {  // Changed parameter name to be more clear
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  
+  return axiosInstance.delete(`/${company}/candidate/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  })
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Delete Candidate Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  });
 };

@@ -8,11 +8,13 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 
 const Header = ({ toggleSidebar }) => {
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const {company,employee,authUser} = useAuth();
-  console.log("authUser******",authUser)
+  console.log("company",company);
+  console.log("employee",employee);
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -64,6 +66,12 @@ const Header = ({ toggleSidebar }) => {
     };
   }, []);
 
+useEffect(() => {
+  if (employee?.photoUrl) {
+    setProfilePhoto(employee.photoUrl);
+  }
+}, [employee]);
+
   const handleLogOut = () => {
     const role = userRole?.[0];
     const companyName = localStorage.getItem("companyName");
@@ -75,13 +83,14 @@ const Header = ({ toggleSidebar }) => {
   
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" || companyName) {
+    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" ||companyName) {
       navigate(`/${companyName}/login`, { replace: true });
-    } else {
+    } else if(role === "candidate") {
+      navigate(`/${companyName}/candidateLogin`, { replace: true });
+    }else {
       navigate("/", { replace: true });
     }
   };
-  
   const closeModal = () => {
     setShowErrorModal(false);
     navigate("/");
@@ -89,6 +98,26 @@ const Header = ({ toggleSidebar }) => {
 
   const handleResetPasswordClick = () => {
     setShowResetPasswordModal(true);
+  };
+
+  // Function to render profile icon or photo
+  const renderProfileImage = () => {
+    if (profilePhoto) {
+      return (
+        <img 
+          src={profilePhoto} 
+          alt="Profile" 
+          className="rounded-circle"
+          style={{
+            width: "30px",
+            height: "30px",
+            objectFit: "cover",
+            border: "1px solid #dee2e6"
+          }}
+        />
+      );
+    }
+    return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
   };
 
   return (
@@ -163,7 +192,7 @@ const Header = ({ toggleSidebar }) => {
                 onClick={toggleProfile}
               >
                 <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
-                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+                {renderProfileImage()}
               </a>
               {isProfileOpen && (
                 <div
@@ -216,6 +245,32 @@ const Header = ({ toggleSidebar }) => {
                 </div>
               )}
             </li>
+          )}
+            {roles.includes("candidate") && (
+            <>
+             <span className="mt-3">{employee?.firstName} {employee?.lastName}</span>
+            <li className="nav-item">
+              <a
+                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                href
+                onClick={toggleProfile}
+              >
+                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+              </a>
+              {isProfileOpen && (
+                <div
+                  className="dropdown-menu dropdown-menu-end py-0 show"
+                  aria-labelledby="profileDropdown"
+                  style={{ left: "auto", right: "3%" }}
+                >
+                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                    Logout
+                  </a>
+                </div>
+              )}
+            </li>
+            </>
           )}
         </ul>
       </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
-import { CompanyloginApi, ValidateOtp } from "../Utils/Axios";
+import { CandidateloginApi, CompanyloginApi, ValidateOtp } from "../Utils/Axios";
 import { Modal, ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
@@ -60,12 +60,11 @@ const CompanyLogin = () => {
   const sendOtp = (data) => {
     const payload = {
       username: data.username,
-      password: data.password,
       company: company,
     };
   
     setLoading(true);
-    CompanyloginApi(payload)
+    CandidateloginApi(payload)
       .then((response) => {
         const token = response.data?.token;
         if (token) {
@@ -172,40 +171,6 @@ const CompanyLogin = () => {
       sendOtp(data);
     }
   };
-
-  const validatePassword = (value) => {
-    const errors = [];
-    if (!/(?=.*[0-9])/.test(value)) {
-      errors.push("at least one digit");
-    }
-    if (!/(?=.*[a-z])/.test(value)) {
-      errors.push("at least one lowercase letter");
-    }
-    if (!/(?=.*[A-Z])/.test(value)) {
-      errors.push("at least one uppercase letter");
-    }
-    if (!/(?=.*[\W_])/.test(value)) {
-      errors.push("at least one special character");
-    }
-    if (value.includes(" ")) {
-      errors.push("no spaces");
-    }
-    
-    if (errors.length > 0) {
-      return `Password must contain ${errors.join(", ")}.`;
-    }
-    return true;
-  };
-
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    value = value.replace(/\s+/g, '');
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
-    }
-    input.value = value;
-  };
   
 
   return (
@@ -249,46 +214,6 @@ const CompanyLogin = () => {
                       </p>
                     )}
                   </div>
-                  
-                  {(!otpSent || otpExpired) && ( 
-                    <> 
-                      <div className="formgroup">
-                        <label className="form-label">Password</label>
-                        <div className="password-input-container">
-                          <input 
-                            className="form-control form-control-lg" 
-                            name="password"
-                            placeholder="Password"
-                            onChange={handleEmailChange}
-                            autoComplete="off"
-                            type={passwordShown ? "text" : "password"}
-                            maxLength={16}
-                            readOnly={otpSent && !otpExpired}
-                            {...register("password", {
-                              required: "Password is Required",
-                              minLength: {
-                                value: 6,
-                                message: "Password must be at least 6 characters long",
-                              },
-                              validate: validatePassword,  
-                            })}
-                          />
-                          <span
-                            className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
-                            onClick={togglePasswordVisibility}
-                          ></span>
-                        </div>
-                        {errors.password && (
-                          <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                            {errors.password.message}
-                          </p>
-                        )}
-                        <small>
-                          <a href="/forgotPassword">Forgot Password?</a>
-                        </small>
-                      </div>
-                    </>
-                  )}
                   
                   {otpSent && !otpExpired && (   
                     <div class="formgroup">

@@ -83,7 +83,7 @@ public class CandidateServiceImpl implements CandidateService {
             CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
-            candidate.setExpiryDate(expiryDate.toString());
+            candidate.setExpiryDate(String.valueOf(LocalDate.now().plusDays(3)));
             candidate.setType(Constants.CANDIDATE);
             candidateDao.save(candidate, candidateRequest.getCompanyName());
 

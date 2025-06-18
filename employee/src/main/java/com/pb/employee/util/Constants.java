@@ -206,4 +206,5 @@ public class Constants {
     public static final String FILE_DOCX="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
     public static final String DOCUMENT = "document";
     public static final String CANDIDATE_ID="candidateId";
+    public static final String EXPERIENCE = "experience";
 }

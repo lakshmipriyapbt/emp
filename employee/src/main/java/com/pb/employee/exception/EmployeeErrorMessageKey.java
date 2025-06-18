@@ -159,7 +159,10 @@ public enum EmployeeErrorMessageKey {
     DOCUMENT_FOLDER_NOT_FOUND("document.folder.not.found"),
     NO_DOCUMENTS_FOUND("no.documents.found"),
     FAILED_TO_FETCH_DOCUMENTS("failed.to.fetch.documents"),
-    FAILED_TO_DELETE_DOCUMENTS("failed.to.delete.documents");
+    FAILED_TO_DELETE_DOCUMENTS("failed.to.delete.documents"),
+    EXPERIENCE_NOT_FOUND("experience.not.found"),
+    FAILED_TO_UPDATE_EXPERIENCE("failed.to.update.experience"),
+    NO_UPDATE_DONE("no.update.done");
 
     private final String key;
 

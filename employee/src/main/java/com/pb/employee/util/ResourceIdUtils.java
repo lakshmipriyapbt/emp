@@ -88,6 +88,9 @@ public class ResourceIdUtils {
     public static String generateDocumentResourceId(String resourceId) {
         return generateGlobalResourceId(ResourceType.DOCUMENT, resourceId);
     }
+    public static String generateExperienceResourceId (String employeeId) {
+        return generateGlobalResourceId(ResourceType.EXPERIENCE, employeeId);
+    }
 
     /**
      * Generate a global resource ID based on the resource type
@@ -159,8 +162,13 @@ public class ResourceIdUtils {
         if (type == ResourceType.CANDIDATE) {
             prefix = Constants.CANDIDATE + "-";
         }
+
         if (type == ResourceType.DOCUMENT) {
             prefix = Constants.DOCUMENT + "-";
+        }
+        if (type == ResourceType.EXPERIENCE) {
+            prefix = Constants.EXPERIENCE + "-";
+
         }
 
 
