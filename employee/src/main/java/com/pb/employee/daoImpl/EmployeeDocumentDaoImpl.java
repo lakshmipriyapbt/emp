@@ -45,17 +45,4 @@ public class EmployeeDocumentDaoImpl extends AbstractDao<EmployeeDocumentEntity>
             return Optional.empty();
         }
     }
-
-    @Override
-    public void deleteById(String documentId, String companyName) {
-        try {
-            delete(documentId, companyName);
-            log.info("Deleted document with ID {} for company {}", documentId, companyName);
-        } catch (Exception e) {
-            log.error("Error while deleting document with ID {} for company {}: {}", documentId, companyName, e.getMessage(), e);
-        }
-    }
-
-
-
 }

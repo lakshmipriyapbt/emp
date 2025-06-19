@@ -14,5 +14,4 @@ public interface EmployeeDocumentDao extends Dao<EmployeeDocumentEntity> {
 
     Optional<EmployeeDocumentEntity> getByCandidateId(String candidateId, String companyName);
 
-    void deleteById(String documentId, String companyName);
 }

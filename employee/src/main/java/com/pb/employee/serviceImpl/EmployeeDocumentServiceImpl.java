@@ -12,7 +12,6 @@ import com.pb.employee.persistance.model.CandidateEntity;
 import com.pb.employee.persistance.model.DocumentEntity;
 import com.pb.employee.persistance.model.EmployeeDocumentEntity;
 import com.pb.employee.request.EmployeeDocumentRequest;
-import com.pb.employee.response.DocumentEntityResponse;
 import com.pb.employee.response.EmployeeDocumentResponse;
 import com.pb.employee.service.EmployeeDocumentService;
 import com.pb.employee.util.Constants;
@@ -24,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -55,78 +55,76 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     @Override
     public ResponseEntity<?> uploadEmployeeDocument(String companyName, String candidateId, EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
 
-        String resourceId = ResourceIdUtils.generateDocumentResourceId(candidateId);
-
-        List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
-
-        CandidateEntity candidate;
         try {
-            candidate = candidateDao.get(candidateId, companyName).orElse(null);
+            String resourceId = ResourceIdUtils.generateDocumentResourceId(candidateId);
+
+            List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
+
+            CandidateEntity candidate = candidateDao.get(candidateId, companyName).orElse(null);
             if (candidate == null) {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.BAD_REQUEST);
             }
-        } catch (Exception ex) {
-            log.error("Exception while fetching candidate {}, {}", candidateId, ex);
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_CANDIDATE), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
 
-        if (employeeDocumentRequest.getFiles() == null || employeeDocumentRequest.getFiles().isEmpty()
-                || employeeDocumentRequest.getDocNames() == null || employeeDocumentRequest.getDocNames().isEmpty()) {
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_OR_DOC_NAMES_EMPTY), HttpStatus.BAD_REQUEST);
-        }
-
-        if (employeeDocumentRequest.getFiles().size() != employeeDocumentRequest.getDocNames().size()) {
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_AND_DOC_NAMES_SIZE_MISMATCH), HttpStatus.BAD_REQUEST);
-        }
-        for (String docName : employeeDocumentRequest.getDocNames()) {
-            if (StringUtils.isBlank(docName)) {
+            if (CollectionUtils.isEmpty(employeeDocumentRequest.getFiles())
+                    || CollectionUtils.isEmpty(employeeDocumentRequest.getDocNames())
+                    || employeeDocumentRequest.getDocNames().stream().anyMatch(StringUtils::isBlank)) {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_OR_DOC_NAMES_EMPTY), HttpStatus.BAD_REQUEST);
             }
-        }
-        EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByCandidateId(candidateId, companyName).orElse(null);
-        EmployeeDocumentEntity employeeDocument;
 
-        if (employeeDocumentEntity == null) {
-            employeeDocument = new EmployeeDocumentEntity();
-            employeeDocument.setId(resourceId);
-            employeeDocument.setCandidateId(candidateId);
-            employeeDocument.setEmployeeRefId(null);
-            employeeDocument.setFolderPath(folderPath + companyName + Constants.SLASH + candidate.getId() + Constants.SLASH);
-            employeeDocument.setDocumentEntities(new ArrayList<>());
-            employeeDocument.setType(Constants.DOCUMENT);
-
-            File candidateFolder = new File(employeeDocument.getFolderPath());
-            if (!candidateFolder.exists()) {
-                candidateFolder.mkdirs();
+            if (employeeDocumentRequest.getFiles().size() != employeeDocumentRequest.getDocNames().size()) {
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_AND_DOC_NAMES_SIZE_MISMATCH), HttpStatus.BAD_REQUEST);
             }
-        } else {
-            employeeDocument = employeeDocumentEntity;
-            if (employeeDocument.getDocumentEntities() == null) {
+
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByCandidateId(candidateId, companyName).orElse(null);
+            EmployeeDocumentEntity employeeDocument;
+
+            if (employeeDocumentEntity == null) {
+                employeeDocument = new EmployeeDocumentEntity();
+                employeeDocument.setId(resourceId);
+                employeeDocument.setCandidateId(candidateId);
+                employeeDocument.setEmployeeRefId(null);
+                employeeDocument.setFolderPath(folderPath + companyName + Constants.SLASH + candidate.getId() + Constants.SLASH);
                 employeeDocument.setDocumentEntities(new ArrayList<>());
+                employeeDocument.setType(Constants.DOCUMENT);
+
+                File candidateFolder = new File(employeeDocument.getFolderPath());
+                if (!candidateFolder.exists()) {
+                    candidateFolder.mkdirs();
+                }
+            } else {
+                employeeDocument = employeeDocumentEntity;
+                if (employeeDocument.getDocumentEntities() == null) {
+                    employeeDocument.setDocumentEntities(new ArrayList<>());
+                }
             }
+
+            for (int i = 0; i < employeeDocumentRequest.getFiles().size(); i++) {
+                MultipartFile file = employeeDocumentRequest.getFiles().get(i);
+                String docName = employeeDocumentRequest.getDocNames().get(i);
+
+                if (file.isEmpty()) {
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILE_IS_EMPTY, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
+                }
+
+                String contentType = file.getContentType();
+                if (!allowedFileTypes.contains(contentType)) {
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_TYPE, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
+                }
+
+                storeEmployeeDocument(file, companyName, candidateId, docName, employeeDocument);
+            }
+
+            employeeDocumentDao.save(employeeDocument, companyName);
+            log.info("Saved the employee document for candidate {}", candidateId);
+
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        } catch (EmployeeException ex) {
+            log.error("Error while uploading documents for candidate {}: {}", candidateId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unable to upload the  documents for candidate {}: {}", candidateId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_UPLOAD_DOCUMENTS), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-
-        for (int i = 0; i < employeeDocumentRequest.getFiles().size(); i++) {
-            MultipartFile file = employeeDocumentRequest.getFiles().get(i);
-            String docName = employeeDocumentRequest.getDocNames().get(i);
-
-            if (file.isEmpty()) {
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILE_IS_EMPTY, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
-            }
-
-            String contentType = file.getContentType();
-            if (!allowedFileTypes.contains(contentType)) {
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_TYPE, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
-            }
-
-            storeEmployeeDocument(file, companyName, candidateId, docName, employeeDocument);
-        }
-
-        employeeDocumentDao.save(employeeDocument, companyName);
-        log.info("Saved the employee document for candidate {}", candidateId);
-
-        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
     }
 
     @Override
@@ -155,7 +153,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_DOCUMENTS_FOUND), HttpStatus.NOT_FOUND);
             }
 
-            List<DocumentEntityResponse> documentEntities = new ArrayList<>();
+            List<DocumentEntity> documentEntities = new ArrayList<>();
             for (File file : files) {
                 if (file.isFile()) {
                     String fileName = file.getName();
@@ -163,7 +161,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
 
                     String relativePath = companyName + Constants.SLASH + candidate.getId() + Constants.SLASH + fileName;
 
-                    documentEntities.add(new DocumentEntityResponse(docName, relativePath));
+                    documentEntities.add(new DocumentEntity(docName, relativePath));
                 }
             }
 
@@ -215,7 +213,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 }
             }
 
-            employeeDocumentDao.deleteById(documentId, companyName);
+            employeeDocumentDao.delete(documentId, companyName);
 
             log.info("Deleted all documents and record for candidate: {}", candidateId);
 

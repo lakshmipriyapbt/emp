@@ -39,7 +39,7 @@ public class JwtTokenUtil {
                 .setIssuedAt(new Date())
                 .claim(Constants.ROLES, roles)
                 .claim(Constants.EMPLOYEE, username)
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                .setExpiration(new Date(System.currentTimeMillis() +10800000))
                 .signWith(key)
                 .compact();
 
@@ -51,7 +51,7 @@ public class JwtTokenUtil {
                 .claim(Constants.ROLES, roles)
                 .claim(Constants.COMPANY, company)
                 .claim(Constants.EMPLOYEE, employee)
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+                .setExpiration(new Date(System.currentTimeMillis() + 10800000))
                 .signWith(key)
                 .compact();
         return  token;
