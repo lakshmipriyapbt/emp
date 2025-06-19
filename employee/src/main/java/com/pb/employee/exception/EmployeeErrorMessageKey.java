@@ -162,7 +162,11 @@ public enum EmployeeErrorMessageKey {
     FAILED_TO_DELETE_DOCUMENTS("failed.to.delete.documents"),
     EXPERIENCE_NOT_FOUND("experience.not.found"),
     FAILED_TO_UPDATE_EXPERIENCE("failed.to.update.experience"),
-    NO_UPDATE_DONE("no.update.done");
+    NO_UPDATE_DONE("no.update.done"),
+    APPRAISAL_NOT_FOUND("appraisal.not.found"),
+    UNABLE_UPDATE_APPRAISAL("unable.update.appraisal"),
+    UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
+    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal");
 
     private final String key;
 
