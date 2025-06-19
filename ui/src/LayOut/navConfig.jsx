@@ -339,8 +339,13 @@ export const NAV_CONFIG = {
         },
         {
             title: 'Documents Upload',
-            path: '/candidateDocumentUpload',
+            path: '/documentUpload',
             icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/candidateDocumentsView',
+            icon: 'file-earmark-text' // Recommended
         }
     ]
 };

@@ -93,6 +93,7 @@ import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumen
 import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
 import CandidateLogin from '../Login/CandidateLogin';
 import CandidateProfile from '../CompanyModule/Candidate/CandidateProfile';
+import CandidateDocumentsView from '../CompanyModule/Candidate/CandidateDocumentsView';
 // import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
 
 export const allAvailableRoutes = [
@@ -175,11 +176,12 @@ export const allAvailableRoutes = [
   {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/candidateRegistration', allowedTypes: ['company_admin', 'Admin','HR'] },
   {path: '/candidatesView', allowedTypes: ['company_admin', 'Admin','HR'] },
-  {path: '/candidateDocumentUpload', allowedTypes: ['company_admin', 'Admin','HR','candidate'] },
-  {path: '/uploadSuccess', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/documentUpload', allowedTypes: ['company_admin', 'Admin','HR','candidate'] },
+  {path: '/uploadSuccess', allowedTypes: ['candidate'] },
   {path: '/candidateDashboard', allowedTypes: ['candidate'] },
   {path: '/documentUpload', allowedTypes: ['candidate'] },
   {path: '/candidateProfile', allowedTypes: ['candidate'] },
+  {path: '/candidateDocumentsView', allowedTypes: ['candidate'] },
 ];
 
 const Routing = () => {
@@ -258,12 +260,12 @@ const Routing = () => {
         element={<ProtectedRoute element={<CandidatesView/>} allowedTypes={['company_admin', 'Admin','HR']} />}
       />
       <Route
-        path="/candidateDocumentUpload"
+        path="/documentUpload"
         element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['company_admin', 'Admin','HR', 'candidate']} />}
       /> 
       <Route
         path="/uploadSuccess"
-        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['company_admin', 'Admin','HR']} />}
+        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['candidate']} />}
       />    
       {/* Company Admin & HR shared routes */}
       <Route
@@ -520,6 +522,10 @@ const Routing = () => {
       <Route
         path="/candidateProfile"
         element={<ProtectedRoute element={<CandidateProfile/>} allowedTypes={['candidate']} />}
+      />
+      <Route
+        path="/candidateDocumentsView"
+        element={<ProtectedRoute element={<CandidateDocumentsView/>} allowedTypes={['candidate']} />}
       />
     </Routes>
   );
