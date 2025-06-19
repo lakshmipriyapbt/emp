@@ -194,7 +194,7 @@ public class Constants {
     public static final String START_YEAR = "startYear";
     public static final String TDS_TYPE = "tdsType";
     public static final String DRAFT = "draft";
-    public static final String APPRAISAL = "Appraisal";
+    public static final String APPRAISAL = "appraisal";
     public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
     public static final String USER_ADMIN = "Admin";
     public static final Object PENDING = "pending";

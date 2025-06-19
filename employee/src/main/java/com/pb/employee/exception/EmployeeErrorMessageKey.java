@@ -163,7 +163,11 @@ public enum EmployeeErrorMessageKey {
     EXPERIENCE_NOT_FOUND("experience.not.found"),
     FAILED_TO_UPDATE_EXPERIENCE("failed.to.update.experience"),
     NO_UPDATE_DONE("no.update.done"),
-    UNABLE_TO_UPLOAD_DOCUMENTS("unable.to.upload.documents");
+    UNABLE_TO_UPLOAD_DOCUMENTS("unable.to.upload.documents"),
+    APPRAISAL_NOT_FOUND("appraisal.not.found"),
+    UNABLE_UPDATE_APPRAISAL("unable.update.appraisal"),
+    UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
+    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal");
 
     private final String key;
 
