@@ -178,8 +178,7 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
         }
         Collection<AppraisalEntity> appraisalEntities = appraisalDao.getAppraisal(entity.getShortName(), employeeId, companyId);
         for (AppraisalEntity appraisalEntity : appraisalEntities) {
-            appraisalEntity.setGrossCompensation(new String(Base64.getDecoder().decode(appraisalEntity.getGrossCompensation()), StandardCharsets.UTF_8));
-            appraisalEntity.setSalaryHikePersentage(new String(Base64.getDecoder().decode(appraisalEntity.getSalaryHikePersentage()), StandardCharsets.UTF_8));
+            EmployeeUtils.unmaskAppraisalProperties(appraisalEntity);
         }
         return appraisalEntities;
     }
