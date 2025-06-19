@@ -12,9 +12,9 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const {company,employee,authUser} = useAuth();
-  console.log("company",company);
-  console.log("employee",employee);
+  const { company, employee, authUser } = useAuth();
+  console.log("company", company);
+  console.log("employee", employee);
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -22,7 +22,7 @@ const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const { userRole } = useSelector((state) => state.auth);
   const token = localStorage.getItem("token");
-  const companyName=localStorage.getItem("companyName")
+  const companyName = localStorage.getItem("companyName")
   useEffect(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
@@ -43,7 +43,7 @@ const Header = ({ toggleSidebar }) => {
       }
     }
   }, [token]);
-  console.log("user roles",roles);
+  console.log("user roles", roles);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -66,28 +66,28 @@ const Header = ({ toggleSidebar }) => {
     };
   }, []);
 
-useEffect(() => {
-  if (employee?.photoUrl) {
-    setProfilePhoto(employee.photoUrl);
-  }
-}, [employee]);
+  useEffect(() => {
+    if (employee?.photoUrl) {
+      setProfilePhoto(employee.photoUrl);
+    }
+  }, [employee]);
 
   const handleLogOut = () => {
     const role = userRole?.[0];
     const companyName = localStorage.getItem("companyName");
-  
+
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-  
+
     toast.success("Logout Successful", { autoClose: 2000 });
-  
+
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
-    } else if (role === "company_admin" || role==="Accountant"|| role==="HR"|| role ==="Admin" ||companyName) {
+    } else if (role === "company_admin" || role === "Accountant" || role === "HR" || role === "Admin" || companyName) {
       navigate(`/${companyName}/login`, { replace: true });
-    } else if(role === "candidate") {
+    } else if (role === "candidate") {
       navigate(`/${companyName}/candidateLogin`, { replace: true });
-    }else {
+    } else {
       navigate("/", { replace: true });
     }
   };
@@ -104,9 +104,9 @@ useEffect(() => {
   const renderProfileImage = () => {
     if (profilePhoto) {
       return (
-        <img 
-          src={profilePhoto} 
-          alt="Profile" 
+        <img
+          src={profilePhoto}
+          alt="Profile"
           className="rounded-circle"
           style={{
             width: "30px",
@@ -122,35 +122,35 @@ useEffect(() => {
 
   return (
     <nav className="navbar navbar-expand navbar-light navbar-bg">
-      <a className="sidebar-toggle js-sidebar-toggle" onClick={toggleSidebar}   href>
+      <a className="sidebar-toggle js-sidebar-toggle" onClick={toggleSidebar} href>
         <i className="hamburger align-self-center"></i>
       </a>
       <div className="navbar-collapse collapse">
         <ul className="navbar-nav navbar-align">
           {roles.includes("ems_admin") && (
             <>
-             <span className="mt-3">EMS-Admin</span>
-            <li className="nav-item">
-              <a
-                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
-                href
-                onClick={toggleProfile}
-              >
-                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
-              </a>
-              {isProfileOpen && (
-                <div
-                  className="dropdown-menu dropdown-menu-end py-0 show"
-                  aria-labelledby="profileDropdown"
-                  style={{ left: "auto", right: "3%" }}
+              <span className="mt-3">EMS-Admin</span>
+              <li className="nav-item">
+                <a
+                  className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
+                  href
+                  onClick={toggleProfile}
                 >
-                  <a className="dropdown-item"   href onClick={handleLogOut}>
-                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
-                    Logout
-                  </a>
-                </div>
-              )}
-            </li>
+                  <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
+                </a>
+                {isProfileOpen && (
+                  <div
+                    className="dropdown-menu dropdown-menu-end py-0 show"
+                    aria-labelledby="profileDropdown"
+                    style={{ left: "auto", right: "3%" }}
+                  >
+                    <a className="dropdown-item" href onClick={handleLogOut}>
+                      <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
+                      Logout
+                    </a>
+                  </div>
+                )}
+              </li>
             </>
           )}
           {roles.includes("company_admin") && (
@@ -172,11 +172,11 @@ useEffect(() => {
                   <a className="dropdown-item" href="/profile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
                   </a>
-                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                  <a className="dropdown-item" href onClick={handleResetPasswordClick}>
                     <i className="align-middle me-1 bi bi-key"></i> Reset Password
                   </a>
                   <div className="dropdown-divider"></div>
-                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                  <a className="dropdown-item" href onClick={handleLogOut}>
                     <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
                     Logout
                   </a>
@@ -184,14 +184,14 @@ useEffect(() => {
               )}
             </li>
           )}
-        {roles.includes("employee") && (
+          {roles.includes("employee") && (
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span>
                 {renderProfileImage()}
               </a>
               {isProfileOpen && (
@@ -203,26 +203,26 @@ useEffect(() => {
                   <a className="dropdown-item" href="/employeeProfile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
                   </a>
-                  <a className="dropdown-item"   href onClick={handleResetPasswordClick}>
+                  <a className="dropdown-item" href onClick={handleResetPasswordClick}>
                     <i className="align-middle me-1 bi bi-key"></i> Reset Password
                   </a>
                   <div className="dropdown-divider"></div>
-                  <a className="dropdown-item"   href onClick={handleLogOut}>
+                  <a className="dropdown-item" href onClick={handleLogOut}>
                     <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
                     Log out
                   </a>
                 </div>
               )}
             </li>
-        )}
-         {(roles.includes("Accountant") || roles.includes("HR") || roles.includes("Admin"))  && (
+          )}
+          {(roles.includes("Accountant") || roles.includes("HR") || roles.includes("Admin")) && (
             <li className="nav-item dropdown position-relative">
               <a
                 className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
                 href
                 onClick={toggleProfile}
               >
-                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span> 
+                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span>
                 <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
               </a>
               {isProfileOpen && (
@@ -246,30 +246,20 @@ useEffect(() => {
               )}
             </li>
           )}
-            {roles.includes("candidate") && (
+          {roles.includes("candidate") && (
             <>
-             <span className="mt-3">{employee?.firstName} {employee?.lastName}</span>
-            <li className="nav-item">
-              <a
-                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
-                href
-                onClick={toggleProfile}
-              >
-                <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>
-              </a>
-              {isProfileOpen && (
-                <div
-                  className="dropdown-menu dropdown-menu-end py-0 show"
-                  aria-labelledby="profileDropdown"
-                  style={{ left: "auto", right: "3%" }}
+              <span className="mt-3">{employee?.firstName} {employee?.lastName}</span>
+              <li className="nav-item">
+                <a
+                  className="nav-link d-none d-sm-inline-block text-center"
+                  href
+                  onClick={handleLogOut}
+                  style={{ cursor: "pointer" }}
                 >
-                  <a className="dropdown-item"   href onClick={handleLogOut}>
-                    <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
-                    Logout
-                  </a>
-                </div>
-              )}
-            </li>
+                  <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "5px" }}></i>
+                  Logout
+                </a>
+              </li>
             </>
           )}
         </ul>
@@ -283,11 +273,11 @@ useEffect(() => {
         <ModalHeader closeButton>
           <ModalTitle className="text-center">Error</ModalTitle>
           <button
-                    type="button"
-                    className="btn-close text-dark" // Bootstrap's close button class
-                    aria-label="Close"
-                    onClick={closeModal} // Function to close the modal
-                  >X</button>
+            type="button"
+            className="btn-close text-dark" // Bootstrap's close button class
+            aria-label="Close"
+            onClick={closeModal} // Function to close the modal
+          >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">
           Session Timeout! Please log in.

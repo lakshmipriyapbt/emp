@@ -17514,5 +17514,28 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   transition: opacity 0.2s;
   margin-left: 15rem; /* Space between text and × */
 }
+/* For Welcome Candidate text */
+.candidate-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.candidate-welcome span {
+  font-size: 1.2rem;  /* Increased from default */
+  font-weight: 600;
+  color: #2c3e50;    /* Dark blue-gray for better visibility */
+  white-space: nowrap; /* Prevents text wrapping */
+  text-align: center;
+}
+
+/* Optional: Add animation on hover */
+.candidate-welcome:hover span {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
 
 /* Pre Loadder css End */
