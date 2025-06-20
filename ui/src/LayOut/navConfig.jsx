@@ -33,7 +33,7 @@ export const NAV_CONFIG = {
                 { title: 'Candidates View', path: '/candidatesView' },
                 { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
                 { title: 'Upload Success', path: '/uploadSuccess' }
-            ] 
+            ]
         },
         {
             title: 'Employees',
@@ -131,7 +131,7 @@ export const NAV_CONFIG = {
                 { title: 'Candidates View', path: '/candidatesView' },
                 { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
                 { title: 'Upload Success', path: '/uploadSuccess' }
-            ] 
+            ]
         },
         {
             title: 'Employees',
@@ -239,7 +239,7 @@ export const NAV_CONFIG = {
                 { title: 'Candidates View', path: '/candidatesView' },
                 { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
                 { title: 'Upload Success', path: '/uploadSuccess' }
-            ] 
+            ]
         },
         {
             title: 'Letters',
@@ -333,9 +333,19 @@ export const NAV_CONFIG = {
     ],
     candidate: [
         {
-            title: 'Documents',
+            title: 'Details',
+            path: '/candidateProfile',
+            icon: 'person-badge'
+        },
+        {
+            title: 'Documents Upload',
             path: '/documentUpload',
-            icon: 'upload', // 📤
+            icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/candidateDocumentsView',
+            icon: 'file-earmark-text' // Recommended
         }
-    ],
+    ]
 };

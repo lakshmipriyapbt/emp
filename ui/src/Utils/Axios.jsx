@@ -1311,3 +1311,81 @@ export const CandidateDeleteApi = (id) => {  // Changed parameter name to be mor
     throw error;
   });
 };
+
+ export const uploadDocumentAPI = async (candidateId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Log the data being sent
+  console.log("Uploading to:", `/${companyName}/candidate/${candidateId}/upload`);
+  console.log("Document names:", docNames);
+  console.log("Files:", files.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size
+  })));
+
+  // Add data to FormData
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+    formData.append(`files[${index}]`, files[index]);
+  });
+
+  try {
+    const response = await axiosInstance.post(
+      `/${companyName}/candidate/${candidateId}/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Full error details:', {
+      url: error.config.url,
+      method: error.config.method,
+      headers: error.config.headers,
+      data: error.config.data,
+      response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const getDocumentByIdAPI = async (candidateId) => {
+  const companyName = localStorage.getItem("companyName");
+  
+  try {
+    const response = await axiosInstance.get(
+      `/${companyName}/candidate/${candidateId}/documents`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching documents:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const deleteDocumentByIdAPI = async (candidateId, documentId) => {
+  const companyName = localStorage.getItem("companyName");
+  
+  try {
+    const response = await axiosInstance.delete(
+      `/${companyName}/candidate/${candidateId}/document/${documentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting document:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      response: error.response?.data
+    });
+    throw error;
+  }
+};
