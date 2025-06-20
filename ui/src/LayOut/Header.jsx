@@ -13,8 +13,6 @@ const Header = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
   const {company,employee,authUser} = useAuth();
-  console.log("company",company);
-  console.log("employee",employee);
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -43,7 +41,6 @@ const Header = ({ toggleSidebar }) => {
       }
     }
   }, [token]);
-  console.log("user roles",roles);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);

@@ -58,6 +58,8 @@ const InternShipTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -106,10 +108,6 @@ const InternShipTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            {!draft&&(<img 
-              src={companyData?.stampImage}
-              alt="Stamp"
-              style={{ height: "100px", width: "160px" }}/>)}
           </div>
         </div>
       </div>

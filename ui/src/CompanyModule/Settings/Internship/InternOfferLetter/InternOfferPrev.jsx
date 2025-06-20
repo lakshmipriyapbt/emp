@@ -12,6 +12,7 @@ const InternOfferPrev = ({
       const draft = previewData.draft;
       console.log("previre ", draft)
 
+
   return (
     <div className="p-4">
         <div className="m-3">
@@ -21,6 +22,25 @@ const InternOfferPrev = ({
                    style={{ height: "100px", width: "160px" }}
          />)}
       </div>
+       {!draft && (  <div
+        style={{
+          position: "absolute",
+          top: "30%",
+          left: "20%",
+          right: "30%",
+          width: "50%",
+          height: "50%",
+          opacity: 0.1, // Adjust opacity for watermark effect
+          border: "none",
+          backgroundImage: `url(${companyData?.imageFile})`, // Use the logo or another image
+          transform: "rotate(340deg)",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          //  filter: 'blur(2px)', // Optional: adjust blur as needed
+          zIndex: 1, // Ensure it's behind the content
+        }}
+      /> )}
       <p>Date: {previewData.date}</p>
       <p>
         <b>NAME:</b> {previewData.employeeName}

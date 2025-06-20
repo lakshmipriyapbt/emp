@@ -56,6 +56,8 @@ const RelievingTemplate3 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`, // Use the logo or another image
           transform: "rotate(340deg)",
           backgroundSize: "contain",

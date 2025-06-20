@@ -5,7 +5,7 @@ import "./Style.css";
 import "./Odometer.css";
 import "./Swiper.min.css";
 import "./plugins/plugin-custom.js";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ModalTitle } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
@@ -14,12 +14,28 @@ import "./main.js";
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/autoplay";
-import {
-  ArrowUp,
-  ArrowUpRight,
-  List,
-  Telephone,
-} from "react-bootstrap-icons";
+import { ArrowUp, ArrowUpRight, List, Telephone } from "react-bootstrap-icons";
+
+// Reusable feature block component
+const FeatureBlock = ({ icon, title, description, alignment }) => (
+  <div
+    className={`feature-block group ${
+      alignment === "right" ? "right" : "left"
+    }`}
+  >
+    <i
+      className={`ph-fill ${icon} text-blue-600 rounded-full text-3xl group-hover:scale-110 transform transition-transform`}
+    />
+    <div className="feature-content">
+      <h4 className="text-lg font-semibold mb-1 group-hover:text-blue-600 transition-colors">
+        {title}
+      </h4>
+      <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+        {description}
+      </p>
+    </div>
+  </div>
+);
 
 const LandingPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,10 +50,52 @@ const LandingPage = () => {
       companyName: "",
     },
   });
-// Scroll to Top
-   const handleClick = () => {
-       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-     };
+  const leftFeatures = [
+    {
+      icon: "ph-users-three",
+      title: "Employee Registration",
+      description: "Capture essential employee details including documents.",
+    },
+    {
+      icon: "ph-lock",
+      title: "Role-Based Access Control",
+      description: "Secure role-based HR access management.",
+    },
+    {
+      icon: "ph-timer",
+      title: "End-to-End Employee Management",
+      description: "Automate onboarding to relieving.",
+    },
+  ];
+
+  const rightFeatures = [
+    {
+      icon: "ph-fingerprint",
+      title: "Attendance Tracking",
+      description: "Monitor attendance accurately through HR Management.",
+    },
+    {
+      icon: "ph-money-wavy",
+      title: "Payroll Processing",
+      description:
+        "Automated salary, tax, payslip generations, ensuring precise and timely payments.",
+    },
+    {
+      icon: "ph-handshake",
+      title: "Client & Invoice Management",
+      description: "Manage clients and create accurate invoices.",
+    },
+    {
+      icon: "ph-user-gear",
+      title: "Employee Self-Service (ESS)",
+      description: "Allow employees to access and update their details.",
+    },
+  ];
+
+  // Scroll to Top
+  const handleClick = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
 
   const handleEmailChange = (e) => {
     // Get the current value of the input field
@@ -86,7 +144,7 @@ const LandingPage = () => {
     const { companyName } = data;
     localStorage.setItem("companyName", companyName);
     reset();
-    navigate(`/${companyName}/login`);
+    window.open(`/${companyName}/login`, "_blank"); // Opens in a new tab
   };
 
   // Function to open the mobile menu
@@ -150,14 +208,14 @@ const LandingPage = () => {
                     About
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a
                     href="#services"
                     className="hover:header_menu_shadow duration-700 px-2 py-3 rounded-lg menu"
                   >
                     Services
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a
                     href="#contact"
@@ -166,9 +224,10 @@ const LandingPage = () => {
                     Contact Us
                   </a>
                 </li>
-                 <li>
+                <li>
                   <a
                     href="/anonymouseCmpRegistration"
+                    target="_blank"
                     className="hover:header_menu_shadow duration-700 px-2 py-3 rounded-lg menu"
                   >
                     Sign Up
@@ -185,7 +244,7 @@ const LandingPage = () => {
                   weight="regular"
                   style={{ maxHeight: "35px" }}
                 />
-                <a href="tel:+123456789" className="max-xl:hidden">
+                <a href=" " className="max-xl:hidden">
                   {" "}
                   +91 9705678967{" "}
                 </a>
@@ -194,11 +253,11 @@ const LandingPage = () => {
                 href=" "
                 className="flex justify-center max-sm:text-sm items-center gap-3 py-2 md:py-3 px-3 md:px-6 rounded-full bg-s2 border border-mainTextColor text-mainTextColor group font-medium"
                 onClick={(e) => {
-                    e.preventDefault();  // Prevent navigation
-                    openModal();
-                  }}    
-            >
-                Company Login
+                  e.preventDefault(); // Prevent navigation
+                  openModal();
+                }}
+              >
+                Login
                 <ArrowUpRight
                   className="group-hover:rotate-[45deg] duration-500 text-base sm:text-xl lg:text-2xl"
                   weight="bold"
@@ -367,19 +426,19 @@ const LandingPage = () => {
           <img
             src="assets/images/hero_bg_element3.png"
             alt="element"
-            className="absolute top-1/3 left-1/3 max-sm:hidden"
+            className="absolute top-4 left-1/3 max-sm:hidden"
           />
           <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-2">
             <p className="uppercase text-base lg:text-xl font-semibold animate__animated animate__fadeInUp">
               Efficiency HRM and workforce mastery
             </p>
             <div className="display-2">
-              We Make <span className="text-s3 inline-flex">HRM</span>
+              Automated <span className="text-s3 inline-flex">HRM</span>
               <br />
-              Painless.
             </div>
+            <div className="display-5">That Grows With You</div>
             <p className="max-w-[550px]">
-              We simplifying workforce management through smart,seamless automation.
+            
             </p>
             {/* <div className="flex justify-start items-center gap-4 pt-6 lg:pt-8 pb-15">
               <a
@@ -394,88 +453,114 @@ const LandingPage = () => {
             </div> */}
           </div>
           <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <img src="assets/images/hero_illus.png" alt="illustration" />
+            <img src="assets/images/heroine1_iilus.png" alt="illustration" />
           </div>
         </div>
       </section>
-      <section className="stp-30 sbp-30 relative">
-        <img
-          src="assets/images/circleIcon.png"
-          alt="circle icon"
-          className="absolute top-10 left-0 max-xxl:hidden xxl:-left-72 xxxl:-left-40"
-        />
-        <img
-          src="assets/images/sliceIcon.png"
-          alt="slice icon"
-          className="absolute right-0 sm:right-2 lg:right-10 top-10 xl:top-32 max-md:h-[80px]"
-        />
-        <div className="container z-10 relative">
-          <div className="flex justify-center items-center">
-            <div className="flex justify-center items-center max-xxl:overflow-hidden">
-              <div className="max-w-[700px] text-center flex justify-center items-center flex-col">
-                {/* <p
-                className="bg-p1 py-2 sm:py-3 px-5 rounded-full text-white wow animate__animated animate__fadeInUp"
-              >
-                Solutions
-              </p> */}
+    <section className="stp-15 sbp-15 relative">
+      <img
+        src="assets/images/circleIcon.png"
+        alt="circle icon"
+        className="absolute top-10 left-0 max-xxl:hidden xxl:-left-72 xxxl:-left-40"
+      />
+      <img
+        src="assets/images/sliceIcon.png"
+        alt="slice icon"
+        className="absolute right-0 sm:right-2 lg:right-10 top-10 xl:top-32 max-md:h-[80px]"
+      />
+      <div className="container z-10 relative">
+        <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center max-xxl:overflow-hidden">
+            <div className="max-w-[700px] text-center flex justify-center items-center flex-col">
+              <h1 className="display-4 pt-4 pb-4 lg:pb-6 wow animate__animated animate__fadeInDown">
+                The CUB HRM solution
+              </h1>
+              <p className="text-bodyText wow animate__animated animate__fadeInDown">
+           CUB delivers advanced HR resource modules with a user-friendly interface and powerful features.
+It is easy to implement, configure, and operate, ensuring a seamless HR management experience.
+              </p>
+            </div>
+          </div>
+        </div>
 
-                <h1 className="display-4 pt-4 pb-4 lg:pb-6 wow animate__animated animate__fadeInDown">
-                  The CUB HRM solution
-                </h1>
+        {/* Process Steps */}
+       <div className="relative flex justify-center items-center mt-5 gap-4 flex-wrap">
+  {/* Reusable step card component */}
+  {[
+    { src: "assets/images/personsignup_icon.png", label: "Sign Up" },
+    { src: "assets/images/signup_icon.png", label: "Login" },
+    { src: "assets/images/configure_icon.png", label: "Configure" },
+    { src: "assets/images/whyAccoupayCard_3.jpg", label: "Get Started" }
+  ].map((step, index) => (
+    <React.Fragment key={index}>
+      <div className="step-card bg-white text-center text-s1 flex flex-col items-center justify-center w-[120px] h-[120px] p-2">
+        <img
+          src={step.src}
+          alt={`${step.label} Icon`}
+          className="w-[60px] h-[60px] mb-2 object-contain"
+        />
+        <span className="text-[14px] font-medium">{step.label}</span>
+      </div>
 
-                <p className="text-bodyText wow animate__animated animate__fadeInDown">
-                  When it comes to HRM solutions, we have a variety of options
-                  that benefit for Company Management.
-                </p>
+      {index < 3 && (
+        <div className="arrow">
+          <span className="arrow-icon text-2xl">→</span>
+        </div>
+      )}
+    </React.Fragment>
+  ))}
+</div>
+{/* 
+        <div className="mt-8 text-center text-xl text-gray-600 font-medium">
+          <p className="inline-block border-t-2 border-dashed border-gray-400 pt-4 mt-6">
+            🎉 Perfect! You built it.
+          </p>
+        </div> */}
+      </div>
+    </section>
+
+      <section id="about" className="bg-softBg1 stp-15 sbp-15 overflow-hidden">
+        <div className="container">
+          <div className="flex justify-between items-end gap-6 max-lg:flex-col max-lg:items-start">
+            <div className="max-w-100 flex flex-col items-center w-full">
+              {/* About Us Button */}
+              <p className="bg-p1 py-3 px-5 rounded-full text-white">
+                About CUB HRM
+              </p>
+              {/* Image & Content */}
+              <div className="flex flex-row w-full stp-15 gap-6 max-md:flex-col">
+                {/* Image */}
+                <div className="w-50 flex justify-center items-center overflow-hidden self-stretch max-md:w-full">
+                  <img
+                    src="assets/images/solution_illustrations.png"
+                    alt="HRM Illustration"
+                    className="hover:scale-110 duration-500 w-full object-contain max-w-xs"
+                  />
+                </div>
+                {/* Content */}
+                <div className="w-50 flex flex-col justify-start items-start max-md:w-full max-md:items-center">
+                  <h1 className="heading-1 pb-2 max-md:text-center w-full">
+                    Consolidate HRM Processing
+                  </h1>
+                  <h2 className="max-md:text-center w-full">
+                    For Small and Growing Businesses
+                  </h2>
+                  <div className="py-3 lg:py-10 w-full">
+                    <p className="text-bodyText max-md:text-center">
+                     CUB HRM is a user-friendly, intuitive Human Resource Management System (HRMS) tailored specifically for small, medium, and startup businesses in India. With a strong focus on efficient payroll management, CUB HRM provides a comprehensive suite of tools designed to streamline your HR operations.
+                    </p>
+                    <p className="text-bodyText mt-2 max-md:text-center">
+                      From accurate and timely salary processing to automated tax and statutory deductions (including TDS, PF, and ESI), CUB HRM ensures hassle-free payroll generation. Create and distribute professional payslips with ease, and manage employee data securely—all in one place.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section id="about" className="bg-softBg1 stp-30 sbp-30 overflow-hidden">
-        <div className="container">
-          <div className="flex justify-between items-end gap-6 max-lg:flex-col max-lg:items-start">
-            <div className="max-w-100 flex justify-center items-center flex-col">
-              <p className="bg-p1 py-3 px-5 rounded-full text-white">
-                About Us
-              </p>
-              <div className="flex flex-row w-full stp-15 gap-6">
-                {/* Left: Image - 50% */}
-                <div className="w-50 flex justify-center items-center overflow-hidden self-stretch">
-                  <img
-                    src="assets/images/solution_illustrations.png"
-                    alt="HRM Illustration"
-                    className="hover:scale-110 duration-500 w-full object-contain"
-                  />
-                </div>
-
-                {/* Right: Content - 50% */}
-                <div className="w-50 flex flex-col justify-start items-start">
-                  <h1 className="heading-1 pb-2">Consolidate HRM Processing</h1>
-                  <h2>For Small and Growing Businesses</h2>
-
-                  <div className="py-3 lg:py-10 w-full">
-                    <p className="text-bodyText">
-                      <b>CUB HRM </b> is a user-friendly, intuitive Human
-                      Resource Management System (HRMS) tailored specifically
-                      for small, medium, and startup businesses in India. With a
-                      strong focus on efficient payroll management,{" "}
-                      <b>CUB HRM </b> provides a comprehensive suite of tools
-                      designed to streamline your HR operations.
-                    </p>
-                    <p className="text-bodyText py-2">
-                      From accurate and timely salary processing to automated
-                      tax and statutory deductions (including TDS, PF, and ESI),{" "}
-                      <b>CUB HRM </b> ensures hassle-free payroll generation.
-                      Create and distribute professional payslips with ease, and
-                      manage employee data securely—all in one place.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-row w-full stp-15 gap-6">
-                {/* Right: Content (70%) */}
+      {/* VBRS IT */}
+      {/* <div className="flex flex-row w-full stp-15 gap-6">
                 <div className="w-50 bg-softBg1 flex flex-col justify-start items-start p-4">
                   <p className="text-bodyText pb-1">
                     <b>VBRS IT </b> Solutions designed a fast and effective{" "}
@@ -509,7 +594,6 @@ const LandingPage = () => {
                     </a>
                   </div>
                 </div>
-                {/* Left: Logo (30%) */}
                 <div className="w-50 flex bg-strokeGreen justify-center items-start overflow-hidden self-stretch">
                   <img
                     src="assets/img/VBRSIT-logo.png"
@@ -517,15 +601,15 @@ const LandingPage = () => {
                     className="hover:scale-110 duration-500 w-full object-contain"
                   />
                 </div>
-              </div>
-            </div>
-            {/* <p className="text-bodyText max-w-[500px]">
+              </div> */}
+      {/* </div> */}
+      {/* <p className="text-bodyText max-w-[500px]">
         Your dependable guide to achieving freedom from manual HR work and
         building that perfect workplace you have always aspired to build. Your
         dependable guide to achieving freedom.
       </p> */}
-          </div>
-          {/* <div className="grid grid-cols-12 gap-6 stp-15">
+      {/* </div> */}
+      {/* <div className="grid grid-cols-12 gap-6 stp-15">
             <div className="col-span-12 sm:col-span-6 lg:col-span-4 bg-white p-6 xl:py-10 xl:px-15 flex flex-col items-center border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 wow animate__animated animate__fadeInUp">
               <div className="">
                 <img src="assets/images/whyAccoupayCard_1.png" alt="image" />
@@ -595,147 +679,51 @@ const LandingPage = () => {
               </h4>
             </div>
           </div> */}
-        </div>
-      </section>
-      <section id="services" className="bg-softBg1 stp-30 sbp-30">
+
+      <section className="bg-softBg2 stp-15 sbp-15 overflow-hidden">
         <div className="container">
           <div className="flex justify-between items-end gap-6 max-lg:flex-col max-lg:items-start">
             <div className="max-w-[600px] flex justify-center items-start flex-col">
               <p className="bg-p1 py-3 px-5 rounded-full text-white wow animate__animated animate__fadeInUp">
-                Services
+                What CUB HRM Offers
               </p>
               <h1 className="display-4 pt-4 wow animate__animated animate__fadeInDown">
                 Perfect solutions for your business
               </h1>
             </div>
             <p className="text-bodyText max-w-[500px]">
-             CUB HRM is a comprehensive Human Resource Management System tailored for small and growing businesses. 
-             It simplifies and automates critical HR processes,empowering teams to focus on growth while ensuring compliance and operational efficiency.
+              CUB HRM is a comprehensive Human Resource Management System
+              tailored for small and growing businesses. It simplifies and
+              automates critical HR processes,empowering teams to focus on
+              growth while ensuring compliance and operational efficiency.
             </p>
           </div>
-                  <div className="grid grid-cols-12 gap-1 stp-15">
-  <div className="col-span-12 flex gap-1 items-stretch">
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      id="employeeRegistration"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center text-s1 pb-5 mt-3 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-users-three"></i>
         </div>
-        <h4 className="heading-4 pb-5">Employee Registration</h4>
-        <p className="text-bodyText pb-6">
-          Capture essential employee details including personal,
-          employment, and banking information, with seamless document uploads.
-        </p>
-      </div>
-    </div>
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".2s"
-      id="roleBasedAccessControl"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-lock"></i>
-        </div>
-        <h4 className="heading-4 pb-5">Role-Based Access Control</h4>
-        <p className="text-bodyText pb-6">
-          Define and manage user roles (Admin, HR, Accountant, Employee),
-          ensuring secure and structured access to HR functions.
-        </p>
-      </div>
-    </div>
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".4s"
-      id="#endtoend"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-timer"></i>
-        </div>
-        <h4 className="heading-4 pb-5">End-to-End Employee Management</h4>
-        <p className="text-bodyText pb-6">
-          Automate the complete employee lifecycle—from onboarding
-          to relieving—with secure document handling and compliance tracking.
-        </p>
-      </div>
-    </div>
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".6s"
-      id="attendanceTracking"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-fingerprint"></i>
-        </div>
-        <h4 className="heading-4 pb-5">Attendance Tracking</h4>
-        <p className="text-bodyText pb-6">
-          Accurately monitor and record employee attendance with integrated tools.
-        </p>
-      </div>
-    </div>
-  </div>
-  <div className="col-span-12 flex justify-center gap-1 mt-4 items-stretch">
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".4s"
-      id="payrollProcessing"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-money-wavy"></i>
-        </div>
-        <h4 className="heading-4 pb-5">Payroll Processing</h4>
-        <p className="text-bodyText pb-6">
-          Automate salary calculations, tax deductions, payslip generation,
-          and direct salary deposits—ensuring precise and timely payments.
-        </p>
-      </div>
-    </div>
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".6s"
-      id="c&iManagement"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:border-mainTextColor duration-700 hover:bg-s2 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-handshake"></i>
-        </div>
-        <h4 className="heading-4 pb-5">Client & Invoice Management</h4>
-        <p className="text-bodyText pb-6">
-          Store client details securely and generate invoices based on work hours or contract terms,
-          reducing billing errors.
-        </p>
-      </div>
-    </div>
-    <div
-      className="col-span-12 sm:col-span-6 lg:col-span-3 wow animate__animated animate__fadeInUp"
-      data-wow-duration="1.3s"
-      data-wow-delay=".4s"
-      id="essPortal"
-    >
-      <div className="bg-white p-3 xl:p-8 flex flex-col border border-white group hover:bg-s2 hover:border-mainTextColor duration-700 h-full max-w-[280px]">
-        <div className="text-4xl text-center mt-3 text-s1 pb-5 group-hover:text-mainTextColor duration-500">
-          <i className="ph-fill ph-user-gear"></i>
-        </div>
-        <h4 className="heading-4 pb-5">Employee Self-Service(ESS) Portal</h4>
-        <p className="text-bodyText pb-6">
-          Empower employees to access pay slips, tax documents, company policies,
-          and update their personal information independently.
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
+        <div id="services">
+          <div className="services-grid">
+            {/* Left Feature Stack */}
+            <div className="features-column features-left">
+              {leftFeatures.map((feature, idx) => (
+                <FeatureBlock key={idx} {...feature} alignment="right" />
+              ))}
+            </div>
+
+            {/* Center Image */}
+            <div className="services-image">
+              <img
+                src="assets/images/breadcrumb_img_18.png"
+                alt="Features Illustration"
+                className="center-image"
+              />
+            </div>
+
+            {/* Right Feature Stack */}
+            <div className="features-column features-right">
+              {rightFeatures.map((feature, idx) => (
+                <FeatureBlock key={idx} {...feature} alignment="left" />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1175,7 +1163,7 @@ const LandingPage = () => {
         </div>
       </div>
 
-      <section id="contact" className="sbp-30 overflow-hidden">
+      {/* <section id="contact" className="sbp-30 overflow-hidden">
         <div className="container">
           <div className="flex justify-center items-center">
             <div className="flex justify-center items-center max-xxl:overflow-hidden">
@@ -1189,13 +1177,14 @@ const LandingPage = () => {
                 </h1>
 
                 <p className="text-bodyText wow animate__animated animate__fadeInDown">
-                 We’re here to help you simplify and modernize your HR and payroll processes. 
-                 Get in touch with us to learn more about how CUB HRM can benefit your business.
+                  We’re here to help you simplify and modernize your HR and
+                  payroll processes. Get in touch with us to learn more about
+                  how CUB HRM can benefit your business.
                 </p>
               </div>
             </div>
           </div>
- {/* <div
+           <div
               className="col-span-12 min-[450px]:col-span-6 md:col-span-3 wow animate__animated animate__fadeInUp"
               data-wow-duration="1.3s"
             >
@@ -1211,46 +1200,42 @@ const LandingPage = () => {
                   Compare Cub Hrm
                 </a>
               </div>
-            </div> */}
-        <div className="flex flex-wrap md:flex-nowrap justify-between items-start gap-6 border-t pt-10">
-  {/* Left section: Mail and Phone */}
-  <div className="flex-1 flex flex-col gap-8 pr-6 border-r md:border-r border-gray-300">
-    {/* Mail */}
-    <div>
-      <div className="text-4xl text-s1 mb-2">
-        <i className="ph-fill ph-envelope-simple"></i>
-      </div>
-      <h4 className="heading-4 pb-2">Mail Us</h4>
-      <p className="text-s1"> 📧 ems@vbrsit.com</p>
-    </div>
-
-    {/* Phone */}
-    <div>
-      <div className="text-4xl text-s1 mb-2">
-        <i className="ph-fill ph-headset"></i>
-      </div>
-      <h4 className="heading-4 pb-2">Give Us a Ring</h4>
-      <p className="text-s1">📞 +91 97056 78967</p>
-    </div>
-  </div>
-
-  {/* Right section: Address */}
-  <div className="flex-1 pl-6">
-    <div className="text-4xl text-s1 mb-2">
-      <i className="ph-fill ph-address-book"></i>
-    </div>
-    <h4 className="heading-4 pb-2">Address</h4>
-    <p className="text-s1">
-      10th Floor, Unit #117, Techno-1, Sy. No: 86, 87(P), 88/1, Raidurg,<br />
-      Serilingampally, Ranga Reddy District,<br />
-      Telangana – 500081
-    </p>
-  </div>
-</div>
-
+            </div> 
+          <div className="flex flex-wrap md:flex-nowrap justify-between items-start gap-6 border-t pt-10">
+            <div className="flex-1 flex flex-col gap-8 pr-6 border-r md:border-r border-gray-300">
+              <div>
+                <div className="text-4xl text-s1 mb-2">
+                  <i className="ph-fill ph-envelope-simple"></i>
+                </div>
+                <h4 className="heading-4 pb-2">Mail Us</h4>
+                <p className="text-s1"> 📧 ems@vbrsit.com</p>
+              </div>
+              <div>
+                <div className="text-4xl text-s1 mb-2">
+                  <i className="ph-fill ph-headset"></i>
+                </div>
+                <h4 className="heading-4 pb-2">Give Us a Ring</h4>
+                <p className="text-s1">📞 +91 97056 78967</p>
+              </div>
+            </div>
+            <div className="flex-1 pl-6">
+              <div className="text-4xl text-s1 mb-2">
+                <i className="ph-fill ph-address-book"></i>
+              </div>
+              <h4 className="heading-4 pb-2">Address</h4>
+              <p className="text-s1">
+                10th Floor, Unit #117, Techno-1, Sy. No: 86, 87(P), 88/1,
+                Raidurg,
+                <br />
+                Serilingampally, Ranga Reddy District,
+                <br />
+                Telangana – 500081
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
-{/* <section className="relative after:absolute after:bg-mainTextColor after:bottom-0 after:right-0 after:left-0 after:h-1/2 overflow-hidden">
+      </section> */}
+      {/* <section className="relative after:absolute after:bg-mainTextColor after:bottom-0 after:right-0 after:left-0 after:h-1/2 overflow-hidden">
   <div className="container bg-p1 py-12 sm:py-20 px-4 sm:px-10 md:px-20 lg:px-40 relative z-10 wow animate__animated animate__fadeInUp">
     <img
       src="assets/images/sliceIcon.png"
@@ -1290,15 +1275,60 @@ const LandingPage = () => {
     </div>
   </div>
 </section> */}
-      <footer className="bg-mainTextColor text-white/60">
-        <div className="container grid grid-cols-12 stp-30 sbp-30 gap-6 max-xxl:pr-4">
-          <div className="col-span-12 min-[450px]:col-span-6 lg:col-span-3 flex flex-col gap-6 lg:gap-8">
-            <a href=" ">
-              <img src="assets/images/logo_white.png" alt="logo" />
-            </a>
-            <p className="">
-              Your trusted partner in accounting and HRM solutions. We deliver
-              precision, efficiency, and tailored services
+      <footer className="bg-mainTextColor text-white/60" id="contact">
+      <p className="bg-p1 py-2 mt-4 ms-6 sm:py-3 px-3 rounded-full text-white inline-block wow animate__animated animate__zoomIn">
+  Built by VBRS IT Solutions
+</p>
+        <div className="container grid grid-cols-12 stp-30 sbp-30 gap-6 max-xxl:pr-4 text-white/80 text-[13px]">
+          
+          <div className="col-span-12 min-[450px]:col-span-6 lg:col-span-6 flex flex-col gap-4 lg:gap-4 wow animate__animated animate__fadeInUp">
+            <img
+              src="assets/img/VBRSIT-logo.png"
+              className="max-w-[150px]"
+              alt="logo"
+            />
+            <p className="text-white/80 text-sm">
+              Established in 2014, VBRS IT Solutions is a leading technology company with vast experience in the IT industry over the past two decades.
+              We deliver smart, user-focused digital solutions to more than 50 clients across India. 
+            </p>
+            {/* <p>
+              To solve internal HR challenges, we developed CUB HRM, 
+              a powerful employee management system that streamlined everything from onboarding to payroll. 
+              Its success within our organization led us to offer it as a scalable solution for other businesses.
+            </p>  */}
+            {/*
+            Our core services include:
+            <ul className="two-column-list ">
+              <li className="flex items-center gap-2 text-white/80 hover:text-white transition duration-300 transform hover:translate-x-2">
+                <i className="ph ph-device-mobile text-lg"></i>
+                Web & Mobile App Development
+              </li>
+              <li className="flex items-center gap-2 text-white/80 hover:text-white transition duration-300 transform hover:translate-x-2">
+                <i className="ph ph-lightbulb text-lg"></i>
+                IT Consulting
+              </li>
+              <li className="flex items-center gap-2 text-white/80 hover:text-white transition duration-300 transform hover:translate-x-2">
+                <i className="ph ph-cloud text-lg"></i>
+                Cloud Solutions
+              </li>
+              <li className="flex items-center gap-2 text-white/80 hover:text-white transition duration-300 transform hover:translate-x-2">
+                <i className="ph ph-database text-lg"></i>
+                ERP Systems
+              </li>
+              <li className="flex items-center gap-2 text-white/80 hover:text-white transition duration-300 transform hover:translate-x-2">
+                <i className="ph ph-bug text-lg"></i>
+                Software Testing
+              </li>
+            </ul> */}
+            {/* <p>
+              Our mission is to empower businesses with innovative technology
+              solutions that drive growth and efficiency. We are committed to
+              delivering high-quality services that meet the unique needs of our
+              clients.
+            </p> */}
+            <p>
+              Guided by our philosophy, “Valuable Resources, Better Solutions,” 
+              we focus on transparent collaboration, cost-effective delivery, and long-term client success.
             </p>
             {/* social icons */}
             {/* <ul className="flex justify-start items-center gap-2">
@@ -1335,24 +1365,9 @@ const LandingPage = () => {
                 </a>
               </li>
             </ul> */}
-            <div className="py-1">
-         <a
-  href="/anonymouseCmpRegistration"
-  className="flex justify-center max-sm:text-sm items-center gap-3 py-2 md:py-3 px-3 md:px-6 rounded-full 
-             bg-blue-600 hover:bg-s1
-             border border-mainTextColor 
-             text-white group font-medium transition-colors duration-300"
->
- Register Now
-  <span className="group-hover:rotate-[45deg] duration-500 text-base sm:text-xl lg:text-2xl">
-    <i className="ph-bold ph-arrow-up-right"></i>
-  </span>
-</a>
-
-            </div>
           </div>
 
-          <div className="xl:pl-30 col-span-12 min-[400px]:col-span-6 lg:col-span-3">
+          {/* <div className="xl:pl-30 col-span-12 min-[400px]:col-span-6 lg:col-span-3">
             <h4 className="heading-4 mb-6 pb-2 relative text-white after:absolute after:w-[20%] after:h-[2px] after:bottom-0 after:left-0 after:bg-p1 hover:after:w-[40%] after:duration-500">
               Resources
             </h4>
@@ -1454,70 +1469,81 @@ const LandingPage = () => {
                 </a>
               </li>
             </ul>
-          </div>
-
-          <div className="col-span-12 min-[450px]:col-span-6 lg:col-span-3 xl:pl-30">
-            <h4 className="heading-4 mb-4 md:mb-6 pb-2 relative after:absolute after:w-[20%] after:h-[2px] after:bottom-0 after:left-0 after:bg-p1 hover:after:w-[40%] after:duration-500 text-white">
-              Get In Touch
-            </h4>
-            <ul className="flex flex-col gap-4 md:gap-3">
-              <li>
-                <a
-                  href="mailto:info@mail.com"
-                  className="flex justify-start items-center gap-2 hover:text-white hover:translate-x-2 duration-500"
-                >
-                  <span className="text-2xl pt-2">
-                    <i className="ph ph-envelope-simple-open"></i>
-                  </span>
-                  ems@vbrsit.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+1234579"
-                  className="flex justify-start items-center gap-2 hover:text-white hover:translate-x-2 duration-500"
-                >
-                  <span className="text-2xl pt-2">
-                    <i className="ph ph-phone-call"></i>
-                  </span>
-                  +91 9705678967
-                </a>
-              </li>
-              <li>
-                <p className="flex justify-start items-center gap-2 hover:text-white hover:translate-x-2 duration-500">
-                  <span className="text-2xl pt-2">
-                    <i className="ph ph-paper-plane-tilt"></i>
-                  </span>
-                  1st Floor Unit # 117, Techno-1, Sy. No:86, 87(p), 88/1,
-                  Raidurg, Serilingampally, Ranga Reddy Dt. Telangana-500081
-                </p>
-              </li>
-            </ul>
-          </div>
+          </div> */}
+          <div className="col-span-12 min-[600px]:col-span-6 lg:col-span-6 xl:pl-30">
+  <h4 className="heading-4 mb-4 md:mb-6 pb-2 relative after:absolute after:w-[20%] after:h-[2px] after:bottom-0 after:left-0 after:bg-p1 hover:after:w-[40%] after:duration-500 text-white">
+    Get In Touch
+  </h4>
+  <ul className="flex flex-col gap-4 md:gap-3">
+    <li>
+      <a
+        href="mailto:info@mail.com"
+        className="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-1 sm:gap-2 hover:text-white hover:translate-x-2 duration-500 break-words"
+      >
+        <span className="text-2xl pt-2 sm:pt-0">
+          <i className="ph ph-envelope-simple-open"></i>
+        </span>
+        <span className="text-sm sm:text-base">ems@vbrsit.com</span>
+      </a>
+    </li>
+    <li>
+      <a
+        href="tel:+1234579"
+        className="flex flex-col sm:flex-row justify-start items-start sm:items-center gap-1 sm:gap-2 hover:text-white hover:translate-x-2 duration-500 break-words"
+      >
+        <span className="text-2xl pt-2 sm:pt-0">
+          <i className="ph ph-phone-call"></i>
+        </span>
+        <span className="text-sm sm:text-base">+91 9705678967</span>
+      </a>
+    </li>
+    <li>
+     <p class="address-item">
+  <span class="icon"><i class="ph ph-paper-plane-tilt"></i></span>
+  <span class="address-text">
+    1st Floor Unit # 117, Techno-1, Sy. No:86, 87(p), 88/1, Raidurg, Serilingampally, Ranga Reddy Dt. Telangana-500081
+  </span>
+</p>
+    </li>
+  </ul>
+ <div className="py-1 mt-4 w-full">
+  <a
+    href="/anonymouseCmpRegistration"
+    className=" register-btn flex justify-center items-center gap-2 py-2 px-4 sm:py-3 sm:px-6 rounded-full 
+      bg-blue-600 hover:bg-s1
+      border border-mainTextColor 
+      text-white group font-medium transition-colors duration-300 text-sm sm:text-base w-full max-w-xs mx-auto"
+  >
+    Register Now
+    <span className="group-hover:rotate-[45deg] duration-500 text-base sm:text-xl lg:text-2xl">
+      <i className="ph-bold ph-arrow-up-right"></i>
+    </span>
+  </a>
+</div>
+</div>
         </div>
-        <div className="border-t border-white/10">
-          <div className="container py-6 flex justify-between items-center max-md:flex-col gap-6">
-            <p className="max-sm:text-center">
-              Cub Hrm © Copyright 2025. All Rights Reserved.
-            </p>
-            <div className="flex justify-end items-center">
-              <a
-                href=" "
-                className="border-r-2 border-white/60 pr-3 hover:text-white duration-500 leading-none"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href=" "
-                className="pl-3 hover:text-white duration-500 leading-none"
-              >
-                Terms & Conditions
-              </a>
-            </div>
-          </div>
-        </div>
+      <div className="border-t border-white/10">
+  <div className="footer-bottom-container text-sm ml-4 sm:ml-0 flex flex-col sm:flex-row justify-between items-center py-4 px-6">
+    <p className="text-center">
+      Cub Hrm © Copyright 2025. All Rights Reserved.
+    </p>
+    <div className="flex justify-end items-center">
+      <a
+        href=" "
+        className="border-r-2 border-white/60 pr-3 hover:text-white duration-500 leading-none"
+      >
+        Privacy Policy
+      </a>
+      <a
+        href=" "
+        className="pl-3 hover:text-white duration-500 leading-none"
+      >
+        Terms & Conditions
+      </a>
+    </div>
+  </div>
+</div>
       </footer>
-
       <button
         className="fixed text-white text-xl sm:text-2xl rounded-full bg-p1 hover:bg-s2 border border-p1 hover:border-white right-6 md:right-10 p-2 sm:p-3 z-40 jumping1 duration-700 scrollButton scrollButtonHide !leading-[0]"
         aria-label="bottom to top button"

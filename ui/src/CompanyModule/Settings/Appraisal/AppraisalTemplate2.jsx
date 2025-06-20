@@ -48,6 +48,8 @@ const AppraisalTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity:0.3,
+          border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",

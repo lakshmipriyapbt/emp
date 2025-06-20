@@ -30,7 +30,8 @@ const AppraisalTemplate1 = ({
         overflow: "hidden",
       }}
     >
-      {!draft && (<div>
+      {!draft && (
+        <div className="d-flex justify-content-end align-items-center p-2">
         {companyData ? (
           <img
             className="align-middle"
@@ -57,9 +58,9 @@ const AppraisalTemplate1 = ({
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
           zIndex: 1,
+          opacity: 0.3,
         }}
       /> )}
-
       <h4 className="text-center p-3">APPRAISAL LETTER</h4>
 
       <div className="row d-flex justify-content-between p-1">
@@ -99,10 +100,11 @@ const AppraisalTemplate1 = ({
           Dear <strong>{employeeName || "Employee Name"}</strong>,
         </p>
         <p>
-          We are pleased to inform you that based on your performance and
-          contribution to the company, our management has revised your
-          compensation to Rs.<strong>{salaryIncrease}</strong> per Annum,This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication. Which
-          is cost to company with effect from <strong>{effectiveDate}</strong>.
+          We are pleased to inform you that your salary increase effective from <b>{effectiveDate}. </b>
+The amount of your salary increase is <b>Rs. {salaryIncrease} pa.</b>
+This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.
+We understand this is a sustainable increase in your pay and we appreciate
+your hard work and dedication to the company.
         </p>
         <p>
           We recognize your continued contributions and dedication to the
@@ -111,6 +113,8 @@ const AppraisalTemplate1 = ({
           per your original offer letter.
         </p>
         <p>
+          All other T&C are the same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
+         <br/>
           If you have any questions or need further clarification, feel free to
           reach out.
         </p>

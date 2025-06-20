@@ -36,7 +36,7 @@ const CompanyLogin = () => {
   const [showOtpField, setShowOtpField] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [otpTimeLimit, setOtpTimeLimit] = useState(56); 
+  const [otpTimeLimit, setOtpTimeLimit] = useState(180); 
   const [otpExpired, setOtpExpired] = useState(false); 
   const dispatch = useDispatch();
 
@@ -85,7 +85,7 @@ const CompanyLogin = () => {
           toast.success("OTP Sent Successfully");
           setOtpSent(true);
           setOtpExpired(false);
-          setOtpTimeLimit(56);
+          setOtpTimeLimit(180);
           setShowOtpField(true); // Show OTP field
         } else {
           console.error('Token not found in response');
