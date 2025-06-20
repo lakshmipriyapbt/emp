@@ -21,28 +21,41 @@ public class OfferLetterController {
     @Autowired
     private OfferLetterService offerLetterService;
 
+    // ✅ Download + Save Offer Letter
     @RequestMapping(value = "/offerletter/upload", method = RequestMethod.POST)
-    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.getOfferLetter.tag}", description = "${api.getOfferLetter.description}")
+    @io.swagger.v3.oas.annotations.Operation(
+            security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getOfferLetter.tag}",
+            description = "${api.getOfferLetter.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<byte[]> downloadOfferLetter(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                      @RequestBody @Valid OfferLetterRequest offerLetterRequest,
-                                                      HttpServletRequest request) {
-        return offerLetterService.downloadOfferLetter(offerLetterRequest,request);
+    public ResponseEntity<byte[]> downloadOfferLetter(
+            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}",
+                    example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+            @RequestHeader(Constants.AUTH_KEY) String authToken,
+            @RequestBody @Valid OfferLetterRequest offerLetterRequest,
+            HttpServletRequest request) {
+
+        // ✅ Saving is done inside the service
+        return offerLetterService.downloadOfferLetter(offerLetterRequest, request);
     }
 
+    // ✅ Download + Save Internship Offer Letter
     @RequestMapping(value = "/internShipLetter/download", method = RequestMethod.POST)
-    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.downloadInternShipOfferLetter.tag}", description = "${api.downloadInternShipOfferLetter.description}")
+    @io.swagger.v3.oas.annotations.Operation(
+            security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.downloadInternShipOfferLetter.tag}",
+            description = "${api.downloadInternShipOfferLetter.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<byte[]> downloadInternShipOfferLetter(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                      @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                      @RequestBody @Valid InternshipOfferLetterRequest internshipOfferLetterRequest,
-                                                      HttpServletRequest request) throws EmployeeException {
-        return offerLetterService.downloadInternShipOfferLetter(internshipOfferLetterRequest,request);
-    }
+    public ResponseEntity<byte[]> downloadInternShipOfferLetter(
+            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}",
+                    example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+            @RequestHeader(Constants.AUTH_KEY) String authToken,
+            @RequestBody @Valid InternshipOfferLetterRequest internshipOfferLetterRequest,
+            HttpServletRequest request) throws EmployeeException {
 
+        // ✅ Saving is done inside the service
+        return offerLetterService.downloadInternShipOfferLetter(internshipOfferLetterRequest, request);
+    }
 }

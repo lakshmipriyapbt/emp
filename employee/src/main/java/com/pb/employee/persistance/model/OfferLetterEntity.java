@@ -1,14 +1,23 @@
 package com.pb.employee.persistance.model;
 
-import lombok.*;
+import com.pb.employee.opensearch.OpenSearchOperations;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import nonapi.io.github.classgraph.json.Id;
-import org.springframework.data.annotation.Id;
+import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.data.annotation.Id;
+
+
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class OfferLetterEntity extends Entity {
+public class OfferLetterEntity implements Entity {
+    @Autowired
+    private OpenSearchOperations openSearchOperations;
 
     @Id
     private String id; // Optional: useful for OpenSearch or MongoDB
@@ -42,4 +51,15 @@ public class OfferLetterEntity extends Entity {
     private boolean draft;
 
     private String createdDate;
+
+    private String internName;
+    private String internEmail;
+    private String mobileNo;
+
+    private String hrName;
+    private String hrEmail;
+    private String hrMobileNo;
+
+
+
 }

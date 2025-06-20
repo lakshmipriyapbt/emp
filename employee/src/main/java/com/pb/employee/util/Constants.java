@@ -199,4 +199,6 @@ public class Constants {
     public static final String USER_ADMIN = "Admin";
     public static final Object PENDING = "pending";
     public static final String INACTIVE = "inactive";
+    public static final String OFFER_LETTER_INDEX = "offer_letter_index";
+
 }

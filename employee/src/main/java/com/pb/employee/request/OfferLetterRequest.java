@@ -75,6 +75,31 @@ public class OfferLetterRequest {
     @Pattern(regexp =  "^(?! )[A-Za-z0-9.,'&/()_\\s-]+(?! )$", message = "{department.format}")
     private String department;
 
+    @Schema(example = "Intern Name")
+    @NotBlank(message = "Intern name cannot be blank")
+    private String internName;
+
+    @Schema(example = "intern@example.com")
+    @Pattern(regexp = "^\\S+@\\S+\\.\\S+$", message = "Invalid intern email format")
+    private String internEmail;
+
+    @Schema(example = "+91 9876543210")
+    @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "Invalid mobile number format")
+    private String mobileNo;
+
+    @Schema(example = "HR Name")
+    @NotBlank(message = "HR name cannot be blank")
+    private String hrName;
+
+    @Schema(example = "hr@example.com")
+    @Pattern(regexp = "^\\S+@\\S+\\.\\S+$", message = "Invalid HR email format")
+    private String hrEmail;
+
+    @Schema(example = "+91 9123456789")
+    @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "Invalid HR mobile number format")
+    private String hrMobileNo;
+
+
     @Schema(example = "true")
     private boolean draft;
 

@@ -110,4 +110,11 @@ public class InternshipOfferLetterRequest {
 
     @Schema(example = "true")
     private boolean draft;
+
+    private String internName;
+
+    public String getInternName() {
+        return internName;
+    }
+
 }
