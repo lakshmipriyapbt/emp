@@ -35,4 +35,6 @@ public class DocumentType {
     public static final DocumentType DOCUMENT = new DocumentType("document" , EmployeeDocumentEntity.class);
     public static final DocumentType EXPERIENCE = new DocumentType("experience", ExperienceEntity.class);
     public static final DocumentType EMPLOYEE = new DocumentType("appraisal", AppraisalEntity.class);
+    public static final DocumentType INTERNSHIP_CERTIFICATE = new DocumentType("internship-certificate", InternshipCertificateEntity.class);
+
 }

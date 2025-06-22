@@ -167,7 +167,10 @@ public enum EmployeeErrorMessageKey {
     APPRAISAL_NOT_FOUND("appraisal.not.found"),
     UNABLE_UPDATE_APPRAISAL("unable.update.appraisal"),
     UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
-    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal");
+    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
+    EMPLOYEE_NAME_NOT_FOUND("employee.name.not.found"),
+    INTERNSHIP_NOT_FOUND("internship.not.found"),
+    FAILED_TO_UPDATE_INTERNSHIP_CERTIFICATE("failed.to.update.internship.certificate");
 
     private final String key;
 

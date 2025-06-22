@@ -94,6 +94,10 @@ public class ResourceIdUtils {
     public static String generateAppraisalResourceId (String date) {
         return generateGlobalResourceId(ResourceType.APPRAISAL, date);
     }
+    public static String generateInternshipCertificateResourceId(String internEmail, String startDate) {
+        return generateGlobalResourceId(ResourceType.INTERNSHIP_CERTIFICATE, internEmail, startDate);
+    }
+
 
     /**
      * Generate a global resource ID based on the resource type
@@ -175,6 +179,9 @@ public class ResourceIdUtils {
         }
         if (type == ResourceType.APPRAISAL) {
             prefix = Constants.APPRAISAL + "-";
+        }
+        if (type == ResourceType.INTERNSHIP_CERTIFICATE){
+            prefix = Constants.INTERNSHIP_CERTIFICATE + "-";
         }
 
 
