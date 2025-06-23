@@ -145,14 +145,13 @@
     <p>With Best Wishes</p>
     <br/>
     <div>
+     <#-- Stamp is only included when draft is false -->
+                     <#if !appraisal.draft>
+                        <img src="${company.stampImage}" style="width: 100px; height: 100px;" />
+                       <#else>
+                        <div style="width: 100px; height: 100px;"></div>
+                     </#if>
                <b>Authorized Signature</b>
-               <br/>
-                  <#-- Stamp is only included when draft is false -->
-                 <#if !appraisal.draft>
-                    <img src="${company.stampImage}" style="width: 100px; height: 100px;" />
-                   <#else>
-                    <div style="width: 100px; height: 100px;"></div>
-                 </#if>
               <br/>
               <b>${company.companyName}</b>
               <p>${company.mobileNo}|${company.emailId}</p>
