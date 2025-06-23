@@ -497,7 +497,7 @@ const OfferLetterPreview = () => {
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
-            opacity: 0.3,
+            opacity: 0.1,
             zIndex: 1,
             pointerEvents: "none",
           }}
@@ -650,7 +650,7 @@ const OfferLetterPreview = () => {
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
-            opacity: 0.3,
+            opacity: 0.1,
             zIndex: 1,
             pointerEvents: "none",
           }}
@@ -953,7 +953,7 @@ const OfferLetterPreview = () => {
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
-            opacity: 0.3,
+            opacity: 0.1,
             zIndex: 3,
             pointerEvents: "none",
           }}

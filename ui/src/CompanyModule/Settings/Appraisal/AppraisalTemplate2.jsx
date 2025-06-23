@@ -198,7 +198,7 @@ const AppraisalTemplate2 = ({
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
             {!draft &&( <img 
-           src={stampImage}
+           src={companyData?.stampImage}
            alt="stampImage"
            style={{ height: "100px", width: "160px" }}/> )}
             <h4>{companyData.companyName},</h4>
