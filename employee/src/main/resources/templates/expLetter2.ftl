@@ -43,7 +43,7 @@
         }
 
         .date {
-            text-align: right;
+            text-align: left;
             padding: 20px;
         }
 
