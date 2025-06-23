@@ -213,7 +213,7 @@ your hard work and dedication to the company.
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
            {!draft && ( <img 
-           src={stampImage}
+           src={companyData?.stampImage}
            alt="stampImage"
            style={{ height: "100px", width: "160px" }}/> )}
             <h6>{companyName}</h6>
