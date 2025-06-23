@@ -40,6 +40,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
     }
     setLoading(false);
   }, [authUser.userId]);
+  console.log("companyData***",company);
 
   const templates = useMemo(() => [
     {
@@ -60,6 +61,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
         totalAllowances= {previewData.totalAllowances}
         basicSalary= {previewData.basicSalary}
         draft={previewData.draft}
+        stampImage={company?.stampImage}
         />
       ),
     },
@@ -81,6 +83,7 @@ const AppraisalPreview = ({ previewData, selectedTemplate }) => { // Accept prev
           totalAllowances= {previewData.totalAllowances}
           basicSalary= {previewData.basicSalary}
           draft={previewData.draft}
+          stampImage={company?.stampImage}
          />
       ),
     },    
