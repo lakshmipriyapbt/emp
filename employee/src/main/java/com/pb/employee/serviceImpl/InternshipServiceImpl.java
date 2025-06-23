@@ -80,7 +80,7 @@ public class InternshipServiceImpl implements InternshipService {
                 }
 
                 // Apply the watermark effect
-                float opacity = 0.3f;
+                float opacity = 0.1f;
                 double scaleFactor = 1.6d;
                 BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
 
