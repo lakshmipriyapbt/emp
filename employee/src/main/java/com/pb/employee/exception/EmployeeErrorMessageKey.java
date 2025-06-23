@@ -167,7 +167,9 @@ public enum EmployeeErrorMessageKey {
     APPRAISAL_NOT_FOUND("appraisal.not.found"),
     UNABLE_UPDATE_APPRAISAL("unable.update.appraisal"),
     UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
-    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal");
+    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
+    DOCUMENT_ALREADY_EXISTS("document.already.exists"),
+    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),;
 
     private final String key;
 

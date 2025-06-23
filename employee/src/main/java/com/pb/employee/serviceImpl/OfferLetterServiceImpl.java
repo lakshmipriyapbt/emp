@@ -84,7 +84,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                             HttpStatus.INTERNAL_SERVER_ERROR);
                 }
                 // Apply the watermark effect
-                float opacity = 0.3f;
+                float opacity = 0.1f;
                 double scaleFactor = 1.6d;
                 BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
 
@@ -180,7 +180,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                             HttpStatus.INTERNAL_SERVER_ERROR);
                 }
                 // Apply the watermark effect
-                float opacity = 0.5f;
+                float opacity = 0.1f;
                 double scaleFactor = 1.6d;
                 BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
 
