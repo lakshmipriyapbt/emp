@@ -62,10 +62,11 @@
             <img src="${company.imageFile}" alt="Company Logo" />
         </div>
     </#if>
+    <div style="text-align: right; margin-top: 20px;">
     <h4>${company.companyName},</h4>
      <p>${company.mobileNo} ,${company.emailId}</p>
      <p>${company.companyAddress}.</p>
-
+</div>``
     <h5 class="internship-text">INTERNSHIP CERTIFICATION</h5>
     <div class="date-info">
         <h5>Date: ${internship.date}</h5>
