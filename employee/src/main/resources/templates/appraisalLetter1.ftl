@@ -155,6 +155,7 @@
                      <#else>
                          <div style="width: 100px; height: 100px;"></div>
                      </#if>
+                     <br/>
                <b>Authorized Signature</b>
                <br/>
 
