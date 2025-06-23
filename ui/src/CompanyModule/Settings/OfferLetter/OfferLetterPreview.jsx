@@ -325,18 +325,20 @@ const OfferLetterPreview = () => {
           }}
         >
           <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-            {!draft && (<div style={{ textAlign: "right" }}>
-              {company?.imageFile ? (
-                <img
-                  className="align-middle"
-                  src={company?.imageFile}
-                  alt="Logo"
-                  style={{ height: "80px", width: "180px" }}
-                />
-              ) : (
-                <p>Logo</p>
-              )}
-            </div>)}
+           {!draft && (
+  <div className="d-flex justify-content-start p-1">
+    {company?.imageFile ? (
+      <img
+        className="align-middle"
+        src={company?.imageFile}
+        alt="Logo"
+        style={{ height: "80px", width: "180px" }}
+      />
+    ) : (
+      <p>Logo</p>
+    )}
+  </div>
+)}
             <h1
               style={{
                 textAlign: "center",

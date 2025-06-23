@@ -4,7 +4,6 @@ import { useAuth } from "../../../Context/AuthContext";
 const AppraisalTemplate2 = ({
   companyLogo,
   companyData,
-  companyName,
   employeeName,
   designation,
   employeeId,
@@ -15,6 +14,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
   draft,
+  stamp
 }) => {
     const { logoFileName } = useAuth();
   return (
@@ -49,6 +49,8 @@ const AppraisalTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity:0.3,
+          border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -197,7 +199,7 @@ const AppraisalTemplate2 = ({
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
             {!draft &&( <img 
-           src={companyData?.stampImage}
+           src={stamp}
            alt="Stamp"
            style={{ height: "100px", width: "160px" }}/> )}
             <h4>{companyData.companyName},</h4>

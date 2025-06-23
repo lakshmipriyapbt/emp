@@ -454,8 +454,9 @@ const AnonymouseCmpRegistration = () => {
     <div className="container-fluid p-0" >
       <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
         <div className="col" style={{ marginLeft: "100px", marginRight: "100px", marginTop: "40px" }}>
-          <h1 className="h3 mb-3 text-info">
-            To Register with CUB HRM ,Please Fill these Details{" "}
+          <h1 className="h3 mb-3 text-base text-primary">
+            Fill out the details below to create your account and get started with hassle-free HR management—built
+           for small and growing teams like yours.
           </h1>
           <span className="text-info"></span>
         </div>

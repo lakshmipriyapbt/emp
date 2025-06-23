@@ -12,9 +12,7 @@ const Header = ({ toggleSidebar }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const { company, employee, authUser } = useAuth();
-  console.log("company", company);
-  console.log("employee", employee);
+  const {company,employee,authUser} = useAuth();
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
@@ -31,19 +29,16 @@ const Header = ({ toggleSidebar }) => {
 
       const currentTime = Date.now() / 1000;
       const remainingTime = decodedToken.exp - currentTime;
-
       if (remainingTime > 0) {
         const timeoutId = setTimeout(() => {
           handleLogOut();
         }, remainingTime * 1000);
-
         return () => clearTimeout(timeoutId);
       } else {
         handleLogOut();
       }
     }
   }, [token]);
-  console.log("user roles", roles);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -75,12 +70,8 @@ const Header = ({ toggleSidebar }) => {
   const handleLogOut = () => {
     const role = userRole?.[0];
     const companyName = localStorage.getItem("companyName");
-
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
-
-    toast.success("Logout Successful", { autoClose: 2000 });
-
     if (role === "ems_admin") {
       navigate("/login", { replace: true }); // Prevents going back
     } else if (role === "company_admin" || role === "Accountant" || role === "HR" || role === "Admin" || companyName) {

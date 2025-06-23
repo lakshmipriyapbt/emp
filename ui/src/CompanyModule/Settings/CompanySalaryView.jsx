@@ -5,11 +5,8 @@ import { CompanySalaryStructureGetApi } from "../../Utils/Axios";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
-  ChevronBarDown,
   ChevronDown,
-  PencilSquare,
 } from "react-bootstrap-icons";
-import { useAuth } from "../../Context/AuthContext";
 
 const CompanySalaryView = () => {
   const {
@@ -101,13 +98,13 @@ const CompanySalaryView = () => {
             </nav>
           </div>
         </div>
-        {userRole?.includes("company_admin") && (
-          <div className="col-12 col-md-6 col-lg-4 mb-3">
-            <Link to="/companySalaryStructure">
-              <button className="btn btn-primary">Add Salary Structure</button>
-            </Link>
-          </div>
-        )}
+   {userRole?.includes("company_admin") && (!salaryStructures || salaryStructures.length === 0) && (
+  <div className="col-12 col-md-6 col-lg-4 mb-3">
+    <Link to="/companySalaryStructure">
+      <button className="btn btn-primary">Add Salary Structure</button>
+    </Link>
+  </div>
+)}
         <div className="row">
           {salaryStructures.map((structure, index) => {
             // const isReadOnly = structure.status === 'InActive';
