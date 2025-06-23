@@ -36,7 +36,7 @@ const CompanyLogin = () => {
   const [showOtpField, setShowOtpField] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [otpTimeLimit, setOtpTimeLimit] = useState(180); 
+  const [otpTimeLimit, setOtpTimeLimit] = useState(30); 
   const [otpExpired, setOtpExpired] = useState(false); 
   const dispatch = useDispatch();
 
@@ -86,7 +86,7 @@ const CompanyLogin = () => {
           toast.success("OTP Sent Successfully");
           setOtpSent(true);
           setOtpExpired(false);
-          setOtpTimeLimit(180);
+          setOtpTimeLimit(30);
           setShowOtpField(true); // Show OTP field
         } else {
           console.error('Token not found in response');
@@ -105,11 +105,6 @@ const CompanyLogin = () => {
         setShowErrorModal(true);
       });
   }; 
-
-  const resendOtp = () => {
-    const currentValues = getValues();
-    sendOtp(currentValues);
-  };
 
   const verifyOtpAndCompanyLogin = (data) => {
     const payload = {
@@ -150,6 +145,22 @@ const CompanyLogin = () => {
         }
       });
   };
+
+const resendAndVerifyOtp = async () => {
+  const currentValues = getValues();
+
+  // Reset timer states before sending OTP
+  setOtpTimeLimit(180);     // Restart timer
+  setOtpExpired(false);     // Hide resend button
+  setShowOtpField(true);    // Ensure OTP field stays
+
+  try {
+    await sendOtp(currentValues);            // Resend OTP
+    verifyOtpAndCompanyLogin(currentValues); // Auto-verify after resend
+  } catch (error) {
+    console.error("Resend and Verify OTP failed:", error);
+  }
+};
 
   const closeModal = () => {
     setShowErrorModal(false);
@@ -251,7 +262,7 @@ const CompanyLogin = () => {
                     )}
                   </div>
                   
-                  {(!otpSent || otpExpired) && ( 
+                  {(!otpSent) && ( 
                     <> 
                       <div className="formgroup">
                         <label className="form-label">Password</label>
@@ -291,7 +302,7 @@ const CompanyLogin = () => {
                     </>
                   )}
                   
-                  {otpSent && !otpExpired && (   
+                  {otpSent && (   
                     <div class="formgroup">
                       <label class="form-label">OTP</label>
                       <input 
@@ -314,28 +325,32 @@ const CompanyLogin = () => {
                       )}
                       <div className="otp-timer">
                         {otpTimeLimit > 0 ? (
-                          <span className="text-primary">OTP expires in: {otpTimeLimit} seconds</span>
+                          <span className="text-primary">
+                            OTP expires in: {otpTimeLimit} seconds
+                          </span>
                         ) : (
-                          <span>OTP expired</span>
+                          <span className="text-danger">
+                            OTP expired.{" "}
+                            {!loading && (
+                              <button
+                                type="button"
+                                className="btn btn-link p-0 m-0 align-baseline text-primary"
+                                onClick={resendAndVerifyOtp}
+                              >
+                                Resend OTP & Verify
+                              </button>
+                            )}
+                          </span>
                         )}
                       </div>
                     </div>
                   )}
                   
                   <div class="d-grid gap-2 mt-3">
-                    {otpExpired ? (
-                      <button 
-                        class="btn btn-lg btn-primary" 
-                        type="button"
-                        onClick={resendOtp}
-                      >
-                        Resend OTP
-                      </button>
-                    ) : (
-                      <button class="btn btn-lg btn-primary" type="submit">
-                        {otpSent ? "Verify OTP" : "Sign in"}
-                      </button>
-                    )}
+                <button className="btn btn-lg btn-primary" type="submit">
+  {otpSent ? "Verify OTP" : "Sign in"}
+</button>
+
                   </div>
                 </form>
               </div>

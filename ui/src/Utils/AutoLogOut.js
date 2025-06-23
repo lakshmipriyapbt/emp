@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const AutoLogout = ({ timeout = 10 * 60 * 1000, userRole }) => {
+const AutoLogout = ({ timeout = 2 * 60 * 1000}) => {
   const [showPopup, setShowPopup] = useState(false);
+  const { userRole } = useSelector((state) => state.auth);
   const timerRef = useRef(null);
   const navigate = useNavigate();
 
