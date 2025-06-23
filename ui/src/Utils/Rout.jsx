@@ -94,7 +94,11 @@ import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
 import CandidateLogin from '../Login/CandidateLogin';
 import CandidateProfile from '../CompanyModule/Candidate/CandidateProfile';
 import CandidateDocumentsView from '../CompanyModule/Candidate/CandidateDocumentsView';
+<<<<<<< HEAD
 // import InvoiceTemplate1 from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate1';
+=======
+//import InvoiceTemplate1 from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate1';
+>>>>>>> e852dbf26ab89498c929041636df3786b875d0ab
 
 
 export const allAvailableRoutes = [
@@ -183,7 +187,11 @@ export const allAvailableRoutes = [
   {path: '/documentUpload', allowedTypes: ['candidate'] },
   {path: '/candidateProfile', allowedTypes: ['candidate'] },
   {path: '/candidateDocumentsView', allowedTypes: ['candidate'] },
+<<<<<<< HEAD
   // {path: '/invoiceTemplate1', allowedTypes: ['company_admin', 'Admin' , 'Accountant'] },
+=======
+ // {path: '/invoiceTemplate1', allowedTypes: ['company_admin', 'Admin' , 'Accountant'] },
+>>>>>>> e852dbf26ab89498c929041636df3786b875d0ab
 ];
 
 const Routing = () => {
@@ -477,7 +485,11 @@ const Routing = () => {
         path="/invoicePdf"
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
+<<<<<<< HEAD
       {/* <Route
+=======
+      {/*<Route
+>>>>>>> e852dbf26ab89498c929041636df3786b875d0ab
         path="/invoiceTemplate1"
         element={<ProtectedRoute element={<InvoiceTemplate1/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       /> */}
