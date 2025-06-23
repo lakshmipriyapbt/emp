@@ -36,7 +36,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           designation={previewData.designationName}
           department={previewData.departmentName}
           joiningDate={previewData.joiningDate}
-          experienceDate={previewData.experienceDate}
+          experienceDate={previewData.lastWorkingDate}
           date={previewData.date}
           aboutEmployee={previewData.aboutEmployee}
           draft={previewData.draft}
@@ -55,7 +55,7 @@ const ExperiencePreview = ({ previewData, selectedTemplate }) => { // Accept pre
           designation={previewData.designationName}
           department={previewData.departmentName}
           joiningDate={previewData.joiningDate}
-          experienceDate={previewData.experienceDate}
+          experienceDate={previewData.lastWorkingDate}
           date={previewData.date}
           aboutEmployee={previewData.aboutEmployee}
           draft={previewData.draft}

@@ -14,7 +14,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
   draft,
-  stamp
+  stampImage
 }) => {
   return (
     <div
@@ -198,8 +198,8 @@ const AppraisalTemplate2 = ({
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
             {!draft &&( <img 
-           src={stamp}
-           alt="Stamp"
+           src={stampImage}
+           alt="stampImage"
            style={{ height: "100px", width: "160px" }}/> )}
             <h4>{companyData.companyName},</h4>
             <p>
