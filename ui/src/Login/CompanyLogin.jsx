@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { Bounce, toast } from "react-toastify";
-import { CompanyloginApi, ValidateOtp } from "../Utils/Axios";
+import { CompanyloginApi, ValidateOtp, resendPasswordOTP } from "../Utils/Axios";
 import { Modal, ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../Context/AuthContext";
@@ -11,13 +11,11 @@ import Loader from "../Utils/Loader";
 import { setAuthDetails } from "../Redux/AuthSlice";
 import { useDispatch } from "react-redux";
 
-
 const CompanyLogin = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     getValues,
   } = useForm({
     defaultValues: {
@@ -28,16 +26,15 @@ const CompanyLogin = () => {
   });
 
   const { setAuthUser } = useAuth();
-    const { company } = useParams();
+  const { company } = useParams();
   const navigate = useNavigate();
   const [passwordShown, setPasswordShown] = useState(false);
-  const [otpSent, setOtpSent] = useState(false); 
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showOtpField, setShowOtpField] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [otpTimeLimit, setOtpTimeLimit] = useState(30); 
-  const [otpExpired, setOtpExpired] = useState(false); 
+  const [otpTimeLimit, setOtpTimeLimit] = useState(180); // 3 minutes
+  const [otpExpired, setOtpExpired] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -51,11 +48,15 @@ const CompanyLogin = () => {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (otpSent && otpTimeLimit <= 0) {
-      // OTP expired logic
       setOtpExpired(true);
     }
   }, [otpTimeLimit, otpSent]);
-  
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const sendOtp = (data) => {
     const payload = {
@@ -63,16 +64,14 @@ const CompanyLogin = () => {
       password: data.password,
       company: company,
     };
-  
+
     setLoading(true);
     CompanyloginApi(payload)
       .then((response) => {
         const token = response.data?.token;
         if (token) {
           localStorage.setItem("token", token);
-          localStorage.setItem("refreshToken", token);
           const decodedToken = jwtDecode(token);
-          console.log("decoded token from company login",decodedToken);
           const { sub: userId, roles: userRole, company, employeeId } = decodedToken;
           dispatch(setAuthDetails({
             userId,
@@ -81,30 +80,46 @@ const CompanyLogin = () => {
             employeeId,
             source: 'company',
           }));
-          console.log("Dispatched User Role:", userRole); // Log this to verify
           setAuthUser({ userId, userRole, company, employeeId });
           toast.success("OTP Sent Successfully");
           setOtpSent(true);
           setOtpExpired(false);
-          setOtpTimeLimit(30);
-          setShowOtpField(true); // Show OTP field
+          setOtpTimeLimit(180);
         } else {
-          console.error('Token not found in response');
           setErrorMessage("Unexpected response format. Token not found.");
           setShowErrorModal(true);
-          setOtpSent(false);
-          reset('')
         }
         setLoading(false);
       })
       .catch((error) => {
         setLoading(false);
         const errorMessage = error.message || "Login failed. Please try again later.";
-        console.error('sendOtp error:', errorMessage);
         setErrorMessage(errorMessage);
         setShowErrorModal(true);
       });
-  }; 
+  };
+
+  const resendOtp = () => {
+    const currentValues = getValues();
+    setLoading(true);
+    
+    resendPasswordOTP({
+      username: currentValues.username,
+      company: company
+    })
+    .then((response) => {
+      setLoading(false);
+      toast.success("New OTP Sent Successfully");
+      setOtpExpired(false);
+      setOtpTimeLimit(180);
+    })
+    .catch((error) => {
+      setLoading(false);
+      const errorMessage = error.response?.data?.message || "Failed to resend OTP. Please try again.";
+      setErrorMessage(errorMessage);
+      setShowErrorModal(true);
+    });
+  };
 
   const verifyOtpAndCompanyLogin = (data) => {
     const payload = {
@@ -129,38 +144,14 @@ const CompanyLogin = () => {
       })
       .catch((error) => {
         setLoading(false);
-        console.log("sendOtp",error)
         if (error.response && error.response.data && error.response.data.error) {
-          const errorMessage = error.response.data.error.message;
-          setErrorMessage(errorMessage);
-          setShowErrorModal(true);
+          setErrorMessage(error.response.data.error.message);
         } else {
           setErrorMessage("Login failed. Please try again later.");
-          setShowErrorModal(true);
         }
-        if (otpTimeLimit <= 0) {
-          setOtpExpired(true);
-          setErrorMessage("OTP Expired. Please Resend OTP");
-          setShowErrorModal(true);
-        }
+        setShowErrorModal(true);
       });
   };
-
-const resendAndVerifyOtp = async () => {
-  const currentValues = getValues();
-
-  // Reset timer states before sending OTP
-  setOtpTimeLimit(180);     // Restart timer
-  setOtpExpired(false);     // Hide resend button
-  setShowOtpField(true);    // Ensure OTP field stays
-
-  try {
-    await sendOtp(currentValues);            // Resend OTP
-    verifyOtpAndCompanyLogin(currentValues); // Auto-verify after resend
-  } catch (error) {
-    console.error("Resend and Verify OTP failed:", error);
-  }
-};
 
   const closeModal = () => {
     setShowErrorModal(false);
@@ -169,20 +160,6 @@ const resendAndVerifyOtp = async () => {
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
-  };
-
-  const handleEmailChange = (e) => {
-    if (e.keyCode === 32) {
-      e.preventDefault();
-    }
-  };
-
-  const onSubmit = (data) => {
-    if (otpSent && !otpExpired) {
-      verifyOtpAndCompanyLogin(data);
-    } else {
-      sendOtp(data);
-    }
   };
 
   const validatePassword = (value) => {
@@ -209,16 +186,13 @@ const resendAndVerifyOtp = async () => {
     return true;
   };
 
-  const toInputLowerCase = (e) => {
-    const input = e.target;
-    let value = input.value;
-    value = value.replace(/\s+/g, '');
-    if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
-      value = value.charAt(0).toLowerCase() + value.slice(1);
+  const onSubmit = (data) => {
+    if (otpSent && !otpExpired) {
+      verifyOtpAndCompanyLogin(data);
+    } else {
+      sendOtp(data);
     }
-    input.value = value;
   };
-  
 
   return (
     <div>
@@ -237,16 +211,14 @@ const resendAndVerifyOtp = async () => {
                   <div className="loginBtn"><span>Continue With Company Login</span></div>
                 </div>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                  <div class="formgroup">
-                    <label class="form-label">Email Id</label>
+                  <div className="formgroup">
+                    <label className="form-label">Email Id</label>
                     <input 
-                      class="form-control form-control-lg"
+                      className="form-control form-control-lg"
                       type="email"
-                      name="email"
                       placeholder="Email Id"
                       autoComplete="off"
-                      onKeyDown={handleEmailChange}
-                      readOnly={otpSent && !otpExpired}
+                      readOnly={otpSent}
                       {...register("username", {
                         required: "Email Id is Required.",
                         pattern: {
@@ -256,62 +228,49 @@ const resendAndVerifyOtp = async () => {
                       })}
                     />
                     {errors.username && (
-                      <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                        {errors.username.message}
-                      </p>
+                      <p className="errorMsg">{errors.username.message}</p>
                     )}
                   </div>
-                  
-                  {(!otpSent) && ( 
-                    <> 
-                      <div className="formgroup">
-                        <label className="form-label">Password</label>
-                        <div className="password-input-container">
-                          <input 
-                            className="form-control form-control-lg" 
-                            name="password"
-                            placeholder="Password"
-                            onChange={handleEmailChange}
-                            autoComplete="off"
-                            type={passwordShown ? "text" : "password"}
-                            maxLength={16}
-                            readOnly={otpSent && !otpExpired}
-                            {...register("password", {
-                              required: "Password is Required",
-                              minLength: {
-                                value: 6,
-                                message: "Password must be at least 6 characters long",
-                              },
-                              validate: validatePassword,  
-                            })}
-                          />
-                          <span
-                            className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
-                            onClick={togglePasswordVisibility}
-                          ></span>
-                        </div>
-                        {errors.password && (
-                          <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                            {errors.password.message}
-                          </p>
-                        )}
-                        <small>
-                          <a href="/forgotPassword">Forgot Password?</a>
-                        </small>
+
+                  {!otpSent ? (
+                    <div className="formgroup">
+                      <label className="form-label">Password</label>
+                      <div className="password-input-container">
+                        <input 
+                          className="form-control form-control-lg" 
+                          placeholder="Password"
+                          autoComplete="off"
+                          type={passwordShown ? "text" : "password"}
+                          maxLength={16}
+                          {...register("password", {
+                            required: "Password is Required",
+                            minLength: {
+                              value: 6,
+                              message: "Password must be at least 6 characters long",
+                            },
+                            validate: validatePassword,  
+                          })}
+                        />
+                        <span
+                          className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
+                          onClick={togglePasswordVisibility}
+                        ></span>
                       </div>
-                    </>
-                  )}
-                  
-                  {otpSent && (   
-                    <div class="formgroup">
-                      <label class="form-label">OTP</label>
+                      {errors.password && (
+                        <p className="errorMsg">{errors.password.message}</p>
+                      )}
+                      <small>
+                        <a href="/forgotPassword">Forgot Password?</a>
+                      </small>
+                    </div>
+                  ) : (
+                    <div className="formgroup">
+                      <label className="form-label">OTP</label>
                       <input 
-                        class="form-control form-control-lg" 
-                        type="text"
-                        name="otp"
-                        id="otp"
+                        className="form-control form-control-lg" 
                         placeholder="Enter Your OTP"
                         autoComplete="off"
+                        disabled={otpExpired}
                         {...register("otp", {
                           required: "OTP is Required.",
                           pattern: {
@@ -324,33 +283,33 @@ const resendAndVerifyOtp = async () => {
                         <p className="errorMsg">{errors.otp.message}</p>
                       )}
                       <div className="otp-timer">
-                        {otpTimeLimit > 0 ? (
+                        {!otpExpired ? (
                           <span className="text-primary">
-                            OTP expires in: {otpTimeLimit} seconds
+                            OTP expires in: {formatTime(otpTimeLimit)}
                           </span>
                         ) : (
-                          <span className="text-danger">
-                            OTP expired.{" "}
-                            {!loading && (
-                              <button
-                                type="button"
-                                className="btn btn-link p-0 m-0 align-baseline text-primary"
-                                onClick={resendAndVerifyOtp}
-                              >
-                                Resend OTP & Verify
-                              </button>
-                            )}
-                          </span>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="text-danger">OTP expired</span>
+                            <button 
+                              type="button" 
+                              className="btn btn-link p-0 text-primary"
+                              onClick={resendOtp}
+                            >
+                              Resend OTP
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
                   )}
-                  
-                  <div class="d-grid gap-2 mt-3">
-                <button className="btn btn-lg btn-primary" type="submit">
-  {otpSent ? "Verify OTP" : "Sign in"}
-</button>
 
+                  <div className="d-grid gap-2 mt-3">
+                    <button 
+                      className="btn btn-lg btn-primary" 
+                      type="submit"
+                    >
+                      {otpSent ? "Verify OTP" : "Sign in"}
+                    </button>
                   </div>
                 </form>
               </div>
@@ -358,7 +317,7 @@ const resendAndVerifyOtp = async () => {
           </div>
         </div>
       </main>
-      
+
       <Modal
         show={showErrorModal}
         onHide={closeModal}

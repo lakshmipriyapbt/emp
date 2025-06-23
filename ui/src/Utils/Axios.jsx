@@ -137,6 +137,10 @@ export const resetPassword = (data, employeeId) => {
   return axiosInstance.patch(`/company/employee/${employeeId}/password`, data);
 }
 
+export const resendPasswordOTP = (data) => {
+  return axios.post(`${Login_URL}/resend/otp`, data);
+}
+
 export const CompanyRegistrationApi = (data) => {
   return axiosInstance.post("/company", data);
 };

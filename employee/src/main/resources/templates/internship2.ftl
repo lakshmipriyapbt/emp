@@ -62,8 +62,11 @@
             <img src="${company.imageFile}" alt="Company Logo" />
         </div>
     </#if>
+    <h4>${company.companyName},</h4>
+     <p>${company.mobileNo} ,${company.emailId}</p>
+     <p>${company.companyAddress}.</p>
 
-    <h5 class="internship-text">Internship Experience Certificate</h5>
+    <h5 class="internship-text">INTERNSHIP CERTIFICATION</h5>
     <div class="date-info">
         <h5>Date: ${internship.date}</h5>
     </div>
@@ -85,9 +88,7 @@
             <p style="margin-top: 110px;">Authorized Signature</p>
 
 
-         <h4>${company.companyName},</h4>
-         <p>${company.mobileNo} ,${company.emailId}</p>
-         <p>${company.companyAddress}.</p>
+
          </div>
 
 </body>
