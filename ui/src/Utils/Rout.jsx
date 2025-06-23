@@ -477,10 +477,10 @@ const Routing = () => {
         path="/invoicePdf"
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
-      //<Route
-        //path="/invoiceTemplate1"
-        //element={<ProtectedRoute element={<InvoiceTemplate1/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
-      ///>
+      {/*<Route
+        path="/invoiceTemplate1"
+        element={<ProtectedRoute element={<InvoiceTemplate1/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
+      /> */}
       {/* employee & Accountant shared routes */}
       <Route
         path="/employeePayslip"
