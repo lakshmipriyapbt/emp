@@ -108,7 +108,7 @@ export const NAV_CONFIG = {
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
                 { title: 'Payslip Template', path: '/payslipTemplates' },
-                { title: 'Invoice Template', path: '/invoiceTemplates' }
+                { title: 'Invoice Template', path: '/invoiceTemplate1' }
             ]
         }
     ],
