@@ -91,5 +91,32 @@ public class EmployeeDocumentController {
         return employeeDocumentService.deleteDocumentsByReferenceId(companyName,null, employeeId, documentId);
     }
 
+    @RequestMapping(value = "{companyName}/candidate/{candidateId}/document/{documentId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.updateDocument.tag}", description = "${api.updateDocument.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "File Uploaded Successfully")
+    public ResponseEntity<?> updateCandidateDocument(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                     @PathVariable String companyName,
+                                                     @PathVariable String candidateId,
+                                                     @PathVariable String documentId,
+                                                     @ModelAttribute EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
+        return employeeDocumentService.updateDocumentByReferenceId(companyName, candidateId, null, documentId, employeeDocumentRequest);
+    }
+
+    @RequestMapping(value = "{companyName}/employee/{employeeId}/document/{documentId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.updateDocument.tag}", description = "${api.updateDocument.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "File Uploaded Successfully")
+    public ResponseEntity<?> updateEmployeeIdDocument(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                     @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                     @PathVariable String companyName,
+                                                     @PathVariable String employeeId,
+                                                     @PathVariable String documentId,
+                                                     @ModelAttribute EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
+        return employeeDocumentService.updateDocumentByReferenceId(companyName, null, employeeId, documentId, employeeDocumentRequest);
+    }
 
 }

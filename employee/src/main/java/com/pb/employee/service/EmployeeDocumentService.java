@@ -15,5 +15,8 @@ public interface EmployeeDocumentService {
 
     ResponseEntity<?> deleteDocumentsByReferenceId(String companyName, String candidateId, String employeeId, String documentId)throws EmployeeException;
 
+    ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeDocumentRequest employeeDocumentRequest)throws EmployeeException, IOException ;
+
+
 }
 
