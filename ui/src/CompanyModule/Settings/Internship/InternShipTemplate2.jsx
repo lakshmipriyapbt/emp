@@ -22,34 +22,32 @@ const InternShipTemplate2 = ({
       }}
     >
       <div className="d-flex justify-content-between align-items-center">
-        {/* Left side: Company Information */}
-        <div className="text-start">
-          <div style={{ textAlign: "left" }}>
-            <h4>{companyData?.companyName}</h4>
-            <p>{companyData?.companyAddress}</p>
-            <p>
-              {" "}
-              {companyData?.mobileNo} | {companyData?.emailId}
-            </p>
-          </div>
-        </div>
+  {/* Left side: Company Logo */}
+  <div>
+    {!draft && (
+      <img
+        src={companyLogo}
+        alt={`${companyData?.companyName} Logo`}
+        style={{
+          maxWidth: "160px",
+          height: "100px",
+          width: "160px",
+        }}
+      />
+    )}
+  </div>
 
-        {/* Right side: Company Logo */}
-        <div>
-          {!draft && (<img
-            src={companyLogo}
-            alt={`${companyData?.companyName} Logo`}
-            style={{
-              maxWidth: "160px",
-              position: "absolute",
-              top: "2px",
-              right: "20px",
-              height: "100px",
-              width: "160px",
-            }}
-          />)}
-        </div>
-      </div>
+  {/* Right side: Company Information */}
+  <div className="text-end">
+    <div style={{ textAlign: "right" }}>
+      <h4>{companyData?.companyName}</h4>
+      <p>{companyData?.companyAddress}</p>
+      <p>
+        {companyData?.mobileNo} | {companyData?.emailId}
+      </p>
+    </div>
+  </div>
+</div>
       {!draft && (<div
         style={{
           position: "absolute",

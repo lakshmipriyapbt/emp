@@ -4,7 +4,6 @@ import { useAuth } from "../../../Context/AuthContext";
 const AppraisalTemplate2 = ({
   companyLogo,
   companyData,
-  companyName,
   employeeName,
   designation,
   employeeId,
@@ -15,6 +14,7 @@ const AppraisalTemplate2 = ({
   date,
   basicSalary,
   draft,
+  stamp
 }) => {
   return (
     <div
@@ -198,7 +198,7 @@ const AppraisalTemplate2 = ({
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
             {!draft &&( <img 
-           src={companyData?.stampImage}
+           src={stamp}
            alt="Stamp"
            style={{ height: "100px", width: "160px" }}/> )}
             <h4>{companyData.companyName},</h4>

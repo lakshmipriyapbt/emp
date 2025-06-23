@@ -88,6 +88,7 @@ const InternOfferLetter = () => {
             hrName="Mark Lee"
             hrEmail="mark.lee@company.com"
             hrMobileNo="9876543210"
+            stamp={company?.stampImage}
           />
       </div>
     </LayOut>

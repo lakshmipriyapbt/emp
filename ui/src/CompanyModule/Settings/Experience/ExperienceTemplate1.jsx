@@ -49,8 +49,8 @@ const ExperienceTemplate1 = ({
         style={{
           position: "absolute",
           top: "30%",
-          left: "0%",
           right: "30%",
+          left: "0%",
           width: "100%",
           height: "50%",
           backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image

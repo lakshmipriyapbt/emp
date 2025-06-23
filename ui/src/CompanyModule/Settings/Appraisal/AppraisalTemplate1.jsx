@@ -15,6 +15,7 @@ const AppraisalTemplate1 = ({
   allowances,
   draft,
   date,
+  stamp
 }) => {
   console.log("Basic Salary: ", basicSalary);
 
@@ -212,7 +213,7 @@ your hard work and dedication to the company.
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
            {!draft && ( <img 
-           src={companyData?.stampImage}
+           src={stamp}
            alt="Stamp"
            style={{ height: "100px", width: "160px" }}/> )}
             <h6>{companyName}</h6>

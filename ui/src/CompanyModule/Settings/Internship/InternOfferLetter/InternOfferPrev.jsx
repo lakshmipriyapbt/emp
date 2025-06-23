@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import { useAuth } from "../../../../Context/AuthContext";
-import { companyViewByIdApi, EmployeeGetApiById } from "../../../../Utils/Axios";
-import { toast } from "react-toastify";
 
 const InternOfferPrev = ({
     previewData
 }) => {
       const [companyData, setCompanyData] = useState({});
-      const [loading, setLoading] = useState(false);
       const { company } = useAuth();
       const draft = previewData.draft;
       console.log("previre ", draft)
@@ -17,7 +14,7 @@ const InternOfferPrev = ({
     <div className="p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
-      <div className="logo text-end me-5">
+      <div className="logo text-start me-5">
         {!draft && (<img src={company?.imageFile} alt="Company Logo" 
                    style={{ height: "100px", width: "160px" }}
          />)}

@@ -10,6 +10,7 @@ const RelievingTemplate1 = ({
   lastWorkingDate,
   draft,
   date,
+  stamp
 }) => {
   // const formatDate = (date) => {
   //   const d = new Date(date);
@@ -102,7 +103,7 @@ const RelievingTemplate1 = ({
           <p>Sincerely,</p>
           <h4>{companyData?.companyName}</h4>
            {!draft && (  <img 
-           src={companyData?.stampImage}
+           src={stamp}
            alt="Stamp"
            style={{ height: "100px", width: "160px" }}/>)}
           <p>Authorized Signature</p>

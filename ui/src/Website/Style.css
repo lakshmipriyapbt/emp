@@ -2065,6 +2065,9 @@ fieldset:disabled .btn {
 .justify-between{
   justify-content: space-between;
 }
+.justify-evenly{
+  justify-content: space-evenly;
+}
 .gap-1{
   gap: 0.25rem;
 }

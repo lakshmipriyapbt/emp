@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate,Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { FileEarmarkPdf, FileEarmarkWord, FileEarmarkImage, Download, Eye } from "react-bootstrap-icons";
+import { Download, Eye } from "react-bootstrap-icons";
 import LayOut from "../../LayOut/LayOut";
 import { getDocumentByIdAPI } from "../../Utils/Axios";
 import Loader from "../../Utils/Loader";

@@ -176,8 +176,8 @@ const LandingPage = () => {
     <>
       <header className="">
         <div className="top-0 left-0 right-0 z-50 header headerAbsolute 2">
-          <div className="flex justify-between items-center container text-s1 py-4">
-            <div className="pb-1 flex justify-start items-center gap-3">
+          <div className="flex justify-between items-center container text-s1">
+            <div className="flex justify-start items-center gap-3">
               {/* Mobile Menu Open Button */}
               <button
                 className="lg:hidden text-3xl mobileMenuOpenButton"
@@ -186,7 +186,7 @@ const LandingPage = () => {
                 <List className="text-3xl" weight="regular" />
               </button>
               <a href=" ">
-                <img src="assets/images/logo.png" alt="cub Hrm logo" />
+                <img src="assets/images/cublogo.png" alt="cub Hrm logo"  className="h-[120px]"/>
               </a>
             </div>
             {/* Desktop Navigation */}
@@ -365,7 +365,7 @@ const LandingPage = () => {
         >
           <div className="flex justify-between items-center w-full p-4 sm:p-8">
             <a href=" ">
-              <img src="assets/images/logo.png" alt="logo" />
+              <img src="assets/images/cublogo.png" alt="logo" />
             </a>
             {/* Mobile Menu Close Button */}
             <button

@@ -70,6 +70,7 @@ const CompanyLogin = () => {
         const token = response.data?.token;
         if (token) {
           localStorage.setItem("token", token);
+          localStorage.setItem("refreshToken", token);
           const decodedToken = jwtDecode(token);
           console.log("decoded token from company login",decodedToken);
           const { sub: userId, roles: userRole, company, employeeId } = decodedToken;

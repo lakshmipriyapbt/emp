@@ -19,12 +19,13 @@ const InternOfferTemplate = ({
   hrEmail,
   hrMobileNo,
   draft,
+  
 }) => {
   return (
     <div className="card p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
-      <div className="logo d-flex justify-content-end align-items-center me-5">
+      <div className="logo d-flex justify-content-start align-items-center me-5 mb-1">
        {!draft && (<img src={companyLogo} alt="Company Logo" 
           style={{ height: "100px", width: "160px" }}
         />)}
@@ -94,7 +95,7 @@ const InternOfferTemplate = ({
   <div className="text-end">
     {!draft && (
       <img
-        src={companyLogo}
+        src={stamp}
         alt="stamp"
         className="logo mb-2"
         style={{ height: "100px", width: "160px" }}

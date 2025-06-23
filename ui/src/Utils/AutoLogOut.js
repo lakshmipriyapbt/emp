@@ -1,14 +1,13 @@
-// AutoLogout.js
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const AutoLogout = ({ timeout =  10*60* 1000 ,userRole}) => {
+const AutoLogout = ({ timeout = 10 * 60 * 1000, userRole }) => {
   const [showPopup, setShowPopup] = useState(false);
-  const [logoutTimer, setLogoutTimer] = useState(null);
+  const timerRef = useRef(null);
   const navigate = useNavigate();
 
-const logout = useCallback(() => {
+  const logout = useCallback(() => {
     const companyName = localStorage.getItem("companyName");
 
     if (userRole === "ems_admin") {
@@ -29,27 +28,24 @@ const logout = useCallback(() => {
     setTimeout(() => {
       logout();
       toast.error("You have been logged out due to inactivity.");
-    }, 3000); // show popup for 3 seconds before logout
+    }, 3000);
   }, [logout]);
 
   const resetTimer = useCallback(() => {
-    if (logoutTimer) clearTimeout(logoutTimer);
-    const newTimer = setTimeout(handleLogout, timeout);
-    setLogoutTimer(newTimer);
-  }, [logoutTimer, timeout, handleLogout]);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(handleLogout, timeout);
+  }, [handleLogout, timeout]);
+
   useEffect(() => {
     resetTimer();
-
-    // Add event listeners to reset the timer on user activity
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
     events.forEach(event => window.addEventListener(event, resetTimer));
 
-    // Cleanup listeners and timers on unmount
     return () => {
       events.forEach(event => window.removeEventListener(event, resetTimer));
-      if (logoutTimer) clearTimeout(logoutTimer);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [resetTimer, logoutTimer]);
+  }, [resetTimer]);
 
   return (
     <>
@@ -85,5 +81,3 @@ const styles = {
 };
 
 export default AutoLogout;
-
-

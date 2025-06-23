@@ -185,7 +185,7 @@ const Template = () => {
                 />
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-                        <div className="d-flex justify-content-end align-items-center mb-3">
+                        <div className="d-flex justify-content-start align-items-center mb-3">
                             {company?.imageFile ? (
                                 <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
