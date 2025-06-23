@@ -489,7 +489,7 @@ It is easy to implement, configure, and operate, ensuring a seamless HR manageme
   {[
     { src: "assets/images/personsignup_icon.png", label: "Sign Up" },
     { src: "assets/images/signup_icon.png", label: "Login" },
-    { src: "assets/images/configure_icon.png", label: "Configure" },
+    { src: "assets/images/configureIcon.png", label: "Configure" },
     { src: "assets/images/whyAccoupayCard_3.jpg", label: "Get Started" }
   ].map((step, index) => (
     <React.Fragment key={index}>
