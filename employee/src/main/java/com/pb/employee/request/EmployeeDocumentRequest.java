@@ -14,6 +14,5 @@ import java.util.List;
 public class EmployeeDocumentRequest {
 
     private List<String> docNames;
-
     private List<MultipartFile> files;
 }
