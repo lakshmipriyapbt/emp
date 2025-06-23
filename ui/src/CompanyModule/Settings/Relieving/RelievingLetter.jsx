@@ -63,6 +63,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="3"
+            stamp={company?.stampImage}
           />
         ),
       },
@@ -81,6 +82,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="2"
+            stamp={company?.stampImage}
           />
         ),
       },
@@ -99,6 +101,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="4"
+            stamp={company?.stampImage}
           />
         ),
       },

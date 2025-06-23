@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth } from "../../../Context/AuthContext";
+import { NodeMinus } from "react-bootstrap-icons";
 
 const ExperienceTemplate1 = ({
   companyData,
@@ -27,18 +28,19 @@ const ExperienceTemplate1 = ({
       <h4 className="text-center">EXPERIENCE CERTIFICATE</h4>
 
       <div className="row d-flex align-items-center p-1">
-        <div className="col-6 d-flex align-items-center">
-          <p className="mb-0">Date: 
-          {date}
-          </p>
-        </div>
-        <div className="col-6 d-flex justify-content-end">
+          <div className="col-6 d-flex justify-content-start align-items-center">
         {!draft && (  <img
             src={company?.imageFile}
             alt="Logo"
             style={{ height: "100px", width: "160px" }}
           /> )}
         </div>
+        <div className="col-6 d-flex align-items-center justify-content-end mr-3">
+          <p className="mb-0">Date: 
+          {date}
+          </p>
+        </div>
+      
       </div>
 
       <h4 className="text-center p-2">TO WHOMSOVER IT MAY CONCERN</h4>
@@ -47,8 +49,8 @@ const ExperienceTemplate1 = ({
         style={{
           position: "absolute",
           top: "30%",
-          left: "20%",
           right: "30%",
+          left: "0%",
           width: "100%",
           height: "50%",
           backgroundImage: `url(${company?.imageFile})`, // Use the logo or another image
@@ -56,6 +58,8 @@ const ExperienceTemplate1 = ({
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
+          border:"none",
+          opacity:0.3,
           //  filter: 'blur(2px)', // Optional: adjust blur as needed
           zIndex: 1, // Ensure it's behind the content
         }}

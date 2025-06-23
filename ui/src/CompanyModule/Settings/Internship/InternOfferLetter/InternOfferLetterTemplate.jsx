@@ -19,16 +19,36 @@ const InternOfferTemplate = ({
   hrEmail,
   hrMobileNo,
   draft,
+  
 }) => {
   return (
     <div className="card p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
-      <div className="logo text-end me-5">
+      <div className="logo d-flex justify-content-start align-items-center me-5 mb-1">
        {!draft && (<img src={companyLogo} alt="Company Logo" 
           style={{ height: "100px", width: "160px" }}
         />)}
       </div>
+         {!draft && (  <div
+        style={{
+          position: "absolute",
+          top: "30%",
+          left: "20%",
+          right: "30%",
+          width: "50%",
+          height: "50%",
+          opacity: 0.1, // Adjust opacity for watermark effect
+          border: "none",
+          backgroundImage: `url(${companyLogo})`, // Use the logo or another image
+          transform: "rotate(340deg)",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          //  filter: 'blur(2px)', // Optional: adjust blur as needed
+          zIndex: 1, // Ensure it's behind the content
+        }}
+      /> )}
       <p>Date: {date}</p>
       <p>
         <b>NAME:</b> {employeeName}
@@ -59,24 +79,30 @@ const InternOfferTemplate = ({
         <br />
         To accept this offer, please sign and return this letter by <b>{acceptDate}</b>. We look forward to welcoming you to <b>{companyData.companyName}</b>.
       </p>
-      <div className="row">
-      <div className="signature text-start">
-        Regards,
-        <br />
-        <b>{hrName}</b>
-        <br />
-        Email: {hrEmail}
-        <br />
-        Mobile: {hrMobileNo}
-        <br />
-      </div>
+   <div className="d-flex justify-content-between align-items-end">
+  {/* Left: Signature Text */}
+  <div className="signature text-start">
+    Regards,
+    <br />
+    <b>{hrName}</b>
+    <br />
+    Email: {hrEmail}
+    <br />
+    Mobile: {hrMobileNo}
+  </div>
 
-      <div className="logo text-end me-5">
-      {!draft && ( <img src={companyLogo} alt="stamp" className="logo"          
+  {/* Right: Stamp & Authorized Signature */}
+  <div className="text-end">
+    {!draft && (
+      <img
+        src={stamp}
+        alt="stamp"
+        className="logo mb-2"
         style={{ height: "100px", width: "160px" }}
-        />)}
-        <p>Authorized Signature</p>
-      </div>
+      />
+    )}
+    <p>Authorized Signature</p>
+  </div>
       </div>
       </div>
     </div>

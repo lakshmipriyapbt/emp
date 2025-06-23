@@ -92,6 +92,7 @@ const AppraisalTemplate = () => {
           joiningDate="January 1, 2020"
           lastWorkingDate="October 27, 2024"
           effectiveDate="November,2024"
+          stamp={company?.stampImage} // Assuming company has a stampImage property
         />
       ),
     },
@@ -110,6 +111,7 @@ const AppraisalTemplate = () => {
           hike="40"
           jobTitle="Software Engineer"
           effectiveDate="November,2024"
+          stamp={company?.stampImage} // Assuming company has a stampImage property
         />
       ),
     },

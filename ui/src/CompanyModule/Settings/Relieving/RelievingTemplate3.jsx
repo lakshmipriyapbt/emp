@@ -13,6 +13,7 @@ const RelievingTemplate3 = ({
   lastWorkingDate,
   draft,
   date,
+  stamp
 }) => {
   // const formatDate = (date) => {
   //   const d = new Date(date);
@@ -56,6 +57,8 @@ const RelievingTemplate3 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`, // Use the logo or another image
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -109,7 +112,7 @@ const RelievingTemplate3 = ({
           <p className="mb-5">Yours Sincerely,</p>
           <p className="mt-5">Authorized Signature,</p>
            {!draft && (  <img 
-           src={companyData?.stampImage}
+           src={stamp}
            alt="Stamp"
            style={{ height: "100px", width: "160px" }}/> )}
           <h5>{companyData.companyName}</h5>

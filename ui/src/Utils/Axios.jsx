@@ -1,5 +1,4 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -27,6 +26,40 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// // Refresh token function
+// const refreshAuthToken = async () => {
+//   const refreshToken = localStorage.getItem("refreshToken");
+//   try {
+//     const response = await axios.post(`${Login_URL}/auth/refresh`, { refreshToken });
+//     const { token, refreshToken: newRefreshToken } = response.data.data;
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("refreshToken", newRefreshToken);
+//     return token;
+//   } catch (err) {
+//     console.error("Token refresh failed:", err);
+//     localStorage.clear();
+//     window.location.href = "/login";
+//     return null;
+//   }
+// };
+
+// // Add response interceptor to auto-refresh token
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+//       const newToken = await refreshAuthToken();
+//       if (newToken) {
+//         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+//         return axiosInstance(originalRequest);
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 export const loginApi = (data) => {
   return axios
