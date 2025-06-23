@@ -98,6 +98,7 @@
                   <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
 
         </#if>
+        <br/>
            <b>Authorized Signature</b>
         </div>
              <h5>${company[0].companyName}</h5>
