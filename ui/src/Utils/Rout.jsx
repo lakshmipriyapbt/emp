@@ -87,6 +87,14 @@ import AddUser from '../CompanyModule/UserModue/AddUser';
 import ViewUser from '../CompanyModule/UserModue/ViewUser';
 import AddTaxSlab from '../CompanyModule/TDS/AddTaxSlab';
 import LandingPage from '../Website/LandingPage';
+import CandidateRegistration from '../CompanyModule/Candidate/CandidateRegistration';
+import CandidatesView from '../CompanyModule/Candidate/CandidatesView';
+import CandidateDocumentUpload from '../CompanyModule/Candidate/CandidateDocumentUpload';
+import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
+import CandidateLogin from '../Login/CandidateLogin';
+import CandidateProfile from '../CompanyModule/Candidate/CandidateProfile';
+import CandidateDocumentsView from '../CompanyModule/Candidate/CandidateDocumentsView';
+// import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -155,6 +163,7 @@ export const allAvailableRoutes = [
   {path: '/invoiceRegistartion', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/invoiceView', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/invoicePdf', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
+  {path: '/invoiceTemplates', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/employeePayslip', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc1', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/payslipDoc2', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
@@ -165,6 +174,14 @@ export const allAvailableRoutes = [
   {path: '/tds', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/totalEmployees', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
   {path: '/employeeList/:status', allowedTypes: ['company_admin', 'Admin','HR','employee', 'Accountant'] },
+  {path: '/candidateRegistration', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/candidatesView', allowedTypes: ['company_admin', 'Admin','HR'] },
+  {path: '/documentUpload', allowedTypes: ['company_admin', 'Admin','HR','candidate'] },
+  {path: '/uploadSuccess', allowedTypes: ['candidate'] },
+  {path: '/candidateDashboard', allowedTypes: ['candidate'] },
+  {path: '/documentUpload', allowedTypes: ['candidate'] },
+  {path: '/candidateProfile', allowedTypes: ['candidate'] },
+  {path: '/candidateDocumentsView', allowedTypes: ['candidate'] },
 ];
 
 const Routing = () => {
@@ -173,6 +190,7 @@ const Routing = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path='/:company/candidateLogin' element={<CandidateLogin/>}/>
       <Route path='/login' element={<EmsLogin/>}/>
       <Route path='/:company/login' element={<CompanyLogin/>}/>
       <Route path='/resetPassword' element={<Reset />} />
@@ -232,7 +250,23 @@ const Routing = () => {
         path="/employeeSalariesView"
         element={<ProtectedRoute element={<EmployeeSalaryById/>} allowedTypes={['employee']} />}
       />
-        
+      {/* HR-specific routes */}
+      <Route
+        path="/candidateRegistration"
+        element={<ProtectedRoute element={<CandidateRegistration/>} allowedTypes={['company_admin', 'Admin','HR']} />}
+      />
+      <Route
+        path="/candidatesView"
+        element={<ProtectedRoute element={<CandidatesView/>} allowedTypes={['company_admin', 'Admin','HR']} />}
+      />
+      <Route
+        path="/documentUpload"
+        element={<ProtectedRoute element={<CandidateDocumentUpload/>} allowedTypes={['company_admin', 'Admin','HR', 'candidate']} />}
+      /> 
+      <Route
+        path="/uploadSuccess"
+        element={<ProtectedRoute element={<UploadSuccess/>} allowedTypes={['candidate']} />}
+      />    
       {/* Company Admin & HR shared routes */}
       <Route
         path="/department"
@@ -441,8 +475,10 @@ const Routing = () => {
         path="/invoicePdf"
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
-
-
+      {/* <Route
+        path="/invoiceTemplates"
+        element={<ProtectedRoute element={<InvoiceTemplates/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
+      /> */}
       {/* employee & Accountant shared routes */}
       <Route
         path="/employeePayslip"
@@ -482,6 +518,14 @@ const Routing = () => {
       <Route
         path="/employeeList/:status"
         element={<ProtectedRoute element={<EmployeeList/>} allowedTypes={['company_admin', 'Admin','HR','employee', 'Accountant']} />}
+      />
+      <Route
+        path="/candidateProfile"
+        element={<ProtectedRoute element={<CandidateProfile/>} allowedTypes={['candidate']} />}
+      />
+      <Route
+        path="/candidateDocumentsView"
+        element={<ProtectedRoute element={<CandidateDocumentsView/>} allowedTypes={['candidate']} />}
       />
     </Routes>
   );

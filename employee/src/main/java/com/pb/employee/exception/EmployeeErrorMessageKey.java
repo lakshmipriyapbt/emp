@@ -151,8 +151,26 @@ public enum EmployeeErrorMessageKey {
     CANDIDATE_ID_ALREADY_EXISTS("candidate.id.already.exist"),
     CANDIDATE_NOT_FOUND("candidate.not.found"),
     UNABLE_DELETE_CANDIDATE("unable.delete.candidate"),
-    EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY("expiry.date.cannot.be.before.today");
-    
+    EXPIRY_DATE_CANNOT_BE_BEFORE_TODAY("expiry.date.cannot.be.before.today"),
+    FILES_OR_DOC_NAMES_EMPTY ("files.or.doc.names.empty"),
+    FILES_AND_DOC_NAMES_SIZE_MISMATCH ("files.and.doc.names.size.mismatch"),
+    FILE_IS_EMPTY ("file.is.empty"),
+    INVALID_FILE_TYPE ("invalid.file.type"),
+    DOCUMENT_FOLDER_NOT_FOUND("document.folder.not.found"),
+    NO_DOCUMENTS_FOUND("no.documents.found"),
+    FAILED_TO_FETCH_DOCUMENTS("failed.to.fetch.documents"),
+    FAILED_TO_DELETE_DOCUMENTS("failed.to.delete.documents"),
+    EXPERIENCE_NOT_FOUND("experience.not.found"),
+    FAILED_TO_UPDATE_EXPERIENCE("failed.to.update.experience"),
+    NO_UPDATE_DONE("no.update.done"),
+    UNABLE_TO_UPLOAD_DOCUMENTS("unable.to.upload.documents"),
+    APPRAISAL_NOT_FOUND("appraisal.not.found"),
+    UNABLE_UPDATE_APPRAISAL("unable.update.appraisal"),
+    UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
+    NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
+    DOCUMENT_ALREADY_EXISTS("document.already.exists"),
+    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),;
+
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {

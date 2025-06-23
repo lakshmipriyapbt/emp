@@ -4,7 +4,7 @@ import Select from "react-select";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { Eye } from "react-bootstrap-icons";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   EmployeePayslipsGet,
   AllEmployeePayslipsGet,
@@ -25,7 +25,8 @@ const ViewPaySlips = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentTemplate, setCurrentTemplate] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   // Fetch employees from Redux store
@@ -37,23 +38,23 @@ const ViewPaySlips = () => {
   }, [dispatch]);
   // Fetch employees list on mount
 
-    useEffect(() => {
-      if (employees) {
-        const activeEmployees = employees
-          .filter((employee) => employee.status === "Active")
-          .map((employee) => ({
-            label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
-            value: employee.id,
-            firstName: employee.firstName,
-            lastName:employee.lastName,
-            employeeId: employee.employeeId,
-            designationName: employee.designationName,
-            departmentName: employee.departmentName,
-            dateOfHiring: employee.dateOfHiring,
-          })); 
-        setEmp(activeEmployees);
-      }
-    }, [employees]);
+  useEffect(() => {
+    if (employees) {
+      const activeEmployees = employees
+        .filter((employee) => employee.status === "Active")
+        .map((employee) => ({
+          label: `${employee.firstName} ${employee.lastName} (${employee.employeeId})`,
+          value: employee.id,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          employeeId: employee.employeeId,
+          designationName: employee.designationName,
+          departmentName: employee.departmentName,
+          dateOfHiring: employee.dateOfHiring,
+        }));
+      setEmp(activeEmployees);
+    }
+  }, [employees]);
 
   // Fetch payslip template (if needed to choose a payslip document)
   useEffect(() => {
@@ -79,40 +80,54 @@ const ViewPaySlips = () => {
 
   // Set default month/year on mount and fetch all payslips initially
   useEffect(() => {
-    const defaultMonth = getLastMonth();
-    const defaultYear = new Date().getFullYear().toString();
-    setSelectedMonth(defaultMonth);
-    setSelectedYear(defaultYear);
-    // Fetch all payslips when no employee is selected
-    fetchPayslipData("", defaultMonth, defaultYear);
-  }, []);
+  const defaultMonth = getLastMonth();
+  const defaultYear = new Date().getFullYear().toString();
+  
+  // Use location state if available
+  const navMonth = location.state?.month || defaultMonth;
+  const navYear = location.state?.year || defaultYear;
+  
+  setSelectedMonth(navMonth);
+  setSelectedYear(navYear);
+  
+  const timer = setTimeout(() => {
+    fetchPayslipData("", navMonth, navYear);
+  }, 100);
+  
+  return () => clearTimeout(timer);
+}, [location.state]); // Add dependency here
 
   // Fetch payslip data
   const fetchPayslipData = async (empId, month, year) => {
+    setIsLoading(true); // Start loading
     try {
       if (empId && month && year) {
         setApiSource("individual");
         const response = await EmployeePayslipsGet(empId, month, year);
-        if (response.data.data.length === 0) {
-          setNoRecords(true);
-        } else {
-          setPayslipData(response.data.data);
-          setNoRecords(false);
-        }
-      } else {
+        setPayslipData(response.data.data || []);
+        setNoRecords(response.data.data?.length === 0);
+      } else if (month && year) {
         setApiSource("all");
         const response = await AllEmployeePayslipsGet(month, year);
-        if (response.data.data.length === 0) {
-          setNoRecords(true);
-        } else {
-          setPayslipData(response.data.data);
-          setNoRecords(false);
-        }
+        setPayslipData(response.data.data || []);
+        setNoRecords(response.data.data?.length === 0);
+      } else {
+        setNoRecords(true);
       }
     } catch (error) {
-      console.error("Error fetching payslip data:", error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config
+      });
       setNoRecords(true);
-      toast.error(error.response.data.error.message);
+
+      // Only show error if it hasn't been shown already
+      if (!error.response?.data?.error?.message?.includes("unable To Get Employee Payslip")) {
+        toast.error(error.response?.data?.error?.message || "Failed to fetch payslips");
+      }
+    } finally {
+      setIsLoading(false); // End loading regardless of success/error
     }
   };
 
@@ -165,107 +180,107 @@ const ViewPaySlips = () => {
   const columns =
     apiSource === "all"
       ? [
-          {
-            name: (
-              <h6>
-                <b>S No</b>
-              </h6>
-            ),
-            selector: (row, index) =>
-              (currentPage - 1) * rowsPerPage + index + 1,
-            width: "100px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Name</b>
-              </h6>
-            ),
-            selector: (row) =>
-              `${row.attendance.firstName} ${row.attendance.lastName}`,
-            width: "200px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Month</b>
-              </h6>
-            ),
-            selector: (row) => row.month,
-            width: "150px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Year</b>
-              </h6>
-            ),
-            selector: (row) => row.year,
-            width: "100px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Net Amount</b>
-              </h6>
-            ),
-            selector: (row) => parseFloat(row.salary.netSalary).toFixed(2),
-            width: "150px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Actions</b>
-              </h6>
-            ),
-            cell: (row) => (
-              <button
-                className="btn btn-sm"
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  padding: "0",
-                }}
-                onClick={() => handleViewPayslip(row.employeeId, row.payslipId)}
-                title="View Payslip"
-              >
-                <Eye size={22} color="green" />
-              </button>
-            ),
-          },
-        ]
+        {
+          name: (
+            <h6>
+              <b>S No</b>
+            </h6>
+          ),
+          selector: (row, index) =>
+            (currentPage - 1) * rowsPerPage + index + 1,
+          width: "100px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Name</b>
+            </h6>
+          ),
+          selector: (row) =>
+            `${row.attendance.firstName} ${row.attendance.lastName}`,
+          width: "200px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Month</b>
+            </h6>
+          ),
+          selector: (row) => row.month,
+          width: "150px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Year</b>
+            </h6>
+          ),
+          selector: (row) => row.year,
+          width: "100px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Net Amount</b>
+            </h6>
+          ),
+          selector: (row) => parseFloat(row.salary.netSalary).toFixed(2),
+          width: "150px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Actions</b>
+            </h6>
+          ),
+          cell: (row) => (
+            <button
+              className="btn btn-sm"
+              style={{
+                backgroundColor: "transparent",
+                border: "none",
+                padding: "0",
+              }}
+              onClick={() => handleViewPayslip(row.employeeId, row.payslipId)}
+              title="View Payslip"
+            >
+              <Eye size={22} color="green" />
+            </button>
+          ),
+        },
+      ]
       : [
-          {
-            name: (
-              <h6>
-                <b>Net Amount</b>
-              </h6>
-            ),
-            selector: (row) => parseFloat(row.salary.netSalary).toFixed(2),
-            width: "600px",
-          },
-          {
-            name: (
-              <h6>
-                <b>Actions</b>
-              </h6>
-            ),
-            cell: (row) => (
-              <button
-                className="btn btn-sm"
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  padding: "0",
-                }}
-                onClick={() => handleViewPayslip(row.employeeId, row.payslipId)}
-                title="View Payslip"
-              >
-                <Eye size={22} color="green" />
-              </button>
-            ),
-          },
-        ];
+        {
+          name: (
+            <h6>
+              <b>Net Amount</b>
+            </h6>
+          ),
+          selector: (row) => parseFloat(row.salary.netSalary).toFixed(2),
+          width: "600px",
+        },
+        {
+          name: (
+            <h6>
+              <b>Actions</b>
+            </h6>
+          ),
+          cell: (row) => (
+            <button
+              className="btn btn-sm"
+              style={{
+                backgroundColor: "transparent",
+                border: "none",
+                padding: "0",
+              }}
+              onClick={() => handleViewPayslip(row.employeeId, row.payslipId)}
+              title="View Payslip"
+            >
+              <Eye size={22} color="green" />
+            </button>
+          ),
+        },
+      ];
 
   return (
     <LayOut>
@@ -280,7 +295,7 @@ const ViewPaySlips = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to="/main" className="custom-link">Home</Link>    
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Payroll</li>
                 <li className="breadcrumb-item active">PaySlips</li>
@@ -307,16 +322,21 @@ const ViewPaySlips = () => {
                 <select
                   className="form-select"
                   value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  onChange={(e) => {
+                    const month = e.target.value;
+                    setSelectedMonth(month);
+                    fetchPayslipData(selectedEmployeeId, month, selectedYear);
+                  }}
                 >
                   <option value="">Select Month</option>
-                  {Array.from({ length: 12 }, (_, i) =>
-                    new Date(0, i).toLocaleString("en-US", { month: "long" })
-                  ).map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const month = new Date(0, i).toLocaleString("en-US", { month: "long" });
+                    return (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="col-12 col-md-3 col-lg-3">
@@ -373,7 +393,13 @@ const ViewPaySlips = () => {
             </h5>
             <hr />
             <div>
-              {noRecords ? (
+              {isLoading ? (
+                <div className="text-center my-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : noRecords ? (
                 <p className="text-center">No Payslip Found</p>
               ) : (
                 <DataTable
@@ -383,8 +409,8 @@ const ViewPaySlips = () => {
                   highlightOnHover
                   pointerOnHover
                   dense
-                  onChangePage={(page) => setCurrentPage(page)}
-                  onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
+                  onChangePage={setCurrentPage}
+                  onChangeRowsPerPage={setRowsPerPage}
                 />
               )}
             </div>

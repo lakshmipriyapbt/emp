@@ -330,13 +330,12 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
         if (!multipartFile.isEmpty()){
             // Validate file type
             String contentType = multipartFile.getContentType();
-
             if (!allowedFileTypes.contains(contentType)) {
                 // Return an error response if file type is invalid
+                log.error("Invalid file type: {}", contentType);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
             }
             multiPartFileStore(multipartFile, user);
@@ -370,18 +369,20 @@ public class CompanyServiceImpl implements CompanyService {
     }
     private void multiPartFileStore(MultipartFile file, CompanyEntity company) throws IOException, EmployeeException {
         if(!file.isEmpty()){
-            String filename = folderPath+company.getShortName()+"_"+file.getOriginalFilename();
+            String companyFolderPath = folderPath + company.getShortName();
+            String filename = companyFolderPath+Constants.SLASH+company.getShortName()+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            company.setImageFile(company.getShortName()+"_"+file.getOriginalFilename());
+            company.setImageFile(company.getShortName()+Constants.SLASH+company.getShortName()+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
 
     private void multiPartFileStoreForStamp(MultipartFile file, CompanyEntity company) throws IOException, EmployeeException {
         if(!file.isEmpty()){
-            String filename = folderPath+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename();
+            String companyFolderPath = folderPath + company.getShortName();
+            String filename = companyFolderPath+Constants.SLASH+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            company.setStampImage(company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename());
+            company.setStampImage(company.getShortName()+Constants.SLASH+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }

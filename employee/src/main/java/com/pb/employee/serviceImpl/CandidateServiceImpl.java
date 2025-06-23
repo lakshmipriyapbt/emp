@@ -20,11 +20,14 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +38,9 @@ import java.util.stream.Stream;
 @Service
 @Slf4j
 public class CandidateServiceImpl implements CandidateService {
+
+    @Value("${file.upload.path}")
+    private  String folderPath;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -51,7 +57,7 @@ public class CandidateServiceImpl implements CandidateService {
     @Override
     public ResponseEntity<?> registerCandidate(CandidateRequest candidateRequest, HttpServletRequest request) throws EmployeeException , IOException{
         String defaultPassword;
-        log.debug("validating name {} candidate Id {} exsited ", candidateRequest.getLastName(), candidateRequest.getCandidateId());
+        log.debug("validating name {} existed ", candidateRequest.getLastName());
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
         Object entity = null;
         CompanyEntity companyEntity;
@@ -64,12 +70,6 @@ public class CandidateServiceImpl implements CandidateService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            entity = openSearchOperations.getById(resourceId, null, index);
-            if (entity != null) {
-                log.error("Candidate details existed");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ID_ALREADY_EXISTS),
-                        HttpStatus.CONFLICT);
-            }
             employee = openSearchOperations.getEmployeeByEmailId(candidateRequest.getEmailId(), candidateRequest.getCompanyName());
             if (employee != null) {
                 log.error("Employee with email {} already exists", candidateRequest.getEmailId());
@@ -83,7 +83,7 @@ public class CandidateServiceImpl implements CandidateService {
             CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
-            candidate.setExpiryDate(expiryDate.toString());
+            candidate.setExpiryDate(String.valueOf(LocalDate.now().plusDays(3)));
             candidate.setType(Constants.CANDIDATE);
             candidateDao.save(candidate, candidateRequest.getCompanyName());
 
@@ -94,6 +94,14 @@ public class CandidateServiceImpl implements CandidateService {
             log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(),exception.getMessage());
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
                     HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + resourceId +"/";
+        File folder = new File(candidateFolderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+            log.info("Candidate folder created successfully at {}", candidateFolderPath);
+        } else {
+            log.warn("Candidate folder already exists or failed to create at {}", candidateFolderPath);
         }
         CompletableFuture.runAsync(() -> {
             try {

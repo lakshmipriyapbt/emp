@@ -85,6 +85,15 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
 
     }
+    public static String generateDocumentResourceId(String resourceId) {
+        return generateGlobalResourceId(ResourceType.DOCUMENT, resourceId);
+    }
+    public static String generateExperienceResourceId (String employeeId) {
+        return generateGlobalResourceId(ResourceType.EXPERIENCE, employeeId);
+    }
+    public static String generateAppraisalResourceId (String date) {
+        return generateGlobalResourceId(ResourceType.APPRAISAL, date);
+    }
 
     /**
      * Generate a global resource ID based on the resource type
@@ -155,6 +164,17 @@ public class ResourceIdUtils {
         }
         if (type == ResourceType.CANDIDATE) {
             prefix = Constants.CANDIDATE + "-";
+        }
+
+        if (type == ResourceType.DOCUMENT) {
+            prefix = Constants.DOCUMENT + "-";
+        }
+        if (type == ResourceType.EXPERIENCE) {
+            prefix = Constants.EXPERIENCE + "-";
+
+        }
+        if (type == ResourceType.APPRAISAL) {
+            prefix = Constants.APPRAISAL + "-";
         }
 
 

@@ -29,7 +29,10 @@ public enum ResourceType {
     EMPLOYEE_PERSONNEL("employee-personnel"),
     COMPANY_CALENDAR("company_calendar"),
     COMPANY_TDS("company_tds"),
-    CANDIDATE("candidate");
+    CANDIDATE("candidate"),
+    EXPERIENCE("experience"),
+    DOCUMENT("document"),
+    APPRAISAL("appraisal");
 
 
 

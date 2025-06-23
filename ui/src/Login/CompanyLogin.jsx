@@ -18,6 +18,7 @@ const CompanyLogin = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
   } = useForm({
     defaultValues: {
       username: "",
@@ -44,19 +45,16 @@ const CompanyLogin = () => {
   }, [company]);
 
   useEffect(() => {
-    if (otpTimeLimit > 0) {
+    if (otpSent && otpTimeLimit > 0) {
       const timer = setTimeout(() => {
         setOtpTimeLimit((prevTime) => prevTime - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else {
+    } else if (otpSent && otpTimeLimit <= 0) {
       // OTP expired logic
       setOtpExpired(true);
-      setOtpSent(false);
-      setOtpTimeLimit(56); // Reset OTP timer
-      reset({ otp: "" });
     }
-  }, [otpTimeLimit]);
+  }, [otpTimeLimit, otpSent]);
   
 
   const sendOtp = (data) => {
@@ -100,15 +98,17 @@ const CompanyLogin = () => {
       })
       .catch((error) => {
         setLoading(false);
-        // Ensure we're accessing the error message properly
         const errorMessage = error.message || "Login failed. Please try again later.";
-        console.error('sendOtp error:', errorMessage); // Log the error
+        console.error('sendOtp error:', errorMessage);
         setErrorMessage(errorMessage);
         setShowErrorModal(true);
       });
-
   }; 
 
+  const resendOtp = () => {
+    const currentValues = getValues();
+    sendOtp(currentValues);
+  };
 
   const verifyOtpAndCompanyLogin = (data) => {
     const payload = {
@@ -130,7 +130,6 @@ const CompanyLogin = () => {
         setTimeout(() => {
           navigate("/main");        
         }, 1000);
-
       })
       .catch((error) => {
         setLoading(false);
@@ -145,10 +144,8 @@ const CompanyLogin = () => {
         }
         if (otpTimeLimit <= 0) {
           setOtpExpired(true);
-          setOtpSent(true)
-          setErrorMessage("OTP Expired. Please Login Again");
+          setErrorMessage("OTP Expired. Please Resend OTP");
           setShowErrorModal(true);
-          reset();
         }
       });
   };
@@ -176,7 +173,6 @@ const CompanyLogin = () => {
     }
   };
 
-
   const validatePassword = (value) => {
     const errors = [];
     if (!/(?=.*[0-9])/.test(value)) {
@@ -198,147 +194,155 @@ const CompanyLogin = () => {
     if (errors.length > 0) {
       return `Password must contain ${errors.join(", ")}.`;
     }
-    return true; // Return true if all conditions are satisfied
+    return true;
   };
 
   const toInputLowerCase = (e) => {
     const input = e.target;
     let value = input.value;
-  
-    // Remove all spaces from the input
     value = value.replace(/\s+/g, '');
-  
-    // If the first character is not lowercase, make it lowercase
     if (value.length > 0 && value[0] !== value[0].toLowerCase()) {
       value = value.charAt(0).toLowerCase() + value.slice(1);
     }
-  
-    // Update the input value
     input.value = value;
   };
   
 
   return (
     <div>
-          <main className="newLoginMainWrapper">
-          {loading &&(
-             <Loader/>
-          )}
+      <main className="newLoginMainWrapper">
+        {loading && <Loader/>}
         <div className="newLoginWrapper">
-            <div className="newLoginContainer">
-                <div className="newLoginLeftSectionOuter">
-                    <div className="newLoginLeftTitle">Welcome To <br/> Employee Management System</div>
-                    <div className="newLoginLeftImgHolder"><img src="..\assets\img\left-img.png" alt='#' /></div>
-                </div>
-                <div className='newLoginRightSectionOuter'>
-                    <div className="newLoginRightSection">
-                        <div className="newLoginRightSecTitle">Login</div>
-                        <div className="newLoginRightSecSelectLogin">
-
-                            <div className="loginBtn"><span>Continue With Company Login</span></div>
-
-                        </div>
-                        <form onSubmit={handleSubmit(onSubmit)}>
-                            <div class="formgroup">
-                                <label class="form-label">Email Id</label>
-                                <input class="form-control form-control-lg"
-                                  type="email"
-                                  name="email"
-                                  placeholder="Email Id"
-                                  autoComplete="off"
-                                 // onInput={toInputLowerCase}
-                                  onKeyDown={handleEmailChange}
-                                  readOnly={otpSent}
-                                  {...register("username", {
-                                    required: "Email Id is Required.",
-                                    pattern: {
-                                      value:
-                                      /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,                                      message: "Invalid Email Id Format",
-                                    },
-                                    })}
-                                  />
-                                  {errors.username && (
-                                  <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                                    {errors.username.message}
-                                  </p>
-                                  )}
-                            </div>
-                            {!otpSent && ( 
-                              <> 
-                                <div className="formgroup">
-                                  <label className="form-label">Password</label>
-                                  <div className="password-input-container">
-                                    <input 
-                                      className="form-control form-control-lg" 
-                                      name="password"
-                                      placeholder="Password"
-                                      onChange={handleEmailChange}
-                                      type={passwordShown ? "text" : "password"}
-                                      maxLength={16}
-                                      {...register("password", {
-                                        required: "Password is Required",
-                                        minLength: {
-                                          value: 6,
-                                          message: "Password must be at least 6 characters long",
-                                        },
-                                        validate: validatePassword,  
-                                      })}
-                                    />
-                                    <span
-                                      className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
-                                      onClick={togglePasswordVisibility}
-                                    ></span>
-                                  </div>
-                                  {errors.password && (
-                                    <p className="errorMsg" style={{ marginLeft: "20px" }}>
-                                      {errors.password.message}
-                                    </p>
-                                  )}
-                                  <small>
-                                    <a href="/forgotPassword">Forgot Password?</a>
-                                  </small>
-                                </div>
-
-                          
-                            {/* <div>
-                                <div class="form-check align-items-center">
-                                    <input id='customControlInline' type="checkbox" class="form-check-input" value="remember-me" name="remember-me"  />
-                                    <label class="form-check-label text-small" for="customControlInline">Remember me</label>
-                                </div>
-                            </div> */}
-                            </>
-                          )}
-                          {otpSent && !otpExpired && (   
-                            <div class="formgroup">
-                                <label class="form-label">OTP</label>
-                                <input class="form-control form-control-lg" 
-                                type="text"
-                                name="otp"
-                                id="otp"
-                                placeholder="Enter Your OTP"
-                                autoComplete="off"
-                                {...register("otp", {
-                                  required: "OTP is Required.",
-                                  pattern: {
-                                    value: /^\d{6}$/,
-                                    message: "OTP must be 6 digits.",
-                                  },
-                                })}
-                                />
-                                {errors.otp && (
-                                    <p className="errorMsg">{errors.otp.message}</p>
-                                  )}
-                            </div>
-                            )}
-                            <div class="d-grid gap-2 mt-3">
-                                <button class="btn btn-lg btn-primary" type="submit">Sign in</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+          <div className="newLoginContainer">
+            <div className="newLoginLeftSectionOuter">
+              <div className="newLoginLeftTitle">Welcome To <br/> Employee Management System</div>
+              <div className="newLoginLeftImgHolder"><img src="..\assets\img\left-img.png" alt='#' /></div>
             </div>
+            <div className='newLoginRightSectionOuter'>
+              <div className="newLoginRightSection">
+                <div className="newLoginRightSecTitle">Login</div>
+                <div className="newLoginRightSecSelectLogin">
+                  <div className="loginBtn"><span>Continue With Company Login</span></div>
+                </div>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div class="formgroup">
+                    <label class="form-label">Email Id</label>
+                    <input 
+                      class="form-control form-control-lg"
+                      type="email"
+                      name="email"
+                      placeholder="Email Id"
+                      autoComplete="off"
+                      onKeyDown={handleEmailChange}
+                      readOnly={otpSent && !otpExpired}
+                      {...register("username", {
+                        required: "Email Id is Required.",
+                        pattern: {
+                          value: /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                          message: "Invalid Email Id Format",
+                        },
+                      })}
+                    />
+                    {errors.username && (
+                      <p className="errorMsg" style={{ marginLeft: "20px" }}>
+                        {errors.username.message}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {(!otpSent || otpExpired) && ( 
+                    <> 
+                      <div className="formgroup">
+                        <label className="form-label">Password</label>
+                        <div className="password-input-container">
+                          <input 
+                            className="form-control form-control-lg" 
+                            name="password"
+                            placeholder="Password"
+                            onChange={handleEmailChange}
+                            autoComplete="off"
+                            type={passwordShown ? "text" : "password"}
+                            maxLength={16}
+                            readOnly={otpSent && !otpExpired}
+                            {...register("password", {
+                              required: "Password is Required",
+                              minLength: {
+                                value: 6,
+                                message: "Password must be at least 6 characters long",
+                              },
+                              validate: validatePassword,  
+                            })}
+                          />
+                          <span
+                            className={`bi bi-eye field-icon pb-1 toggle-password ${passwordShown ? 'text-primary' : ''}`}
+                            onClick={togglePasswordVisibility}
+                          ></span>
+                        </div>
+                        {errors.password && (
+                          <p className="errorMsg" style={{ marginLeft: "20px" }}>
+                            {errors.password.message}
+                          </p>
+                        )}
+                        <small>
+                          <a href="/forgotPassword">Forgot Password?</a>
+                        </small>
+                      </div>
+                    </>
+                  )}
+                  
+                  {otpSent && !otpExpired && (   
+                    <div class="formgroup">
+                      <label class="form-label">OTP</label>
+                      <input 
+                        class="form-control form-control-lg" 
+                        type="text"
+                        name="otp"
+                        id="otp"
+                        placeholder="Enter Your OTP"
+                        autoComplete="off"
+                        {...register("otp", {
+                          required: "OTP is Required.",
+                          pattern: {
+                            value: /^\d{6}$/,
+                            message: "OTP must be 6 digits.",
+                          },
+                        })}
+                      />
+                      {errors.otp && (
+                        <p className="errorMsg">{errors.otp.message}</p>
+                      )}
+                      <div className="otp-timer">
+                        {otpTimeLimit > 0 ? (
+                          <span className="text-primary">OTP expires in: {otpTimeLimit} seconds</span>
+                        ) : (
+                          <span>OTP expired</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div class="d-grid gap-2 mt-3">
+                    {otpExpired ? (
+                      <button 
+                        class="btn btn-lg btn-primary" 
+                        type="button"
+                        onClick={resendOtp}
+                      >
+                        Resend OTP
+                      </button>
+                    ) : (
+                      <button class="btn btn-lg btn-primary" type="submit">
+                        {otpSent ? "Verify OTP" : "Sign in"}
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
+      
       <Modal
         show={showErrorModal}
         onHide={closeModal}
