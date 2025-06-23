@@ -63,11 +63,11 @@
         <h4 class="header">RELIEVING LETTER</h4>
         <!-- Content -->
         <div class="content">
-            <div class="row d-flex align-items-center p-1">
+            <div class="row d-flex align-items-center">
                 <div>
-                    <p class="mb-2">${relieving.date}</p>
-                    <p class="mb-2">Dear,</p>
-                    <p style= "font-size: 15px;"><h4>${employee.firstName} ${employee.lastName},</h4></p>
+                    <p>${relieving.date}</p>
+                    <p>Dear,</p>
+                    <p><h4>${employee.firstName} ${employee.lastName},</h4></p>
                     <h5>${employee.employeeId}.</h5>
                 </div>
             </div>
@@ -86,14 +86,11 @@
 
                 <h4>${company[0].companyName}</h4>
             <div>
+             <#if !draft>
+                              <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
+                               </#if>
                    <b>Authorized Signature</b>
-                          <br/>
-                  <#if !draft>
-                  <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
-                   </#if>
             </div>
-
-
                 <p>${company[0].companyAddress}</p>
 
             </div>

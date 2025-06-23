@@ -41,6 +41,10 @@
            height: auto;
            opacity: 0.05;
         }
+         .date {
+            text-align: right;
+            padding: 20px;
+         }
 
         .footer {
             margin-top: 3rem;
@@ -65,7 +69,7 @@
              </#if>
     <!-- Letter Content -->
     <div class="container">
-        <p><strong>Date: ${relieving.date}</strong></p>
+        <p class="date" ><strong>Date: ${relieving.date}</strong></p>
         <h4 class="title">Relieving Letter</h4>
 
         <p>To,</p>
@@ -100,12 +104,12 @@
         <div class="footer">
             <p>Best Regards,</p>
             <div>
-                      <b>Authorized Signature</b>
-                             <br/>
+
                                                <#if !draft>
 
                      <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
 </#if>
+                      <b>Authorized Signature</b>
             </div>
             <h5>${company[0].companyName}</h5>
             <p>${company[0].address}</p>
