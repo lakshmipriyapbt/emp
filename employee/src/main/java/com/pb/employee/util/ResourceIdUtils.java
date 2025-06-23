@@ -94,9 +94,10 @@ public class ResourceIdUtils {
     public static String generateAppraisalResourceId (String date) {
         return generateGlobalResourceId(ResourceType.APPRAISAL, date);
     }
-    public static String generateInternshipCertificateResourceId(String internEmail, String startDate) {
-        return generateGlobalResourceId(ResourceType.INTERNSHIP_CERTIFICATE, internEmail, startDate);
+    public static String generateInternshipCertificateResourceId(String employeeId) {
+        return generateGlobalResourceId(ResourceType.INTERNSHIP_CERTIFICATE, employeeId);
     }
+
 
 
     /**

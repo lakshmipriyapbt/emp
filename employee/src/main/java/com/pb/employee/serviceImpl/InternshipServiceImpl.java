@@ -69,26 +69,20 @@ public class InternshipServiceImpl implements InternshipService {
             }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
 
-            List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(entity.getShortName()); // uses company shortName to find index
-            String requestedInput = internshipRequest.getEmployeeName().trim().toLowerCase();
-
-            Optional<EmployeeEntity> matchedEmployee = employees.stream()
-                    .filter(emp -> {
-                        String fullName = (emp.getFirstName() + " " + emp.getLastName()).trim().toLowerCase();
-                        String employeeId = emp.getId().trim().toLowerCase();
-                        return requestedInput.equals(fullName) || requestedInput.equals(employeeId);
-                    })
-                    .findFirst();
-
-
-            if (matchedEmployee.isEmpty()) {
-                log.error("Employee '{}' not found in company '{}'", requestedInput, entity.getShortName());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NAME_NOT_FOUND), HttpStatus.BAD_REQUEST);
+            String index = ResourceIdUtils.generateCompanyIndex(entity.getShortName());
+            EmployeeEntity employee = openSearchOperations.getEmployeeById(internshipRequest.getEmployeeId(), null, index);
+            if (employee == null) {
+                log.error("Employee not found with ID: {}", internshipRequest.getEmployeeId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
-            EmployeeEntity employee = matchedEmployee.get(); // Get matching employee
+            LocalDate startDate = LocalDate.parse(internshipRequest.getStartDate());
+            LocalDate endDate = LocalDate.parse(internshipRequest.getEndDate());
 
-
+            if (!endDate.isAfter(startDate) && !startDate.equals(endDate)) {
+                log.error("Invalid internship duration. End date {} is not after start date {}", endDate, startDate);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.END_DATE_BEFORE_START_DATE), HttpStatus.BAD_REQUEST);
+            }
 
             templateNo=openSearchOperations.getCompanyTemplates(entity.getShortName());
             if (templateNo ==null){
@@ -138,7 +132,8 @@ public class InternshipServiceImpl implements InternshipService {
             byte[] pdfBytes = generatePdfFromHtml(htmlContent);
 
             try {
-                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeName(), internshipRequest.getStartDate());
+                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeId());
+
 
                 InternshipCertificateEntity internshipCertificateEntity = objectMapper.convertValue(internshipRequest, InternshipCertificateEntity.class);
                 internshipCertificateEntity.setId(internshipId);
@@ -161,7 +156,7 @@ public class InternshipServiceImpl implements InternshipService {
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
 
         } catch (Exception e) {
-            log.error("Error occurred while generating appraisal letter: {}", e.getMessage(), e);
+            log.error("Error occurred while generating internship certificate: {}", e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -201,21 +196,8 @@ public class InternshipServiceImpl implements InternshipService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
-            String actualFullName = (employee.getFirstName() + " " + employee.getLastName()).trim().toLowerCase();
-            String requestedName = internshipCertificateUpdateRequest.getEmployeeName().trim().toLowerCase();
-
-            if (!actualFullName.equals(requestedName)) {
-                log.error("Employee name '{}' does not match employeeId: {}", internshipCertificateUpdateRequest.getEmployeeName(), employeeId);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NAME_NOT_FOUND), HttpStatus.BAD_REQUEST);
-            }
-
             Collection<InternshipCertificateEntity> internshipCertificates = internshipDao.getInternshipCertificate(companyName, employeeId, companyEntity.getId());
             InternshipCertificateEntity existingInternship = internshipCertificates.stream().findFirst().orElse(null);
-
-            if (existingInternship == null) {
-                log.error("Internship certificate not found for employeeId: {}", employeeId);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INTERNSHIP_NOT_FOUND), HttpStatus.NOT_FOUND);
-            }
 
             LocalDate startDate = LocalDate.parse(internshipCertificateUpdateRequest.getStartDate());
             LocalDate endDate = LocalDate.parse(internshipCertificateUpdateRequest.getEndDate());
