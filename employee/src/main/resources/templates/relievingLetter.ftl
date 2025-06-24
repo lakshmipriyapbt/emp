@@ -9,7 +9,8 @@
             position: relative;
             font-family: Arial, sans-serif;
             font-size: 18px;
-            margin: 30px;
+            margin: 20px;
+            padding: 0
             line-height: 1.9;
         }
         .watermarked {
