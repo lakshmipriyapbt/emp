@@ -17353,41 +17353,32 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 
 .submenu-item {
   display: block;
-  padding: 0.625rem 1.25rem 0.625rem 3.25rem;
+  padding: 0.625rem 1.25rem 0.625rem 3.25rem; /* Consistent padding */
   color: var(--text-light);
   text-decoration: none;
   transition: all var(--transition-speed) ease;
   font-size: 0.9rem;
   white-space: normal;
-  word-wrap: break-word; /* Changed from word-break */
-  overflow-wrap: break-word; /* Added for better text breaking */
   width: 100%;
   box-sizing: border-box;
   border-left: 3px solid transparent;
+  text-align: left; /* Default alignment */
 }
 
 .submenu-item:hover {
-  background-color: #3f4e6c; /* Slightly lighter color when hovered/active */
+  background-color: #3f4e6c;
   color: #fcf8e3;
   text-decoration: none;
-  text-align: center;
-  justify-content: center;
-  padding: 6px 15px;
-  border-radius: 8px;	
-  transition: background-color 0.3s ease-in-out;
+  /* Removed padding changes */
 }
 
 .submenu-item.active {
   font-weight: 500;
-  background-color: #3f4e6c; /* Slightly lighter color when hovered/active */
+  background-color: #3f4e6c;
   color: #fcf8e3;  
   border-left: 3px solid var(--primary-color);
-  padding: 6px 15px;
-  border-radius: 8px;	
-  transition: background-color 0.3s ease-in-out;
-  margin-bottom: 5px;
-text-align: center;
-justify-content: center;
+  /* Removed padding changes */
+  text-align: left;
 }
 
 /* Focus styles */

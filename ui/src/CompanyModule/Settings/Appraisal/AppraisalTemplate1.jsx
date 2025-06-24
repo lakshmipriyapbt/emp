@@ -33,17 +33,17 @@ const AppraisalTemplate1 = ({
     >
       {!draft && (
         <div className="d-flex justify-content-end align-items-center p-2">
-        {companyData ? (
-          <img
-            className="align-middle"
-            src={companyData?.imageFile}
-            alt="Logo"
-            style={{ height: "100px", width: "150px" }}
-          />
-        ) : (
-          <p>Logo</p>
-        )}
-      </div> )}
+          {companyData ? (
+            <img
+              className="align-middle"
+              src={companyData?.imageFile}
+              alt="Logo"
+              style={{ height: "100px", width: "150px" }}
+            />
+          ) : (
+            <p>Logo</p>
+          )}
+        </div>)}
 
       {!draft && (<div
         style={{
@@ -61,7 +61,7 @@ const AppraisalTemplate1 = ({
           zIndex: 1,
           opacity: 0.3,
         }}
-      /> )}
+      />)}
       <h4 className="text-center p-3">APPRAISAL LETTER</h4>
 
       <div className="row d-flex justify-content-between p-1">
@@ -102,10 +102,10 @@ const AppraisalTemplate1 = ({
         </p>
         <p>
           We are pleased to inform you that your salary increase effective from <b>{effectiveDate}. </b>
-The amount of your salary increase is <b>Rs. {salaryIncrease} pa.</b>
-This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.
-We understand this is a sustainable increase in your pay and we appreciate
-your hard work and dedication to the company.
+          The amount of your salary increase is <b>Rs. {salaryIncrease} pa.</b>
+          This represents a <b>{hike}%</b> increase, demonstrating our appreciation for your dedication.
+          We understand this is a sustainable increase in your pay and we appreciate
+          your hard work and dedication to the company.
         </p>
         <p>
           We recognize your continued contributions and dedication to the
@@ -115,7 +115,7 @@ your hard work and dedication to the company.
         </p>
         <p>
           All other T&C are the same as per the original offer letter. We extend our good wishes and trust that you will maintain your remarkable enthusiasm and dedication moving forward.
-         <br/>
+          <br />
           If you have any questions or need further clarification, feel free to
           reach out.
         </p>
@@ -211,11 +211,18 @@ your hard work and dedication to the company.
         <div className="mt-5 pt-3">
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
+            {!draft && (
+              <img
+                src={companyData?.stampImage}
+                alt="stampImage"
+                style={{
+                  height: "100px",
+                  width: "160px",
+                  marginBottom: "1rem" // Add some space below the image
+                }}
+              />
+            )}
             <p>Authorized Signature</p>
-           {!draft && ( <img 
-           src={companyData?.stampImage}
-           alt="stampImage"
-           style={{ height: "100px", width: "160px" }}/> )}
             <h6>{companyName}</h6>
             <h6>
               PH: {companyData?.mobileNo}, Email: {companyData?.emailId}{" "}

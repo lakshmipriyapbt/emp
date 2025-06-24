@@ -61,6 +61,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
           date={previewData.date}
+          stamp={company?.stampImage}
         />
       ),
     },
@@ -80,7 +81,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
           date={previewData.date}
-
+          stamp={company?.stampImage}
         />
       ),
     },
@@ -100,7 +101,7 @@ const Preview = ({ previewData,selectedTemplate }) => { // Accept previewData as
           noticePeriod={previewData.noticePeriod}
           draft={previewData.draft}
           date={previewData.date}
-
+          stamp={company?.stampImage}
         />
       ),
     },
