@@ -25,21 +25,18 @@ public class EmployeeDocumentDaoImpl extends AbstractDao<EmployeeDocumentEntity>
 
 
     @Override
-    public Optional<EmployeeDocumentEntity> getByCandidateId(String candidateId, String companyName) {
+    public Optional<EmployeeDocumentEntity> getByDocuments(String candidateId, String employeeId, String companyName) {
         try {
             Collection<Filter> filters = new ArrayList<>();
-
             if (StringUtils.isNotBlank(candidateId)) {
                 filters.add(new Filter(Constants.CANDIDATE_ID, Operator.EQ, candidateId));
             }
-
+            if (StringUtils.isNotBlank(employeeId)) {
+                filters.add(new Filter(Constants.EMPLOYEE_ID, Operator.EQ, employeeId));
+            }
             Collection<EmployeeDocumentEntity> result = search(filters, companyName);
 
-            if (result != null && !result.isEmpty()) {
-                return Optional.of(result.iterator().next());
-            } else {
-                return Optional.empty();
-            }
+            return Optional.of(result.iterator().next());
         } catch (Exception e) {
             log.error("Error while fetching employee document by candidateId: {}", e.getMessage(), e);
             return Optional.empty();

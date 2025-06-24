@@ -13,6 +13,7 @@ const RelievingTemplate3 = ({
   lastWorkingDate,
   draft,
   date,
+  stamp
 }) => {
   // const formatDate = (date) => {
   //   const d = new Date(date);
@@ -23,7 +24,7 @@ const RelievingTemplate3 = ({
   // };
 
   // const date = formatDate(new Date());
-  
+
   return (
     <div
       style={{
@@ -34,7 +35,7 @@ const RelievingTemplate3 = ({
     >
       <h4 className="text-center mt-2">Relieving Letter</h4>
       {/* Company Logo positioned at the top right */}
-        {!draft && ( <img
+      {!draft && (<img
         src={companyLogo}
         alt={`${companyData.companyName} Logo`}
         style={{
@@ -45,10 +46,10 @@ const RelievingTemplate3 = ({
           height: "100px",
           width: "160px",
         }}
-      /> )}
+      />)}
       <p className="mb-2">{date}</p>
       <h5 className="text-center p-4">TO WHOMSOEVER IT MAY CONCERN</h5>
-       {!draft && (  <div
+      {!draft && (<div
         style={{
           position: "absolute",
           top: "30%",
@@ -56,6 +57,8 @@ const RelievingTemplate3 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`, // Use the logo or another image
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -64,7 +67,7 @@ const RelievingTemplate3 = ({
           //  filter: 'blur(2px)', // Optional: adjust blur as needed
           zIndex: 1, // Ensure it's behind the content
         }}
-      /> )}
+      />)}
       <div
         className="mt-3"
         style={{
@@ -107,11 +110,14 @@ const RelievingTemplate3 = ({
         </div>
         <div className="pt-4">
           <p className="mb-5">Yours Sincerely,</p>
-          <p className="mt-5">Authorized Signature,</p>
-           {!draft && (  <img 
-           src={companyData?.stampImage}
-           alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/> )}
+          {!draft && (
+            <img
+              src={stamp}
+              alt="Stamp"
+              style={{ height: "100px", width: "160px" }}
+            />
+          )}
+          <p>Authorized Signature,</p>
           <h5>{companyData.companyName}</h5>
           <p>{companyData.companyAddress}</p>
           <p>{companyData.cityStatePin}</p>

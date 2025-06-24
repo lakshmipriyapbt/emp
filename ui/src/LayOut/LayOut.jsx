@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SideNav from "./SideNav";
 import Header from "./Header";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { CompanyImageGetApi, EmployeeGetApiById, getUserById } from "../Utils/Axios";
 import AutoLogout from "../Utils/AutoLogOut";
@@ -14,8 +14,7 @@ const LayOut = ({ children }) => {
   const [error, setError] = useState(null);
   const [logoFileName, setLogoFileName] = useState(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-    const { userRole } = useSelector((state) => state.auth);
-
+  const { userRole } = useSelector((state) => state.auth);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);

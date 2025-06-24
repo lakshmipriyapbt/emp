@@ -108,10 +108,9 @@
                 endeavors.</p>
             <p>Sincerely,</p>
 
-            <div style="margin-top: 100px;">
+            <div style="margin-top: 80px;">
                 <div style="margin-bottom: 10px;">${company[0].companyName}</div>
-                <div style="margin-bottom: 10px;">${company[0].mobileNo}</div>
-                <div style="margin-bottom: 10px;">${company[0].emailId}</div>
+                <div style="margin-bottom: 10px;">${company[0].mobileNo}|${company[0].emailId}</div>
                 <div>${company[0].address}</div>
             </div>
         </div>

@@ -94,7 +94,8 @@ import UploadSuccess from '../CompanyModule/Candidate/UploadSuccess';
 import CandidateLogin from '../Login/CandidateLogin';
 import CandidateProfile from '../CompanyModule/Candidate/CandidateProfile';
 import CandidateDocumentsView from '../CompanyModule/Candidate/CandidateDocumentsView';
-// import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
+// import InvoiceTemplate1 from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate1';
+
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -182,6 +183,7 @@ export const allAvailableRoutes = [
   {path: '/documentUpload', allowedTypes: ['candidate'] },
   {path: '/candidateProfile', allowedTypes: ['candidate'] },
   {path: '/candidateDocumentsView', allowedTypes: ['candidate'] },
+  // {path: '/invoiceTemplate1', allowedTypes: ['company_admin', 'Admin' , 'Accountant'] },
 ];
 
 const Routing = () => {
@@ -476,8 +478,8 @@ const Routing = () => {
         element={<ProtectedRoute element={<InvoicePdf/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       />
       {/* <Route
-        path="/invoiceTemplates"
-        element={<ProtectedRoute element={<InvoiceTemplates/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
+        path="/invoiceTemplate1"
+        element={<ProtectedRoute element={<InvoiceTemplate1/>} allowedTypes={['company_admin', 'Admin' , 'Accountant']} />}
       /> */}
       {/* employee & Accountant shared routes */}
       <Route
