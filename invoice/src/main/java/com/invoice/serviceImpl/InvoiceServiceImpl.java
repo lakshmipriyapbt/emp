@@ -11,6 +11,7 @@ import com.invoice.opensearch.OpenSearchOperations;
 import com.invoice.repository.CustomerRepository;
 import com.invoice.request.InvoiceRequest;
 import com.invoice.request.InvoiceUpdateRequest;
+import com.invoice.response.InvoiceResponse;
 import com.invoice.service.InvoiceService;
 import com.invoice.util.*;
 import com.itextpdf.text.DocumentException;
@@ -118,6 +119,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public ResponseEntity<?> getCompanyAllInvoices(String companyId, String customerId,HttpServletRequest request) throws InvoiceException {
         List<InvoiceModel> invoiceEntities;
+        InvoiceResponse invoiceResponse = null;
 
         try {
             // Fetch company by ID
@@ -139,13 +141,44 @@ public class InvoiceServiceImpl implements InvoiceService {
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
+            // Unmask sensitive properties and build a list of InvoiceResponse objects
+            List<InvoiceResponse> invoiceResponses = new ArrayList<>();
+            CompanyEntity unmaskedCompany = InvoiceUtils.unMaskCompanyProperties(companyEntity, request); // Company details are generally consistent per company
+
+//            // Cache to avoid repeated unmasking of the same customer
+             Map<String, CustomerModel> customerCache = new HashMap<>();
+
             // Unmask sensitive properties in each invoice
             for (InvoiceModel invoice : invoiceEntities) {
-                InvoiceUtils.unMaskInvoiceProperties(invoice, request);
+                InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(index, null, invoice.getInvoiceId());
+                if (invoiceEntity == null) {
+                    log.info("Invoice with ID {} referenced but not found for detailed retrieval. Skipping.", invoice.getInvoiceId());
+                    continue;
+                }
+                // Fetch and unmask customer (with caching)
+                String custId = invoice.getCustomerId();
+                CustomerModel unmaskedCustomer = customerCache.get(custId);
+                if (unmaskedCustomer == null) {
+                    CustomerModel customerModel = customerRepository.findById(custId)
+                            .orElseThrow(() -> new InvoiceException(
+                                    InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.BAD_REQUEST));
+                    unmaskedCustomer = InvoiceUtils.unMaskCustomerProperties(customerModel);
+                    customerCache.put(custId, unmaskedCustomer); // Store in cache
+                }
+                BankEntity bankEntity = openSearchOperations.getBankById(index, null, invoice.getBankId());
+                if (bankEntity == null) {
+                    throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
+                }
+                BankEntity unmaskedBank = InvoiceUtils.unMaskBankProperties(bankEntity); // assuming you have this
+                InvoiceUtils.unMaskInvoiceProperties(invoiceEntity);
+                InvoiceResponse response = InvoiceResponse.builder().company(unmaskedCompany).customer(unmaskedCustomer).bank(unmaskedBank).build();
+                InvoiceUtils.calculateGrandTotal(invoiceEntity, response);
+                response.setInvoice(invoiceEntity);
+                invoiceResponses.add(response);
             }
 
             // Return success response with the list of invoices
-            return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceEntities));
+            return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceResponses));
 
         } catch (Exception ex) {
             log.error("Exception while fetching invoices for company {} and customer {}: {}", companyId, customerId, ex.getMessage());
@@ -178,27 +211,36 @@ public class InvoiceServiceImpl implements InvoiceService {
                 log.error("Customer ID {} does not belong to company ID {}", customer.getCustomerId(), companyId);
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_ASSOCIATED_WITH_COMPANY), HttpStatus.BAD_REQUEST);
             }
-
             // Fetch Invoice Entity
             InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(index,null,invoiceId);
             if (invoiceEntity == null) {
                 log.error("Invoice with ID {} not found", invoiceId);
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
-            // Unmask sensitive properties in the invoice
-            InvoiceUtils.unMaskInvoiceProperties(invoiceEntity,request);
+            BankEntity bankEntity = openSearchOperations.getBankById(index, null, invoiceEntity.getBankId());
+            if (bankEntity == null) {
+                throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
+            }
+
+            // Unmask sensitive properties in the invoice itself
+            InvoiceUtils.unMaskInvoiceProperties(invoiceEntity);
+            InvoiceResponse invoiceResponse = InvoiceResponse.builder().company(InvoiceUtils.unMaskCompanyProperties(companyEntity, request)).customer(InvoiceUtils.unMaskCustomerProperties(customer)).bank(InvoiceUtils.unMaskBankProperties(bankEntity)).build();
+            InvoiceUtils.calculateGrandTotal(invoiceEntity, invoiceResponse);
+            invoiceResponse.setInvoice(invoiceEntity);
 
             // Return success response
-            return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceEntity));
+            return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceResponse));
         } catch (Exception ex) {
             log.error("Exception while fetching invoice with ID {}: {}", invoiceId, ex.getMessage());
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNEXPECTED_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @Override
     public ResponseEntity<?> downloadInvoice(String companyId, String customerId, String invoiceId, HttpServletRequest request) throws Exception {
         log.info("Download Invoice with ID: {}", invoiceId);
 
+        TemplateEntity templateNo;
         // Fetch Company Entity
         CompanyEntity companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
         if (companyEntity == null) {
@@ -207,6 +249,13 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         String companyIndex = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
+        templateNo = openSearchOperations.getCompanyTemplates(companyEntity.getShortName());
+        if (templateNo ==null){
+            log.error("company templates are not exist ");
+            throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
+                    HttpStatus.NOT_FOUND);
+        }
+
         SSLUtil.disableSSLVerification();
         InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(companyIndex,null,invoiceId);
         if (invoiceEntity == null) {
@@ -214,21 +263,46 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
         // Fetch Customer Model
-        customerRepository.findById(customerId)
+        CustomerModel customerModel=customerRepository.findById(customerId)
                 .orElseThrow(() -> {
                     log.error("Customer with ID {} not found", customerId);
                     return new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.NOT_FOUND);
                 });
+        BankEntity bankEntity = openSearchOperations.getBankById(companyIndex, null, invoiceEntity.getBankId());
+        if (bankEntity == null) {
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
 
         try {
-            InvoiceUtils.unMaskInvoiceProperties(invoiceEntity,request);
+            InvoiceUtils.unMaskInvoiceProperties(invoiceEntity);
+            InvoiceResponse invoiceResponse = InvoiceResponse.builder()
+                    .company(InvoiceUtils.unMaskCompanyProperties(companyEntity, request))
+                    .customer(InvoiceUtils.unMaskCustomerProperties(customerModel))
+                    .bank(InvoiceUtils.unMaskBankProperties(bankEntity))
+                    .build();
+            // Calculate Grand Total and update InvoiceModel
+            InvoiceUtils.calculateGrandTotal(invoiceEntity, invoiceResponse);
+            invoiceResponse.setInvoice(invoiceEntity);
+
             // Generate HTML from FreeMarker template
             Map<String, Object> model = new HashMap<>();
-            model.put(Constants.INVOICE, invoiceEntity);
-            model.put(Constants.IGST,invoiceEntity.getIGst());
-            model.put(Constants.SGST,invoiceEntity.getSGst());
-            model.put(Constants.CGST,invoiceEntity.getCGst());
-            Template template = freeMarkerConfig.getTemplate(Constants.TEMPLATE);
+            model.put(Constants.INVOICE, invoiceResponse.getInvoice());
+            model.put(Constants.COMPANY, invoiceResponse.getCompany());
+            model.put(Constants.CUSTOMER, invoiceResponse.getCustomer());
+            model.put(Constants.BANK_1, invoiceResponse.getBank());
+            model.put(Constants.IGST,invoiceResponse.getInvoice().getIGst());
+            model.put(Constants.SGST,invoiceResponse.getInvoice().getSGst());
+            model.put(Constants.CGST,invoiceResponse.getInvoice().getCGst());
+
+            // Choose the template based on the template number
+            String templateName = switch (Integer.parseInt(templateNo.getInvoiceTemplateNo())) {
+                case 1 -> Constants.INVOICE_ONE;
+                case 2 -> Constants.INVOICE_TWO;
+
+                default -> throw new IllegalArgumentException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVALID_TEMPLATE_NUMBER));
+            };
+            Template template = freeMarkerConfig.getTemplate(templateName);
+
             StringWriter stringWriter = new StringWriter();
             try {
                 template.process(model, stringWriter);
@@ -250,6 +324,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             log.info("Invoice with ID: {} generated successfully", invoiceId);
             return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+        } catch (InvoiceException invoiceException) {
+            log.error("InvoiceException while fetching or generating invoice: {}", invoiceException.getMessage(), invoiceException);
+            throw invoiceException; // Preserve original exception
         } catch (Exception e) {
             log.error("An error occurred while fetching or generating invoice: {}", e.getMessage(), e);
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVALID_INVOICE_ID_FORMAT), HttpStatus.BAD_REQUEST);
@@ -292,7 +369,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             BeanUtils.copyProperties(invoiceModelTgt, invoiceEntity, getNullPropertyNames(invoiceModelTgt));
 
                  openSearchOperations.saveEntity(invoiceEntity, invoiceId, index);
-
 
             log.info("Invoice Gst values updated successfully with ID: {}", customerId);
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.UPDATE_SUCCESS), HttpStatus.OK);
