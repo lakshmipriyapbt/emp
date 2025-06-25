@@ -32,7 +32,7 @@ public enum InvoiceErrorMessageKey {
     NO_CHANGES_DETECTED("no.changes.detected"),
     PURCHASE_ORDER_ALREADY_EXISTS("purchase.order.already.exist"),
     UNABLE_TO_GET_TEMPLATE("unable.to.get.template"),
-    INVALID_TEMPLATE_NUMBER("invalid.template.number"),;
+    INVALID_TEMPLATE_NUMBER("invalid.template.number");
 
     private final String message;
 

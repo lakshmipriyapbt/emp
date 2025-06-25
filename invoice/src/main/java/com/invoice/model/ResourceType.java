@@ -13,8 +13,7 @@ import org.springframework.http.HttpStatus;
 public enum ResourceType {
     CUSTOMER("Customer"),
     PRODUCT("Product"),
-    INVOICE("Invoice"),
-    CLIENT("Client");
+    INVOICE("Invoice");
 
     private final String value;
     public String value() {return this.value;}
