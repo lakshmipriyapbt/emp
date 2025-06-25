@@ -3,6 +3,7 @@ package com.pb.employee.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.dao.CandidateDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -11,6 +12,7 @@ import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
+import com.pb.employee.request.EmployeeWithCandidateRequest;
 import com.pb.employee.response.EmployeeResponse;
 import com.pb.employee.service.AttendanceService;
 import com.pb.employee.service.EmployeeService;
@@ -20,6 +22,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -58,6 +61,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private Configuration freemarkerConfig;
+
+    @Autowired
+    private CandidateDao candidateDao;
 
     @Override
     public ResponseEntity<?> registerEmployee(EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException{
@@ -704,4 +710,110 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Override
+    public ResponseEntity<?> registerEmployeeWithCandidate(EmployeeWithCandidateRequest request, HttpServletRequest httpRequest) throws EmployeeException {
+        String defaultPassword;
+        log.debug("Validating candidateId {} and email {}", request.getCandidateId(), request.getEmailId());
+
+        String resourceId = ResourceIdUtils.generateEmployeeResourceId(request.getEmailId());
+        String employeeExperienceId = ResourceIdUtils.generateEmployeePersonnelId(resourceId);
+        String index = ResourceIdUtils.generateCompanyIndex(request.getCompanyName());
+
+        Object existingEmployee;
+        try {
+            existingEmployee = openSearchOperations.getById(resourceId, null, index);
+            if (existingEmployee != null) {
+                log.error("Employee already exists with email: {}", request.getEmailId());
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS), request.getEmailId()), HttpStatus.CONFLICT);
+            }
+
+            List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(request.getCompanyName());
+            Map<String, Object> duplicateValues = EmployeeUtils.duplicateValues(request, employees);
+            if (!duplicateValues.isEmpty()) {
+                return new ResponseEntity<>(ResponseBuilder.builder().build().failureResponse(duplicateValues), HttpStatus.CONFLICT);
+            }
+        } catch (IOException e) {
+            log.error("Unable to get company details for {}", request.getCompanyName());
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE), request.getEmailId()), HttpStatus.BAD_REQUEST);
+        }
+
+        List<EmployeeEntity> employeeByData = openSearchOperations.getCompanyEmployeeByData(request.getCompanyName(), request.getEmployeeId(), request.getEmailId());
+        if (employeeByData != null && !employeeByData.isEmpty()) {
+            log.error("Employee with employeeId {} already exists", request.getEmployeeId());
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), request.getEmployeeId()), HttpStatus.CONFLICT);
+        }
+
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(request.getCompanyName(), Constants.INDEX_EMS);
+        if (company == null) {
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+
+        Collection<CandidateEntity> candidates = candidateDao.getCandidates(request.getCompanyName(), request.getCandidateId(), company.getId());
+        if (CollectionUtils.isEmpty(candidates)) {
+            log.warn("Candidate not found for candidateId: {}, companyName: {}, companyId: {}", request.getCandidateId(), request.getCompanyName(), company.getId());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            String companyFolderPath = folderPath + request.getCompanyName();
+            File companyFolder = new File(companyFolderPath);
+            if (!companyFolder.exists()) {
+                log.error("Company folder does not exist: {}", companyFolderPath);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath), HttpStatus.NOT_FOUND);
+            }
+
+            String employeeFolderPath = companyFolderPath + "/" + request.getFirstName() + "_" + request.getEmployeeId();
+            File folder = new File(employeeFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Created employee folder: {}", employeeFolderPath);
+            }
+        } catch (EmployeeException e) {
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(request.getDepartment(), null, index);
+            if (departmentEntity == null) {
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT))), HttpStatus.CONFLICT);
+            }
+
+            List<DesignationEntity> designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(request.getCompanyName(), request.getDepartment(), request.getDesignation());
+            if (designationEntity == null || designationEntity.isEmpty()) {
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION))), HttpStatus.CONFLICT);
+            }
+
+            List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, request.getCompanyName());
+            defaultPassword = PasswordUtils.generateStrongPassword();
+
+            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(request, resourceId, shortNameEntity.getFirst().getId(), defaultPassword);
+            EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(request.getPersonnelEntity(), EmployeePersonnelEntity.class);
+            employeePersonnelEntity.setEmployeeId(resourceId);
+            employeePersonnelEntity.setId(employeeExperienceId);
+            employeePersonnelEntity.setType(Constants.EMPLOYEE_PERSONNEL);
+
+            openSearchOperations.saveEntity(employeePersonnelEntity, employeeExperienceId, index);
+            openSearchOperations.saveEntity(companyEntity, resourceId, index);
+
+        } catch (Exception e) {
+            log.error("Unable to save employee details for email {}: {}", request.getEmailId(), e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                String companyUrl = EmailUtils.getBaseUrl(httpRequest) + request.getCompanyName() + Constants.SLASH + Constants.LOGIN;
+                log.info("Sending registration email to: {}", request.getEmailId());
+                emailUtils.sendRegistrationEmail(request.getEmailId(), companyUrl, Constants.EMPLOYEE, defaultPassword);
+            } catch (Exception e) {
+                log.error("Failed to send email to: {}", request.getEmailId());
+                throw new RuntimeException(e);
+            }
+        });
+
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
+    }
+
+
 }
