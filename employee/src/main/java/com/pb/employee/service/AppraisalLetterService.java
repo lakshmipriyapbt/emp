@@ -12,7 +12,7 @@ import java.util.Collection;
 
 public interface AppraisalLetterService {
 
-    ResponseEntity<byte[]> downloadAppraisalLetter(AppraisalLetterRequest appraisalLetterRequest, HttpServletRequest request);
+    ResponseEntity<byte[]> downloadAppraisalLetter(AppraisalLetterRequest appraisalLetterRequest, HttpServletRequest request) throws EmployeeException;
 
     Collection<AppraisalEntity> getAppraisalLetter(String companyId,String employeeId) throws Exception;
 

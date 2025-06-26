@@ -36,7 +36,7 @@ public class ExperienceLetterController {
     public ResponseEntity<byte[]> downloadPayslip(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                   HttpServletRequest request,
-                                                  @RequestBody @Valid ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
+                                                  @RequestBody @Valid ExperienceLetterFieldsRequest experienceLetterFieldsRequest) throws EmployeeException {
         return serviceLetterService.downloadServiceLetter(request, experienceLetterFieldsRequest);
     }
 
