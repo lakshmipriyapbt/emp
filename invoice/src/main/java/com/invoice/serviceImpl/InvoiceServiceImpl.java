@@ -125,6 +125,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             // Fetch company by ID
             CompanyEntity companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             if (companyEntity == null) {
+                log.error("Company with ID {} not found", companyId);
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.COMPANY_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
@@ -138,6 +139,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             // If no invoices are found
             if (invoiceEntities == null || invoiceEntities.isEmpty()) {
+                log.error("Invoice not found for companyId: {} and customerId: {}", companyId, customerId);
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
@@ -150,35 +152,38 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             // Unmask sensitive properties in each invoice
             for (InvoiceModel invoice : invoiceEntities) {
-                InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(index, null, invoice.getInvoiceId());
-                if (invoiceEntity == null) {
-                    log.info("Invoice with ID {} referenced but not found for detailed retrieval. Skipping.", invoice.getInvoiceId());
-                    continue;
-                }
                 // Fetch and unmask customer (with caching)
                 String custId = invoice.getCustomerId();
                 CustomerModel unmaskedCustomer = customerCache.get(custId);
                 if (unmaskedCustomer == null) {
-                    CustomerModel customerModel = customerRepository.findById(custId)
-                            .orElseThrow(() -> new InvoiceException(
-                                    InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.BAD_REQUEST));
+
+                    CustomerModel customerModel=customerRepository.findById(custId)
+                            .orElseThrow(() -> {
+                                log.error("Customer with ID {} not found", customerId);
+                                return new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.NOT_FOUND);
+                            });
                     unmaskedCustomer = InvoiceUtils.unMaskCustomerProperties(customerModel);
                     customerCache.put(custId, unmaskedCustomer); // Store in cache
                 }
                 BankEntity bankEntity = openSearchOperations.getBankById(index, null, invoice.getBankId());
                 if (bankEntity == null) {
+                    log.error("Bank details not found for invoice ID: {}", invoice.getBankId());
                     throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
                 }
                 BankEntity unmaskedBank = InvoiceUtils.unMaskBankProperties(bankEntity); // assuming you have this
-                InvoiceUtils.unMaskInvoiceProperties(invoiceEntity);
+                InvoiceUtils.unMaskInvoiceProperties(invoice);
                 InvoiceResponse response = InvoiceResponse.builder().company(unmaskedCompany).customer(unmaskedCustomer).bank(unmaskedBank).build();
-                InvoiceUtils.calculateGrandTotal(invoiceEntity, response);
-                response.setInvoice(invoiceEntity);
+                InvoiceUtils.calculateGrandTotal(invoice, response);
+                response.setInvoice(invoice);
                 invoiceResponses.add(response);
             }
 
             // Return success response with the list of invoices
+            log.info("Successfully fetched invoices for companyId: {} and customerId: {}", companyId, customerId);
             return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceResponses));
+        } catch (InvoiceException invoiceException) {
+            log.error("InvoiceException while fetching invoices for company {} and customer {}: {}", companyId, customerId, invoiceException.getMessage());
+            throw invoiceException; // Preserve original exception
 
         } catch (Exception ex) {
             log.error("Exception while fetching invoices for company {} and customer {}: {}", companyId, customerId, ex.getMessage());
@@ -201,11 +206,12 @@ public class InvoiceServiceImpl implements InvoiceService {
             // Generate index specific to the company's short name
             String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
-            // Fetch Customer Entity
-            CustomerModel customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new InvoiceException(
-                            InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.BAD_REQUEST));
-
+            // Fetch Customer Model
+            CustomerModel customer=customerRepository.findById(customerId)
+                    .orElseThrow(() -> {
+                        log.error("Customer with ID {} not found", customerId);
+                        return new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.NOT_FOUND);
+                    });
             // Check if the customer belongs to the provided companyId
             if (!customer.getCompanyId().equals(companyId)) {
                 log.error("Customer ID {} does not belong to company ID {}", customer.getCustomerId(), companyId);
@@ -219,6 +225,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             }
             BankEntity bankEntity = openSearchOperations.getBankById(index, null, invoiceEntity.getBankId());
             if (bankEntity == null) {
+                log.error("Bank details not found for invoice ID: {}", invoiceEntity.getBankId());
                 throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
             }
 
@@ -229,7 +236,11 @@ public class InvoiceServiceImpl implements InvoiceService {
             invoiceResponse.setInvoice(invoiceEntity);
 
             // Return success response
+            log.info("Successfully fetched invoice with ID: {}", invoiceId);
             return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(invoiceResponse));
+        } catch (InvoiceException invoiceException) {
+            log.error("InvoiceException while fetching invoice with ID {}: {}", invoiceId, invoiceException.getMessage());
+            throw invoiceException; // Preserve original exception
         } catch (Exception ex) {
             log.error("Exception while fetching invoice with ID {}: {}", invoiceId, ex.getMessage());
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNEXPECTED_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -270,6 +281,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 });
         BankEntity bankEntity = openSearchOperations.getBankById(companyIndex, null, invoiceEntity.getBankId());
         if (bankEntity == null) {
+            log.error("Bank details not found for invoice ID: {}", invoiceEntity.getBankId());
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.BANK_DETAILS_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
 
@@ -298,7 +310,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             String templateName = switch (Integer.parseInt(templateNo.getInvoiceTemplateNo())) {
                 case 1 -> Constants.INVOICE_ONE;
                 case 2 -> Constants.INVOICE_TWO;
-
                 default -> throw new IllegalArgumentException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVALID_TEMPLATE_NUMBER));
             };
             Template template = freeMarkerConfig.getTemplate(templateName);
@@ -347,11 +358,11 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
         try {
-
-            CustomerModel customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new InvoiceException(
-                            InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.BAD_REQUEST));
-
+            CustomerModel customer=customerRepository.findById(customerId)
+                    .orElseThrow(() -> {
+                        log.error("Customer with ID {} not found", customerId);
+                        return new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.CUSTOMER_NOT_FOUND), HttpStatus.NOT_FOUND);
+                    });
             // Check if the customer belongs to the provided companyId
             if (!customer.getCompanyId().equals(companyId)) {
                 log.error("Customer ID {} does not belong to company ID {}", customer.getCustomerId(), companyId);
@@ -367,7 +378,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             InvoiceModel invoiceModelTgt = objectMapper.convertValue(updateRequest, InvoiceModel.class);
             BeanUtils.copyProperties(invoiceModelTgt, invoiceEntity, getNullPropertyNames(invoiceModelTgt));
-
+            
                  openSearchOperations.saveEntity(invoiceEntity, invoiceId, index);
 
             log.info("Invoice Gst values updated successfully with ID: {}", customerId);
@@ -380,7 +391,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             log.error("Unexpected error while updating invoice Gst values: {}", e.getMessage(), e);
             throw new InvoiceException(InvoiceErrorMessageKey.UNABLE_TO_UPDATE_CUSTOMER.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
 
     }
 
