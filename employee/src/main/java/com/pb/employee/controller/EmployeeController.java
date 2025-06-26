@@ -129,7 +129,7 @@ public class EmployeeController {
         return employeeService.getEmployeeId(companyName, employeeIdRequest);
     }
 
-    @RequestMapping(value = "employee/{candidateId}", method = RequestMethod.POST)
+    @RequestMapping(value = "candidate/{candidateId}", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.registerEmployeeWithCandidate.tag}", description = "${api.registerEmployeeWithCandidate.description}")
     @ResponseStatus(HttpStatus.CREATED)

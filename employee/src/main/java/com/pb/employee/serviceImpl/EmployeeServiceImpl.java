@@ -745,22 +745,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_UPLOADED_DOCUMENTS), HttpStatus.NOT_FOUND);
             }
 
-            CandidateEntity candidateEntity = candidates.iterator().next();
-            CandidateRequest candidateRequest = objectMapper.convertValue(candidateEntity, CandidateRequest.class);
-
-            String candidateFolderPath = folderPath + candidateRequest.getCompanyName() + "/" + candidateId + "/";
-            File folder = new File(candidateFolderPath);
-            if (!folder.exists()) {
-                folder.mkdirs();
-                log.info("Candidate folder created successfully at {}", candidateFolderPath);
-            } else {
-                log.warn("Candidate folder already exists or failed to create at {}", candidateFolderPath);
-            }
-
             List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(request.getCompanyName());
             boolean candidateAlreadyExists = employees.stream().anyMatch(emp -> candidateId.equals(emp.getCandidateId()));
             if (candidateAlreadyExists) {
-                log.error("Candidate {} is already mapped to an employee.", candidateId);
+                log.error("Candidate {} has already been converted to an employee. Cannot register again.", candidateId);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ALREADY_EXISTS), candidateId), HttpStatus.CONFLICT);
             }
 
