@@ -24,6 +24,9 @@ public class InvoiceRequest {
     @NotEmpty(message = "{invoice.productColumns.empty}")
     private List<ProductColumnsRequest> productColumns;
 
+    @Valid
+    private List<ShippedPayload> shippedPayload;
+
     private String vendorCode;
     private String purchaseOrder;
     private String invoiceDate;
@@ -31,4 +34,5 @@ public class InvoiceRequest {
     private String subTotal;
     private String status;
     private String bankId;
+    private String notes;
 }
