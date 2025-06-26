@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { handleBranchInput, toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateUAN } from '../../Utils/Validate';
+import { handleBranchInput, toInputAddressCase, toInputTitleCase, validateAadhar, validateCompanyName, validateEmail, validateFirstName, validateLastName, validateLocation, validateNumber, validatePAN, validatePFNumber, validatePhoneNumber, validateTempAddress, validateUAN } from '../../Utils/Validate';
 
 export default function EmployeeRegister() {
   const {
@@ -811,8 +811,7 @@ export default function EmployeeRegister() {
                       <label htmlFor="tempAddress" className="form-label">Temporary Address</label>
                       <textarea type="text" className="form-control" onInput={toInputAddressCase}
                         {...register("tempAddress", {
-                          required: "Temporary Address is required",
-                          validate: validateLocation
+                          validate: validateTempAddress
                         })}
                       />
                       <small className="text-danger">{errors.tempAddress?.message}</small>

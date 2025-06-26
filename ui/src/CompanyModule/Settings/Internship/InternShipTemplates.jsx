@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import InternshipTemplate1 from "./InternshipTemplate1";
 import InternShipTemplate2 from "./InternShipTemplate2";
+import { Link } from "react-router-dom";
 
 const InternShipTemplates = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -156,7 +157,7 @@ const InternShipTemplates = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Interns Templates</li>
               </ol>

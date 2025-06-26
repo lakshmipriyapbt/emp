@@ -23,7 +23,7 @@ const UserSlice = createSlice({
   },
   reducers: {
     removeUserFromState: (state, action) => {
-      state.users = state.users.filter(user => user.userId !== action.payload);
+      state.users = state.users.filter(user => user.id !== action.payload);
     }
   },
   extraReducers: (builder) => {

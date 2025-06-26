@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate, Link } from 'react-router-dom'; // Import useNavigate
 import LayOut from '../../../LayOut/LayOut';
 
 const OfferLetters = () => {
@@ -18,7 +18,9 @@ const OfferLetters = () => {
         <div className="col-auto">
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item"><a href="/main">Home</a></li>
+              <li className="breadcrumb-item">
+                <Link to="/main" className="custom-link">Home</Link>  
+              </li>
               <li className="breadcrumb-item active">Offer Letters</li>
             </ol>
           </nav>

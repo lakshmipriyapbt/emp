@@ -16,6 +16,7 @@ const ViewUser = () => {
   const location = useLocation();
 
   const { users, loading, error } = useSelector((state) => state.users);
+  console.log("Users inside ViewUser component after removal:", users);
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -54,10 +55,12 @@ const ViewUser = () => {
 
   const handleDelete = async (userId) => {
     if (!selectedItemId) return;
+    console.log("Attempting to delete user with ID:", userId);
     try {
       await DeleteUserById(userId);
       dispatch(removeUserFromState(userId));
-      toast.error("User deleted successfully", {
+       console.log("Dispatched removeUserFromState with ID:", userId);
+      toast.success("User deleted successfully", {
         position: "top-right",
         transition: Slide,
         hideProgressBar: true,
@@ -154,7 +157,7 @@ const ViewUser = () => {
                 <nav aria-label="breadcrumb">
                   <ol className="breadcrumb mb-0">
                     <li className="breadcrumb-item">
-                      <a href="/main">Home</a>
+                      <Link to="/main" className="custom-link">Home</Link>
                     </li>
                     <li className="breadcrumb-item active">Users List</li>
                   </ol>

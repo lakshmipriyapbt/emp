@@ -14,19 +14,31 @@ public class TaxCalculatorUtils {
 
     public static double getTax(double salary, TDSResPayload tdsResPayload) {
         if (tdsResPayload != null) {
+            double standardDeduction = 0;
+            if (tdsResPayload.getStandardDeduction() != null && !tdsResPayload.getStandardDeduction().isBlank()) {
+                try {
+                    standardDeduction = Double.parseDouble(tdsResPayload.getStandardDeduction());
+                } catch (NumberFormatException e) {
+                    standardDeduction = 0;
+                }
+            }
+
+            double adjustedSalary = salary - standardDeduction;
+
             for (TDSPercentageEntity tdsPercentageEntity : tdsResPayload.getPersentageEntityList()) {
                 double min = Double.parseDouble(tdsPercentageEntity.getMin());
                 double max = Double.parseDouble(tdsPercentageEntity.getMax());
                 double percentage = Double.parseDouble(tdsPercentageEntity.getTaxPercentage());
                 boolean hasNoUpperLimit = max == 0;
 
-                if ((salary >= min && salary <= max) || (salary >= min && hasNoUpperLimit)) {
-                    return (percentage / 100) * salary;
+                if ((adjustedSalary >= min && adjustedSalary <= max) || (adjustedSalary >= min && hasNoUpperLimit)) {
+                    return (percentage / 100) * adjustedSalary;
                 }
             }
         }
         return 0;
     }
+
 
 
 

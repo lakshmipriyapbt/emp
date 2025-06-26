@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import AppraisalTemplate1 from "./AppraisalTemplate1";
 import AppraisalTemplate2 from "./AppraisalTemplate2";
+import { Link } from "react-router-dom";
 
 const AppraisalTemplate = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -91,6 +92,7 @@ const AppraisalTemplate = () => {
           joiningDate="January 1, 2020"
           lastWorkingDate="October 27, 2024"
           effectiveDate="November,2024"
+          stamp={company?.stampImage} // Assuming company has a stampImage property
         />
       ),
     },
@@ -109,6 +111,7 @@ const AppraisalTemplate = () => {
           hike="40"
           jobTitle="Software Engineer"
           effectiveDate="November,2024"
+          stamp={company?.stampImage} // Assuming company has a stampImage property
         />
       ),
     },
@@ -182,7 +185,7 @@ const AppraisalTemplate = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link> 
                 </li>
                 <li className="breadcrumb-item active">Appraisal Templates</li>
               </ol>

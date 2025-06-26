@@ -60,6 +60,8 @@ const InternshipTemplate1 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3,
+          border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -80,7 +82,7 @@ const InternshipTemplate1 = ({
           backdropFilter: "blur(2px)",
         }}
       >
-        <p>
+        <p className="mt-5">
           {" "}
           This is to certify that <strong>{employeeName}</strong> has
           successfully completed an internship program with{" "}
@@ -103,10 +105,6 @@ const InternshipTemplate1 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-          {!draft && (<img 
-              src={companyData?.stampImage}
-              alt="Stamp"
-              style={{ height: "100px", width: "160px" }}/>)}
             <h4>{companyData?.companyName},</h4>
             <p>{companyData?.emailId},</p>
             <p>{companyData?.mobileNo},</p>

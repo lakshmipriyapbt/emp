@@ -728,7 +728,7 @@ public class CompanyUtils {
 
     public static EmployeeSalaryEntity maskEmployeesSalaryProperties(EmployeeSalaryRequest salaryRequest, String id, String employeeId, SalaryConfigurationEntity salaryConfigurationEntity, TDSResPayload tdsResPayload) {
 
-        String fix = null, gross = null, var= null, basic= null, net = null, te=null, totalDed=null, pfTax= null, incomeTax=null, ttax=null;
+        String fix = null, gross = null, var= null, basic= null, net = null, te=null, totalDed=null, pfTax= null, incomeTax=null, ttax=null, pfEmployer = null;
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -743,26 +743,13 @@ public class CompanyUtils {
             var= (Base64.getEncoder().encodeToString(salaryRequest.getVariableAmount().toString().getBytes()));
             entity.setVariableAmount(var);
         }
-        if (salaryRequest.getTdsType() != null){
-            incomeTax = String.valueOf(TaxCalculatorUtils.getTax(Double.parseDouble(salaryRequest.getGrossAmount()), tdsResPayload));
-        }
+
         if (salaryRequest.getGrossAmount() != null) {
             pfTax  = String.valueOf(TaxCalculatorUtils.getPfTax(Double.parseDouble(salaryRequest.getGrossAmount())));
             gross= (Base64.getEncoder().encodeToString(salaryRequest.getGrossAmount().toString().getBytes()));
             entity.setGrossAmount(gross);
         }
 
-        ttax = String.valueOf(Double.parseDouble(pfTax)+ Double.parseDouble(incomeTax));
-        ttax = Base64.getEncoder().encodeToString(ttax.getBytes());
-        entity.setTotalTax(ttax);
-        if (pfTax != null){
-            pfTax = Base64.getEncoder().encodeToString(pfTax.getBytes());;
-            entity.setPfTax(pfTax);
-        }
-        if (incomeTax!=null){
-            incomeTax = Base64.getEncoder().encodeToString(incomeTax.getBytes());
-            entity.setIncomeTax(incomeTax);
-        }
         Map<String, String> allowances = new HashMap<>();
         if (salaryRequest.getSalaryConfigurationEntity()!= null && salaryRequest.getSalaryConfigurationEntity().getAllowances() != null) {
             for (Map.Entry<String, String> entry : salaryRequest.getSalaryConfigurationEntity().getAllowances().entrySet()) {
@@ -778,11 +765,34 @@ public class CompanyUtils {
         if (salaryRequest.getSalaryConfigurationEntity() != null && salaryRequest.getSalaryConfigurationEntity().getDeductions() != null) {
             for (Map.Entry<String, String> entry : salaryRequest.getSalaryConfigurationEntity().getDeductions().entrySet()) {
                 String originalKey = entry.getKey();
+                if (originalKey.equalsIgnoreCase(Constants.PF_EMPLOYER)){
+                    pfEmployer = entry.getValue();
+                }
                 String encodedValue = maskValue(entry.getValue());
                 deductions.put(originalKey, encodedValue);
             }
             salaryConfigurationEntity.setDeductions(deductions);
         }
+
+        if (salaryRequest.getTdsType() != null){
+            double grossAmount = Double.parseDouble(salaryRequest.getGrossAmount());
+            double pfEmp = Double.parseDouble(pfEmployer);
+            double grossWithoutPf = (grossAmount - pfEmp);
+            incomeTax = String.valueOf(TaxCalculatorUtils.getTax(grossWithoutPf, tdsResPayload));
+        }
+
+        ttax = String.valueOf(Double.parseDouble(pfTax)+ Double.parseDouble(incomeTax));
+        ttax = Base64.getEncoder().encodeToString(ttax.getBytes());
+        entity.setTotalTax(ttax);
+        if (pfTax != null){
+            pfTax = Base64.getEncoder().encodeToString(pfTax.getBytes());;
+            entity.setPfTax(pfTax);
+        }
+        if (incomeTax!=null){
+            incomeTax = Base64.getEncoder().encodeToString(incomeTax.getBytes());
+            entity.setIncomeTax(incomeTax);
+        }
+
         if (salaryRequest.getNetSalary()!= null){
             net=Base64.getEncoder().encodeToString(salaryRequest.getNetSalary().getBytes());
             entity.setNetSalary(net);
@@ -957,6 +967,9 @@ public class CompanyUtils {
         }
         if (templateRequest.getInternshipTemplateNo() != null) {
             entity.setInternshipTemplateNo(templateRequest.getInternshipTemplateNo());
+        }
+        if (templateRequest.getInvoiceTemplateNo() != null) {
+            entity.setInvoiceTemplateNo(templateRequest.getInvoiceTemplateNo());
         }
 
         return entity;

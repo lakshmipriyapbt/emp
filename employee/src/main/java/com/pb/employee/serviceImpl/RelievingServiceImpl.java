@@ -251,7 +251,7 @@ public class RelievingServiceImpl implements RelievingService {
                 }
 
                 // Apply the watermark effect
-                float opacity = 0.7f;
+                float opacity = 0.1f;
                 double scaleFactor = 1.6d;
                 BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
 

@@ -137,8 +137,8 @@
     <div class="container-fluid">
         <!-- Company Logo - Top Right -->
          <div class="company-details" style="position:absolute ; top: -15px; right: 15px;">
-            <#if invoice.company.imageFile?? && invoice.company.imageFile?has_content>
-                 <img src="${invoice.company.imageFile}" alt="Company Logo" width="150" height="80" />
+            <#if company.imageFile?? && company.imageFile?has_content>
+                 <img src="${company.imageFile}" alt="Company Logo" width="150" height="80" />
             <#else>
                    <img src="Image" alt="Company Logo" />
             </#if>
@@ -149,8 +149,8 @@
         </div>
 
         <div style="position: absolute; top: 0; width: 100%; text-align: left; margin-left: 20px;">
-            <h6 style="margin: 0;"><b>Pan Number:</b>${invoice.company.panNo}</h6>
-            <h6 style="margin: 0;"><b>GST Number:</b>${invoice.company.gstNo}</h6>
+            <h6 style="margin: 0;"><b>Pan Number:</b>${company.panNo}</h6>
+            <h6 style="margin: 0;"><b>GST Number:</b>${company.gstNo}</h6>
         </div>
         <!-- Customer and Invoice Details Section -->
         <div
@@ -160,15 +160,15 @@
             <div style="text-align: left;">
                 <h6 style="margin: 5px 0;"><b>To,</b></h6>
                 <h6 style="margin: 0; max-width: 100%; word-wrap: break-word;" class="font-medium">
-                    ${invoice.customer.customerName}
+                    ${customer.customerName}
                 </h6>
 
-                <h6 style="margin: 0;"><b>Email:</b> ${invoice.customer.email}</h6>
-                <h6 style="margin: 0;"><b>Contact No:</b> ${invoice.customer.mobileNumber}</h6>
-                <h6 style="margin: 0;"><b>Address:</b> ${invoice.customer.address}, ${invoice.customer.state}</h6>
-                <#if invoice.customer.customerGstNo?? && invoice.customer.customerGstNo?has_content>
+                <h6 style="margin: 0;"><b>Email:</b> ${customer.email}</h6>
+                <h6 style="margin: 0;"><b>Contact No:</b> ${customer.mobileNumber}</h6>
+                <h6 style="margin: 0;"><b>Address:</b> ${customer.address}, ${customer.state}</h6>
+                <#if customer.customerGstNo?? && customer.customerGstNo?has_content>
                     <h6 style="margin: 5px 0 0; padding-top: 5px; ">
-                        <b>GST:</b> ${invoice.customer.customerGstNo}
+                        <b>GST:</b> ${customer.customerGstNo}
                     </h6>
                 </#if>
             </div>
@@ -179,6 +179,31 @@
                 <h6 style="margin: 0;"><b>Invoice Date:</b> ${invoice.invoiceDate}</h6>
                 <h6 style="margin: 0;"><b>Due Date:</b> ${invoice.dueDate}</h6>
             </div>
+        </div>
+        <!-- Additional Invoice Details Section -->
+        <div style="position: relative; top: 10px; left: 10px; margin-bottom: 30px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">Sales Person</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Shipping Method</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Shipping Terms</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Payment Terms</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Due Date</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Delivery Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.salesPerson!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.shippingMethod!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.shippingTerms!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.paymentTerms!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.dueDate!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.deliveryDate!''}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <!-- Product Details Table -->
         <div class="table-responsive" style="margin-left: 10px; position: relative; top: -10px;">
@@ -284,7 +309,7 @@
                     </tr>
                     <tr>
                         <th colspan="${columnCount}" class="text-center" style="font-size: 13px;">The Payment should be made
-                            favouring <b>${invoice.company.companyName}</b> or Direct deposit information given above.</th>
+                            favouring <b>${company.companyName}</b> or Direct deposit information given above.</th>
                     </tr>
                 </tbody>
             </table>
@@ -294,26 +319,26 @@
             <div style="width: 50%;">
                 <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Bank Details</h3>
 
-                <#if invoice.bank??>
+                <#if bank??>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">Bank Name :</strong>
-                        <span style="color: #555;">${invoice.bank.bankName!''}</span>
+                        <span style="color: #555;">${bank.bankName!''}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">Account Number :</strong>
-                        <span style="color: #555;">${invoice.bank.accountNumber!''}</span>
+                        <span style="color: #555;">${bank.accountNumber!''}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">Account Type :</strong>
-                        <span style="color: #555;">${invoice.bank.accountType!''}</span>
+                        <span style="color: #555;">${bank.accountType!''}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">IFSC Code :</strong>
-                        <span style="color: #555;">${invoice.bank.ifscCode!''}</span>
+                        <span style="color: #555;">${bank.ifscCode!''}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">Bank Address :</strong>
-                        <span style="color: #555;">${invoice.bank.address!''}</span>
+                        <span style="color: #555;">${bank.address!''}</span>
                     </div>
                 <#else>
                     <div style="font-size: 13px; color: gray;">No bank details available.</div>
@@ -323,21 +348,21 @@
         <!-- Authorized Signature and Seal -->
         <div style="position: fixed; bottom: 180px; right: 0; text-align: center;">
             <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
-                <h6 style="margin: 2px 0; font-weight: bold;">${invoice.company.companyName}</h6>
-                <#if invoice.company.stampImage?? && invoice.company.stampImage?has_content>
-                    <img style="width: 100px; height: 100px; margin: 3px 0;" src="${invoice.company.stampImage}" alt="Seal" />
+                <h6 style="margin: 2px 0; font-weight: bold;">${company.companyName}</h6>
+                <#if company.stampImage?? && company.stampImage?has_content>
+                    <img style="width: 100px; height: 100px; margin: 3px 0;" src="${company.stampImage}" alt="Seal" />
                 </#if>
                 <h6 style="margin: 2px 0; font-weight: bold;">Authorized Signature:</h6>
             </div>
         </div>
         <div style="position: fixed; bottom: 0px; width: 100%; text-align: center;">
-            <b style="display: block; margin-bottom: 2px;">CIN : ${invoice.company.cinNo!''}</b>
+            <b style="display: block; margin-bottom: 2px;">CIN : ${company.cinNo!''}</b>
             <div style="border-top: 1px solid #ccc; padding-top: 3px;">
                 <h6 style="margin: 2px 0; word-wrap: break-word; word-break: break-word; white-space: normal;">
-                    <b>${invoice.company.companyName}</b>
+                    <b>${company.companyName}</b>
                 </h6>
                 <h6 style="margin: 1px 0; word-wrap: break-word; word-break: break-word; white-space: normal; text-align: center;">
-                    <b>${invoice.company.companyAddress},${invoice.company.mobileNo},${invoice.company.emailId}</b><br/>
+                    <b>${company.companyAddress},${company.mobileNo},${company.emailId}</b><br/>
                 </h6>
             </div>
         </div>

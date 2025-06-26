@@ -17165,13 +17165,13 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 	font-size: 1.1rem;
 	display: flex;
 	align-items: center;
-	padding: 6px 15px;
 	margin: 0; /* ❗ No vertical margin */
 	border-radius: 0; /* ❗ No rounded corners for touching boxes */
 	color: #565e64;
 	text-decoration: none;
 	margin-bottom: 8px; /* ⬅️ Add small gap between items */
-	border-radius: 8px; /* ⬅️ Rounded corners look nice when items are separated */
+    padding: 6px 15px;
+	border-radius: 8px;	
 	transition: background-color 0.3s ease-in-out;
 }
   
@@ -17346,36 +17346,39 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
 }
 
 .submenu-inner {
+  color:#565e64;
   padding: 0.25rem 0;
   width: 100%; /* Changed from max-content to 100% */
 }
 
 .submenu-item {
   display: block;
-  padding: 0.625rem 1.25rem 0.625rem 3.25rem;
+  padding: 0.625rem 1.25rem 0.625rem 3.25rem; /* Consistent padding */
   color: var(--text-light);
   text-decoration: none;
   transition: all var(--transition-speed) ease;
   font-size: 0.9rem;
   white-space: normal;
-  word-wrap: break-word; /* Changed from word-break */
-  overflow-wrap: break-word; /* Added for better text breaking */
   width: 100%;
   box-sizing: border-box;
   border-left: 3px solid transparent;
+  text-align: left; /* Default alignment */
 }
 
 .submenu-item:hover {
-  color: var(--text-color);
-  background-color: var(--hover-bg);
+  background-color: #3f4e6c;
+  color: #fcf8e3;
   text-decoration: none;
+  /* Removed padding changes */
 }
 
 .submenu-item.active {
-  color: var(--primary-color);
   font-weight: 500;
-  background-color: var(--primary-light);
+  background-color: #3f4e6c;
+  color: #fcf8e3;  
   border-left: 3px solid var(--primary-color);
+  /* Removed padding changes */
+  text-align: left;
 }
 
 /* Focus styles */
@@ -17490,4 +17493,52 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   color: #3b7ddd; /* Orange text for the day number */
   font-weight: bold;
 }
+.custom-link {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.custom-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  color: #da542e;
+}
+.custom-close-btn.left {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+  color: #da542e;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  margin-left: 15rem; /* Space between text and × */
+}
+/* For Welcome Candidate text */
+.candidate-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.candidate-welcome span {
+  font-size: 1.2rem;  /* Increased from default */
+  font-weight: 600;
+  color: #2c3e50;    /* Dark blue-gray for better visibility */
+  white-space: nowrap; /* Prevents text wrapping */
+  text-align: center;
+}
+
+/* Optional: Add animation on hover */
+.candidate-welcome:hover span {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
 /* Pre Loadder css End */

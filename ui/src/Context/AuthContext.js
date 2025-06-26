@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
-import { EmployeeGetApiById, getUserById, companyViewByIdApi } from "../Utils/Axios";
+import { EmployeeGetApiById, getUserById, companyViewByIdApi, CandidateGetByIdApi } from "../Utils/Axios";
 
 // Create the context
 const AuthContext = createContext();
@@ -45,47 +45,62 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Fetch employee/user + company when authUser changes (login or after app initializes)
-  useEffect(() => {
-    if (!authUser) {
-      setEmployee(null);
-      setCompany(null);
-      setIsInitialized(true);
-      return;
+useEffect(() => {
+  if (!authUser) {
+    setEmployee(null);
+    setCompany(null);
+    setIsInitialized(true);
+    return;
+  }
+
+  const fetchEmployeeOrUserOrCandidate = async (userId) => {
+    try {
+      const empRes = await EmployeeGetApiById(userId);
+      return empRes?.data?.data;
+    } catch {}
+
+    try {
+      const userRes = await getUserById(userId);
+      const userData = userRes?.data?.data;
+      return Array.isArray(userData) && userData.length > 0 ? userData[0] : userData;
+    } catch {}
+
+    try {
+      const candidateRes = await CandidateGetByIdApi(userId);
+      return candidateRes?.data?.data;
+    } catch (err) {
+      console.error("Failed to fetch candidate details", err);
+      return null;
     }
+  };
 
-    const fetchDetails = async () => {
-      try {
-        let empData = null;
+  const fetchDetails = async () => {
+    try {
+      const empData = await fetchEmployeeOrUserOrCandidate(authUser.userId);
+      setEmployee(empData);
 
+      const companyId = empData?.companyId || authUser?.companyId;
+
+      if (companyId) {
         try {
-          // First try fetching as employee
-          const empRes = await EmployeeGetApiById(authUser.userId);
-          empData = empRes?.data?.data;
-        } catch {
-          // If that fails, try fetching as user
-          const userRes = await getUserById(authUser.userId);
-          const userData = userRes?.data?.data;
-          empData = Array.isArray(userData) && userData.length > 0 ? userData[0] : userData;
-        }
-
-        setEmployee(empData);
-        console.log("empData companyId and authUser companyId", empData?.companyId, authUser?.companyId);
-
-        const companyId = empData?.companyId || authUser?.companyId;
-
-        if (companyId) {
           const compRes = await companyViewByIdApi(companyId);
           setCompany(compRes?.data?.data);
+        } catch (err) {
+          console.error("Failed to fetch company details", err);
         }
-      } catch (error) {
-        console.error("Failed fetching employee or company", error);
-      } finally {
-        setIsInitialized(true);
       }
-    };
+         // ✅ Log both employee and company data
+    console.log("Fetched employee/user/candidate:", empData);
 
-    fetchDetails();
-  }, [authUser]);
+    } catch (error) {
+      console.error("Unexpected error fetching employee or company", error);
+    } finally {
+      setIsInitialized(true);
+    }
+  };
+    console.log("Fetched company:", company);
+  fetchDetails();
+}, [authUser]);
 
   // Function to handle login and token storage
   const login = (token) => {

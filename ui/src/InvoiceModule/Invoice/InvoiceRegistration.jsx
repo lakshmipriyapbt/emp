@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Select from "react-select";
@@ -346,7 +346,7 @@ const InvoiceRegistration = () => {
         dueDate: data.dueDate,
         status: "Active",
         bankId: data.bankName,
-        subTotal: subTotal.toString(),
+        subTotal: parseFloat(subTotal).toFixed(2),
         productColumns,
         productData,
       };
@@ -551,7 +551,7 @@ const InvoiceRegistration = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Invoices</li>
                 <li className="breadcrumb-item active">Invoice Registration</li>
@@ -918,7 +918,7 @@ const InvoiceRegistration = () => {
                             <input
                               type="text"
                               className="form-control"
-                              value={subTotal}
+                              value={subTotal.toFixed(2)}
                               readOnly
                             />
                           </td>

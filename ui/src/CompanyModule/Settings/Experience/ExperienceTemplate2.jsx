@@ -56,6 +56,8 @@ const ExperienceTemplate2 = ({
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
+        border:"none",
+        opacity: 0.3, // Adjust opacity for watermark effect
       //  filter: 'blur(2px)', // Optional: adjust blur as needed
         zIndex: 1, // Ensure it's behind the content
       }}

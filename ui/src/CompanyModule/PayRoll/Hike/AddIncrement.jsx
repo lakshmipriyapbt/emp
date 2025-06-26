@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import {
   AppraisalLetterDownload,
   CompanySalaryStructureGetApi,
@@ -107,6 +108,10 @@ const AddIncrement = () => {
   const [tdsSlabs, setTdsSlabs] = useState({
     old: [],
     new: []
+  });
+  const [standardDeductions, setStandardDeductions] = useState({
+    new: 0,
+    old: 0
   });
   const [applicableSlab, setApplicableSlab] = useState(null);
   const [tdsAmount, setTdsAmount] = useState(0);
@@ -274,36 +279,38 @@ const AddIncrement = () => {
         const financialYear = getCurrentFinancialYear();
         const [startYear, endYear] = financialYear.split('-').map(Number);
 
-        // Fetch all TDS data
         const response = await TdsGetApi();
         const allTdsData = response.data.data;
 
-        // Filter for current financial year
         const currentYearTds = allTdsData.filter(tds =>
           parseInt(tds.startYear) === startYear &&
           parseInt(tds.endYear) === endYear
         );
 
-        // Separate old and new regime slabs
-        const newRegimeSlabs = currentYearTds
-          .filter(tds => tds.tdsType === "new")
-          .flatMap(tds => tds.persentageEntityList);
+        // Extract data for both regimes
+        const newRegimeData = currentYearTds.find(tds => tds.tdsType === "new");
+        const oldRegimeData = currentYearTds.find(tds => tds.tdsType === "old");
 
-        const oldRegimeSlabs = currentYearTds
-          .filter(tds => tds.tdsType === "old")
-          .flatMap(tds => tds.persentageEntityList);
-
-        setTdsSlabs({
-          new: newRegimeSlabs,
-          old: oldRegimeSlabs
+        // Update standard deductions separately
+        setStandardDeductions({
+          new: parseInt(newRegimeData?.standardDeduction) || 0,
+          old: parseInt(oldRegimeData?.standardDeduction) || 0
         });
 
-        // Set initial selected slabs based on current regime
+        // Keep existing slab structure
+        setTdsSlabs({
+          new: newRegimeData?.persentageEntityList || [],
+          old: oldRegimeData?.persentageEntityList || []
+        });
+
         setSelectedTdsSlabs(
-          selectedTaxRegime === "new" ? newRegimeSlabs : oldRegimeSlabs
+          selectedTaxRegime === "new"
+            ? newRegimeData?.persentageEntityList || []
+            : oldRegimeData?.persentageEntityList || []
         );
       } catch (error) {
         console.error("Error fetching TDS slabs:", error);
+        setStandardDeductions({ new: 0, old: 0 });
         setTdsSlabs({
           new: [],
           old: []
@@ -1110,7 +1117,7 @@ const AddIncrement = () => {
               <p>
                 To set up the Appraisal templates before proceeding, Please
                 select the Template from Settings{" "}
-                <a href="/appraisalTemplates">Appraisal Templates </a>
+                <Link to="/appraisalTemplates" className="custom-link text-primary bg-opacity-25">Appraisal Templates </Link>
               </p>
               <p>
                 Please contact the administrator to set up the Appraisal
@@ -1136,7 +1143,7 @@ const AddIncrement = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Appraisal From</li>
               </ol>
@@ -1528,6 +1535,18 @@ const AddIncrement = () => {
                                     <span className="text-muted">No applicable slab found</span>
                                   )}
                                 </div>
+                              </div>
+                              {/* In your TDS card section */}
+                              <div className="col-md-12 mb-3">
+                                <label className="form-label">Standard Deduction</label>
+                                  <div className="d-flex align-items-center">
+                                    <span className="badge bg-primary me-2">
+                                      ₹{standardDeductions[selectedTaxRegime].toLocaleString('en-IN')}
+                                    </span>
+                                    <span>
+                                      {selectedTaxRegime === "new" ? "New" : "Old"} regime standard deduction
+                                    </span>
+                                  </div>
                               </div>
 
                               {/* TDS Calculation Results */}
@@ -1922,6 +1941,12 @@ const AddIncrement = () => {
                           <ModalTitle className="text-center">
                             Confirm Provident Fund Option
                           </ModalTitle>
+                          <button
+                            type="button"
+                            className="btn-close"
+                            aria-label="Close"
+                            onClick={() => setShowPfModal(false)}
+                          >X</button>
                         </ModalHeader>
                         <ModalBody className="text-center fs-bold">
                           <p>

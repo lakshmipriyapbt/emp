@@ -3,16 +3,16 @@ import { useForm } from "react-hook-form";
 import LayOut from "./LayOut";
 import { CompanyImagePatchApi, CompanyStampPatchApi, companyUpdateByIdApi } from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
-import { validateLocation } from "../Utils/Validate";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const {company, employee } = useAuth();
+  console.log("company *****",company)
   const {
     register,
     handleSubmit,
-    reset,getValues,setValue,
+    getValues,setValue,
     formState: { errors },
   } = useForm({
      mode: "onChange",
@@ -40,8 +40,8 @@ function Profile() {
     // Determine whether to show CIN or Registration Number
     if (company.cinNo) {
       setCompanyField("cinNo");
-    } else if (company.regNo) {
-      setCompanyField("regNo");
+    } else if (company.companyRegNo) {
+      setCompanyField("companyRegNo");
     }
   }
 }, [company, setValue]);
@@ -307,12 +307,12 @@ function Profile() {
         </h1>
         <div className="row">
           <div className="col-12">
-            <h2 className="text-center">Upload Company Logo & Stamp</h2>
+            <h2 className="text-center mb-2">Upload Company Logo & Stamp</h2>
             <div className="row">
               {/* LOGO Upload (Independent) */}
               <div className="col-md-6 mb-4">
                 <form onSubmit={handleSubmit(uploadLogo)} className="card p-3 shadow-sm">
-                  <label className="form-label fw-bold">Upload Logo</label>
+                  <label className="form-label fw-bold">Upload Logo</label><span className="text-info">File name should not contain any spaces</span>
                   <input
                     type="file"
                     className="form-control"
@@ -338,7 +338,7 @@ function Profile() {
               {/* STAMP Upload (Independent) */}
               <div className="col-md-6 mb-4">
                 <form onSubmit={handleSubmit(uploadStamp)} className="card p-3 shadow-sm">
-                  <label className="form-label fw-bold">Upload Stamp</label>
+                  <label className="form-label fw-bold">Upload Stamp</label><span className="text-info">File name should not contain any spaces</span>
                   <input
                     type="file"
                     className="form-control"

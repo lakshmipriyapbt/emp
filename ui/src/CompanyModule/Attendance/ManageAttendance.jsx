@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { Download } from "react-bootstrap-icons";
 import * as XLSX from "xlsx";
+import { Link } from "react-router-dom";
 
 const ManageAttendance = () => {
   const {
@@ -135,7 +136,7 @@ const ManageAttendance = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Attendance</li>
                 <li className="breadcrumb-item active">Manage Attendance</li>

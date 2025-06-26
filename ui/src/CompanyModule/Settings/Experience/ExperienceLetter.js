@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+  import React, { useEffect, useMemo, useState } from "react";
 import LayOut from "../../../LayOut/LayOut";
 import {
   companyViewByIdApi,
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../Context/AuthContext";
 import ExperienceTemplate1 from "./ExperienceTemplate1";
 import ExperienceTemplate2 from "./ExperienceTemplate2";
+import { Link } from "react-router-dom";
 
 const ExperienceLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -162,7 +163,7 @@ const ExperienceLetter = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>    
                 </li>
                 <li className="breadcrumb-item active">Expereince Templates</li>
               </ol>

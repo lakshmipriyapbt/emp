@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Controller, useForm } from "react-hook-form";
 import { useAuth } from "../../Context/AuthContext";
+import { Link } from "react-router-dom";
 
 const EmployeeSalaryUpdate = () => {
   const {
@@ -398,7 +399,7 @@ const EmployeeSalaryUpdate = () => {
     setLossOfPayPerDay(lopPerDayValue.toFixed(2));
   }, [grossAmount]);
 
-  const companyName = authUser.company;
+  const companyName = authUser?.company;
   const onSubmit = (data) => {
     // Check if there's an error related to salary structures
     if (error) {
@@ -499,7 +500,7 @@ const EmployeeSalaryUpdate = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
-                    <a href="/main">Home</a>
+                    <Link to="/main" className="custom-link">Home</Link>       
                   </li>
                   <li className="breadcrumb-item active">Payroll</li>
                   <li className="breadcrumb-item active">Salary View</li>

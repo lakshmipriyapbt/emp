@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -58,7 +59,9 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> registerUser(String companyName, UserRequest userRequest, HttpServletRequest request) throws EmployeeException, IOException {
         String resourceId = null;
         String index = null;
-        String defaultPassword = null;
+        String defaultPassword ;
+        String password ;
+        EmployeeEntity employee ;
 
         try {
             resourceId = ResourceIdUtils.generateUserResourceId(userRequest.getEmailId());
@@ -74,15 +77,25 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ALREADY_EXIST), HttpStatus.BAD_REQUEST);
             }
             if(userRequest.getEmployeeId() != null && !userRequest.getEmployeeId().isEmpty()){
-                EmployeeEntity employee = openSearchOperations.getEmployeeById(userRequest.getEmployeeId(),null,index);
-                if (employee != null){
-                    log.error("Exception while fetching the company calendar details");
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_USER), HttpStatus.CONFLICT);
+              employee = openSearchOperations.getEmployeeById(userRequest.getEmployeeId(),null,index);
+                if (employee == null){
+                    log.error("Exception while fetching the employee details");
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.CONFLICT);
                 }
-            }
-            EmployeeEntity employee = openSearchOperations.getEmployeeByEmailId(userRequest.getEmailId(), companyName);
-            if (employee != null){
+                password =employee.getPassword();
+                defaultPassword = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+
+            }else {
+                employee = openSearchOperations.getEmployeeByEmailId(userRequest.getEmailId(), companyName);
+                if (employee != null){
                 userRequest.setEmployeeId(employee.getId());
+                password =employee.getPassword();
+                defaultPassword = new String(Base64.getDecoder().decode(employee.getPassword()), StandardCharsets.UTF_8);
+
+                }else {
+                    defaultPassword = PasswordUtils.generateStrongPassword();
+                    password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
+                }
             }
 
             Object existingEntity = openSearchOperations.getById(resourceId, null, index);
@@ -99,8 +112,6 @@ public class UserServiceImpl implements UserService {
                         HttpStatus.CONFLICT);
             }
 
-            defaultPassword = PasswordUtils.generateStrongPassword();
-            String password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
 
             // Convert UserRequest to EmployeeEntity and then override other fields
             UserEntity userEntity = objectMapper.convertValue(userRequest, UserEntity.class);

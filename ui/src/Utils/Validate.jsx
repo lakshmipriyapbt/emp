@@ -335,6 +335,55 @@ export const validateFirstName = (value) => {
     return true; // Return true if all conditions are satisfied
   };
 
+export const validateTempAddress = (value) => {
+  // If the field is empty (and not required), return true (valid)
+  if (!value.trim()) {
+    return true; // Valid if empty, because it's not a required field
+  }
+
+  // Trim leading and trailing spaces before further validation
+  const trimmedValue = value.trim();
+
+  // Check for trailing spaces
+  if (/\s$/.test(value)) {
+    return "Spaces at the end are not allowed.";
+  } else if (/^\s/.test(value)) {
+    return "No Leading Space Allowed.";
+  }
+
+  // Check if the value contains only special characters
+  const specialCharsOnly = /^[!-_@#&()*/,.\\-{}]+$/;
+  const hasAlphanumeric = /[a-zA-Z0-9]/;
+  if (specialCharsOnly.test(trimmedValue) && !hasAlphanumeric.test(trimmedValue)) {
+    return "Temporary Address cannot contain only special characters.";
+  }
+
+  // Ensure only allowed characters (alphabets, numbers, spaces, and some special chars)
+  if (!/^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/.test(trimmedValue)) {
+    return "Invalid Format of Temporary Address.";
+  }
+
+  // Check for minimum and maximum word length
+  const words = trimmedValue.split(" ");
+  for (const word of words) {
+    if (word.length < 1) {
+      return "Minimum Length 1 Character Required.";
+    } else if (word.length > 255) {
+      return "Max Length 255 Characters Required.";
+    }
+  }
+
+  // Check if there are multiple spaces between words
+  if (/\s{2,}/.test(trimmedValue)) {
+    return "No Multiple Spaces Between Words Allowed.";
+  }
+  if (trimmedValue.length < 3) {
+    return "Minimum 3 Characters Required.";
+  }
+
+  return true; // Return true if all conditions are satisfied
+};
+
   //Validate Phone Number
   export const validatePhoneNumber = (phoneNumber) => {
     if (!phoneNumber.startsWith("+91 ")) {
