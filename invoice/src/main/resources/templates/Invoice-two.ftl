@@ -69,7 +69,6 @@
     }
     .ship-to {
     position: absolute;
-    top: 18%;
     right: 10px;
     padding-right: 15px; /* Slightly reduced padding */
     width: 250px;
@@ -220,12 +219,10 @@
         </div>
         <div class="ship-to">
             <#if invoice.shippedPayload?has_content>
-                <#list invoice.shippedPayload as shipped>
                     <div class="section-title">Ship to</div>
                     <p>Client name: ${shipped.customerName!'-'}</p>
                     <p>${shipped.address!'-'}</p>
                     <p>Phone: ${shipped.mobileNumber!'-'}</p>
-                </#list>
             <#else>
                 <div class="section-title">Ship to (if different)</div>
                 <p>Client name: ${customer.customerName!'-'}</p>

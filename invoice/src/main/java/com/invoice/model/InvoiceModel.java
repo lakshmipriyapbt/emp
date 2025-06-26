@@ -38,7 +38,13 @@ public class InvoiceModel implements Entity{
 
     private List<Map<String,  String>> productData;
     private List<ProductColumnsRequest> productColumns;
-    private List<ShippedPayload> shippedPayload;
+    private ShippedPayload shippedPayload;
     private String status;
     private String type;
+
+    private String salesPerson;
+    private String shippingMethod;
+    private String shippingTerms;
+    private String paymentTerms;
+    private String deliveryDate;
 }
