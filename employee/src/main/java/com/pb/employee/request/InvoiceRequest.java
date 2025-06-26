@@ -35,5 +35,10 @@ public class InvoiceRequest {
     private String status;
     private String bankId;
     private String notes;
+    private String salesPerson;
+    private String shippingMethod;
+    private String shippingTerms;
+    private String paymentTerms;
+    private String deliveryDate;
 }
 

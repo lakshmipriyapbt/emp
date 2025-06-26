@@ -102,9 +102,8 @@ public class InvoiceUtils {
         }
 
         if (request.getShippedPayload() != null) {
-            List<ShippedPayload> maskedShippedPayload = request.getShippedPayload().stream()
-                    .map(InvoiceUtils::maskShippedPayload)
-                    .collect(Collectors.toList());
+
+            ShippedPayload maskedShippedPayload = maskShippedPayload(request.getShippedPayload());
             entity.setShippedPayload(maskedShippedPayload);
         }
 
@@ -115,6 +114,11 @@ public class InvoiceUtils {
         entity.setPurchaseOrder(maskValue(request.getPurchaseOrder()));
         entity.setVendorCode(maskValue(request.getVendorCode()));
         entity.setSubTotal(maskValue(request.getSubTotal()));
+        entity.setSalesPerson(maskValue(request.getSalesPerson()));
+        entity.setShippingMethod(maskValue(request.getShippingMethod()));
+        entity.setShippingTerms(maskValue(request.getShippingTerms()));
+        entity.setPaymentTerms(maskValue(request.getPaymentTerms()));
+        entity.setDeliveryDate(maskValue(request.getDeliveryDate()));
 
         return entity;
     }
@@ -213,6 +217,11 @@ public class InvoiceUtils {
             invoiceEntity.setSubTotal(unMaskValue(invoiceEntity.getSubTotal()));
             invoiceEntity.setInvoiceNo(invoiceEntity.getInvoiceNo());
             invoiceEntity.setNotes(unMaskValue(invoiceEntity.getNotes()));
+            invoiceEntity.setSalesPerson(unMaskValue(invoiceEntity.getSalesPerson()));
+            invoiceEntity.setShippingTerms(unMaskValue(invoiceEntity.getShippingTerms()));
+            invoiceEntity.setShippingMethod(unMaskValue(invoiceEntity.getShippingMethod()));
+            invoiceEntity.setPaymentTerms(unMaskValue(invoiceEntity.getPaymentTerms()));
+            invoiceEntity.setDeliveryDate(unMaskValue(invoiceEntity.getDeliveryDate()));
 
             // Unmask productData (List<Map<String, String>>)
             if (invoiceEntity.getProductData() != null) {
@@ -236,9 +245,7 @@ public class InvoiceUtils {
                 invoiceEntity.setProductColumns(unmaskedColumns);
             }
             if (invoiceEntity.getShippedPayload() != null) {
-                List<ShippedPayload> unmaskedShippedPayload = invoiceEntity.getShippedPayload().stream()
-                        .map(InvoiceUtils::unMaskShippedPayload)
-                        .collect(Collectors.toList());
+               ShippedPayload unmaskedShippedPayload = unMaskShippedPayload(invoiceEntity.getShippedPayload());
                 invoiceEntity.setShippedPayload(unmaskedShippedPayload);
             }
         }

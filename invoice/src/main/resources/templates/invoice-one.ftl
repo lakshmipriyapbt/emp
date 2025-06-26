@@ -180,6 +180,31 @@
                 <h6 style="margin: 0;"><b>Due Date:</b> ${invoice.dueDate}</h6>
             </div>
         </div>
+        <!-- Additional Invoice Details Section -->
+        <div style="position: relative; top: 10px; left: 10px; margin-bottom: 30px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ddd; padding: 8px;">Sales Person</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Shipping Method</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Shipping Terms</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Payment Terms</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Due Date</th>
+                        <th style="border: 1px solid #ddd; padding: 8px;">Delivery Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.salesPerson!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.shippingMethod!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.shippingTerms!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.paymentTerms!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.dueDate!''}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${invoice.deliveryDate!''}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         <!-- Product Details Table -->
         <div class="table-responsive" style="margin-left: 10px; position: relative; top: -10px;">
             <table class="table" style="width: 100%;">

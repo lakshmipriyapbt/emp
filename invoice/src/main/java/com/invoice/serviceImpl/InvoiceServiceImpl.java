@@ -62,11 +62,20 @@ public class InvoiceServiceImpl implements InvoiceService {
         CompanyEntity companyEntity;
         BankEntity bankEntity;
         List<InvoiceModel> purchaseOrderNo;
+        TemplateEntity templateNo;
 
         companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
         if (companyEntity == null) {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.COMPANY_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
+
+        templateNo = openSearchOperations.getCompanyTemplates(companyEntity.getShortName());
+        if (templateNo ==null){
+            log.error("company templates are not exist ");
+            throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
+                    HttpStatus.NOT_FOUND);
+        }
+
         // Validate Invoice Date
         validateInvoiceDate(request.getInvoiceDate());
         String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
