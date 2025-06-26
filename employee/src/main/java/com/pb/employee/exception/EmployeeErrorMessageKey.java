@@ -170,7 +170,9 @@ public enum EmployeeErrorMessageKey {
     NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
     DOCUMENT_ALREADY_EXISTS("document.already.exists"),
     CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),
-    CANDIDATE_NOT_EXIST("candidate.not.exist"),;
+    CANDIDATE_NOT_EXIST("candidate.not.exist"),
+    CANDIDATE_NOT_UPLOADED_DOCUMENTS("candidate.not.uploaded.documents"),
+    CANDIDATE_ALREADY_EXISTS("candidate.already.exists");
 
     private final String key;
 

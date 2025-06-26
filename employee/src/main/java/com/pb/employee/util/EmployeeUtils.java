@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class EmployeeUtils {
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword, String candidateId) {
         String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null, altNo= null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
@@ -63,6 +63,7 @@ public class EmployeeUtils {
         entity.setMobileNo(mobileNo);
         entity.setAlternateNo(altNo);
         entity.setType(Constants.EMPLOYEE);
+        entity.setCandidateId(candidateId);
         return entity;
     }
 
