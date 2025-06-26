@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { XSquareFill } from "react-bootstrap-icons";
-import { Link } from "react-router-dom";
+import { XSquareFill, FileEarmarkPdf, FileEarmarkWord, FileEarmarkImage, Download, ArrowLeft } from "react-bootstrap-icons";
+import { Link, useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import { Slide, toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +14,7 @@ import { getDocumentByIdAPI } from "../../Utils/Axios";
 
 const CandidatesView = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { candidates, loading, error } = useSelector((state) => state.candidates);
     const [search, setSearch] = useState("");
     const [filteredData, setFilteredData] = useState([]);
@@ -24,17 +25,17 @@ const CandidatesView = () => {
     const [isFetching, setIsFetching] = useState(true);
     const { employee } = useAuth();
     const companyId = employee?.companyId;
-    const [showDocumentsModal, setShowDocumentsModal] = useState(false);
-    const [documents, setDocuments] = useState(null);
+    const [documents, setDocuments] = useState([]);
+    const [documentsLoading, setDocumentsLoading] = useState(false);
     const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [showDocumentsModal, setShowDocumentsModal] = useState(false);
 
-    // Fetch all candidates on component mount
     useEffect(() => {
         if (companyId) {
             setIsFetching(true);
             const timer = setTimeout(() => {
                 dispatch(fetchCandidates(companyId)).finally(() => setIsFetching(false));
-            }, 500); // Delay of 500ms
+            }, 500);
 
             return () => clearTimeout(timer);
         }
@@ -44,7 +45,6 @@ const CandidatesView = () => {
         console.log("Candidates from Redux store:", candidates);
     }, [candidates]);
 
-    // Filter candidates based on search term
     useEffect(() => {
         if (candidates && Array.isArray(candidates)) {
             const result = candidates.filter((candidate) => {
@@ -62,13 +62,11 @@ const CandidatesView = () => {
         }
     }, [search, candidates, error]);
 
-    // Function to open delete confirmation modal
     const handleOpenDeleteModal = (candidateId) => {
         setSelectedItemId(candidateId);
         setShowDeleteModal(true);
     };
 
-    // Function to close delete confirmation modal
     const handleCloseDeleteModal = () => {
         setShowDeleteModal(false);
         setSelectedItemId(null);
@@ -99,51 +97,70 @@ const CandidatesView = () => {
             handleCloseDeleteModal();
         }
     };
+
     const handleViewDocuments = async (candidate) => {
         try {
             setSelectedCandidate(candidate);
+            setDocumentsLoading(true);
             const response = await getDocumentByIdAPI(candidate.id);
-            setDocuments(response); // Store the entire response
-            setShowDocumentsModal(true);
+            
+            if (response && response.data && response.data.documentEntities) {
+                setDocuments(transformApiResponse(response.data));
+            } else {
+                setDocuments([]);
+                toast.info('No documents found for this candidate');
+            }
         } catch (error) {
-            toast.error("Failed to fetch documents", {
-                position: "top-right",
-                transition: Slide,
-                hideProgressBar: true,
-                theme: "colored",
-                autoClose: 2000,
-            });
-            console.error("Error fetching documents:", error);
+            console.error('Error fetching documents:', error);
+            toast.error('Failed to load documents. Please try again later.');
+        } finally {
+            setDocumentsLoading(false);
+            setShowDocumentsModal(true);
         }
+    };
+
+    const transformApiResponse = (apiData) => {
+        if (!apiData || !apiData.documentEntities) return [];
+
+        return apiData.documentEntities.map(doc => ({
+            name: doc.docName,
+            url: doc.filePath,
+            status: 'uploaded',
+            type: 'application/pdf',
+            size: 0
+        }));
+    };
+
+    const getFileIcon = (type, name) => {
+        if (type?.includes('pdf') || name?.toLowerCase().endsWith('.pdf')) {
+            return <FileEarmarkPdf className="text-danger" size={24} />;
+        } else if (type?.includes('word') || name?.toLowerCase().endsWith('.doc') || name?.toLowerCase().endsWith('.docx')) {
+            return <FileEarmarkWord className="text-primary" size={24} />;
+        } else if (type?.includes('image') || ['.jpg', '.jpeg', '.png', '.gif'].some(ext => name?.toLowerCase().endsWith(ext))) {
+            return <FileEarmarkImage className="text-success" size={24} />;
+        }
+        return <FileEarmarkPdf className="text-secondary" size={24} />;
     };
 
     const toInputTitleCase = (e) => {
         const input = e.target;
         let value = input.value;
-        const cursorPosition = input.selectionStart; // Save the cursor position
-        // Remove leading spaces
+        const cursorPosition = input.selectionStart;
         value = value.replace(/^\s+/g, '');
-        // Ensure only alphabets and spaces are allowed
         const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
         value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
-        // Capitalize the first letter of each word
         const words = value.split(' ');
-        // Capitalize the first letter of each word and lowercase the rest
         const capitalizedWords = words.map(word => {
             if (word.length > 0) {
                 return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
             }
             return '';
         });
-        // Join the words back into a string
         let formattedValue = capitalizedWords.join(' ');
-        // Remove spaces not allowed (before the first two characters)
         if (formattedValue.length > 2) {
             formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
         }
-        // Update input value
         input.value = formattedValue;
-        // Restore the cursor position
         input.setSelectionRange(cursorPosition, cursorPosition);
     };
 
@@ -301,80 +318,86 @@ const CandidatesView = () => {
                         </div>
                     </>
                 )}
+
+                {/* Documents Modal */}
                 {showDocumentsModal && (
-  <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-    <div className="modal-dialog modal-lg">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h5 className="modal-title">
-            Documents for {selectedCandidate?.firstName} {selectedCandidate?.lastName}
-          </h5>
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => {
-              setShowDocumentsModal(false);
-              setDocuments(null);
-            }}
-          ></button>
-        </div>
-        <div className="modal-body">
-          {documents?.data?.documentEntities?.length > 0 ? (
-            <div className="table-responsive">
-              <table className="table table-striped">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Document Name</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {documents.data.documentEntities.map((doc, index) => {
-                    // Construct the correct URL
-                    const baseUrl = documents.path.replace('/documents', '');
-                    const docUrl = `${baseUrl}/${doc.filePath.split('/').pop()}`;
-                    
-                    return (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{doc.docName}</td>
-                        <td>
-                          <a
-                            href={doc.filePath}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-sm btn-primary"
-                          >
-                            View
-                          </a>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="alert alert-info">No documents found for this candidate.</div>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              setShowDocumentsModal(false);
-              setDocuments(null);
-            }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                    <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <div className="modal-dialog modal-lg">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">
+                                        Documents for {selectedCandidate?.firstName} {selectedCandidate?.lastName}
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close"
+                                        onClick={() => {
+                                            setShowDocumentsModal(false);
+                                            setDocuments([]);
+                                        }}
+                                    ></button>
+                                </div>
+                                <div className="modal-body">
+                                    {documentsLoading ? (
+                                        <div className="text-center py-5">
+                                            <div className="spinner-border text-primary" role="status">
+                                                <span className="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p className="mt-3">Loading documents...</p>
+                                        </div>
+                                    ) : documents.length === 0 ? (
+                                        <div className="text-center py-5">
+                                            <p className="text-muted">No documents found for this candidate</p>
+                                        </div>
+                                    ) : (
+                                        <div className="table-responsive">
+                                            <table className="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Document</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {documents.map((doc, index) => (
+                                                        <tr key={index}>
+                                                            <td>
+                                                                <div className="d-flex align-items-center">
+                                                                    {getFileIcon(doc.type, doc.name)}
+                                                                    <span className="ms-3">{doc.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <a
+                                                                    href={doc.url}
+                                                                    className="btn btn-sm btn-outline-primary me-2"
+                                                                >
+                                                                    <Download className="me-1" /> View
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer">
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            setShowDocumentsModal(false);
+                                            setDocuments([]);
+                                        }}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </LayOut>
     );

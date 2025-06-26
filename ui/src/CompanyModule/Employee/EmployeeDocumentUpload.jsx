@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useForm, Controller } from 'react-hook-form';
 import LayOut from '../../LayOut/LayOut';
 import { Link } from 'react-router-dom';
-import { uploadDocumentAPI } from '../../Utils/Axios';
+import { uploadEmployeeDocumentAPI } from '../../Utils/Axios';
 import { useSelector } from 'react-redux';
 import {
     Upload as FiUpload,
@@ -23,7 +22,7 @@ import {
     ExclamationTriangle
 } from 'react-bootstrap-icons';
 
-const CandidateDocumentUpload = () => {
+const EmployeeDocumentUpload = () => {
     const { userId, company } = useSelector(state => state.auth);
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,7 +85,8 @@ const CandidateDocumentUpload = () => {
 
     useEffect(() => {
         const checkSectionCompletion = () => {
-            const basicCompleted = !!formValues.resume && !!formValues.idProof;
+            // Resume is optional for employees
+            const basicCompleted = !!formValues.idProof;
             const educationCompleted = educationQualifications.every(qual => {
                 if (!qual.required) return true;
                 return !!formValues.education?.[qual.id]?.file;
@@ -179,7 +179,6 @@ const CandidateDocumentUpload = () => {
         currentExperience[index][field] = value;
         setValue("experience", currentExperience);
 
-        // Mark the field as touched
         if (field === 'company') {
             setTouchedFields(prev => {
                 const newExperience = [...prev.experience];
@@ -206,9 +205,7 @@ const CandidateDocumentUpload = () => {
         });
     };
 
-
     const onSubmit = async (data) => {
-        // Validate we have the required authentication data
         if (!userId || !company) {
             toast.error('Authentication required. Please login again.');
             return;
@@ -229,23 +226,22 @@ const CandidateDocumentUpload = () => {
         });
 
         // Trigger validation for all fields
-         // Trigger validation for all fields
-    const isValid = await trigger();
+        const isValid = await trigger();
 
-    // Additional manual validation for required education documents
-    const educationValid = educationQualifications.every(qual => {
-        if (!qual.required) return true;
-        return !!data.education[qual.id]?.file;
-    });
+        // Additional manual validation for required education documents
+        const educationValid = educationQualifications.every(qual => {
+            if (!qual.required) return true;
+            return !!data.education[qual.id]?.file;
+        });
 
-    if (!isValid || !educationValid) {
-        if (!educationValid) {
-            toast.error('Please upload all required education documents (10th, 12th, and UG)');
-        } else {
-            toast.error('Please complete all required fields');
+        if (!isValid || !educationValid) {
+            if (!educationValid) {
+                toast.error('Please upload all required education documents (10th, 12th, and UG)');
+            } else {
+                toast.error('Please complete all required fields');
+            }
+            return;
         }
-        return;
-    }
 
         setIsSubmitting(true);
         let progressInterval;
@@ -257,11 +253,13 @@ const CandidateDocumentUpload = () => {
             const docNames = [];
             const files = [];
 
-            // Basic documents
+            // Resume is optional for employees
             if (data.resume) {
                 docNames.push('Resume');
                 files.push(data.resume);
             }
+            
+            // ID Proof is required
             if (data.idProof) {
                 docNames.push('ID Proof');
                 files.push(data.idProof);
@@ -292,9 +290,9 @@ const CandidateDocumentUpload = () => {
                 setUploadProgress(prev => Math.min(prev + 10, 90));
             }, 300);
 
-            // Actual upload using the full candidate ID (including 'candidate-' prefix)
-            const response = await uploadDocumentAPI(
-                userId, // Using the full userId from Redux (e.g., 'candidate-8612ab3933764d2c6e39fd0ff898a19a')
+            // Actual upload using the employee API
+            const response = await uploadEmployeeDocumentAPI(
+                userId, // Using the full userId from Redux
                 docNames,
                 files
             );
@@ -302,17 +300,17 @@ const CandidateDocumentUpload = () => {
             // Complete progress
             clearInterval(progressInterval);
             setUploadProgress(100);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Show 100% briefly
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             toast.success('Documents uploaded successfully!');
-            navigate('/candidateDocumentsView', { state: { documents: data } });
+            navigate('/employeeDocumentView', { state: { documents: data } });
 
         } catch (error) {
             if (progressInterval) clearInterval(progressInterval);
             setUploadProgress(0);
 
             console.error('Upload error details:', {
-                candidateId: userId,
+                employeeId: userId,
                 company,
                 error: error.response?.data || error.message
             });
@@ -320,11 +318,9 @@ const CandidateDocumentUpload = () => {
             let errorMessage = 'Upload failed. Please try again.';
 
             if (error.response) {
-                // Server responded with error status
                 errorMessage = error.response.data?.message ||
                     `Server error: ${error.response.status}`;
 
-                // Specific handling for 500 errors
                 if (error.response.status === 500) {
                     errorMessage = 'Server encountered an error. Please contact support.';
                 }
@@ -339,155 +335,156 @@ const CandidateDocumentUpload = () => {
             setIsSubmitting(false);
         }
     };
+
     const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false }) => {
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [showFullPreview, setShowFullPreview] = useState(false);
-    const isImage = file?.type?.startsWith('image/');
-    const isPDF = file?.name?.toLowerCase().endsWith('.pdf');
-     const modalRef = useRef(null);
+        const [previewUrl, setPreviewUrl] = useState(null);
+        const [showFullPreview, setShowFullPreview] = useState(false);
+        const isImage = file?.type?.startsWith('image/');
+        const isPDF = file?.name?.toLowerCase().endsWith('.pdf');
+        const modalRef = useRef(null);
 
-    useEffect(() => {
-        if (file && (isImage || isPDF)) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewUrl(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setPreviewUrl(null);
-        }
-    }, [file, isImage, isPDF]);
+        useEffect(() => {
+            if (file && (isImage || isPDF)) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setPreviewUrl(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setPreviewUrl(null);
+            }
+        }, [file, isImage, isPDF]);
 
-    if (!file) return null;
+        if (!file) return null;
 
-    if (thumbnail) {
-        return (
-            <div className="position-relative" style={{ width: "fit-content" }}>
-                <div
-                    className="thumbnail-preview"
-                    onClick={() => setShowFullPreview(true)}
-                    style={{ cursor: 'pointer' }}
-                >
-                    {isImage && previewUrl ? (
-                        <img
-                            src={previewUrl}
-                            alt="Thumbnail"
-                            className="img-thumbnail"
-                            style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover"
-                            }}
-                        />
-                    ) : (
-                        <div className="file-thumbnail d-flex flex-column align-items-center justify-content-center bg-light rounded p-1">
-                            {isPDF ? (
-                                <FiFilePdf size={24} className="text-danger" />
-                            ) : file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
-                                <FiFileWord size={24} className="text-primary" />
-                            ) : (
-                                <FiFile size={24} className="text-primary" />
-                            )}
-                            <small className="text-truncate mt-1" style={{ maxWidth: '60px' }}>
-                                {file.name.split('.')[0].substring(0, 6)}...
-                            </small>
-                        </div>
-                    )}
-                </div>
-                
-                {showRemove && (
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-danger position-absolute top-0 end-0 m-0 p-0 rounded-circle"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onRemove && onRemove();
-                        }}
-                        aria-label="Remove file"
-                        style={{ 
-                            width: '20px', 
-                            height: '20px',
-                            transform: 'translate(30%, -30%)'
-                        }}
+        if (thumbnail) {
+            return (
+                <div className="position-relative" style={{ width: "fit-content" }}>
+                    <div
+                        className="thumbnail-preview"
+                        onClick={() => setShowFullPreview(true)}
+                        style={{ cursor: 'pointer' }}
                     >
-                        <FiX size={12} />
-                    </button>
-                )}
-                
-                 {showFullPreview && (
-                    <div 
-                        className="modal-backdrop"
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                            zIndex: 1050,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onClick={() => setShowFullPreview(false)}
-                    >
-                        <div 
-                            ref={modalRef}
-                            className="modal-content"
-                            style={{
-                                backgroundColor: 'white',
-                                borderRadius: '8px',
-                                maxWidth: '90%',
-                                maxHeight: '90vh',
-                                overflow: 'auto',
-                                padding: '20px',
-                                position: 'relative'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                type="button"
-                                className="btn-close"
+                        {isImage && previewUrl ? (
+                            <img
+                                src={previewUrl}
+                                alt="Thumbnail"
+                                className="img-thumbnail"
                                 style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    right: '10px',
-                                    zIndex: 1
+                                    width: "60px",
+                                    height: "60px",
+                                    objectFit: "cover"
                                 }}
-                                onClick={() => setShowFullPreview(false)}
-                                aria-label="Close"
-                            ></button>
-                            
-                            <div className="modal-body">
-                                {isImage ? (
-                                    <img
-                                        src={previewUrl}
-                                        alt="Full Preview"
-                                        style={{ 
-                                            maxWidth: '100%',
-                                            maxHeight: '80vh',
-                                            display: 'block',
-                                            margin: '0 auto'
-                                        }}
-                                    />
-                                ) : isPDF ? (
-                                    <embed
-                                        src={previewUrl}
-                                        type="application/pdf"
-                                        style={{
-                                            width: '100%',
-                                            height: '80vh',
-                                            border: 'none'
-                                        }}
-                                    />
+                            />
+                        ) : (
+                            <div className="file-thumbnail d-flex flex-column align-items-center justify-content-center bg-light rounded p-1">
+                                {isPDF ? (
+                                    <FiFilePdf size={24} className="text-danger" />
+                                ) : file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
+                                    <FiFileWord size={24} className="text-primary" />
                                 ) : (
-                                    <div className="d-flex flex-column align-items-center justify-content-center p-5">
-                                        <FiFile size={48} className="text-muted mb-3" />
-                                        <p>No preview available for this file type</p>
-                                    </div>
+                                    <FiFile size={24} className="text-primary" />
                                 )}
+                                <small className="text-truncate mt-1" style={{ maxWidth: '60px' }}>
+                                    {file.name.split('.')[0].substring(0, 6)}...
+                                </small>
                             </div>
-                            <div className="modal-footer">
+                        )}
+                    </div>
+                    
+                    {showRemove && (
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-0 p-0 rounded-circle"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemove && onRemove();
+                            }}
+                            aria-label="Remove file"
+                            style={{ 
+                                width: '20px', 
+                                height: '20px',
+                                transform: 'translate(30%, -30%)'
+                            }}
+                        >
+                            <FiX size={12} />
+                        </button>
+                    )}
+                    
+                    {showFullPreview && (
+                        <div 
+                            className="modal-backdrop"
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                zIndex: 1050,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => setShowFullPreview(false)}
+                        >
+                            <div 
+                                ref={modalRef}
+                                className="modal-content"
+                                style={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '8px',
+                                    maxWidth: '90%',
+                                    maxHeight: '90vh',
+                                    overflow: 'auto',
+                                    padding: '20px',
+                                    position: 'relative'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '10px',
+                                        right: '10px',
+                                        zIndex: 1
+                                    }}
+                                    onClick={() => setShowFullPreview(false)}
+                                    aria-label="Close"
+                                ></button>
+                                
+                                <div className="modal-body">
+                                    {isImage ? (
+                                        <img
+                                            src={previewUrl}
+                                            alt="Full Preview"
+                                            style={{ 
+                                                maxWidth: '100%',
+                                                maxHeight: '80vh',
+                                                display: 'block',
+                                                margin: '0 auto'
+                                            }}
+                                        />
+                                    ) : isPDF ? (
+                                        <embed
+                                            src={previewUrl}
+                                            type="application/pdf"
+                                            style={{
+                                                width: '100%',
+                                                height: '80vh',
+                                                border: 'none'
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="d-flex flex-column align-items-center justify-content-center p-5">
+                                            <FiFile size={48} className="text-muted mb-3" />
+                                            <p>No preview available for this file type</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer">
                                     <button
                                         type="button"
                                         className="btn btn-secondary"
@@ -502,83 +499,83 @@ const CandidateDocumentUpload = () => {
                                     >
                                         Download
                                     </a>
-                                </div> 
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="file-preview-container">
+                {isImage && previewUrl ? (
+                    <div className="image-preview-wrapper position-relative">
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="img-thumbnail"
+                            style={{
+                                width: "150px",
+                                height: "150px",
+                                objectFit: "cover"
+                            }}
+                        />
+                        <div className="file-info-overlay">
+                            <div className="d-flex justify-content-between align-items-center w-100">
+                                <span className="text-truncate" style={{ maxWidth: '120px' }}>{file.name}</span>
+                                <small className="text-white">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                            </div>
+                        </div>
+                        {showRemove && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                onClick={() => {
+                                    setValue(fieldName, null);
+                                    onRemove && onRemove();
+                                }}
+                                aria-label="Remove file"
+                                style={{ width: '24px', height: '24px', padding: '0' }}
+                            >
+                                <FiX size={12} />
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="file-preview d-flex align-items-center bg-light rounded p-3 position-relative">
+                        {showRemove && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                onClick={() => {
+                                    setValue(fieldName, null);
+                                    onRemove && onRemove();
+                                }}
+                                aria-label="Remove file"
+                                style={{ width: '24px', height: '24px', padding: '0' }}
+                            >
+                                <FiX size={12} />
+                            </button>
+                        )}
+                        <div className="d-flex align-items-center w-100">
+                            <FiFile className="me-3 fs-4 text-primary" />
+                            <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <span className="fw-medium text-truncate me-2" style={{ maxWidth: '200px' }}>{file.name}</span>
+                                    <small className="text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                                </div>
+                                <div className="d-flex align-items-center mt-1">
+                                    <CheckCircleFill className="text-success me-1" size={12} />
+                                    <small className="text-success">Uploaded</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
         );
-    }
-
-    return (
-        <div className="file-preview-container">
-            {isImage && previewUrl ? (
-                <div className="image-preview-wrapper position-relative">
-                    <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="img-thumbnail"
-                        style={{
-                            width: "150px",
-                            height: "150px",
-                            objectFit: "cover"
-                        }}
-                    />
-                    <div className="file-info-overlay">
-                        <div className="d-flex justify-content-between align-items-center w-100">
-                            <span className="text-truncate" style={{ maxWidth: '120px' }}>{file.name}</span>
-                            <small className="text-white">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
-                        </div>
-                    </div>
-                    {showRemove && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
-                            onClick={() => {
-                                setValue(fieldName, null);
-                                onRemove && onRemove();
-                            }}
-                            aria-label="Remove file"
-                            style={{ width: '24px', height: '24px', padding: '0' }}
-                        >
-                            <FiX size={12} />
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="file-preview d-flex align-items-center bg-light rounded p-3 position-relative">
-                    {showRemove && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
-                            onClick={() => {
-                                setValue(fieldName, null);
-                                onRemove && onRemove();
-                            }}
-                            aria-label="Remove file"
-                            style={{ width: '24px', height: '24px', padding: '0' }}
-                        >
-                            <FiX size={12} />
-                        </button>
-                    )}
-                    <div className="d-flex align-items-center w-100">
-                        <FiFile className="me-3 fs-4 text-primary" />
-                        <div className="flex-grow-1">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <span className="fw-medium text-truncate me-2" style={{ maxWidth: '200px' }}>{file.name}</span>
-                                <small className="text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
-                            </div>
-                            <div className="d-flex align-items-center mt-1">
-                                <CheckCircleFill className="text-success me-1" size={12} />
-                                <small className="text-success">Uploaded</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
+    };
 
     const DragDropArea = ({ fieldName, label, required = false, accept = ".pdf,.doc,.docx,.png,.jpg,.jpeg", description }) => {
         const file = getValues(fieldName);
@@ -934,14 +931,14 @@ const CandidateDocumentUpload = () => {
                                                         name="resume"
                                                         control={control}
                                                         rules={{
-                                                            validate: (file) => validateFile(file, true, 'Resume/CV')
+                                                            validate: (file) => validateFile(file, false, 'Resume/CV') // Changed to optional
                                                         }}
                                                         render={({ field }) => (
                                                             <DragDropArea
                                                                 fieldName="resume"
                                                                 label="Resume/CV"
-                                                                required
-                                                                description="Upload your most recent resume or curriculum vitae"
+                                                                required={false} // Changed to optional
+                                                                description="Upload your most recent resume or curriculum vitae (optional)"
                                                             />
                                                         )}
                                                     />
@@ -1270,4 +1267,4 @@ const CandidateDocumentUpload = () => {
     );
 };
 
-export default CandidateDocumentUpload;
+export default EmployeeDocumentUpload;

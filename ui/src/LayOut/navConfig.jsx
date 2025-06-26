@@ -108,7 +108,8 @@ export const NAV_CONFIG = {
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
                 { title: 'Payslip Template', path: '/payslipTemplates' },
-                { title: 'Invoice Template', path: '/invoiceTemplate1' }
+                { title: 'Invoice Template', path: '/invoiceTemplate1' },
+                { title: 'Invoice Template', path: '/invoiceTemplate2' },
             ]
         }
     ],
@@ -301,6 +302,16 @@ export const NAV_CONFIG = {
             title: 'Payslips',
             path: '/employeePayslip',
             icon: 'receipt'
+        },
+        {
+            title: 'Documents Upload',
+            path: '/employeeDocumentUpload',
+            icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/employeeDocumentView',
+            icon: 'file-earmark-text' // Recommended
         }
     ],
     Accountant: [
