@@ -8,10 +8,7 @@ import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
-import com.pb.employee.persistance.model.CandidateEntity;
-import com.pb.employee.persistance.model.DocumentEntity;
-import com.pb.employee.persistance.model.EmployeeDocumentEntity;
-import com.pb.employee.persistance.model.EmployeeEntity;
+import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.EmployeeDocumentRequest;
 import com.pb.employee.response.EmployeeDocumentResponse;
 import com.pb.employee.service.EmployeeDocumentService;
@@ -33,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -163,7 +161,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             for (DocumentEntity document : response.getDocumentEntities()) {
                 String filePath = document.getFilePath();
                 if (StringUtils.isNotBlank(filePath)) {
-                    document.setFilePath(baseUrl +"var/www/ems/assets/img/"+ filePath);
+                    document.setFilePath(baseUrl +folderPath+ filePath);
                 }
             }
 
@@ -277,7 +275,6 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         employeeDocumentEntity.getDocumentEntities().add(fileEntity);
     }
 
-
     public ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
         try {
             List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
@@ -344,6 +341,96 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         }
     }
 
+    @Override
+    public ResponseEntity<?> uploadEmployeeImage(String companyName, String employeeId, MultipartFile file) throws EmployeeException, IOException {
+        log.info("Uploading employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+       EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(null, employeeId, companyName).orElse(null);
+        if(employeeDocumentEntity == null){
+            log.error("Employee document entity not found for employeeId: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DOCUMENT_FOLDER_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+            List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
+            if (!file.isEmpty()){
+                // Validate file type
+                String contentType = file.getContentType();
+                if (!allowedFileTypes.contains(contentType)) {
+                    // Return an error response if file type is invalid
+                    log.error("Invalid file type: {}", contentType);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
+                }
+                multiPartFileStore(file, companyName, employeeId, employeeDocumentEntity);
+            }
+
+            employeeDocumentDao.save(employeeDocumentEntity, companyName);
+            log.info("Employee document entity saved for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        } catch (EmployeeException ex) {
+            log.error("EmployeeException while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPLOAD_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeImage(String companyName, String employeeId,HttpServletRequest request) throws EmployeeException, IOException {
+        log.info("Fetching employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(null, employeeId, companyName).orElse(null);
+            if (employeeDocumentEntity == null || CollectionUtils.isEmpty(employeeDocumentEntity.getDocumentEntities())) {
+                log.error("Employee document entity not found for employeeId: {}", employeeId);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DOCUMENT_FOLDER_NOT_FOUND), HttpStatus.NOT_FOUND);
+            }
+
+            if (employeeDocumentEntity.getProfile()!= null){
+                String baseUrl = getBaseUrl(request);
+                String image = baseUrl + folderPath + employeeDocumentEntity.getProfile();
+                employeeDocumentEntity.setProfile(image);
+            }
+            log.info("Fetched employee image for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(employeeDocumentEntity.getProfile()), HttpStatus.OK);
+        } catch (EmployeeException ex) {
+            log.error("EmployeeException while fetching employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void multiPartFileStore(MultipartFile file,String companyName,String employeeId,EmployeeDocumentEntity employeeDocument) throws IOException, EmployeeException {
+        if(!file.isEmpty()){
+            String companyFolderPath = folderPath + companyName + Constants.SLASH + employeeId;
+            String filename = companyFolderPath+Constants.SLASH+companyName+"_"+file.getOriginalFilename();
+            file.transferTo(new File(filename));
+            employeeDocument.setProfile(companyName+Constants.SLASH+employeeId+Constants.SLASH+companyName+"_"+file.getOriginalFilename());
+            ResponseEntity.ok(filename);
+        }
+    }
 
     public static String getBaseUrl(HttpServletRequest request) {
         String scheme = request.getScheme(); // http or https
@@ -351,7 +438,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         int serverPort = request.getServerPort(); // port number
         String contextPath = request.getContextPath(); // context path
 
-        return scheme + "://" + serverName + ":" + serverPort + contextPath + "/";
+        return scheme + "://" + serverName + ":" + serverPort + contextPath;
     }
 
 }
