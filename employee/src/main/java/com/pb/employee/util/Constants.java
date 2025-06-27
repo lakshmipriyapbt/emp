@@ -112,7 +112,7 @@ public class Constants {
     public static final String APPRAISAL_LETTER_TEMPLATE1 = "appraisalLetter1.ftl";
     public static final String OFFER_LETTER_REQUEST = "offerLetter";
     public static final String ATTACHMENT = "attachment";
-    public static final String OFFER_LETTER = "offer_letter.pdf";
+    public static final String OFFER_LETTER_PDF = "offer_letter.pdf";
     public static final String ACTIVE = "Active";
     public static final String IN_ACTIVE = "InActive";
     public static final String RELIEVING = "relieving";
@@ -208,5 +208,7 @@ public class Constants {
     public static final String CANDIDATE_ID="candidateId";
     public static final String EXPERIENCE = "experience";
     public static final String EMPLOYEEREF_ID = "employeeRefId";
+    public static final String OFFER_LETTER = "offerLetter";
+    public static final String INTERN_OFFER_LETTER = "intern_offer_letter";
     public static final String INTERNSHIP_CERTIFICATE = "internshipCertificate";
 }

@@ -33,7 +33,9 @@ public enum ResourceType {
     EXPERIENCE("experience"),
     DOCUMENT("document"),
     APPRAISAL("appraisal"),
-    INTERNSHIP_CERTIFICATE("internship-certificate");
+    OFFER_LETTER("offerLetter"),
+    INTERNSHIP_CERTIFICATE("internship-certificate"),
+    INTERN_OFFER_LETTER("intern_offer_letter");
 
 
 
