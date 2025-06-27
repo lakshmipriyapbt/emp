@@ -18,6 +18,7 @@ public class EmployeeEntity implements Entity{
     private String employeeType;
     private String companyId;
     private String employeeId;
+    private String candidateId;
     private String firstName;
     private String lastName;
     private String emailId;
