@@ -71,7 +71,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
             }
 
-            // ✅ Save offer letter before generating PDF
+            // ✅ Save Offer Letter before generating PDF
             OfferLetterEntity entity = OfferLetterEntity.builder()
                     .companyId(request.getCompanyId())
                     .internName(request.getInternName())
@@ -89,6 +89,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                     .build();
 
             openSearchOperations.saveEntity(entity, Constants.OFFER_LETTER_INDEX, "id");
+
 
             Template template = freeMarkerConfig.getTemplate(Constants.OFFER_LETTER_TEMPLATE1);
             StringWriter writer = new StringWriter();
