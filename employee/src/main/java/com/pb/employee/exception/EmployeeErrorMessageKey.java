@@ -169,7 +169,8 @@ public enum EmployeeErrorMessageKey {
     UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
     NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
     DOCUMENT_ALREADY_EXISTS("document.already.exists"),
-    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),;
+    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),
+    UNABLE_GET_IMAGE("unable.get.image");
 
     private final String key;
 
