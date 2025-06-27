@@ -32,7 +32,9 @@ public enum ResourceType {
     CANDIDATE("candidate"),
     EXPERIENCE("experience"),
     DOCUMENT("document"),
-    APPRAISAL("appraisal");
+    APPRAISAL("appraisal"),
+    OFFER_LETTER("offerLetter"),
+    INTERN_OFFER_LETTER("intern_offer_letter");
 
 
 
