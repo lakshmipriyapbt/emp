@@ -37,4 +37,5 @@ public class DocumentType {
     public static final DocumentType APPRAISAL = new DocumentType("appraisal", AppraisalEntity.class);
     public static final DocumentType OFFER_LETTER = new DocumentType("offerLetter", OfferLetterEntity.class);
     public static final DocumentType INTERN_OFFER_LETTER = new DocumentType("intern_offer_letter", InternOfferLetterEntity.class);
+    public static final DocumentType INTERNSHIP_CERTIFICATE = new DocumentType("internship-certificate", InternshipCertificateEntity.class);
 }

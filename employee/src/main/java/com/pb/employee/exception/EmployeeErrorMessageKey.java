@@ -173,7 +173,9 @@ public enum EmployeeErrorMessageKey {
     CANDIDATE_NOT_EXIST("candidate.not.exist"),
     CANDIDATE_NOT_UPLOADED_DOCUMENTS("candidate.not.uploaded.documents"),
     CANDIDATE_ALREADY_EXISTS("candidate.already.exists"),
-    UNABLE_GET_IMAGE("unable.get.image"),;
+    UNABLE_GET_IMAGE("unable.get.image"),
+    INTERNSHIP_NOT_FOUND("internship.not.found"),
+    FAILED_TO_UPDATE_INTERNSHIP_CERTIFICATE("failed.to.update.internship.certificate");;
 
     private final String key;
 

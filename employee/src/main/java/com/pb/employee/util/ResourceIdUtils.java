@@ -101,9 +101,11 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.OFFER_LETTER, referenceNo);
 
     }
-
     public static String generateInternOfferLetterId(String employeeName, String s) {
         return generateGlobalResourceId(ResourceType.INTERN_OFFER_LETTER, employeeName, s);
+    }
+    public static String generateInternshipCertificateResourceId(String employeeName,String time) {
+        return generateGlobalResourceId(ResourceType.INTERNSHIP_CERTIFICATE, employeeName, time);
     }
 
     /**
