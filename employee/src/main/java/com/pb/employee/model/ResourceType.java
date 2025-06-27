@@ -34,7 +34,7 @@ public enum ResourceType {
     DOCUMENT("document"),
     APPRAISAL("appraisal"),
     OFFER_LETTER("offerLetter"),
-    INTERN_OFFER_LETTER("inter_offer_letter");
+    INTERN_OFFER_LETTER("intern_offer_letter");
 
 
 

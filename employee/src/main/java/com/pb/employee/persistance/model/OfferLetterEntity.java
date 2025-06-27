@@ -26,13 +26,6 @@ public class OfferLetterEntity extends AbstractEntity {
     private String salaryConfigurationId;
     private String designation;
     private String department;
-    private String createdDate;
-    private String internName;
-    private String internEmail;
-    private String mobileNo;
-    private String hrName;
-    private String hrEmail;
-    private String hrMobileNo;
     private boolean draft;
 
 

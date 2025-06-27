@@ -38,6 +38,4 @@ public class InternOfferLetterEntity extends AbstractEntity{
     private String companyBranch;
     private boolean draft;
 
-    private String internName;
-
 }

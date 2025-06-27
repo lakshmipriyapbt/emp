@@ -209,5 +209,5 @@ public class Constants {
     public static final String EXPERIENCE = "experience";
     public static final String EMPLOYEEREF_ID = "employeeRefId";
     public static final String OFFER_LETTER = "offerLetter";
-    public static final String INTERN_OFFER_LETTER = "inter_offer_letter";
+    public static final String INTERN_OFFER_LETTER = "intern_offer_letter";
 }

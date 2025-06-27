@@ -66,13 +66,15 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 log.error("Company is not found");
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), request.getCompanyId()), HttpStatus.NOT_FOUND);
             }
+
             Entity companyDetails = CompanyUtils.unmaskCompanyProperties(rawCompany, httpRequest);
             SalaryConfigurationEntity salaryConfig = openSearchOperations.getSalaryStructureById(request.getSalaryConfigurationId(), null, Constants.INDEX_EMS + "_" + rawCompany.getShortName());
             CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfig);
 
-            if (salaryConfig == null || !Constants.ACTIVE.equals(salaryConfig.getStatus()))
-                throw new EmployeeException("Salary configuration is not active or does not exist", HttpStatus.NOT_FOUND);
-
+            if (salaryConfig == null || !Constants.ACTIVE.equals(salaryConfig.getStatus())) {
+                log.error("Salary configuration is not active or does not exist");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_NOT_FOUND), HttpStatus.NOT_FOUND);
+            }
             Map<String, Object> model = new HashMap<>();
             model.put(Constants.COMPANY, companyDetails);
             model.put(Constants.OFFER_LETTER_REQUEST, request);
@@ -81,16 +83,16 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             if (!request.isDraft()) {
                 String imageUrl = rawCompany.getImageFile();
                 BufferedImage image = ImageIO.read(new URL(imageUrl));
-                if (image == null)
+                if (image == null) {
+                    log.error("Unable to get the company Image");
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
-
-                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.5f, 1.6d, 30);
+                }
+                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.1f, 1.6d, 30);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(watermark, "png", baos);
                 model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
             }
 
-            // ✅ Save Offer Letter before generating PDF
             OfferLetterEntity entity = objectMapper.convertValue(request, OfferLetterEntity.class);
             entity.setId(resourceId);
             entity.setType(Constants.OFFER_LETTER);
@@ -146,7 +148,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 if (image == null)
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
 
-                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.5f, 1.6d, 30);
+                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.1f, 1.6d, 30);
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(watermark, "png", baos);
                 model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
@@ -173,10 +175,10 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
 
         } catch (EmployeeException ex) {
-            log.error("Business error: {}", ex.getMessage());
+            log.error("Exception occurred while generating the internshipOfferLetter {}", ex.getMessage());
             throw ex;
         } catch (Exception e) {
-            log.error("System error: {}", e.getMessage(), e);
+            log.error("Exception occurred while generating the internshipOfferLetter: {}", e.getMessage(), e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
