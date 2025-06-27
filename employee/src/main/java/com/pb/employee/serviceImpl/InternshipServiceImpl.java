@@ -127,10 +127,7 @@ public class InternshipServiceImpl implements InternshipService {
             byte[] pdfBytes = generatePdfFromHtml(htmlContent);
 
             try {
-                LocalDateTime currentDateTime = LocalDateTime.now();
-                String timestamp = currentDateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeName(), timestamp);
-
+                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeName(), String.valueOf(LocalDateTime.now()));
                 InternshipCertificateEntity internshipCertificateEntity = objectMapper.convertValue(internshipRequest, InternshipCertificateEntity.class);
                 internshipCertificateEntity.setId(internshipId);
                 internshipCertificateEntity.setCompanyId(internshipRequest.getCompanyId());

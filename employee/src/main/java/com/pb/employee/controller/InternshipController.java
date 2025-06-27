@@ -40,9 +40,11 @@ public class InternshipController {
         return internshipService.downloadInternship(internshipRequest, request);
     }
 
-    @GetMapping("/{companyName}/internshipcertificate/internship/{internshipId}")
-    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.getInternshipCertificateByInternshipId.tag}", description = "${api.getInternshipCertificateByInternshipId.description}")
+    @GetMapping("/{companyName}/internship/{internshipId}")
+    @io.swagger.v3.oas.annotations.Operation(
+            security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getInternshipCertificateByInternshipId.tag}",
+            description = "${api.getInternshipCertificateByInternshipId.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> getInternshipCertificateByEmployeeId(
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
@@ -56,7 +58,7 @@ public class InternshipController {
         return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(internshipCertificateEntities));
     }
 
-    @PatchMapping(value = "company/{companyName}/internship/{internshipId}/internship-certificate")
+    @PatchMapping(value = "company/{companyName}/{internshipId}")
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
             summary = "${api.updateInternshipCertificate.tag}", description = "${api.updateInternshipCertificate.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
