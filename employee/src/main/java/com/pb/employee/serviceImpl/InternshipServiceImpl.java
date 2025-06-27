@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -68,13 +70,6 @@ public class InternshipServiceImpl implements InternshipService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), internshipRequest.getCompanyId()), HttpStatus.NOT_FOUND);
             }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
-
-            String index = ResourceIdUtils.generateCompanyIndex(entity.getShortName());
-            EmployeeEntity employee = openSearchOperations.getEmployeeById(internshipRequest.getEmployeeId(), null, index);
-            if (employee == null) {
-                log.error("Employee not found with ID: {}", internshipRequest.getEmployeeId());
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
-            }
 
             LocalDate startDate = LocalDate.parse(internshipRequest.getStartDate());
             LocalDate endDate = LocalDate.parse(internshipRequest.getEndDate());
@@ -132,13 +127,13 @@ public class InternshipServiceImpl implements InternshipService {
             byte[] pdfBytes = generatePdfFromHtml(htmlContent);
 
             try {
-                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeId());
-
+                LocalDateTime currentDateTime = LocalDateTime.now();
+                String timestamp = currentDateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                String internshipId = ResourceIdUtils.generateInternshipCertificateResourceId(internshipRequest.getEmployeeName(), timestamp);
 
                 InternshipCertificateEntity internshipCertificateEntity = objectMapper.convertValue(internshipRequest, InternshipCertificateEntity.class);
                 internshipCertificateEntity.setId(internshipId);
                 internshipCertificateEntity.setCompanyId(internshipRequest.getCompanyId());
-                internshipCertificateEntity.setEmployeeId(employee.getId());
                 internshipCertificateEntity.setType(ResourceType.INTERNSHIP_CERTIFICATE.value());
                 internshipDao.save(internshipCertificateEntity, entity.getShortName());
                 log.info("Saved Internship Certificate: {}", internshipId);
@@ -162,26 +157,33 @@ public class InternshipServiceImpl implements InternshipService {
     }
 
     @Override
-    public Collection<InternshipCertificateEntity> getInternshipCertificates(String companyName, String employeeId) throws EmployeeException {
+    public Collection<InternshipCertificateEntity> getInternshipCertificates(String companyName, String internshipId) throws EmployeeException {
         try {
+            log.debug("Fetching company entity for companyName: {}", companyName);
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null) {
-                log.error("Exception while fetching the internship Certificate details");
+                log.error("Company not found for companyName: {}", companyName);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
-            log.debug("Getting internship certificate by companyName: {}", companyName);
-            return internshipDao.getInternshipCertificate(companyName, employeeId, companyEntity.getId());
+            log.debug("Fetching internship certificate(s) for internshipId: {} in company: {}", internshipId, companyName);
+            return internshipDao.getInternshipCertificate(companyName, internshipId);
+
+        } catch (EmployeeException e) {
+            log.error("EmployeeException while fetching internship certificates: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Unexpected error while fetching internship certificates for companyName: {} and internshipId: {}", companyName, internshipId, e);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INTERNSHIP_NOT_FOUND), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+
     @Override
-    public ResponseEntity<?> updateInternshipCertificate(String companyName, String employeeId, InternshipCertificateUpdateRequest internshipCertificateUpdateRequest)
+    public ResponseEntity<?> updateInternshipCertificate(String companyName, String internshipId, InternshipCertificateUpdateRequest internshipCertificateUpdateRequest)
             throws EmployeeException, IOException {
 
         try {
-            log.debug("Validating internship certificate existence for employeeId: {} in companyName: {}", employeeId, companyName);
+            log.debug("Validating internship certificate existence for internshipId: {} in companyName: {}", internshipId, companyName);
 
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
             if (companyEntity == null) {
@@ -189,15 +191,13 @@ public class InternshipServiceImpl implements InternshipService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            String index = ResourceIdUtils.generateCompanyIndex(companyName);
-            EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, index);
-            if (employee == null) {
-                log.error("Employee not found with ID: {}", employeeId);
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
-            }
-
-            Collection<InternshipCertificateEntity> internshipCertificates = internshipDao.getInternshipCertificate(companyName, employeeId, companyEntity.getId());
+            Collection<InternshipCertificateEntity> internshipCertificates = internshipDao.getInternshipCertificate(companyName, internshipId);
             InternshipCertificateEntity existingInternship = internshipCertificates.stream().findFirst().orElse(null);
+
+            if (existingInternship == null) {
+                log.error("Internship certificate not found for internshipId: {}", internshipId);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INTERNSHIP_NOT_FOUND), internshipId), HttpStatus.NOT_FOUND);
+            }
 
             LocalDate startDate = LocalDate.parse(internshipCertificateUpdateRequest.getStartDate());
             LocalDate endDate = LocalDate.parse(internshipCertificateUpdateRequest.getEndDate());
@@ -214,7 +214,7 @@ public class InternshipServiceImpl implements InternshipService {
                     Objects.equals(existingInternship.getDesignation(), internshipCertificateUpdateRequest.getDesignation());
 
             if (isSame) {
-                log.warn("No changes detected for internship certificate of employeeId: {}", employeeId);
+                log.warn("No changes detected for internship certificate of internshipId: {}", internshipId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_UPDATE_DONE), HttpStatus.BAD_REQUEST);
             }
 
@@ -222,7 +222,7 @@ public class InternshipServiceImpl implements InternshipService {
             BeanUtils.copyProperties(updatedInternship, existingInternship, getNullPropertyNames(updatedInternship));
 
             internshipDao.update(existingInternship, companyEntity.getShortName());
-            log.info("Internship certificate updated successfully for employeeId: {}", employeeId);
+            log.info("Internship certificate updated successfully for internshipId: {}", internshipId);
 
             return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
 
@@ -230,7 +230,7 @@ public class InternshipServiceImpl implements InternshipService {
             log.error("EmployeeException while updating internship certificate: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Unexpected error while updating internship certificate for employeeId {}: {}", employeeId, e.getMessage(), e);
+            log.error("Unexpected error while updating internship certificate for employeeId {}: {}", internshipId, e.getMessage(), e);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_UPDATE_INTERNSHIP_CERTIFICATE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -11,7 +11,7 @@ public interface InternshipCertificateDao extends Dao<InternshipCertificateEntit
         return InternshipCertificateEntity.class;
     }
 
-    Collection<InternshipCertificateEntity> getInternshipCertificate(String companyName, String employeeId, String companyId ) throws EmployeeException;
+    Collection<InternshipCertificateEntity> getInternshipCertificate(String companyName, String internshipId) throws EmployeeException;
 
 
-}
+    }

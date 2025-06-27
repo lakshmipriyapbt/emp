@@ -40,25 +40,23 @@ public class InternshipController {
         return internshipService.downloadInternship(internshipRequest, request);
     }
 
-    @GetMapping("/{companyName}/internshipcertificate/employee/{employeeId}")
-    @io.swagger.v3.oas.annotations.Operation(
-            security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.getInternshipCertificateByEmployeeId.tag}",
-            description = "${api.getInternshipCertificateByEmployeeId.description}")
+    @GetMapping("/{companyName}/internshipcertificate/internship/{internshipId}")
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getInternshipCertificateByInternshipId.tag}", description = "${api.getInternshipCertificateByInternshipId.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> getInternshipCertificateByEmployeeId(
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @PathVariable String companyName,
-            @PathVariable String employeeId) throws EmployeeException {
+            @PathVariable String internshipId) throws EmployeeException {
 
         Collection<InternshipCertificateEntity> internshipCertificateEntities =
-                internshipService.getInternshipCertificates(companyName, employeeId);
+                internshipService.getInternshipCertificates(companyName, internshipId);
 
         return ResponseEntity.ok(ResponseBuilder.builder().build().createSuccessResponse(internshipCertificateEntities));
     }
 
-    @PatchMapping(value = "company/{companyName}/employee/{employeeId}/internship-certificate")
+    @PatchMapping(value = "company/{companyName}/internship/{internshipId}/internship-certificate")
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
             summary = "${api.updateInternshipCertificate.tag}", description = "${api.updateInternshipCertificate.description}")
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
@@ -66,9 +64,9 @@ public class InternshipController {
             @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @PathVariable String companyName,
-            @PathVariable String employeeId,
+            @PathVariable String internshipId,
             @Valid @RequestBody InternshipCertificateUpdateRequest internshipCertificateUpdateRequest) throws EmployeeException, IOException {
 
-        return internshipService.updateInternshipCertificate(companyName, employeeId, internshipCertificateUpdateRequest);
+        return internshipService.updateInternshipCertificate(companyName, internshipId, internshipCertificateUpdateRequest);
     }
 }

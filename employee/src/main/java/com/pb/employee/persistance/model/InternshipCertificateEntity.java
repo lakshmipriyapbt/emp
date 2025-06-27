@@ -14,7 +14,6 @@ public class InternshipCertificateEntity extends AbstractEntity {
 
     private String companyId;
     private String date;
-    private String employeeId;
     private String employeeName;
     private String department;
     private String startDate;

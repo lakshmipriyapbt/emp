@@ -16,5 +16,5 @@ public interface InternshipService {
 
     Collection<InternshipCertificateEntity> getInternshipCertificates(String companyName, String employeeId) throws EmployeeException;
 
-    ResponseEntity<?> updateInternshipCertificate(String companyName, String employeeId, InternshipCertificateUpdateRequest internshipCertificateUpdateRequest) throws EmployeeException, IOException;
+    ResponseEntity<?> updateInternshipCertificate(String companyName, String internshipId, InternshipCertificateUpdateRequest internshipCertificateUpdateRequest) throws EmployeeException, IOException;
 }
