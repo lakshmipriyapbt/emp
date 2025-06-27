@@ -10,7 +10,7 @@ import {
   CompanySalaryStructureGetApi,
   TdsGetApi
 } from "../../Utils/Axios";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../Context/AuthContext";
@@ -104,6 +104,10 @@ const EmployeeSalaryStructure = () => {
   const [tdsSlabs, setTdsSlabs] = useState({
     old: [],
     new: []
+  });
+  const [standardDeduction, setStandardDeduction] = useState({
+    new: 0,
+    old: 0
   });
   const [applicableSlab, setApplicableSlab] = useState(null);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -288,6 +292,16 @@ const EmployeeSalaryStructure = () => {
           parseInt(tds.endYear) === endYear
         );
 
+        // Extract standard deductions for both regimes
+        const newRegimeData = currentYearTds.find(tds => tds.tdsType === "new");
+        const oldRegimeData = currentYearTds.find(tds => tds.tdsType === "old");
+
+        setStandardDeduction({
+          new: parseInt(newRegimeData?.standardDeduction) || 0,
+          old: parseInt(oldRegimeData?.standardDeduction) || 0
+        });
+
+        // Keep your existing slab logic
         const newRegimeSlabs = currentYearTds
           .filter(tds => tds.tdsType === "new")
           .flatMap(tds => tds.persentageEntityList);
@@ -306,6 +320,7 @@ const EmployeeSalaryStructure = () => {
         );
       } catch (error) {
         console.error("Error fetching TDS slabs:", error);
+        setStandardDeduction({ new: 0, old: 0 });
         setTdsSlabs({
           new: [],
           old: []
@@ -818,11 +833,11 @@ const EmployeeSalaryStructure = () => {
       </Popover.Header>
       <Popover.Body className="bg-light">
         <ul className="mb-0">
-          <li>Entire salary taxed at a single rate based on which bracket it falls into.</li>
+          <li>Entire salary taxed at a single rate based on which taxslab it falls into.</li>
           <li>Current regime: <strong>{selectedTaxRegime === "new" ? "New" : "Old"}</strong></li>
           <li>Financial Year: <strong>{getCurrentFinancialYear()}</strong></li>
           {applicableSlab && (
-            <li>Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% bracket.</li>
+            <li>Your salary of ₹{grossAmount.toLocaleString('en-IN')} falls in the {applicableSlab.taxPercentage}% taxslab.</li>
           )}
         </ul>
       </Popover.Body>
@@ -831,11 +846,11 @@ const EmployeeSalaryStructure = () => {
 
   // Clear form
   const clearForm = () => {
-  reset(); // Reset react-hook-form
-  setShowFields(false);
-  setShowCards(false);
-  setFixedAmount(0);
-};
+    reset(); // Reset react-hook-form
+    setShowFields(false);
+    setShowCards(false);
+    setFixedAmount(0);
+  };
 
   // Render UI
   return (
@@ -852,7 +867,7 @@ const EmployeeSalaryStructure = () => {
               <nav aria-label="breadcrumb">
                 <ol className="breadcrumb mb-0">
                   <li className="breadcrumb-item">
-                    <a href="/main">Home</a>
+                    <Link to="/main" className="custom-link">Home</Link>
                   </li>
                   <li className="breadcrumb-item active">Payroll</li>
                   <li className="breadcrumb-item active">Manage Salary</li>
@@ -1204,7 +1219,18 @@ const EmployeeSalaryStructure = () => {
                                     )}
                                   </div>
                                 </div>
-
+                                {/* In your TDS card section */}
+                                <div className="col-md-12 mb-3">
+                                  <label className="form-label">Standard Deduction</label>
+                                  <div className="d-flex align-items-center">
+                                    <span className="badge bg-primary me-2">
+                                      ₹{standardDeduction[selectedTaxRegime].toLocaleString('en-IN')}
+                                    </span>
+                                    <span>
+                                      {selectedTaxRegime === "new" ? "New" : "Old"} regime standard deduction
+                                    </span>
+                                  </div>
+                                </div>
                                 {/* TDS Calculation Results */}
                                 <div className="col-md-12 mt-4">
                                   <div className="row">
@@ -1426,10 +1452,20 @@ const EmployeeSalaryStructure = () => {
           style={{ zIndex: "1050" }}
           className="custom-modal"
         >
-          <ModalHeader closeButton>
-            <ModalTitle className="text-center">
-              Confirm Provident Fund Option
-            </ModalTitle>
+          <ModalHeader>
+            <div className="d-flex justify-content-between align-items-center w-100">
+              <ModalTitle className="text-center mb-0 flex-grow-1">
+                Confirm Provident Fund Option
+              </ModalTitle>
+              <button
+                type="button"
+                className="custom-close-btn"
+                aria-label="Close"
+                onClick={() => setShowPfModal(false)}
+              >
+                ×
+              </button>
+            </div>
           </ModalHeader>
           <ModalBody className="text-center fs-bold">
             <p>

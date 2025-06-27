@@ -1127,10 +1127,16 @@ public class OpenSearchOperations {
         logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
 
         List<EmployeeEntity> employeeEntities = new ArrayList<>();
-        for (Hit<EmployeeEntity> hit : hits) {
-            employeeEntities.add(hit.source());
+        if(hits.size() > 0) {
+            for (Hit<EmployeeEntity> hit : hits) {
+                employeeEntities.add(hit.source());
+            }
+            return employeeEntities.get(0);
+        }else {
+            return null;
         }
-
-        return employeeEntities.get(0);
     }
+
+
+
 }

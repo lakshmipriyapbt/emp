@@ -182,7 +182,7 @@ const EmployeeSalaryStructureView = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>                 
                 </li>
 
                 <li className="breadcrumb-item active">

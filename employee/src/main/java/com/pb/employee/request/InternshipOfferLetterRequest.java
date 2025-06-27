@@ -113,8 +113,4 @@ public class InternshipOfferLetterRequest {
 
     private String internName;
 
-    public String getInternName() {
-        return internName;
-    }
-
 }

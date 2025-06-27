@@ -18,4 +18,5 @@ public class TemplateRequest {
     private String appraisalTemplateNo;
     private String offerLetterTemplateNo;
     private String internshipTemplateNo;
+    private String invoiceTemplateNo;
 }

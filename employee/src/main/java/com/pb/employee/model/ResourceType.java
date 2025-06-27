@@ -28,7 +28,13 @@ public enum ResourceType {
     BACKGROUND("background_details"),
     EMPLOYEE_PERSONNEL("employee-personnel"),
     COMPANY_CALENDAR("company_calendar"),
-    COMPANY_TDS("company_tds");
+    COMPANY_TDS("company_tds"),
+    CANDIDATE("candidate"),
+    EXPERIENCE("experience"),
+    DOCUMENT("document"),
+    APPRAISAL("appraisal"),
+    OFFER_LETTER("offerLetter"),
+    INTERN_OFFER_LETTER("inter_offer_letter");
 
 
 

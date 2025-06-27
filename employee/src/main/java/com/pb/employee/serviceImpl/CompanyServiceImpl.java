@@ -122,6 +122,14 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        String companyFolderPath = folderPath + companyRequest.getShortName();
+        File folder = new File(companyFolderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+            log.info("Creating the company Folder");
+        }
+
         openSearchOperations.createIndex(companyRequest.getShortName());
         log.info("Creating the employee of company admin");
 
@@ -192,6 +200,12 @@ public class CompanyServiceImpl implements CompanyService {
         try {
             companyEntity = openSearchOperations.getCompanyById(companyId, null, Constants.INDEX_EMS);
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
+            String companyFolderPath = folderPath + companyEntity.getShortName();
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+                log.info("Creating the company Folder");
+            }
         } catch (Exception ex) {
             log.error("Exception while fetching company details {}", ex);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_COMPANY),
@@ -246,7 +260,7 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
-    public ResponseEntity<?> updateCompanyStatus(String companyId, String status) throws EmployeeException, IOException {
+    public ResponseEntity<?> updateCompanyStatus(String companyId, String status, HttpServletRequest request) throws EmployeeException, IOException {
 
         CompanyEntity companyEntity;
         List<EmployeeEntity> employees;
@@ -269,8 +283,25 @@ public class CompanyServiceImpl implements CompanyService {
                     companyAdminOpt.get().setStatus(status);
                     openSearchOperations.saveEntity(companyAdminOpt.get(), companyAdminOpt.get().getId(), index);
                 }
+                String password =new String(Base64.getDecoder().decode(companyEntity.getPassword()), StandardCharsets.UTF_8);
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        String companyUrl =EmailUtils.getBaseUrl(request)+companyEntity.getShortName()+Constants.SLASH+Constants.LOGIN ;
+                        log.info("The company url : "+companyUrl);// Example URL
+                        if (status.equalsIgnoreCase(Constants.ACTIVE)){
+                            emailUtils.sendCompanyRegistrationConfirmEmail(companyEntity.getEmailId(),companyUrl,Constants.EMPLOYEE_TYPE,password);
+                        }else if (status.equalsIgnoreCase(Constants.REJECTED)){
+                            emailUtils.sendRegistrationRejectionEmail(companyEntity.getEmailId(),Constants.EMPLOYEE_TYPE);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error sending email to company: {}", companyEntity.getEmailId());
+                        throw new RuntimeException(e);
+                    }
+                });
                 openSearchOperations.saveEntity(companyEntity, companyId, Constants.INDEX_EMS);
             }
+
+
         }catch (EmployeeException e){
             log.error("Exception while updating the company status");
             throw e;
@@ -298,13 +329,12 @@ public class CompanyServiceImpl implements CompanyService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
         if (!multipartFile.isEmpty()){
             // Validate file type
             String contentType = multipartFile.getContentType();
-
             if (!allowedFileTypes.contains(contentType)) {
                 // Return an error response if file type is invalid
+                log.error("Invalid file type: {}", contentType);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
             }
             multiPartFileStore(multipartFile, user);
@@ -338,18 +368,20 @@ public class CompanyServiceImpl implements CompanyService {
     }
     private void multiPartFileStore(MultipartFile file, CompanyEntity company) throws IOException, EmployeeException {
         if(!file.isEmpty()){
-            String filename = folderPath+company.getShortName()+"_"+file.getOriginalFilename();
+            String companyFolderPath = folderPath + company.getShortName();
+            String filename = companyFolderPath+Constants.SLASH+company.getShortName()+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            company.setImageFile(company.getShortName()+"_"+file.getOriginalFilename());
+            company.setImageFile(company.getShortName()+Constants.SLASH+company.getShortName()+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
 
     private void multiPartFileStoreForStamp(MultipartFile file, CompanyEntity company) throws IOException, EmployeeException {
         if(!file.isEmpty()){
-            String filename = folderPath+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename();
+            String companyFolderPath = folderPath + company.getShortName();
+            String filename = companyFolderPath+Constants.SLASH+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            company.setStampImage(company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename());
+            company.setStampImage(company.getShortName()+Constants.SLASH+company.getShortName()+"_"+Constants.STAMP+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
@@ -446,7 +478,7 @@ public class CompanyServiceImpl implements CompanyService {
             }
             String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
             employee.setPassword(newPassword);
-            if (employee.getCompanyId() != null) {
+            if (employee.getCompanyId() != null && employee.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 CompanyEntity companyEntity = openSearchOperations.getCompanyById(employee.getCompanyId(), null, Constants.INDEX_EMS);
                 companyEntity.setPassword(newPassword);
                 openSearchOperations.saveEntity(companyEntity, employee.getCompanyId(), Constants.INDEX_EMS);

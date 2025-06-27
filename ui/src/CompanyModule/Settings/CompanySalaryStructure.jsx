@@ -9,7 +9,7 @@ import { useAuth } from "../../Context/AuthContext";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ModalBody, ModalHeader, ModalTitle } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const CompanySalaryStructure = () => {
   const {
@@ -35,12 +35,13 @@ const CompanySalaryStructure = () => {
   const [newFieldName, setNewFieldName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState("");
-  const [selected, setSelected]=useState(false);
+  const [selected, setSelected] = useState(false);
   const { authUser } = useAuth();
   const [fieldCheckboxes, setFieldCheckboxes] = useState({
     allowances: {},
     deductions: {},
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const addField = (fieldName) => {
@@ -127,7 +128,7 @@ const CompanySalaryStructure = () => {
           ...prev[activeTab === "nav-home" ? "allowances" : "deductions"],
           [fieldLabel]:
             !prev[activeTab === "nav-home" ? "allowances" : "deductions"][
-              fieldLabel
+            fieldLabel
             ],
         },
       };
@@ -198,7 +199,7 @@ const CompanySalaryStructure = () => {
     // Handle validation for the current field
     const isChecked =
       !fieldCheckboxes[activeTab === "nav-home" ? "allowances" : "deductions"][
-        fieldLabel
+      fieldLabel
       ];
     if (isChecked) {
       validateField(fields[index]);
@@ -301,6 +302,7 @@ const CompanySalaryStructure = () => {
   };
 
   const onSubmit = async () => {
+    setIsSubmitting(true);
     const jsonData = {
       companyName: authUser.company,
       status: "Active",
@@ -414,6 +416,7 @@ const CompanySalaryStructure = () => {
         window.location.href = "/companySalaryView";
       }, 2000);
     } catch (error) {
+       setIsSubmitting(false);
       if (error.response) {
         console.error("Error response from backend:", error.response.data);
         toast.error(
@@ -451,14 +454,14 @@ const CompanySalaryStructure = () => {
       .filter((char) => allowedCharsRegex.test(char))
       .join("");
     // Capitalize first letter of each word & keep others as authUser typed
-  const words = value.split(" ");
-  const formattedValue = words.map((word) =>
-    word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ""
-  ).join(" ");
-  // Trim multiple spaces after the first 3 characters
-  let finalValue = formattedValue.length > 3
-    ? formattedValue.slice(0, 3) + formattedValue.slice(3).replace(/\s+/g, " ")
-    : formattedValue;
+    const words = value.split(" ");
+    const formattedValue = words.map((word) =>
+      word.length > 0 ? word.charAt(0).toUpperCase() + word.slice(1) : ""
+    ).join(" ");
+    // Trim multiple spaces after the first 3 characters
+    let finalValue = formattedValue.length > 3
+      ? formattedValue.slice(0, 3) + formattedValue.slice(3).replace(/\s+/g, " ")
+      : formattedValue;
     input.value = finalValue;
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
@@ -574,7 +577,7 @@ const CompanySalaryStructure = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>
                 </li>
                 <li className="breadcrumb-item active">Salary Structure</li>
               </ol>
@@ -618,27 +621,24 @@ const CompanySalaryStructure = () => {
               <div className="card-body">
                 <nav className="companyNavOuter">
                   <div className="nav nav-tabs" id="nav-tab" role="tablist">
-                    <button
-                      type="button"
-                      className={`nav-link ${
-                        activeTab === "nav-home" ? "active" : ""
-                      }`}
-                      onClick={() => handleTabChange("nav-home")}
-                    >
-                      Earnings
-                    </button>
-                    <button
-                      type="button"
-                      className={`nav-link ${
-                        activeTab === "nav-profile" ? "active" : ""
-                      }`}
-                      onClick={() => handleTabChange("nav-profile")}
-                    >
-                      Deductions
-                    </button>
-                    {selected &&
-                    (
-                      <span className="m-2 text-danger">{allowanceError}</span>
+                    <div className="d-flex align-items-center">  {/* Flex container for buttons */}
+                      <button
+                        type="button"
+                        className={`nav-link ${activeTab === "nav-home" ? "active" : ""}`}
+                        onClick={() => handleTabChange("nav-home")}
+                      >
+                        Earnings
+                      </button>
+                      <button
+                        type="button"
+                        className={`nav-link ${activeTab === "nav-profile" ? "active" : ""}`}
+                        onClick={() => handleTabChange("nav-profile")}
+                      >
+                        Deductions
+                      </button>
+                    </div>
+                    {selected && (
+                      <span className="mt-2 text-danger">{allowanceError}</span>
                     )}
                   </div>
                 </nav>
@@ -648,9 +648,8 @@ const CompanySalaryStructure = () => {
                 >
                   {/* Allowance Tab */}
                   <div
-                    className={`tab-pane fade ${
-                      activeTab === "nav-home" ? "show active" : ""
-                    }`}
+                    className={`tab-pane fade ${activeTab === "nav-home" ? "show active" : ""
+                      }`}
                     id="nav-home"
                     role="tabpanel"
                   >
@@ -683,7 +682,7 @@ const CompanySalaryStructure = () => {
                             className="form-select"
                             value={
                               field.label === "Basic Salary" ||
-                              field.label === "HRA"
+                                field.label === "HRA"
                                 ? "percentage"
                                 : field.type
                             }
@@ -729,7 +728,7 @@ const CompanySalaryStructure = () => {
                             }
                             maxLength={
                               field.label === "Basic Salary" ||
-                              field.label === "HRA"
+                                field.label === "HRA"
                                 ? 2
                                 : 7
                             }
@@ -758,9 +757,8 @@ const CompanySalaryStructure = () => {
                   </div>
                   {/* Deduction Tab */}
                   <div
-                    className={`tab-pane fade ${
-                      activeTab === "nav-profile" ? "show active" : ""
-                    }`}
+                    className={`tab-pane fade ${activeTab === "nav-profile" ? "show active" : ""
+                      }`}
                     id="nav-profile"
                     role="tabpanel"
                   >
@@ -788,7 +786,7 @@ const CompanySalaryStructure = () => {
                         <input
                           className="form-control"
                           value="%"
-                          onChange={() => {}}
+                          onChange={() => { }}
                           readOnly
                           disabled={!isEditing}
                         ></input>
@@ -807,7 +805,7 @@ const CompanySalaryStructure = () => {
                           placeholder="Enter Value"
                           disabled={
                             !fieldCheckboxes.deductions[
-                              "Provident Fund Employee"
+                            "Provident Fund Employee"
                             ] || !isEditing
                           }
                         />
@@ -838,7 +836,7 @@ const CompanySalaryStructure = () => {
                         <input
                           className="form-control"
                           value="%"
-                          onChange={() => {}}
+                          onChange={() => { }}
                           readOnly
                           disabled={!isEditing}
                         ></input>
@@ -857,7 +855,7 @@ const CompanySalaryStructure = () => {
                           placeholder="Enter Value"
                           disabled={
                             !fieldCheckboxes.deductions[
-                              "Provident Fund Employer"
+                            "Provident Fund Employer"
                             ] || !isEditing
                           }
                         />
@@ -987,9 +985,9 @@ const CompanySalaryStructure = () => {
                     <button
                       type="submit"
                       className="btn btn-primary"
-                      disabled={!isSubmitEnabled()}
+                      disabled={!isSubmitEnabled() || isSubmitting}
                     >
-                      Submit All
+                      {isSubmitting ? 'Submitting...' : 'Submit All'}
                     </button>
                   </div>
                 </div>
@@ -1011,10 +1009,10 @@ const CompanySalaryStructure = () => {
                   <ModalTitle className="modal-title">Add New Field</ModalTitle>
                   <button
                     type="button"
-                    className="btn-close" // Bootstrap's close button class
+                    className="btn-close text-dark" // Bootstrap's close button class
                     aria-label="Close"
                     onClick={handleCloseNewFieldModal} // Function to close the modal
-                  ></button>
+                  >X</button>
                 </ModalHeader>
                 <ModalBody>
                   <form>

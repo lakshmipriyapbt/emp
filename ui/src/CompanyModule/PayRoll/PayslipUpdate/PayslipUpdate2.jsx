@@ -627,7 +627,7 @@ const PayslipUpdate2 = () => {
                 borderBottom: "none",
               }}
             >
-              <div style={{ paddingTop: "20px" }}>
+              <div className="d-flex justify-content-center" style={{ paddingTop: "20px" }}>
                 {company?.imageFile ? (
                   <img
                     className="align-middle"

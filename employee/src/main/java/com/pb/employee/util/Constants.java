@@ -112,7 +112,7 @@ public class Constants {
     public static final String APPRAISAL_LETTER_TEMPLATE1 = "appraisalLetter1.ftl";
     public static final String OFFER_LETTER_REQUEST = "offerLetter";
     public static final String ATTACHMENT = "attachment";
-    public static final String OFFER_LETTER = "offer_letter.pdf";
+    public static final String OFFER_LETTER_PDF = "offer_letter.pdf";
     public static final String ACTIVE = "Active";
     public static final String IN_ACTIVE = "InActive";
     public static final String RELIEVING = "relieving";
@@ -194,11 +194,20 @@ public class Constants {
     public static final String START_YEAR = "startYear";
     public static final String TDS_TYPE = "tdsType";
     public static final String DRAFT = "draft";
-    public static final String APPRAISAL = "Appraisal";
+    public static final String APPRAISAL = "appraisal";
     public static final String EMPLOYEE_WITHOUT_SALARIES = "Employees Without Salary";
     public static final String USER_ADMIN = "Admin";
     public static final Object PENDING = "pending";
+    public static final String REJECTED = "rejected";
     public static final String INACTIVE = "inactive";
-    public static final String OFFER_LETTER_INDEX = "offer_letter_index";
-
+    public static final String CANDIDATE = "candidate";
+    public static final String FILE_PDF = "application/pdf";
+    public static final String FILE_DOC = "application/msword";
+    public static final String FILE_DOCX="application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    public static final String DOCUMENT = "document";
+    public static final String CANDIDATE_ID="candidateId";
+    public static final String EXPERIENCE = "experience";
+    public static final String EMPLOYEEREF_ID = "employeeRefId";
+    public static final String OFFER_LETTER = "offerLetter";
+    public static final String INTERN_OFFER_LETTER = "inter_offer_letter";
 }

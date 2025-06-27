@@ -11,6 +11,7 @@ import { useAuth } from "../../../Context/AuthContext";
 import RelievingTemplate1 from "./RelievingTemplate1";
 import RelievingTemplate2 from "./RelievingTemplate2";
 import RelievingTemplate3 from "./RelievingTemplate3";
+import { Link } from "react-router-dom";
 
 const RelievingLetter = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
@@ -62,6 +63,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="3"
+            stamp={company?.stampImage}
           />
         ),
       },
@@ -80,6 +82,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="2"
+            stamp={company?.stampImage}
           />
         ),
       },
@@ -98,6 +101,7 @@ const RelievingLetter = () => {
             resignationDate="September 27, 2024"
             lastWorkingDate="October 27, 2024"
             noticePeriod="4"
+            stamp={company?.stampImage}
           />
         ),
       },
@@ -180,7 +184,7 @@ const RelievingLetter = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>          
                 </li>
                 <li className="breadcrumb-item active">
                   RELIEVING CERTIFICATE

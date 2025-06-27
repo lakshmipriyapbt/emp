@@ -13,7 +13,7 @@ export const NAV_CONFIG = {
                 { title: 'View Companies', path: '/companyView' }
             ]
         }
-    ], 
+    ],
     company_admin: [
         {
             title: 'Dashboard',
@@ -24,6 +24,16 @@ export const NAV_CONFIG = {
             title: 'Department',
             path: '/department',
             icon: 'building' // 🏢
+        },
+        {
+            title: 'Candidate',
+            icon: 'person-check',
+            items: [
+                { title: 'Candidate Registration', path: '/candidateRegistration' },
+                { title: 'Candidates View', path: '/candidatesView' },
+                { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
+                { title: 'Upload Success', path: '/uploadSuccess' }
+            ]
         },
         {
             title: 'Employees',
@@ -90,14 +100,16 @@ export const NAV_CONFIG = {
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Bank Details', path: '/accountsView' },
-                { title: 'Calendar', path:'/AddEvent'},
+                { title: 'Calendar', path: '/AddEvent' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
                 { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+                { title: 'Invoice Template', path: '/invoiceTemplate1' },
+                { title: 'Invoice Template', path: '/invoiceTemplate2' },
             ]
         }
     ],
@@ -111,6 +123,16 @@ export const NAV_CONFIG = {
             title: 'Department',
             path: '/department',
             icon: 'building' // 🏢
+        },
+        {
+            title: 'Candidate',
+            icon: 'person-check',
+            items: [
+                { title: 'Candidate Registration', path: '/candidateRegistration' },
+                { title: 'Candidates View', path: '/candidatesView' },
+                { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
+                { title: 'Upload Success', path: '/uploadSuccess' }
+            ]
         },
         {
             title: 'Employees',
@@ -177,14 +199,15 @@ export const NAV_CONFIG = {
                 { title: 'Company Salary Structure', path: '/companySalaryView' },
                 { title: 'Add TDS', path: '/companyTdsView' },
                 { title: 'Bank Details', path: '/accountsView' },
-                { title: 'Calendar', path:'/AddEvent'},
+                { title: 'Calendar', path: '/AddEvent' },
                 { title: 'Offer Letter Templates', path: '/offerLetters' },
                 { title: 'Appraisal Templates', path: '/appraisalTemplates' },
                 { title: 'Experience Letter Template', path: '/experienceLetter' },
                 { title: 'Relieving Template', path: '/relievingTemplates' },
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
-                { title: 'Payslip Template', path: '/payslipTemplates' }
+                { title: 'Payslip Template', path: '/payslipTemplates' },
+                { title: 'Invoice Template', path: '/invoiceTemplates' }
             ]
         }
     ],
@@ -205,9 +228,19 @@ export const NAV_CONFIG = {
             icon: 'people'
         },
         {
-            title:'Calendar',
-            path:'/AddEvent',
-            icon:'calendar'
+            title: 'Calendar',
+            path: '/AddEvent',
+            icon: 'calendar'
+        },
+        {
+            title: 'Candidate',
+            icon: 'person-check',
+            items: [
+                { title: 'Candidate Registration', path: '/candidateRegistration' },
+                { title: 'Candidates View', path: '/candidatesView' },
+                { title: 'Candidate Documents Upload', path: '/candidateDocumentUpload' },
+                { title: 'Upload Success', path: '/uploadSuccess' }
+            ]
         },
         {
             title: 'Letters',
@@ -269,9 +302,24 @@ export const NAV_CONFIG = {
             title: 'Payslips',
             path: '/employeePayslip',
             icon: 'receipt'
+        },
+        {
+            title: 'Documents Upload',
+            path: '/employeeDocumentUpload',
+            icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/employeeDocumentView',
+            icon: 'file-earmark-text' // Recommended
         }
     ],
     Accountant: [
+        {
+            title: 'Dashboard',
+            path: '/main',
+            icon: 'speedometer2'
+        },
         {
             title: 'Clients',
             icon: 'person-lines-fill',
@@ -292,6 +340,23 @@ export const NAV_CONFIG = {
             title: 'Payslips',
             path: '/employeePayslip',
             icon: 'wallet2'
+        }
+    ],
+    candidate: [
+        {
+            title: 'Details',
+            path: '/candidateProfile',
+            icon: 'person-badge'
+        },
+        {
+            title: 'Documents Upload',
+            path: '/documentUpload',
+            icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/candidateDocumentsView',
+            icon: 'file-earmark-text' // Recommended
         }
     ]
 };

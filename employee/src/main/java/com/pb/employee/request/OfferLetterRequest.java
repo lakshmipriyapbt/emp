@@ -99,7 +99,6 @@ public class OfferLetterRequest {
     @Pattern(regexp = "^\\+91 [6-9]\\d{9}$", message = "Invalid HR mobile number format")
     private String hrMobileNo;
 
-
     @Schema(example = "true")
     private boolean draft;
 

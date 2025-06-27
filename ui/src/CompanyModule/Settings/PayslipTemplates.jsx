@@ -7,6 +7,7 @@ import PayslipTemplate3 from './Payslip/PayslipTemplate3';
 import PayslipTemplate4 from './Payslip/PayslipTemplate4';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../Context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const PayslipTemplates = () => {
     const [currentTemplate, setCurrentTemplate] = useState(<PayslipTemplate1 />);
@@ -100,7 +101,9 @@ const PayslipTemplates = () => {
                 <div className="col-auto">
                     <nav aria-label="breadcrumb">
                         <ol className="breadcrumb mb-0">
-                            <li className="breadcrumb-item"><a href="/main">Home</a></li>
+                            <li className="breadcrumb-item">
+                                <Link to="/main" className="custom-link">Home</Link>
+                            </li>
                             <li className="breadcrumb-item active">Payslip Templates</li>
                         </ol>
                     </nav>

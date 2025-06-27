@@ -5,7 +5,7 @@ import { Bounce, toast } from "react-toastify";
 import DeletePopup from "../../Utils/DeletePopup";
 import LayOut from "../../LayOut/LayOut";
 import { companyDeleteByIdApi, companyViewApi, updateCompanyStatusApi } from "../../Utils/Axios";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CompanyView = () => {
   const [view, setView] = useState([]);
@@ -17,7 +17,7 @@ const CompanyView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showStatusModal, setShowStatusModal] = useState(false);
-const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: "" });
+  const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: "" });
   const Navigate = useNavigate();
 
   const getUser = async () => {
@@ -85,10 +85,22 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
     const { id, newStatus } = statusUpdateData;
     try {
       const response = await updateCompanyStatusApi(id, newStatus);
-      if (response.status === 200) {
-        toast.success("Status updated successfully!");
-        await getUser();
-      } else {
+     if (response.status === 200) {
+  toast.success("Status updated successfully!");
+
+  // Update local state immediately
+  setView(prev =>
+    prev.map(user =>
+      user.id === id ? { ...user, status: newStatus } : user
+    )
+  );
+
+  setTimeout(() => {
+    getUser(); // Optional: refetch from server
+    if (search) getFilteredList(search);
+  }, 1000);
+}
+ else {
         toast.error("Failed to update status.");
       }
     } catch (error) {
@@ -127,7 +139,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       name: <h6><b>Company Name</b></h6>,
       selector: row => (
         <div title={row.companyName}>
-           {row.companyName.length > 20 ? `${row.companyName.slice(0, 20)}...` : row.companyName}
+          {row.companyName.length > 20 ? `${row.companyName.slice(0, 20)}...` : row.companyName}
         </div>
       ),
       width: "220px",
@@ -138,7 +150,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       selector: row => (
         <div title={row.emailId}>
           {row.emailId.length > 20 ? `${row.emailId.slice(0, 20)}...` : row.emailId}
-          </div>
+        </div>
       ),
       width: "200px",
     },
@@ -147,10 +159,10 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       selector: row => (
         <div title={row.mobileNo}>
           {row.mobileNo.length > 20 ? `${row.mobileNo.slice(0, 20)}...` : row.mobileNo}
-          </div>
+        </div>
       ),
       width: "150px",
-      wrap: true, 
+      wrap: true,
     },
     {
       name: <h6><b>Type</b></h6>,
@@ -197,19 +209,20 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       selector: (row) => row.status,
       cell: (row) => (
         <select
-          className="form-select form-select-sm"
-          value={row.status}
-          onChange={(e) => handleStatusChange(row.id, e.target.value)}
-          style={{ width: "120px" }}
-        >
-          <option value="Active">Active</option>
-          <option value="Inactive">InActive</option>
-          <option value="pending">Pending</option>
-        </select>
+  className="form-select form-select-sm"
+  value={row.status || ""}
+  onChange={(e) => handleStatusChange(row.id, e.target.value)}
+  style={{ width: "120px" }}
+>
+  <option value="" disabled hidden>Status</option>
+  <option value="Active">Active</option>
+  <option value="Inactive">Inactive</option>
+  <option value="pending">Pending</option>
+</select>
+
       ),
       width: "150px",
-    },
-    
+    }
   ];
 
   const getFilteredList = (searchTerm) => {
@@ -217,7 +230,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
     const filtered = view.filter((item) => {
       const lowerCasedSearchTerm = searchTerm.toLowerCase();
       return (
-        item.companyName.toLowerCase().includes(lowerCasedSearchTerm) 
+        item.companyName.toLowerCase().includes(lowerCasedSearchTerm)
         // item.name.toLowerCase().includes(lowerCasedSearchTerm)
       );
     });
@@ -254,7 +267,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
                   </div>
                   <div className='col-12 col-md-6 col-lg-4'></div>
                   <div className='col-12 col-md-6 col-lg-4'>
-                    <input type='search' className="form-control" placeholder='Search by Company Name'
+                    <input type='search' className="form-control mb-1" placeholder='Search by Company Name'
                       value={search}
                       onChange={(e) => getFilteredList(e.target.value)}
                     />
@@ -286,7 +299,7 @@ const [statusUpdateData, setStatusUpdateData] = useState({ id: null, newStatus: 
       </div>
       {showStatusModal && (
         <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }} tabIndex="-1" role="dialog">
-          <div className="modal-dialog modal-dialog-centered"role="document">
+          <div className="modal-dialog modal-dialog-centered" role="document">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Confirm Status Change</h5>

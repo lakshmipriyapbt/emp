@@ -5,7 +5,7 @@ import {
 } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import '../../LayOut/NewLogin/Style.css';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 
 const AnonymouseCmpRegistration = () => {
@@ -56,8 +56,8 @@ const AnonymouseCmpRegistration = () => {
       } else if (data.companyType === "Firm") {
         updateData.companyRegistrationNumber = data.companyRegistrationNumber;
       }
-       await CompanyAddApi(data);
-       toast.success("Company Created Successfully")
+      await CompanyAddApi(data);
+      toast.success("Company Created Successfully")
       navigate("/");
       reset();
     } catch (error) {
@@ -122,7 +122,7 @@ const AnonymouseCmpRegistration = () => {
     reset();
     // setEditMode(true);  // Optionally, if you want to reset edit mode
   };
-    const backForm = () => {
+  const backForm = () => {
     setCompanyType("");
     reset();
     navigate("/")
@@ -237,39 +237,39 @@ const AnonymouseCmpRegistration = () => {
     const input = e.target;
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
-  
+
     // Remove leading spaces but keep trailing spaces
     const leadingTrimmedValue = value.replace(/^\s+/g, "");
-  
+
     // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
     const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
     value = leadingTrimmedValue
       .split("") // Split value into characters
       .filter((char) => allowedCharsRegex.test(char)) // Keep only allowed characters
       .join(""); // Join characters back to a string
-  
+
     // Capitalize the first letter of each word
     const words = value.split(" ");
     const capitalizedWords = words.map((word) => {
       // Capitalize first letter, ensure the rest of the word is lowercase
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     });
-  
+
     // Join the words back into a string with a single space between them
     let formattedValue = capitalizedWords.join(" ");
-  
+
     // Allow spaces at the end if the user typed them (by preserving the original input length)
     if (value.length < leadingTrimmedValue.length) {
       formattedValue = formattedValue + " ".repeat(input.value.length - formattedValue.length);
     }
-  
+
     // Update input value
     input.value = formattedValue;
-  
+
     // Restore the cursor position
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
-   
+
 
   const validateREGISTER = (value) => {
     const spaceError = "Spaces are not allowed in the Register Number.";
@@ -322,7 +322,7 @@ const AnonymouseCmpRegistration = () => {
     const spaceError = "Spaces are not allowed in the GST Number.";
     const patternError = "Invalid GST Number format";
 
-    if (!value){
+    if (!value) {
       return true;
     }
 
@@ -396,21 +396,21 @@ const AnonymouseCmpRegistration = () => {
     } else if (/\s$/.test(value)) {
       return "Spaces at the end are not allowed."; // Trailing space error
     }
-  
+
     // Check for multiple spaces between words
     if (/\s{2,}/.test(value)) {
       return "No multiple spaces between words allowed."; // Multiple spaces error
     }
-  
+
     // Validate special characters and alphanumeric characters
     const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!:;]*$/;
     if (!validCharsRegex.test(value)) {
       return "Invalid characters used. Only alphabets, numbers, and special characters (, . ' - / & @ # $ ( ) *) are allowed.";
     }
-  
+
     return true; // Return true if all conditions are satisfied
   };
-  
+
   const validatePAN = (value) => {
     const spaceError = "Spaces are not allowed in the PAN Number.";
     const patternError = "Invalid PAN Number format";
@@ -451,68 +451,49 @@ const AnonymouseCmpRegistration = () => {
   }
 
   return (
-      <div className="container-fluid p-0" >
-        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-          <div className="col"  style={{marginLeft: "100px", marginRight: "100px", marginTop: "40px"}}>
-            <h1 className="h3 mb-3 text-info">
-            To Register with CUB HRM ,Please Fill these Details{" "}
-            </h1>
-            <span className="text-info"></span>
-          </div>
+    <div className="container-fluid p-0" >
+      <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+        <div className="col" style={{ marginLeft: "100px", marginRight: "100px", marginTop: "40px" }}>
+          <h1 className="h3 mb-3 text-base text-primary">
+            Fill out the details below to create your account and get started with hassle-free HR management—built
+           for small and growing teams like yours.
+          </h1>
+          <span className="text-info"></span>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="row">
-            <div className="col-12">
-              <div className="card" style={{marginLeft: "100px", marginRight: "100px"}}>
-                <div className="card-header ">
-                  <div className="d-flex justify-content-start align-items-start">
-                    <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                      Company Type
-                    </h5>
-                    <span
-                      className="text-danger"
-                      style={{ marginLeft: "10px" }}
-                    >
-                      {errors.companyType && (
-                        <p className="mb-0">{errors.companyType.message}</p>
-                      )}
-                    </span>
-                  </div>
-                  <hr
-                    className="dropdown-divider"
-                    style={{ borderTopColor: "#d7d9dd", width: "100%" }}
-                  />
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="row">
+          <div className="col-12">
+            <div className="card" style={{ marginLeft: "100px", marginRight: "100px" }}>
+              <div className="card-header ">
+                <div className="d-flex justify-content-start align-items-start">
+                  <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                    Company Type
+                  </h5>
+                  <span
+                    className="text-danger"
+                    style={{ marginLeft: "10px" }}
+                  >
+                    {errors.companyType && (
+                      <p className="mb-0">{errors.companyType.message}</p>
+                    )}
+                  </span>
                 </div>
+                <hr
+                  className="dropdown-divider"
+                  style={{ borderTopColor: "#d7d9dd", width: "100%" }}
+                />
+              </div>
 
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <div>
-                        <label>
-                          <input
-                            type="radio"
-                            name="companyType"
-                            value="Private Limited"
-                            style={{ marginRight: "10px" }}
-                            {...register("companyType", {
-                              required: !editMode
-                                ? "Please Select Your Company Type"
-                                : false,
-                            })}
-                            disabled={editMode}
-                            onChange={handleCompanyTypeChange}
-                          />
-                          Private Limited
-                        </label>
-                      </div>
-                    </div>
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="ml-3">
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <div>
+                      <label>
                         <input
                           type="radio"
                           name="companyType"
-                          value="Firm"
+                          value="Private Limited"
                           style={{ marginRight: "10px" }}
                           {...register("companyType", {
                             required: !editMode
@@ -522,606 +503,641 @@ const AnonymouseCmpRegistration = () => {
                           disabled={editMode}
                           onChange={handleCompanyTypeChange}
                         />
-                        Firm
+                        Private Limited
                       </label>
                     </div>
+                  </div>
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="ml-3">
+                      <input
+                        type="radio"
+                        name="companyType"
+                        value="Firm"
+                        style={{ marginRight: "10px" }}
+                        {...register("companyType", {
+                          required: !editMode
+                            ? "Please Select Your Company Type"
+                            : false,
+                        })}
+                        disabled={editMode}
+                        onChange={handleCompanyTypeChange}
+                      />
+                      Firm
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="row" style={{marginLeft: "90px", marginRight: "90px"}}>
-            <div className="col-12">
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                    Company Details
-                  </h5>
-                  <div
-                    className="dropdown-divider"
-                    style={{ borderTopColor: "#d7d9dd" }}
-                  />
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Company Name <span style={{ color: "red" }}>*</span>{" "}
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Company Name"
-                        onInput={toInputTitleCase}
-                        autoComplete="off"
-                        {...register("companyName", {
-                          required: "Company Name is Required",
-                          validate: {
-                            validateName,
-                          },
-                          minLength: {
-                            value: 2,
-                            message: "Minimum 2 Characters Required",
-                          },
-                          maxLength: {
-                            value: 200,
-                            message: "Maximum 200 Characters Required",
-                          },
-                        })}
-                        disabled={editMode}
-                      />
-                      {errors.companyName && (
-                        <p className="errorMsg">{errors.companyName.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Service Name <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        onInput={toInputLowerCase}
-                        placeholder="Enter Service Name"
-                        autoComplete="off"
-                        {...register("shortName", {
-                          required: "Service Name is Required",
-                          pattern: {
-                            value: /^[a-zA-Z]+$/,
-                            message:
-                              "No Spaces allowed. These fields only accept small cases only.",
-                          },
-                          minLength: {
-                            value: 2,
-                            message: "Minimum 2 Characters Required",
-                          },
-                          maxLength: {
-                            value: 30,
-                            message:
-                              "Minimum 2 and Maximum 30 Characters allowed",
-                          },
-                        })}
-                        disabled={editMode}
-                      />
-                      {errors.shortName && (
-                        <p className="errorMsg">{errors.shortName.message}</p>
-                      )}
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Company Email Id <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        placeholder="Enter Company Email Id"
-                        autoComplete="off"
-                        //onInput={toInputEmailCase}
-                        onKeyDown={handleEmailChange}
-                        onPaste={handlePaste}
-                        {...register("emailId", {
-                          required: "Company Email Id is Required",
-                          pattern: {
-                            value:
-                          /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                            message: "Invalid email format",
-                          },
-                        })}
-                        disabled={editMode}
-                      />
-                      {errors.emailId && (
-                        <p className="errorMsg">{errors.emailId.message}</p>
-                      )}
-                    </div>
-                        <div className="col-lg-1"></div>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Mobile Number{" "}
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            className="form-control"
-                            placeholder="Enter Mobile Number"
-                            autoComplete="off"
-                            maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
-                            defaultValue="+91 " // Set the initial value to +91 with a space
-                            onInput={handlePhoneNumberChange} // Handle input changes
-                            {...register("mobileNo", {
-                              required: "Mobile Number is Required",
-                              validate: {
-                                startsWithPlus91: (value) => {
-                                  if (!value.startsWith("+91 ")) {
-                                    return "Mobile Number must start with +91.";
-                                  }
-                                  return true;
-                                },
-                                correctLength: (value) => {
-                                  if (value.length !== 14) {
-                                    return "Mobile Number is Required";
-                                  }
-                                  return true;
-                                },
-                                notRepeatingDigits: (value) => {
-                                  const isRepeating = /^(\d)\1{12}$/.test(
-                                    value
-                                  ); // Check for repeating digits
-                                  return (
-                                    !isRepeating ||
-                                    "Mobile Number cannot consist of the same digit repeated."
-                                  );
-                                },
-                              },
-                              pattern: {
-                                value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                                message: "Mobile Number is Required",
-                              },
-                            })}
-                          />
-                          {errors.mobileNo && (
-                            <p className="errorMsg">
-                              {errors.mobileNo.message}
-                            </p>
-                          )}
-                        </div>          
-                    <div className="col-12 col-md-6 col-lg-5 mb-2">
-                      <label className="form-label">
-                        Alternate Number <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Enter Alternate Number"
-                        autoComplete="off"
-                        maxLength={14}
-                        defaultValue="+91 " // Set the initial value to +91 with a space
-                        onInput={handlePhoneNumberChange} // Handle input changes
-                        // onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
-                        {...register("alternateNo", {
-                          validate: {
-                            startsWithPlus91: (value) => {
-                              if (!value.startsWith("+91 ")) {
-                                return "Alternate Number must start with +91 and a space.";
-                              }
-                              return true;
-                            },
-                            correctLength: (value) => {
-                              if (value.length !== 14) {
-                                return "Alternate Number is Required";
-                              }
-                              return true;
-                            },
-                            notRepeatingDigits: (value) => {
-                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return (
-                                !isRepeating ||
-                                "Alternate Number cannot consist of the same digit repeated."
-                              );
-                            },
-                          },
-                          pattern: {
-                            value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                            message: "Alternate Number is Required",
-                          },
-                        })}
-                      />
-                      {errors.alternateNo && (
-                        <p className="errorMsg">{errors.alternateNo.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Company Address <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <textarea
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Company Address"
-                        //onKeyDown={handleEmailChange}
-                        onInput={toInputAddressCase}
-                        autoComplete="off"
-                        {...register("companyAddress", {
-                          required: "Company Address is Required",
-                          pattern: {
-                            value:
-                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
-                            message: "Please enter valid Address",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 Characters allowed",
-                          },
-                          maxLength: {
-                            value: 250,
-                            message: "Maximum 250 Characters allowed",
-                          },
-                          validate: validateAddress
-                        })}
-                      />
-                      {errors.companyAddress && (
-                        <p className="errorMsg">
-                          {errors.companyAddress.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        </div>
+        <div className="row" style={{ marginLeft: "90px", marginRight: "90px" }}>
+          <div className="col-12">
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                  Company Details
+                </h5>
+                <div
+                  className="dropdown-divider"
+                  style={{ borderTopColor: "#d7d9dd" }}
+                />
               </div>
-            </div>
-          </div>
-          <div className="row" style={{marginLeft: "90px", marginRight: "90px"}}>
-            <div className="col-12">
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                    Company Registration Details
-                  </h5>
-                  <div
-                    className="dropdown-divider"
-                    style={{ borderTopColor: "#d7d9dd" }}
-                  />
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    {companyType === "Private Limited" && (
-                      <>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Company CIN Number
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter Company CIN Number"
-                            onKeyDown={handleEmailChange}
-                            onInput={toInputSpaceCase}
-                            autoComplete="off"
-                            maxLength={21}
-                            onPaste={handlePaste}
-                            {...register("cinNo", {
-                              required: "Company CIN Number is Required",
-                              maxLength: {
-                                value: 21,
-                                message:
-                                  "CIN Number must not exceed 21 characters",
-                              },
-
-                              validate: validateCIN,
-                            })}
-                            disabled={editMode}
-                          />
-                          {errors.cinNo && (
-                            <p className="errorMsg">{errors.cinNo.message}</p>
-                          )}
-                        </div>
-                        <div className="col-lg-1"></div>
-                      </>
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Company Name <span style={{ color: "red" }}>*</span>{" "}
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter Company Name"
+                      onInput={toInputTitleCase}
+                      autoComplete="off"
+                      {...register("companyName", {
+                        required: "Company Name is Required",
+                        validate: {
+                          validateName,
+                        },
+                        minLength: {
+                          value: 2,
+                          message: "Minimum 2 Characters Required",
+                        },
+                        maxLength: {
+                          value: 200,
+                          message: "Maximum 200 Characters Required",
+                        },
+                      })}
+                      disabled={editMode}
+                    />
+                    {errors.companyName && (
+                      <p className="errorMsg">{errors.companyName.message}</p>
                     )}
-                    {companyType === "Firm" && (
-                      <>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Company Registration Number{" "}
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter Company Registration Number"
-                            autoComplete="off"
-                            maxLength={21}
-                            onPaste={handlePaste}
-                            {...register("companyRegNo", {
-                              required:
-                                "Company Registration Number is Required",
-                              maxLength: {
-                                value: 21,
-                                message:
-                                  "Registration Number must not exceed 21 characters",
-                              },
-                              validate: validateREGISTER,
-                            })}
-                            disabled={editMode}
-                          />
-                          {errors.companyRegNo && (
-                            <p className="errorMsg">
-                              {errors.companyRegNo.message}
+                  </div>
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Service Name <span style={{ color: "red" }}>*</span>
+                      <OverlayTrigger
+                        trigger={["hover", "focus"]}
+                        placement="top"
+                        overlay={
+                          <Tooltip className="p-2 shadow-sm border-0" style={{ minWidth: "200px", backgroundColor: '#000' }}>
+                            <p className="mb-0 small text-white fw-semibold">
+                              Remember this service name for future reference
                             </p>
-                          )}
-                        </div>
-                        <div className="col-lg-1"></div>
-                      </>
+                          </Tooltip>
+                        }
+                      >
+                        <span className="ms-2" style={{ cursor: "pointer" }}>
+                          <i className="bi bi-info-circle text-primary"></i>
+                        </span>
+                      </OverlayTrigger>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      onInput={toInputLowerCase}
+                      placeholder="Enter Service Name"
+                      autoComplete="off"
+                      {...register("shortName", {
+                        required: "Service Name is Required",
+                        pattern: {
+                          value: /^[a-zA-Z]+$/,
+                          message:
+                            "No Spaces allowed. These fields only accept small cases only.",
+                        },
+                        minLength: {
+                          value: 2,
+                          message: "Minimum 2 Characters Required",
+                        },
+                        maxLength: {
+                          value: 30,
+                          message:
+                            "Minimum 2 and Maximum 30 Characters allowed",
+                        },
+                      })}
+                      disabled={editMode}
+                    />
+                    {errors.shortName && (
+                      <p className="errorMsg">{errors.shortName.message}</p>
                     )}
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Company GST Number{" "}
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Company GST Number"
-                        autoComplete="off"
-                        onInput={toInputSpaceCase}
-                        onKeyDown={handleEmailChange}
-                        maxLength={15}
-                        onPaste={handlePaste} 
-                        {...register("gstNo", {
-                          maxLength: {
-                            value: 15,
-                            message: "GST Number must not exceed 15 characters",
+                  </div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Company Email Id <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter Company Email Id"
+                      autoComplete="off"
+                      //onInput={toInputEmailCase}
+                      onKeyDown={handleEmailChange}
+                      onPaste={handlePaste}
+                      {...register("emailId", {
+                        required: "Company Email Id is Required",
+                        pattern: {
+                          value:
+                            /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                          message: "Invalid email format",
+                        },
+                      })}
+                      disabled={editMode}
+                    />
+                    {errors.emailId && (
+                      <p className="errorMsg">{errors.emailId.message}</p>
+                    )}
+                  </div>
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Mobile Number{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="Enter Mobile Number"
+                      autoComplete="off"
+                      maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
+                      defaultValue="+91 " // Set the initial value to +91 with a space
+                      onInput={handlePhoneNumberChange} // Handle input changes
+                      {...register("mobileNo", {
+                        required: "Mobile Number is Required",
+                        validate: {
+                          startsWithPlus91: (value) => {
+                            if (!value.startsWith("+91 ")) {
+                              return "Mobile Number must start with +91.";
+                            }
+                            return true;
                           },
-                          validate: validateGST,
-                        })}
-                        disabled={editMode}
-                      />
-                      {errors.gstNo && (
-                        <p className="errorMsg">{errors.gstNo.message}</p>
-                      )}
-                    </div>
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Company PAN Number{" "}
-                        <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        onInput={toInputSpaceCase}
-                        placeholder="Enter Company PAN Number"
-                        autoComplete="off"
-                        onKeyDown={handleEmailChange}
-                        onPaste={handlePaste}
-                        maxLength={10}
-                        {...register("panNo", {
-                          required: "Company PAN Number is Required",
-                          maxLength: {
-                            value: 10,
-                            message: "PAN Number must not exceed 10 characters",
+                          correctLength: (value) => {
+                            if (value.length !== 14) {
+                              return "Mobile Number is Required";
+                            }
+                            return true;
                           },
-                          validate: validatePAN,
-                        })}
-                        disabled={editMode}
-                      />
-                      {errors.panNo && (
-                        <p className="errorMsg">{errors.panNo.message}</p>
-                      )}
-                    </div>
+                          notRepeatingDigits: (value) => {
+                            const isRepeating = /^(\d)\1{12}$/.test(
+                              value
+                            ); // Check for repeating digits
+                            return (
+                              !isRepeating ||
+                              "Mobile Number cannot consist of the same digit repeated."
+                            );
+                          },
+                        },
+                        pattern: {
+                          value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                          message: "Mobile Number is Required",
+                        },
+                      })}
+                    />
+                    {errors.mobileNo && (
+                      <p className="errorMsg">
+                        {errors.mobileNo.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-2">
+                    <label className="form-label">
+                      Alternate Number <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="Enter Alternate Number"
+                      autoComplete="off"
+                      maxLength={14}
+                      defaultValue="+91 " // Set the initial value to +91 with a space
+                      onInput={handlePhoneNumberChange} // Handle input changes
+                      // onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
+                      {...register("alternateNo", {
+                        validate: {
+                          startsWithPlus91: (value) => {
+                            if (!value.startsWith("+91 ")) {
+                              return "Alternate Number must start with +91 and a space.";
+                            }
+                            return true;
+                          },
+                          correctLength: (value) => {
+                            if (value.length !== 14) {
+                              return "Alternate Number is Required";
+                            }
+                            return true;
+                          },
+                          notRepeatingDigits: (value) => {
+                            const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
+                            return (
+                              !isRepeating ||
+                              "Alternate Number cannot consist of the same digit repeated."
+                            );
+                          },
+                        },
+                        pattern: {
+                          value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                          message: "Alternate Number is Required",
+                        },
+                      })}
+                    />
+                    {errors.alternateNo && (
+                      <p className="errorMsg">{errors.alternateNo.message}</p>
+                    )}
+                  </div>
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Company Address <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <textarea
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter Company Address"
+                      //onKeyDown={handleEmailChange}
+                      onInput={toInputAddressCase}
+                      autoComplete="off"
+                      {...register("companyAddress", {
+                        required: "Company Address is Required",
+                        pattern: {
+                          value:
+                            /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
+                          message: "Please enter valid Address",
+                        },
+                        minLength: {
+                          value: 3,
+                          message: "Minimum 3 Characters allowed",
+                        },
+                        maxLength: {
+                          value: 250,
+                          message: "Maximum 250 Characters allowed",
+                        },
+                        validate: validateAddress
+                      })}
+                    />
+                    {errors.companyAddress && (
+                      <p className="errorMsg">
+                        {errors.companyAddress.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="row" style={{marginLeft: "90px", marginRight: "90px"}}>
-            <div className="col-12">
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                    Authorized Details
-                  </h5>
-                  <div
-                    className="dropdown-divider"
-                    style={{ borderTopColor: "#d7d9dd" }}
-                  />
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Name <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Name"
-                        // onKeyDown={handleEmailChange}
-                        onInput={toInputTitleCase}
-                        autoComplete="off"
-                        {...register("name", {
-                          required: "Name is Required",
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 characters Required",
-                          },
-                          maxLength: {
-                            value: 100,
-                            message: "Name must not exceed 100 characters",
-                          },
-                          validate: {
-                            validateName,
-                          },
-                        })}
-                      />
-                      {errors.name && (
-                        <p className="errorMsg">{errors.name.message}</p>
-                      )}
-                    </div>
+        </div>
+        <div className="row" style={{ marginLeft: "90px", marginRight: "90px" }}>
+          <div className="col-12">
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                  Company Registration Details
+                </h5>
+                <div
+                  className="dropdown-divider"
+                  style={{ borderTopColor: "#d7d9dd" }}
+                />
+              </div>
+              <div className="card-body">
+                <div className="row">
+                  {companyType === "Private Limited" && (
+                    <>
+                      <div className="col-12 col-md-6 col-lg-5 mb-3">
+                        <label className="form-label">
+                          Company CIN Number
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter Company CIN Number"
+                          onKeyDown={handleEmailChange}
+                          onInput={toInputSpaceCase}
+                          autoComplete="off"
+                          maxLength={21}
+                          onPaste={handlePaste}
+                          {...register("cinNo", {
+                            required: "Company CIN Number is Required",
+                            maxLength: {
+                              value: 21,
+                              message:
+                                "CIN Number must not exceed 21 characters",
+                            },
 
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Personal Email Id{" "}
-                        <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        placeholder="Enter Personal Email Id"
-                        autoComplete="off"
-                        // onInput={toInputEmailCase}
-                        onPaste={handlePaste}
-                        onKeyDown={handleEmailChange}
-                        {...register("personalMailId", {
-                          required: "Personal Email Id is Required",
-                          pattern: {
-                            value:
-                          /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
-                            message: "Invalid Email Format ",
-                          },
-                        })}
-                      />
-                      {errors.personalMailId && (
-                        <p className="errorMsg">
-                          {errors.personalMailId.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Personal Mobile Number{" "}
-                        <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        placeholder="Enter Personal Mobile Number"
-                        autoComplete="off"
-                        maxLength={14}
-                        defaultValue="+91 " // Set the initial value to +91 with a space
-                        onInput={handlePhoneNumberChange} // Handle input changes
-                        // onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
-                        {...register("personalMobileNo", {
-                          required: "Personal Mobile Number is Required",
-                          validate: {
-                            startsWithPlus91: (value) => {
-                              if (!value.startsWith("+91 ")) {
-                                return "Personal Mobile Number must start with +91 and a space.";
-                              }
-                              return true;
+                            validate: validateCIN,
+                          })}
+                          disabled={editMode}
+                        />
+                        {errors.cinNo && (
+                          <p className="errorMsg">{errors.cinNo.message}</p>
+                        )}
+                      </div>
+                      <div className="col-lg-1"></div>
+                    </>
+                  )}
+                  {companyType === "Firm" && (
+                    <>
+                      <div className="col-12 col-md-6 col-lg-5 mb-3">
+                        <label className="form-label">
+                          Company Registration Number{" "}
+                          <span style={{ color: "red" }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Enter Company Registration Number"
+                          autoComplete="off"
+                          maxLength={21}
+                          onPaste={handlePaste}
+                          {...register("companyRegNo", {
+                            required:
+                              "Company Registration Number is Required",
+                            maxLength: {
+                              value: 21,
+                              message:
+                                "Registration Number must not exceed 21 characters",
                             },
-                            correctLength: (value) => {
-                              if (value.length !== 14) {
-                                return "Personal Mobile Number is Required";
-                              }
-                              return true;
-                            },
-                            notRepeatingDigits: (value) => {
-                              const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
-                              return (
-                                !isRepeating ||
-                                "Personal Mobile Number cannot consist of the same digit repeated."
-                              );
-                            },
-                          },
-                          pattern: {
-                            value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                            message: "Personal Mobile Number is Required",
-                          },
-                        })}
-                      />
-                      {errors.personalMobileNo && (
-                        <p className="errorMsg">
-                          {errors.personalMobileNo.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="col-lg-1"></div>
-                    <div className="col-12 col-md-6 col-lg-5 mb-3">
-                      <label className="form-label">
-                        Address <span style={{ color: "red" }}>*</span>
-                      </label>
-                      <textarea
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Company Address"
-                        //onKeyDown={handleEmailChange}
-                        onInput={toInputAddressCase}
-                        autoComplete="off"
-                        {...register("address", {
-                          required: "Address is Required",
-                          pattern: {
-                            value:
-                              /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
-                            message: "Please enter valid Address",
-                          },
-                          minLength: {
-                            value: 3,
-                            message: "Minimum 3 Characters allowed",
-                          },
-                          maxLength: {
-                            value: 250,
-                            message: "Maximum 250 Characters allowed",
-                          },
-                          validate:validateAddress
-                        })}
-                      />
-                      {errors.address && (
-                        <p className="errorMsg">{errors.address.message}</p>
-                      )}
-                    </div>
+                            validate: validateREGISTER,
+                          })}
+                          disabled={editMode}
+                        />
+                        {errors.companyRegNo && (
+                          <p className="errorMsg">
+                            {errors.companyRegNo.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="col-lg-1"></div>
+                    </>
+                  )}
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Company GST Number{" "}
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter Company GST Number"
+                      autoComplete="off"
+                      onInput={toInputSpaceCase}
+                      onKeyDown={handleEmailChange}
+                      maxLength={15}
+                      onPaste={handlePaste}
+                      {...register("gstNo", {
+                        maxLength: {
+                          value: 15,
+                          message: "GST Number must not exceed 15 characters",
+                        },
+                        validate: validateGST,
+                      })}
+                      disabled={editMode}
+                    />
+                    {errors.gstNo && (
+                      <p className="errorMsg">{errors.gstNo.message}</p>
+                    )}
+                  </div>
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Company PAN Number{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      onInput={toInputSpaceCase}
+                      placeholder="Enter Company PAN Number"
+                      autoComplete="off"
+                      onKeyDown={handleEmailChange}
+                      onPaste={handlePaste}
+                      maxLength={10}
+                      {...register("panNo", {
+                        required: "Company PAN Number is Required",
+                        maxLength: {
+                          value: 10,
+                          message: "PAN Number must not exceed 10 characters",
+                        },
+                        validate: validatePAN,
+                      })}
+                      disabled={editMode}
+                    />
+                    {errors.panNo && (
+                      <p className="errorMsg">{errors.panNo.message}</p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-lg-1"></div>
-          <div className="col-12 mt-1">
-            {/* Display error message above the button if there are any error messages */}
-            {errorMessage.length > 0 && (
-              <div className="alert alert-danger text-center mt-1">
-                {errorMessage.map((msg, index) => (
-                  <p key={index}>{msg}</p> // Display each message in a <p> tag
-                ))}
+        </div>
+        <div className="row" style={{ marginLeft: "90px", marginRight: "90px" }}>
+          <div className="col-12">
+            <div className="card">
+              <div className="card-header">
+                <h5 className="card-title" style={{ marginBottom: "0px" }}>
+                  Authorized Details
+                </h5>
+                <div
+                  className="dropdown-divider"
+                  style={{ borderTopColor: "#d7d9dd" }}
+                />
               </div>
-            )}
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Name <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter Name"
+                      // onKeyDown={handleEmailChange}
+                      onInput={toInputTitleCase}
+                      autoComplete="off"
+                      {...register("name", {
+                        required: "Name is Required",
+                        minLength: {
+                          value: 3,
+                          message: "Minimum 3 characters Required",
+                        },
+                        maxLength: {
+                          value: 100,
+                          message: "Name must not exceed 100 characters",
+                        },
+                        validate: {
+                          validateName,
+                        },
+                      })}
+                    />
+                    {errors.name && (
+                      <p className="errorMsg">{errors.name.message}</p>
+                    )}
+                  </div>
 
-            <div className="d-flex justify-content-end mt-1">
-              {/* Conditionally render the "Clear" button only when not in editMode */}
-              {!editMode ? (
-                <button
-                  className="btn btn-secondary me-2"
-                  type="button"
-                  onClick={clearForm}
-                >
-                  Clear
-                </button>
-              ):(
-                <button
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Personal Email Id{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter Personal Email Id"
+                      autoComplete="off"
+                      // onInput={toInputEmailCase}
+                      onPaste={handlePaste}
+                      onKeyDown={handleEmailChange}
+                      {...register("personalMailId", {
+                        required: "Personal Email Id is Required",
+                        pattern: {
+                          value:
+                            /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                          message: "Invalid Email Format ",
+                        },
+                      })}
+                    />
+                    {errors.personalMailId && (
+                      <p className="errorMsg">
+                        {errors.personalMailId.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Personal Mobile Number{" "}
+                      <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="Enter Personal Mobile Number"
+                      autoComplete="off"
+                      maxLength={14}
+                      defaultValue="+91 " // Set the initial value to +91 with a space
+                      onInput={handlePhoneNumberChange} // Handle input changes
+                      // onKeyDown={handlePhoneNumberKeyDown} // Handle keydown for specific actions
+                      {...register("personalMobileNo", {
+                        required: "Personal Mobile Number is Required",
+                        validate: {
+                          startsWithPlus91: (value) => {
+                            if (!value.startsWith("+91 ")) {
+                              return "Personal Mobile Number must start with +91 and a space.";
+                            }
+                            return true;
+                          },
+                          correctLength: (value) => {
+                            if (value.length !== 14) {
+                              return "Personal Mobile Number is Required";
+                            }
+                            return true;
+                          },
+                          notRepeatingDigits: (value) => {
+                            const isRepeating = /^(\d)\1{12}$/.test(value); // Check for repeating digits
+                            return (
+                              !isRepeating ||
+                              "Personal Mobile Number cannot consist of the same digit repeated."
+                            );
+                          },
+                        },
+                        pattern: {
+                          value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                          message: "Personal Mobile Number is Required",
+                        },
+                      })}
+                    />
+                    {errors.personalMobileNo && (
+                      <p className="errorMsg">
+                        {errors.personalMobileNo.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="col-lg-1"></div>
+                  <div className="col-12 col-md-6 col-lg-5 mb-3">
+                    <label className="form-label">
+                      Address <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <textarea
+                      type="text"
+                      className="form-control"
+                      placeholder="Enter Company Address"
+                      //onKeyDown={handleEmailChange}
+                      onInput={toInputAddressCase}
+                      autoComplete="off"
+                      {...register("address", {
+                        required: "Address is Required",
+                        pattern: {
+                          value:
+                            /^(?=.*[a-zA-Z])[a-zA-Z0-9\s,'#,-_&*.+()^\-/:;]*$/,
+                          message: "Please enter valid Address",
+                        },
+                        minLength: {
+                          value: 3,
+                          message: "Minimum 3 Characters allowed",
+                        },
+                        maxLength: {
+                          value: 250,
+                          message: "Maximum 250 Characters allowed",
+                        },
+                        validate: validateAddress
+                      })}
+                    />
+                    {errors.address && (
+                      <p className="errorMsg">{errors.address.message}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-lg-1"></div>
+        <div className="col-12 mt-1">
+          {/* Display error message above the button if there are any error messages */}
+          {errorMessage.length > 0 && (
+            <div className="alert alert-danger text-center mt-1">
+              {errorMessage.map((msg, index) => (
+                <p key={index}>{msg}</p> // Display each message in a <p> tag
+              ))}
+            </div>
+          )}
+
+          <div className="d-flex justify-content-end mt-1">
+            {/* Conditionally render the "Clear" button only when not in editMode */}
+            {!editMode ? (
+              <button
+                className="btn btn-secondary me-2"
+                type="button"
+                onClick={clearForm}
+              >
+                Clear
+              </button>
+            ) : (
+              <button
                 className="btn btn-secondary me-2"
                 type="button"
                 onClick={backForm}
               >
                 Back
               </button>
-              )}
+            )}
 
-              <button
-                className={
-                  editMode ? "btn btn-danger btn-lg" : "btn btn-primary btn-lg"
-                }
-                style={{ marginRight: "85px" }}
-                type="submit"
-              >
-                {editMode ? "Update Company" : "Add Company"}
-              </button>
-            </div>
+            <button
+              className={
+                editMode ? "btn btn-danger btn-lg" : "btn btn-primary btn-lg"
+              }
+              style={{ marginRight: "85px" }}
+              type="submit"
+            >
+              {editMode ? "Update Company" : "Add Company"}
+            </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
+    </div>
   );
 };
 

@@ -56,11 +56,13 @@ const Body = () => {
   // Use userRole from Redux instead of authUser
   const isAdmin = userRole?.includes("ems_admin");
   const isCompanyAdmin = userRole?.includes("company_admin");
+  const isUserAdmin = userRole?.includes("Admin");
   const isHR = userRole?.includes("HR");
   const isAccountant = userRole?.includes("Accountant");
   const isEmployee = userRole?.includes("employee");
 
-  const showCompanyDashboard = isCompanyAdmin || isHR || isAccountant || isEmployee;
+  const showCompanyDashboard = isCompanyAdmin || isUserAdmin || isHR || isAccountant ;
+  const showEmployeeDashboard = isEmployee;
 
   const handleTotalEmployeesClick = () => {
     navigate('/totalEmployees');
@@ -160,6 +162,20 @@ const Body = () => {
                 </div>
               </div>
             </>
+            ) : showEmployeeDashboard ? (
+            <div className="row">
+              <div className="col-md-6">
+                <div className="card h-100 p-4">
+                  <DashboardCalendar />
+                </div>
+              </div>
+
+              <div className="col-md-6">
+                <div className="card h-100 p-4">
+                  <TaxSlab />
+                </div>
+              </div>
+            </div>
           ) : null}
         </div>
       </div>

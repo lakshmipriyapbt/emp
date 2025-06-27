@@ -144,47 +144,22 @@ const PayslipDoc2 = () => {
       </div>
       <div className="container mt-4" style={{ pointerEvents: "none" }}>
         <div className="card">
-          <div
-            className="card-header mt-4"
-            style={{
-              background: "none",
-              padding: "0px 25px",
-              borderBottomWidth: "0px",
-            }}
-          >
-            <div
-              className="header-content mt-4"
-              style={{
-                textAlign: "center",
-                alignItems: "center",
-                backgroundColor: "#9EEAF9",
-                border: "1px solid black",
-                borderBottom: "none",
-              }}
-            >
-              <div style={{ paddingTop: "20px" }}>
-                {company?.imageFile ? (
-                  <img
-                    className="align-middle"
-                    src={company?.imageFile}
-                    alt="Logo"
-                    style={{ height: "80px", width: "180px" }}
-                  />
-                ) : (
-                  <p>Logo</p>
-                )}
-              </div>
-              <div
-                className="company-details text-center"
-                style={{ padding: "2px" }}
-              >
-                <h5>{company?.companyName}</h5>
-                <h6>{company?.companyAddress}.</h6>
-                {/* <h6>{company?.mobileNo}</h6>
-                <h6>{company?.emailId}</h6> */}
-              </div>
-            </div>
-          </div>
+         <div className="card-header mt-4" style={{ background: "none", padding:"0px 25px",borderBottomWidth:"0px" }}>
+                        <div className="header-content mt-4" style={{ textAlign: "center", alignItems: "center", backgroundColor: "#9EEAF9", border: "1px solid black", borderBottom: "none" }}>
+                            <div style={{paddingTop:"10px", marginLeft:"390px"}}>
+                                {company?.imageFile ? (
+                                    <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
+                                ) : (
+                                    <p>Logo</p>
+                                )}
+                            </div>
+                            <div className="company-details text-center" style={{ padding: "2px" }}>
+                                <h6>Company Address.</h6>
+                                <h6>Mobile No: </h6>
+                                <h6>Mail Id:</h6>
+                            </div>
+                        </div>
+                    </div>
           <div style={{ textAlign: "center", margin: "0px 25px" }}>
             <h3
               style={{

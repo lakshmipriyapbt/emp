@@ -1,6 +1,8 @@
 package com.pb.employee.util;
 
 import com.pb.employee.model.ResourceType;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,10 @@ public class ResourceIdUtils {
     public static String generateEmployeeResourceId(String id) {
         return generateGlobalResourceId(ResourceType.EMPLOYEE, id);
     }
+    public static String generateCandidateResourceId(String id) {
+        return generateGlobalResourceId(ResourceType.CANDIDATE, id);
+    }
+
     public static String generateUserResourceId(String id) {
         return generateGlobalResourceId(ResourceType.USER, id);
     }
@@ -81,6 +87,25 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.COMPANY_TDS, companyName, startYear, endYear, tdsType);
 
     }
+    public static String generateDocumentResourceId(String resourceId) {
+        return generateGlobalResourceId(ResourceType.DOCUMENT, resourceId);
+    }
+    public static String generateExperienceResourceId (String employeeId) {
+        return generateGlobalResourceId(ResourceType.EXPERIENCE, employeeId);
+    }
+    public static String generateAppraisalResourceId (String date) {
+        return generateGlobalResourceId(ResourceType.APPRAISAL, date);
+    }
+
+    public static String generateOfferLetterId(String referenceNo) {
+        return generateGlobalResourceId(ResourceType.OFFER_LETTER, referenceNo);
+
+    }
+
+    public static String generateInternOfferLetterId(String employeeName, String s) {
+        return generateGlobalResourceId(ResourceType.INTERN_OFFER_LETTER, employeeName, s);
+    }
+
     /**
      * Generate a global resource ID based on the resource type
      *
@@ -148,7 +173,26 @@ public class ResourceIdUtils {
             prefix = Constants.COMPANY_TDS + "-";
 
         }
+        if (type == ResourceType.CANDIDATE) {
+            prefix = Constants.CANDIDATE + "-";
+        }
 
+        if (type == ResourceType.DOCUMENT) {
+            prefix = Constants.DOCUMENT + "-";
+        }
+        if (type == ResourceType.EXPERIENCE) {
+            prefix = Constants.EXPERIENCE + "-";
+
+        }
+        if (type == ResourceType.APPRAISAL) {
+            prefix = Constants.APPRAISAL + "-";
+        }
+        if (type == ResourceType.OFFER_LETTER) {
+            prefix = Constants.OFFER_LETTER + "-";
+        }
+        if (type == ResourceType.INTERN_OFFER_LETTER) {
+            prefix = Constants.INTERN_OFFER_LETTER + "-";
+        }
 
         StringBuilder md5Input = new StringBuilder();
         for (Object arg : args) {
@@ -170,5 +214,4 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
-
 }

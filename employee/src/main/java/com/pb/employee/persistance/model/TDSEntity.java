@@ -22,5 +22,6 @@ public class TDSEntity extends AbstractEntity {
     private String startYear;
     private String endYear;
     private String tdsType;
+    private String standardDeduction;
     private List<TDSPercentageEntity> persentageEntityList;
 }

@@ -811,7 +811,6 @@ public class PayslipServiceImpl implements PayslipService {
             }
             if (employeesWithoutAttendance.size() != 0){;
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(responseBody), HttpStatus.CREATED);
-
             }
             // If no payslips were generated but there are employees without attendance, return a success response with only that information
             if (generatedPayslips.isEmpty()) {

@@ -1,6 +1,9 @@
 package com.pb.employee.serviceImpl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
+import com.pb.employee.dao.InternOfferLetterDao;
+import com.pb.employee.dao.OfferLetterDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -20,13 +23,17 @@ import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -38,15 +45,27 @@ public class OfferLetterServiceImpl implements OfferLetterService {
     @Autowired
     private Configuration freeMarkerConfig;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private OfferLetterDao offerLetterDao;
+
+    @Autowired
+    private InternOfferLetterDao internOfferLetterDao;
+
     @Override
     public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest request, HttpServletRequest httpRequest) {
+
+        String resourceId = ResourceIdUtils.generateOfferLetterId(request.getReferenceNo());
         try {
             SSLUtil.disableSSLVerification();
 
             CompanyEntity rawCompany = openSearchOperations.getCompanyById(request.getCompanyId(), null, Constants.INDEX_EMS);
-            if (rawCompany == null)
+            if (rawCompany == null) {
+                log.error("Company is not found");
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), request.getCompanyId()), HttpStatus.NOT_FOUND);
-
+            }
             Entity companyDetails = CompanyUtils.unmaskCompanyProperties(rawCompany, httpRequest);
             SalaryConfigurationEntity salaryConfig = openSearchOperations.getSalaryStructureById(request.getSalaryConfigurationId(), null, Constants.INDEX_EMS + "_" + rawCompany.getShortName());
             CompanyUtils.unMaskCompanySalaryStructureProperties(salaryConfig);
@@ -72,25 +91,9 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             }
 
             // ✅ Save Offer Letter before generating PDF
-            OfferLetterEntity entity = OfferLetterEntity.builder()
-                    .companyId(request.getCompanyId())
-                    .internName(request.getInternName())
-                    .internEmail(request.getInternEmail())
-                    .mobileNo(request.getMobileNo())
-                    .designation(request.getDesignation())
-                    .salaryPackage(request.getSalaryPackage())
-                    .salaryConfigurationId(request.getSalaryConfigurationId())
-                    .joiningDate(request.getJoiningDate())
-                    .hrName(request.getHrName())
-                    .hrEmail(request.getHrEmail())
-                    .hrMobileNo(request.getHrMobileNo())
-                    .draft(request.isDraft())
-                    .createdDate(LocalDate.now().toString())
-                    .build();
-
-            openSearchOperations.saveEntity(entity, Constants.OFFER_LETTER_INDEX, "id");
-
-
+            OfferLetterEntity entity = objectMapper.convertValue(request, OfferLetterEntity.class);
+            entity.setId(resourceId);
+            entity.setType(Constants.OFFER_LETTER);
             Template template = freeMarkerConfig.getTemplate(Constants.OFFER_LETTER_TEMPLATE1);
             StringWriter writer = new StringWriter();
             template.process(model, writer);
@@ -99,8 +102,8 @@ public class OfferLetterServiceImpl implements OfferLetterService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER).build());
-
+            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER_PDF).build());
+            offerLetterDao.save(entity, rawCompany.getShortName());
             return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
 
         } catch (Exception e) {
@@ -111,13 +114,16 @@ public class OfferLetterServiceImpl implements OfferLetterService {
 
     @Override
     public ResponseEntity<byte[]> downloadInternShipOfferLetter(InternshipOfferLetterRequest req, HttpServletRequest httpReq) throws EmployeeException {
+
+        String resourceId = ResourceIdUtils.generateInternOfferLetterId(req.getEmployeeName(), String.valueOf(LocalDate.now()));
         try {
             SSLUtil.disableSSLVerification();
 
             CompanyEntity rawCompany = openSearchOperations.getCompanyById(req.getCompanyId(), null, Constants.INDEX_EMS);
-            if (rawCompany == null)
+            if (rawCompany == null) {
+                log.error("Company not found");
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), req.getCompanyId()), HttpStatus.NOT_FOUND);
-
+            }
             Entity company = CompanyUtils.unmaskCompanyProperties(rawCompany, httpReq);
 
             LocalDate start = LocalDate.parse(req.getStartDate());
@@ -147,21 +153,9 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             } else model.put(Constants.BLURRED_IMAGE, "");
 
             // ✅ Save internship offer letter before generating PDF
-            OfferLetterEntity entity = OfferLetterEntity.builder()
-                    .companyId(req.getCompanyId())
-                    .internName(req.getInternName())
-                    .internEmail(req.getInternEmail())
-                    .mobileNo(req.getMobileNo())
-                    .designation(req.getDesignation())
-                    .joiningDate(req.getStartDate())
-                    .hrName(req.getHrName())
-                    .hrEmail(req.getHrEmail())
-                    .hrMobileNo(req.getHrMobileNo())
-                    .draft(req.isDraft())
-                    .createdDate(LocalDate.now().toString())
-                    .build();
-
-            openSearchOperations.saveEntity(entity, Constants.OFFER_LETTER_INDEX, "id");
+            InternOfferLetterEntity entity = objectMapper.convertValue(req, InternOfferLetterEntity.class);
+            entity.setId(resourceId);
+            entity.setType(Constants.INTERN_OFFER_LETTER);
 
             Template template = freeMarkerConfig.getTemplate(Constants.INTERNSHIP_OFFER_LETTER_TEMPLATE);
             StringWriter writer = new StringWriter();
@@ -170,7 +164,12 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             byte[] pdf = generatePdfFromHtml(writer.toString());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER).build());
+            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER_PDF).build());
+
+            log.info("saving the internOfferLetter");
+            internOfferLetterDao.save(entity, rawCompany.getCompanyName());
+
+
             return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
 
         } catch (EmployeeException ex) {

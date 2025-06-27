@@ -4,48 +4,47 @@ import { useAuth } from "../../../../Context/AuthContext";
 import { companyViewByIdApi, EmployeeGetApiById } from "../../../../Utils/Axios";
 import InternOfferLetterTemplate from "./InternOfferLetterTemplate";
 import LayOut from "../../../../LayOut/LayOut";
+import { Link } from "react-router-dom";
 
 const InternOfferLetter = () => {
   const [companyData, setCompanyData] = useState({});
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading] = useState(false);
-  
-  const { authUser, company } = useAuth();
-  const logo = "/assets/img/adapt_adapt_logo.png"; // Fallback logo path
+  const { authUser, company={} } = useAuth();
 
-  // Fetch company data
-  const fetchCompanyData = async (companyId) => {
-    try {
-      const response = await companyViewByIdApi(companyId);
-      setCompanyData(response.data);
-    } catch (err) {
-      console.error("Error fetching company data:", err);
-      toast.error("Failed to fetch company data");
-    }
-  };
+  // // Fetch company data
+  // const fetchCompanyData = async (companyId) => {
+  //   try {
+  //     const response = await companyViewByIdApi(companyId);
+  //     setCompanyData(response.data);
+  //   } catch (err) {
+  //     console.error("Error fetching company data:", err);
+  //     toast.error("Failed to fetch company data");
+  //   }
+  // };
 
-  // Fetch employee data
-  const fetchEmployeeDetails = async (employeeId) => {
-    try {
-      const response = await EmployeeGetApiById(employeeId);
-      setEmployeeDetails(response.data);
-      if (response.data.companyId) {
-        fetchCompanyData(response.data.companyId);
-      }
-    } catch (err) {
-      console.error("Error fetching employee details:", err);
-      toast.error("Failed to fetch employee details");
-    }
-  };
+  // // Fetch employee data
+  // const fetchEmployeeDetails = async (employeeId) => {
+  //   try {
+  //     const response = await EmployeeGetApiById(employeeId);
+  //     setEmployeeDetails(response.data);
+  //     if (response.data.companyId) {
+  //       fetchCompanyData(response.data.companyId);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching employee details:", err);
+  //     toast.error("Failed to fetch employee details");
+  //   }
+  // };
 
-  useEffect(() => {
-    const userId = authUser.userId;
-    setLoading(true);
-    if (userId) {
-      fetchEmployeeDetails(userId);
-    }
-    setLoading(false);
-  }, [authUser.userId]);
+  // useEffect(() => {
+  //   const userId = authUser.userId;
+  //   setLoading(true);
+  //   if (userId) {
+  //     fetchEmployeeDetails(userId);
+  //   }
+  //   setLoading(false);
+  // }, [authUser.userId]);
 
   return (
     <LayOut>
@@ -60,7 +59,7 @@ const InternOfferLetter = () => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <a href="/main">Home</a>
+                  <Link to="/main" className="custom-link">Home</Link>         
                 </li>
                 <li className="breadcrumb-item active">
                   Internship Offer Letter
@@ -71,14 +70,14 @@ const InternOfferLetter = () => {
         </div>
 
         {/* Intern Offer Letter Template */}
-        {employeeDetails && companyData && (
+
           <InternOfferLetterTemplate
             companyLogo={company?.imageFile}
             companyData={companyData}
             date="March 20, 2025"
-            employeeName={employeeDetails.name || "John Doe"}
-            address={employeeDetails.address || "1234 Main St, City, State"}
-            department={employeeDetails.department || "Engineering"}
+            employeeName="John Doe"
+            address="1234 Main St, City, State"
+            department="Engineering"
             startDate="2025-06-01"
             endDate="2025-09-01"
             designation="Software Intern"
@@ -89,8 +88,8 @@ const InternOfferLetter = () => {
             hrName="Mark Lee"
             hrEmail="mark.lee@company.com"
             hrMobileNo="9876543210"
+            stamp={company?.stampImage}
           />
-        )}
       </div>
     </LayOut>
   );

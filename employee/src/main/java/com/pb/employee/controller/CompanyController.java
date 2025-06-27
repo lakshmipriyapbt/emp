@@ -44,9 +44,7 @@ public class CompanyController {
             summary = "${api.registerCompany.tag}", description = "${api.registerCompany.description}")
     @ResponseStatus(HttpStatus.CREATED)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
-    public ResponseEntity<?> registerCompanyAnonymous(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                             @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                             @Parameter(required = true, description = "${api.registerCompanyPayload.description}")
+    public ResponseEntity<?> registerCompanyAnonymous(@Parameter(required = true, description = "${api.registerCompanyPayload.description}")
                                              @RequestBody @Valid CompanyRequest companyRequest,
                                              HttpServletRequest request) throws EmployeeException {
         return companyService.registerCompany(companyRequest,request, (String) Constants.PENDING);
@@ -94,8 +92,8 @@ public class CompanyController {
     public ResponseEntity<?> updateCompanyStatusById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                @PathVariable String companyId,
-                                               @PathVariable String status) throws IOException, EmployeeException {
-        return companyService.updateCompanyStatus(companyId, status);
+                                               @PathVariable String status, HttpServletRequest request) throws IOException, EmployeeException {
+        return companyService.updateCompanyStatus(companyId, status, request);
     }
     @RequestMapping(value = "/image/{companyId}", method = RequestMethod.PATCH,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
