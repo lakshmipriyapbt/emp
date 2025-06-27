@@ -1391,18 +1391,25 @@ export const CandidateDeleteApi = (id) => {  // Changed parameter name to be mor
   }
 };
 
-export const getDocumentByIdAPI = async (candidateId) => {
+export const getDocumentByIdAPI = async (candidateId = '', employeeId = '') => {
   const companyName = localStorage.getItem("companyName");
   
   try {
     const response = await axiosInstance.get(
-      `/${companyName}/candidate/${candidateId}/documents`
+      `/${companyName}/documents`, 
+      {
+        params: {
+          ...(candidateId && { candidateId }), // Only include if not empty
+          ...(employeeId && { employeeId })   // Only include if not empty
+        }
+      }
     );
     return response.data;
   } catch (error) {
     console.error('Error fetching documents:', {
       url: error.config?.url,
       method: error.config?.method,
+      params: error.config?.params,
       response: error.response?.data
     });
     throw error;
@@ -1422,6 +1429,49 @@ export const deleteDocumentByIdAPI = async (candidateId, documentId) => {
       url: error.config?.url,
       method: error.config?.method,
       response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Log the data being sent for debugging
+  console.log("Uploading to:", `/${companyName}/employee/${employeeId}/upload`);
+  console.log("Document names:", docNames);
+  console.log("Files:", files.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size
+  })));
+
+  // Add data to FormData
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+    formData.append(`files[${index}]`, files[index]);
+  });
+
+  try {
+    const response = await axiosInstance.post(
+      `/${companyName}/employee/${employeeId}/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading employee documents:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers,
+      data: error.config?.data,
+      response: error.response?.data,
+      status: error.response?.status
     });
     throw error;
   }

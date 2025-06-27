@@ -968,6 +968,9 @@ public class CompanyUtils {
         if (templateRequest.getInternshipTemplateNo() != null) {
             entity.setInternshipTemplateNo(templateRequest.getInternshipTemplateNo());
         }
+        if (templateRequest.getInvoiceTemplateNo() != null) {
+            entity.setInvoiceTemplateNo(templateRequest.getInvoiceTemplateNo());
+        }
 
         return entity;
     }

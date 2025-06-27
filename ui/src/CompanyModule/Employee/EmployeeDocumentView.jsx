@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
 import LayOut from '../../LayOut/LayOut';
+import { Link } from 'react-router-dom';
 import { getDocumentByIdAPI } from '../../Utils/Axios';
+import { useSelector } from 'react-redux';
 import {
     FileEarmarkPdf as FiFilePdf,
     FileEarmarkWord as FiFileWord,
@@ -12,10 +13,10 @@ import {
     ArrowLeft as FiArrowLeft
 } from 'react-bootstrap-icons';
 
-const CandidateDocumentsView = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+const EmployeeDocumentView = () => {
     const { userId } = useSelector(state => state.auth);
+    const location = useLocation();
+    const navigate = useNavigate();
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -31,17 +32,17 @@ const CandidateDocumentsView = () => {
     const fetchDocuments = async () => {
         try {
             setLoading(true);
-            const response = await getDocumentByIdAPI(userId, '');
+            const response = await getDocumentByIdAPI('', userId);
 
             if (response && response.data && response.data.documentEntities) {
                 setDocuments(transformApiResponse(response.data));
             } else {
                 setDocuments([]);
-                toast.info('No documents found for this candidate');
+                toast.info('No documents found for this employee');
             }
         } catch (error) {
             console.error('Error fetching documents:', error);
-            
+
             if (error.response?.status === 404) {
                 toast.error(error.response.data?.message || 'Documents endpoint not found');
             } else {
@@ -159,7 +160,7 @@ const CandidateDocumentsView = () => {
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h5 className="card-title mb-0">Uploaded Documents</h5>
-                                        <p className="text-muted mb-0">View your uploaded documents</p>
+                                        <p className="text-muted mb-0">View and manage your uploaded documents</p>
                                     </div>
                                     <button
                                         onClick={() => navigate(-1)}
@@ -182,7 +183,7 @@ const CandidateDocumentsView = () => {
                                     <div className="text-center py-5">
                                         <p className="text-muted">No documents found</p>
                                         <button
-                                            onClick={() => navigate('/documentUpload')}
+                                            onClick={() => navigate('/employeeDocumentUpload')}
                                             className="btn btn-primary"
                                         >
                                             Upload Documents
@@ -209,6 +210,7 @@ const CandidateDocumentsView = () => {
                                                         <td>
                                                             <a
                                                                 href={doc.url}
+                                                                download
                                                                 className="btn btn-sm btn-outline-primary me-2"
                                                             >
                                                                 <FiDownload className="me-1" /> View
@@ -241,4 +243,4 @@ const CandidateDocumentsView = () => {
     );
 };
 
-export default CandidateDocumentsView;
+export default EmployeeDocumentView;

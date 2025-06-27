@@ -1,4 +1,4 @@
-package com.pb.employee.persistance.model;
+package com.invoice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,18 +18,6 @@ public class TemplateEntity implements Entity  {
 
     private String id;
     private String companyId;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String payslipTemplateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String experienceTemplateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String relievingTemplateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String appraisalTemplateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String offerLetterTemplateNo;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String internshipTemplateNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String invoiceTemplateNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
