@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { toast, Bounce } from "react-toastify";
 import Select from "react-select";
 import LayOut from "../../LayOut/LayOut";
 import { useAuth } from "../../Context/AuthContext";
@@ -10,6 +10,8 @@ import { InvoicePostApi } from "../../Utils/Axios";
 import { fetchCustomers } from "../../Redux/CustomerSlice";
 import { fetchBanks } from "../../Redux/BankSlice";
 import DeletePopup from "../../Utils/DeletePopup";
+import { TemplateGetAPI } from "../../Utils/Axios";
+import InvoicePreview from "../../CompanyModule/Settings/InvoiceTemplates/InvoicePreview";
 
 const InvoiceRegistration = () => {
   const {
@@ -17,29 +19,31 @@ const InvoiceRegistration = () => {
     handleSubmit,
     control,
     setValue,
-    reset,watch,
+    reset, watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   // Select data from Redux store
   // const customers = useSelector(selectCustomers) || []; // Ensure it's an array
   //const products = useSelector(selectProducts);
   const dispatch = useDispatch();
-  const { customers} = useSelector((state) => state.customers);
+  const { customers } = useSelector((state) => state.customers);
   const { products } = useSelector((state) => state.products);
   const { banks } = useSelector((state) => state.banks);
   const [productData, setProductData] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [invoiceData, setInvoiceData] = useState(null);
   const [productColumns, setProductColumns] = useState([
-      { key: "items", title: "Item", type: "text" },
-      { key: "hsn", title: "HSN-no", type: "text" },
-      { key: "service", title: "Service", type: "text" },
-      { key: "quantity", title: "Quantity", type: "number" },
-      { key: "unitCost", title: "Unit Cost", type: "number" },
-      { key: "gstPercentage", title: "GST (%)", type: "number" },
-      { key: "totalCost", title: "Total Cost", type: "number" },
-    ]);
-
+    { key: "items", title: "Item", type: "text" },
+    { key: "hsn", title: "HSN-no", type: "text" },
+    { key: "service", title: "Service", type: "text" },
+    { key: "quantity", title: "Quantity", type: "number" },
+    { key: "unitCost", title: "Unit Cost", type: "number" },
+    { key: "gstPercentage", title: "GST (%)", type: "number" },
+    { key: "totalCost", title: "Total Cost", type: "number" },
+  ]);
+  const authUser = useAuth();
+  const company = authUser?.company || {};
+  console.log("Company Data:", company);
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,19 +58,32 @@ const InvoiceRegistration = () => {
   const [formattedProducts, setFormattedProducts] = useState(products);
   const [formattedBanks, setFormattedBanks] = useState(banks);
   const navigate = useNavigate();
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [templateAvailable, setTemplateAvailable] = useState(true);
+  const [previewData, setPreviewData] = useState(null);
+  const [submissionData, setSubmissionData] = useState(null);
+  const [templateFields, setTemplateFields] = useState({
+    showShipTo: false,
+    showNotes: false,
+    showSalesPerson: false,
+    showShippingMethod: false,
+    showShippingTerms: false,
+    showPaymentTerms: false,
+    showDeliveryDate: false
+  });
 
   useEffect(() => {
-    dispatch(fetchCustomers());
+    dispatch(fetchCustomers(companyId));
     // dispatch(fetchProducts());
     dispatch(fetchBanks(companyId));
-  }, [dispatch]);
+  }, [dispatch,companyId]);
 
   const subTotal = parseFloat(
     productData.reduce(
       (sum, row) => sum + (parseFloat(row.totalCost) || 0),
       0
     ).toFixed(2)
-  );  
+  );
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
@@ -77,7 +94,7 @@ const InvoiceRegistration = () => {
   };
   const validateField = (index, key, value) => {
     const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-  
+
     const fieldValidations = {
       items: {
         minLength: 3,
@@ -97,10 +114,10 @@ const InvoiceRegistration = () => {
         errorMessage: "Service must be between 3-60 characters"
       }
     };
-  
+
     const fieldValidation = fieldValidations[normalizedKey];
     if (!fieldValidation) return true;
-  
+
     if (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -111,7 +128,7 @@ const InvoiceRegistration = () => {
       }));
       return false;
     }
-  
+
     if (fieldValidation.pattern && !fieldValidation.pattern.test(value)) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -122,14 +139,75 @@ const InvoiceRegistration = () => {
       }));
       return false;
     }
-  
+
     return true;
   };
+
+  useEffect(() => {
+    fetchTemplate();
+  }, []);
+
+  const fetchTemplate = async () => {
+    try {
+      const res = await TemplateGetAPI(companyId);
+      const templateNumber = res.data.data.invoiceTemplateNo;
+      setSelectedTemplate(templateNumber);
+      setTemplateAvailable(!!templateNumber);
+
+      // Set fields visibility based on template
+      if (templateNumber === "1") {
+        setTemplateFields({
+          showShipTo: true,
+          showNotes: true,
+          showSalesPerson: false,
+          showShippingMethod: false,
+          showShippingTerms: false,
+          showPaymentTerms: false,
+          showDeliveryDate: false
+        });
+      } else if (templateNumber === "2") {
+        setTemplateFields({
+          showShipTo: false,
+          showNotes: false,
+          showSalesPerson: true,
+          showShippingMethod: true,
+          showShippingTerms: true,
+          showPaymentTerms: true,
+          showDeliveryDate: true
+        });
+      }
+    } catch (error) {
+      handleError(error);
+      setTemplateAvailable(false);
+    }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return ""; // If the date is falsy, return an empty string
+
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0"); // Get the day, ensuring two digits
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // Get the month (0-indexed)
+    const year = d.getFullYear(); // Get the full year
+
+    return `${day}-${month}-${year}`;
+  };
+
+  // Calculate tax (example 10%)
+  const calculateTax = (subtotal) => {
+    return (subtotal * 0.1).toFixed(2);
+  };
+
+  // Calculate total including tax
+  const calculateTotal = (subtotal) => {
+    return (parseFloat(subtotal) * 1.1).toFixed(2);
+  };
+
 
   const updateData = (index, key, value) => {
     const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
     const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-  
+
     // Field-specific validation rules
     const fieldValidations = {
       items: {
@@ -150,18 +228,18 @@ const InvoiceRegistration = () => {
         errorMessage: "Service must be between 3-60 characters",
       },
     };
-  
+
     // Always update the field value (allow typing)
     setProductData((prevData) => {
       const updatedData = [...prevData];
       updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
-  
+
       // Auto-calculate totalCost if quantity/unitCost/GST changes
       if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
         const quantity = parseFloat(updatedData[index].quantity) || 0;
         const unitCost = parseFloat(updatedData[index].unitCost) || 0;
         const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
-  
+
         if (value === "") {
           updatedData[index].totalCost = "";
         } else {
@@ -170,25 +248,25 @@ const InvoiceRegistration = () => {
           updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
         }
       }
-  
+
       return updatedData;
     });
-  
+
     // Validate in real-time (but don't block input)
     const fieldValidation = fieldValidations[normalizedKey];
     if (fieldValidation) {
       let error = null;
-  
+
       // Check min/max length
       if (value.length > 0 && (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength)) {
         error = fieldValidation.errorMessage;
       }
-  
+
       // Check HSN pattern (if applicable)
       if (normalizedKey === "hsn" && fieldValidation.pattern && !fieldValidation.pattern.test(value) && value.length > 0) {
         error = fieldValidation.patternMessage;
       }
-  
+
       // Update errors (if any)
       setFieldErrors((prev) => ({
         ...prev,
@@ -199,7 +277,7 @@ const InvoiceRegistration = () => {
       }));
     }
   };
-  
+
   useEffect(() => {
     if (Array.isArray(products)) {
       const productOptions = products.map((product) => ({
@@ -225,15 +303,16 @@ const InvoiceRegistration = () => {
 
   // Filter banks based on search term
   useEffect(() => {
-    if (Array.isArray(banks)) {
-      const bankOptions = banks.map((bank) => ({
-        value: bank.bankId, // Assuming `bank.id` is the unique identifier
-        label: bank.bankName, // Assuming `bank.bankName` is the name of the bank
-      }));
-      setFormattedBanks(bankOptions);
-    }
-  }, [banks]);
-
+  if (Array.isArray(banks)) {
+    const bankOptions = banks.map((bank) => ({
+      value: bank.bankId,
+      label: bank.bankName,
+      // Include the full bank object
+      bankData: bank 
+    }));
+    setFormattedBanks(bankOptions);
+  }
+}, [banks]);
   const handleCustomerChange = (selectedOption) => {
     setInvoiceData(selectedOption);
     console.log("selectedOption", selectedOption);
@@ -280,9 +359,9 @@ const InvoiceRegistration = () => {
     // Check if customers is an array before using map
     const productOptions = Array.isArray(products)
       ? products.map((prod) => ({
-          value: prod.productId,
-          label: prod.productName,
-        }))
+        value: prod.productId,
+        label: prod.productName,
+      }))
       : [];
 
     setProduct(productOptions);
@@ -293,81 +372,159 @@ const InvoiceRegistration = () => {
     // Check if customers is an array before using map
     const customerOptions = Array.isArray(customers)
       ? customers.map((cust) => ({
-          value: cust.customerId,
-          label: cust.customerName,
-        }))
+        value: cust.customerId,
+        label: cust.customerName,
+      }))
       : [];
 
     setCustomer(customerOptions);
     console.log(customerOptions);
   }, [customers]);
 
-  const onSubmit = async (data) => {
-    setLoad(true);
+ const onSubmit = (data) => {
+  // Find the full customer and bank details from Redux state
+  const selectedCustomer = customers.find(
+    cust => cust.customerId === data.customerName.value
+  );
+  
+   const selectedBankOption = formattedBanks.find(
+    bank => bank.value === data.bankName
+  );
+
+  // Get the full bank details from the option
+  const selectedBank = selectedBankOption?.bankData;
+
+  console.log("Selected Bank Details for Preview:", selectedBank);
+
+
+  // Format product data for API
+  const formattedProductData = productData.map((item, index) => ({
+    id: index + 1,
+    productName: item.items || 'Unnamed Product',
+    quantity: item.quantity || 0,
+    price: item.unitCost || 0,
+    total: item.totalCost || 0
+  }));
+
+  // Prepare the complete request body
+  const submissionData = {
+    productData: formattedProductData,
+    productColumns: [
+      { key: "productName", title: "Product Name", type: "text" },
+      { key: "quantity", title: "Quantity", type: "number" },
+      { key: "price", title: "Price", type: "number" },
+      { key: "total", title: "Total", type: "number" }
+    ],
+    shippedPayload: [
+      {
+        customerName: selectedCustomer?.customerName || '',
+        address: selectedCustomer?.address || '',
+        mobileNumber: selectedCustomer?.mobileNumber || ''
+      }
+    ],
+    vendorCode: data.vendorCode || '',
+    purchaseOrder: data.purchaseOrder || '',
+    invoiceDate: data.invoiceDate || '',
+    dueDate: data.dueDate || '',
+    subTotal: subTotal.toFixed(2),
+    status: "Active",
+    bankId: data.bankName?.value || '',
+    notes: data.notes || '',
+    salesPerson: data.salesPerson || '',
+    shippingMethod: data.shippingMethod || '',
+    shippingTerms: data.shippingTerms || '',
+    paymentTerms: data.paymentTerms || 'Net 30',
+    deliveryDate: data.deliveryDate || '',
+    invoiceNo: `INV-${Date.now()}`
+  };
+
+  // For preview data - include bank details
+  const previewData = {
+    ...submissionData,
+    billedTo: {
+      customerName: selectedCustomer?.customerName || '',
+      address: selectedCustomer?.address || '',
+      mobileNumber: selectedCustomer?.mobileNumber || ''
+    },
+    shippedTo: {
+      customerName: data.shipToName || '',
+      address: data.shipToAddress || '',
+      mobileNumber: data.shipToMobile || ''
+    },
+    company: {
+      companyName: company?.companyName,
+      address: company?.address,
+      emailId: company?.emailId,
+      mobileNo: company?.mobileNo,
+      imageFile: company?.imageFile
+    },
+     bankDetails: selectedBank || {
+      bankName: '',
+      accountNumber: '',
+      accountType: '',
+      branch: '',
+      ifscCode: '',
+      address: ''
+    }
+  };
+
+  setPreviewData(previewData);
+  setSubmissionData(submissionData);
+  setShowPreview(true);
+};
+
+  const handleConfirmSubmission = async () => {
     try {
-      const customerId = data.customerName?.value;
-      if (!customerId) {
-        toast.error("Customer ID is required");
-        setLoad(false);
-        return;
+      const success = await InvoicePostApi(submissionData);
+      if (success) {
+        setShowPreview(true);
+        reset();
       }
-       // ✅ Validate column titles (ensure no empty titles or "New Field")
-    const invalidColumns = productColumns.filter(
-      (col) => !col.title.trim() || col.title === "New Field"
-    );
-    if (invalidColumns.length >0) {
-      toast.error("Column titles cannot be empty or 'New Field'. Please update them.");
-      setLoad(false);
-      return;
-    }
-       // ✅ Check if at least one product is added
-    if (productData.length === 0) {
-      toast.error("At least one product must be added before submitting.");
-      setLoad(false);
-      return;
-    }
-      // ✅ Validate Product Rows (Ensure no empty fields)
-      const isProductDataValid = productData.every((row) => {
-        return productColumns.every((col) => row[col.key] && row[col.key].toString().trim() !== "");
-      });
-  
-      if (!isProductDataValid) {
-        toast.error("All product fields must be filled before submitting.");
-        setLoad(false);
-        return;
-      }
-  
-      // ✅ Construct the invoice object
-      const invoiceDataToSend = {
-        customerName: data.customerName.label,
-        purchaseOrder: data.purchaseOrder,
-        vendorCode: data.vendorCode,
-        invoiceDate: data.invoiceDate,
-        dueDate: data.dueDate,
-        status: "Active",
-        bankId: data.bankName,
-        subTotal: parseFloat(subTotal).toFixed(2),
-        productColumns,
-        productData,
-      };
-  
-      // ✅ Send API request
-      const response = await InvoicePostApi(companyId, customerId, invoiceDataToSend);
-      console.log("✅ API Response:", response);
-      setTimeout(() => {
-        toast.success("Invoice created successfully");
-        navigate("/invoiceView");
-      }, 1000); 
-      setInvoiceData(data);
-      setShowPreview(true);
     } catch (error) {
-      console.error("❌ API Error:", error);
-      toast.error("Failed to save invoice", {
+      console.error("Error downloading the PDF:", error);
+      handleError(error);
+    }
+  };
+
+  const handleError = (errors) => {
+    if (errors.response) {
+      const status = errors.response.status;
+      let errorMessage = "";
+
+      switch (status) {
+        case 403:
+          errorMessage = "Session Timeout!";
+          navigate("/");
+          break;
+        case 404:
+          errorMessage = "Resource Not Found!";
+          break;
+        case 406:
+          errorMessage = "Invalid Details!";
+          break;
+        case 500:
+          errorMessage = "Server Error!";
+          break;
+        default:
+          errorMessage = "An Error Occurred!";
+          break;
+      }
+
+      toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 1000,
+        transition: Bounce,
+        hideProgressBar: true,
+        theme: "colored",
+        autoClose: 3000,
       });
-    } finally {
-      setLoad(false);
+    } else {
+      // toast.error("Network Error!", {
+      //   position: "top-right",
+      //   transition: Bounce,
+      //   hideProgressBar: true,
+      //   theme: "colored",
+      //   autoClose: 3000,
+      // });
     }
   };
 
@@ -381,11 +538,11 @@ const InvoiceRegistration = () => {
       bankName: null,
       products: [],
     });
-  
+
     setProductData([]);  // Clear product rows
     toast.info("Form cleared!", { position: "top-right", autoClose: 1000 });
   };
-  
+
   const handleDeleteColumn = (key) => {
     setSelectedItemId(key);
     setDeleteType("column");
@@ -442,12 +599,12 @@ const InvoiceRegistration = () => {
 
   const validateDueDate = (dueDate) => {
     if (!joiningDate) return "Invoice Date is required before selecting End Date";
-  
+
     const joinDateObj = new Date(joiningDate);
     const endDateObj = new Date(dueDate);
     const maxEndDate = new Date(joinDateObj);
     maxEndDate.setFullYear(maxEndDate.getFullYear() + 1); // 12 months ahead
-  
+
     if (endDateObj < joinDateObj) {
       return "Due Date cannot be before Invoice Date";
     }
@@ -457,17 +614,17 @@ const InvoiceRegistration = () => {
     return true;
   };
 
-    useEffect(() => {
-      // Dynamically update the max End Date and Accept Date based on the joiningDate
-      if (joiningDate) {
-        const joiningDateObj = new Date(joiningDate);
-        
-        // Set max End Date to 12 months after the joiningDate
-        const maxEndDate = new Date(joiningDateObj);
-        maxEndDate.setMonth(maxEndDate.getMonth() + 1);
-        setValue("dueDate", maxEndDate.toISOString().split("T")[0]);
-      }
-    }, [joiningDate, setValue]);
+  useEffect(() => {
+    // Dynamically update the max End Date and Accept Date based on the joiningDate
+    if (joiningDate) {
+      const joiningDateObj = new Date(joiningDate);
+
+      // Set max End Date to 12 months after the joiningDate
+      const maxEndDate = new Date(joiningDateObj);
+      maxEndDate.setMonth(maxEndDate.getMonth() + 1);
+      setValue("dueDate", maxEndDate.toISOString().split("T")[0]);
+    }
+  }, [joiningDate, setValue]);
 
   useEffect(() => {
     const invoiceDate = document.getElementById("invoiceDate").value;
@@ -486,23 +643,23 @@ const InvoiceRegistration = () => {
       toast.error("You cannot add more than 8 columns.");
       return;
     }
-  
+
     const newKey = `custom_${productColumns.length}`;
     const newColumn = { key: newKey, title: "New Field", type: "text" };
-  
+
     const totalCostIndex = productColumns.findIndex(
       (col) => col.key === "totalCost"
     );
-  
+
     const updatedColumns =
       totalCostIndex !== -1
         ? [
-            ...productColumns.slice(0, totalCostIndex),
-            newColumn,
-            ...productColumns.slice(totalCostIndex),
-          ]
+          ...productColumns.slice(0, totalCostIndex),
+          newColumn,
+          ...productColumns.slice(totalCostIndex),
+        ]
         : [...productColumns, newColumn];
-  
+
     setProductColumns(updatedColumns);
   };
   const updateColumnTitle = (key, title) => {
@@ -515,16 +672,16 @@ const InvoiceRegistration = () => {
       );
       return;
     }
-  
+
     // Trim the title to avoid issues with spaces
     const trimmedTitle = title.trim();
-  
+
     // Prevent invalid titles when the employee confirms the change
     if (trimmedTitle === "New Field") {
       toast.error("Column title cannot be 'New Field'. Please enter a valid title.");
       return;
     }
-  
+
     // Update the column title
     setProductColumns(
       productColumns.map((col) =>
@@ -534,7 +691,7 @@ const InvoiceRegistration = () => {
       )
     );
   };
-   
+
 
   const addRow = () => setProductData([...productData, {}]);
 
@@ -641,6 +798,7 @@ const InvoiceRegistration = () => {
                             } // Find the selected bank by matching value (bankId)
                             onChange={(selectedOption) => {
                               // Handle bank selection
+                              console.log("Selected Bank Option:", selectedOption);
                               field.onChange(
                                 selectedOption ? selectedOption.value : null
                               ); // Update the bankId (value) in form
@@ -679,9 +837,9 @@ const InvoiceRegistration = () => {
                         {...register("vendorCode", {
                           required: "Vendor Code is required",
                           pattern: {
-                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/, 
+                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
                             message: "Must contain at least one number. Only alphabets are not allowed."
-                          },                          
+                          },
                           minLength: {
                             value: 3,
                             message:
@@ -722,9 +880,9 @@ const InvoiceRegistration = () => {
                         {...register("purchaseOrder", {
                           required: "Purchase Order is required",
                           pattern: {
-                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/, 
+                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
                             message: "Must contain at least one number. Only alphabets are not allowed."
-                          },                          
+                          },
                           minLength: {
                             value: 3,
                             message:
@@ -763,7 +921,7 @@ const InvoiceRegistration = () => {
                         id="invoiceDate"
                         autoComplete="off"
                         max={new Date().toISOString().split("T")[0]} // Restricts future dates
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
                         })}
@@ -792,19 +950,166 @@ const InvoiceRegistration = () => {
                         name="dueDate"
                         id="dueDate"
                         autoComplete="off"
-                        onClick={(e) => e.target.showPicker()} 
+                        onClick={(e) => e.target.showPicker()}
                         {...register("dueDate", {
                           required: "Due Date is required",
-                         validate:validateDueDate
+                          validate: validateDueDate
                         })}
                       />
-                       {errors.dueDate && (
-                      <p className="errorMsg" style={{ marginLeft: "6px" }}>
-                        {errors.dueDate.message}
-                      </p>
-                    )}
-                    </div>    
+                      {errors.dueDate && (
+                        <p className="errorMsg" style={{ marginLeft: "6px" }}>
+                          {errors.dueDate.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  {templateFields.showShipTo && (
+                    <>
+                      <div className="form-group row">
+                        <label htmlFor="shipToName" className="col-sm-2 text-right control-label col-form-label">
+                          Ship To Name
+                        </label>
+                        <div className="col-sm-9 mb-3">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="shipToName"
+                            {...register("shipToName")}
+                            placeholder="Enter Ship To Name"
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group row">
+                        <label htmlFor="shipToAddress" className="col-sm-2 text-right control-label col-form-label">
+                          Ship To Address
+                        </label>
+                        <div className="col-sm-9 mb-3">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="shipToAddress"
+                            {...register("shipToAddress")}
+                            placeholder="Enter Ship To Address"
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group row">
+                        <label htmlFor="shipToMobile" className="col-sm-2 text-right control-label col-form-label">
+                          Ship To Mobile
+                        </label>
+                        <div className="col-sm-9 mb-3">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="shipToMobile"
+                            {...register("shipToMobile")}
+                            placeholder="Enter Ship To Mobile"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {templateFields.showNotes && (
+                    <div className="form-group row">
+                      <label htmlFor="notes" className="col-sm-2 text-right control-label col-form-label">
+                        Special Notes
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <textarea
+                          className="form-control"
+                          id="notes"
+                          {...register("notes")}
+                          placeholder="Enter special notes and instructions"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {templateFields.showSalesPerson && (
+                    <div className="form-group row">
+                      <label htmlFor="salesPerson" className="col-sm-2 text-right control-label col-form-label">
+                        Sales Person
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="salesPerson"
+                          {...register("salesPerson")}
+                          placeholder="Enter Sales Person Name"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {templateFields.showShippingMethod && (
+                    <div className="form-group row">
+                      <label htmlFor="shippingMethod" className="col-sm-2 text-right control-label col-form-label">
+                        Shipping Method
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="shippingMethod"
+                          {...register("shippingMethod")}
+                          placeholder="Enter Shipping Method"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {templateFields.showShippingTerms && (
+                    <div className="form-group row">
+                      <label htmlFor="shippingTerms" className="col-sm-2 text-right control-label col-form-label">
+                        Shipping Terms
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="shippingTerms"
+                          {...register("shippingTerms")}
+                          placeholder="Enter Shipping Terms"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {templateFields.showPaymentTerms && (
+                    <div className="form-group row">
+                      <label htmlFor="paymentTerms" className="col-sm-2 text-right control-label col-form-label">
+                        Payment Terms
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="paymentTerms"
+                          {...register("paymentTerms")}
+                          placeholder="Enter Payment Terms"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {templateFields.showDeliveryDate && (
+                    <div className="form-group row">
+                      <label htmlFor="deliveryDate" className="col-sm-2 text-right control-label col-form-label">
+                        Delivery Date
+                      </label>
+                      <div className="col-sm-9 mb-3">
+                        <input
+                          type="date"
+                          className="form-control"
+                          id="deliveryDate"
+                          {...register("deliveryDate")}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-4">
                     <button
                       type="button"
@@ -823,40 +1128,40 @@ const InvoiceRegistration = () => {
                     <table className="table table-bordered">
                       <thead>
                         <tr>
-                            {productColumns.map((col) => (
-                              <th key={col.key} className="position-relative">
-                                {col.key !== "totalCost" && ( // Prevent deleting totalCost column
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm position-absolute top-0 end-0"
-                                    onClick={() => handleDeleteColumn(col.key)}
-                                    style={{ fontSize: "10px" }}
-                                  >
-                                    ❌
-                                  </button>
-                                )}
-                                <input
-                                  type="text"
-                                  className="form-control mb-1"
-                                  value={col.title}
-                                  onChange={(e) =>
-                                    updateColumnTitle(col.key, e.target.value)
-                                  }
-                                  disabled={col.key === "totalCost"} // Prevent editing totalCost header
-                                />
-                                <select
-                                  className="form-select form-select-sm"
-                                  value={col.type}
-                                  onChange={(e) =>
-                                    updateColumnType(col.key, e.target.value)
-                                  }
+                          {productColumns.map((col) => (
+                            <th key={col.key} className="position-relative">
+                              {col.key !== "totalCost" && ( // Prevent deleting totalCost column
+                                <button
+                                  type="button"
+                                  className="btn btn-sm position-absolute top-0 end-0"
+                                  onClick={() => handleDeleteColumn(col.key)}
+                                  style={{ fontSize: "10px" }}
                                 >
-                                  <option value="text">Text</option>
-                                  <option value="number">Number</option>
-                                  <option value="percentage">%</option>
-                                </select>
-                              </th>
-                            ))}
+                                  ❌
+                                </button>
+                              )}
+                              <input
+                                type="text"
+                                className="form-control mb-1"
+                                value={col.title}
+                                onChange={(e) =>
+                                  updateColumnTitle(col.key, e.target.value)
+                                }
+                                disabled={col.key === "totalCost"} // Prevent editing totalCost header
+                              />
+                              <select
+                                className="form-select form-select-sm"
+                                value={col.type}
+                                onChange={(e) =>
+                                  updateColumnType(col.key, e.target.value)
+                                }
+                              >
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="percentage">%</option>
+                              </select>
+                            </th>
+                          ))}
                           <th style={{ paddingBottom: "35px" }}>Action</th>
                         </tr>
                       </thead>
@@ -922,7 +1227,7 @@ const InvoiceRegistration = () => {
                               readOnly
                             />
                           </td>
-                          
+
                           <td></td>
                         </tr>
                       </tbody>
@@ -935,7 +1240,7 @@ const InvoiceRegistration = () => {
                       pageName="Field"
                     />
                   </div>
-                 
+
                 </div>
                 <div className="d-flex justify-content-end gap-2 mb-3 me-2">
                   <button type="button" className="btn btn-secondary" onClick={handleClearForm}>
@@ -946,6 +1251,54 @@ const InvoiceRegistration = () => {
                   </button>
                 </div>
               </form>
+              {showPreview && (
+                <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                  <div className="modal-dialog modal-lg">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title">Invoice Preview</h5>
+                        <button
+                          type="button"
+                          className="close"
+                          onClick={() => {
+                            setShowPreview(false);
+                            setPreviewData(null);
+                          }}
+                        >
+                          <span>&times;</span>
+                        </button>
+                      </div>
+                      <div className="modal-body">
+                        {previewData && (
+                          <InvoicePreview
+                            previewData={previewData}
+                            selectedTemplate={selectedTemplate}
+                          />
+                        )}
+                      </div>
+                      <div className="modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setShowPreview(false);
+                            setPreviewData(null);
+                          }}
+                        >
+                          Close
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={handleConfirmSubmission}
+                        >
+                          Confirm Submission
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

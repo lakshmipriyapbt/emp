@@ -82,7 +82,7 @@ export const NAV_CONFIG = {
             icon: 'receipt', // 🧾
             items: [
                 { title: 'Invoice View', path: '/invoiceView' },
-                { title: 'Invoice Registration', path: '/invoiceRegistartion' }
+                { title: 'Invoice Registration', path: '/invoiceRegistration' }
             ]
         },
         {
@@ -108,8 +108,7 @@ export const NAV_CONFIG = {
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
                 { title: 'Payslip Template', path: '/payslipTemplates' },
-                { title: 'Invoice Template', path: '/invoiceTemplate1' },
-                { title: 'Invoice Template', path: '/invoiceTemplate2' },
+                { title: 'Invoice Template', path: '/invoiceTemplates' },
             ]
         }
     ],
