@@ -23,4 +23,6 @@ public interface EmployeeService {
     ResponseEntity<?> getEmployeeWithoutAttendance(String companyName,String month,String year)throws IOException,EmployeeException;
 
     ResponseEntity<?> getEmployeeId(String companyName, EmployeeIdRequest employeeIdRequest) throws IOException, EmployeeException;
+
+    ResponseEntity<?> registerEmployeeWithCandidate(EmployeeRequest employeeRequest, String candidateId, HttpServletRequest request) throws EmployeeException;
 }

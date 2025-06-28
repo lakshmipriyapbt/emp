@@ -68,6 +68,7 @@
     width: 250px;
     }
     .ship-to {
+    top: 18%;
     position: absolute;
     right: 10px;
     padding-right: 15px; /* Slightly reduced padding */

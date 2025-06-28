@@ -1,6 +1,8 @@
 package com.pb.employee.util;
 
 import com.pb.employee.model.ResourceType;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +97,17 @@ public class ResourceIdUtils {
         return generateGlobalResourceId(ResourceType.APPRAISAL, date);
     }
 
+    public static String generateOfferLetterId(String referenceNo) {
+        return generateGlobalResourceId(ResourceType.OFFER_LETTER, referenceNo);
+
+    }
+    public static String generateInternOfferLetterId(String employeeName, String s) {
+        return generateGlobalResourceId(ResourceType.INTERN_OFFER_LETTER, employeeName, s);
+    }
+    public static String generateInternshipCertificateResourceId(String employeeName,String time) {
+        return generateGlobalResourceId(ResourceType.INTERNSHIP_CERTIFICATE, employeeName, time);
+    }
+
     /**
      * Generate a global resource ID based on the resource type
      *
@@ -176,8 +189,12 @@ public class ResourceIdUtils {
         if (type == ResourceType.APPRAISAL) {
             prefix = Constants.APPRAISAL + "-";
         }
-
-
+        if (type == ResourceType.OFFER_LETTER) {
+            prefix = Constants.OFFER_LETTER + "-";
+        }
+        if (type == ResourceType.INTERN_OFFER_LETTER) {
+            prefix = Constants.INTERN_OFFER_LETTER + "-";
+        }
 
         StringBuilder md5Input = new StringBuilder();
         for (Object arg : args) {
@@ -199,5 +216,4 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
-
 }
