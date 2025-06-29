@@ -40,22 +40,4 @@ public class OfferLetterController {
         return offerLetterService.downloadOfferLetter(offerLetterRequest, request);
     }
 
-    // ✅ Download + Save Internship Offer Letter
-    @RequestMapping(value = "/internShipLetter/download", method = RequestMethod.POST)
-    @io.swagger.v3.oas.annotations.Operation(
-            security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
-            summary = "${api.downloadInternShipOfferLetter.tag}",
-            description = "${api.downloadInternShipOfferLetter.description}")
-    @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<byte[]> downloadInternShipOfferLetter(
-            @Parameter(hidden = true, required = true, description = "${apiAuthToken.description}",
-                    example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-            @RequestHeader(Constants.AUTH_KEY) String authToken,
-            @RequestBody @Valid InternshipOfferLetterRequest internshipOfferLetterRequest,
-            HttpServletRequest request) throws EmployeeException {
-
-        // ✅ Saving is done inside the service
-        return offerLetterService.downloadInternShipOfferLetter(internshipOfferLetterRequest, request);
-    }
 }
