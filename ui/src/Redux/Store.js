@@ -11,6 +11,7 @@ import departmentReducer from './DepartmentSlice'
 import designationReducer from './DesignationSlice'
 import UserReducer from './UserSlice'
 import CandidateReducer from './CandidateSlice'
+import ProfileImageReducer from './ProfileImageSlice';
 
 const store = configureStore({
   reducer: {
@@ -25,7 +26,8 @@ const store = configureStore({
     departments:departmentReducer,
     designations:designationReducer,
     users:UserReducer,
-    candidates:CandidateReducer
+    candidates:CandidateReducer,
+    profile: ProfileImageReducer, // Add profile image slice reducer to store
   },
 });
 

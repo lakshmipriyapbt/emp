@@ -43,7 +43,7 @@ const InvoiceRegistration = () => {
   ]);
   const authUser = useAuth();
   const company = authUser?.company || {};
-  console.log("Company Data:", company);
+  console.log("Company Data***", company);
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -76,7 +76,7 @@ const InvoiceRegistration = () => {
     dispatch(fetchCustomers(companyId));
     // dispatch(fetchProducts());
     dispatch(fetchBanks(companyId));
-  }, [dispatch,companyId]);
+  }, [dispatch, companyId]);
 
   const subTotal = parseFloat(
     productData.reduce(
@@ -303,16 +303,16 @@ const InvoiceRegistration = () => {
 
   // Filter banks based on search term
   useEffect(() => {
-  if (Array.isArray(banks)) {
-    const bankOptions = banks.map((bank) => ({
-      value: bank.bankId,
-      label: bank.bankName,
-      // Include the full bank object
-      bankData: bank 
-    }));
-    setFormattedBanks(bankOptions);
-  }
-}, [banks]);
+    if (Array.isArray(banks)) {
+      const bankOptions = banks.map((bank) => ({
+        value: bank.bankId,
+        label: bank.bankName,
+        // Include the full bank object
+        bankData: bank
+      }));
+      setFormattedBanks(bankOptions);
+    }
+  }, [banks]);
   const handleCustomerChange = (selectedOption) => {
     setInvoiceData(selectedOption);
     console.log("selectedOption", selectedOption);
@@ -381,111 +381,135 @@ const InvoiceRegistration = () => {
     console.log(customerOptions);
   }, [customers]);
 
- const onSubmit = (data) => {
-  // Find the full customer and bank details from Redux state
-  const selectedCustomer = customers.find(
-    cust => cust.customerId === data.customerName.value
-  );
-  
-   const selectedBankOption = formattedBanks.find(
-    bank => bank.value === data.bankName
-  );
+  const onSubmit = (data) => {
+    // Find the full customer and bank details
+    const selectedCustomer = customers.find(
+      cust => cust.customerId === data.customerName.value
+    );
 
-  // Get the full bank details from the option
-  const selectedBank = selectedBankOption?.bankData;
+    const selectedBankOption = formattedBanks.find(
+      bank => bank.value === data.bankName
+    );
+    const selectedBank = selectedBankOption?.bankData;
 
-  console.log("Selected Bank Details for Preview:", selectedBank);
+    // Format product data
+    const formattedProductData = productData.map((item, index) => ({
+      id: index + 1,
+      productName: item.items || 'Unnamed Product',
+      quantity: item.quantity || 0,
+      price: item.unitCost || 0,
+      total: item.totalCost || 0
+    }));
 
+    // Prepare the complete preview data
+    const previewData = {
+      // Company info
+      company: {
+        companyName: company?.companyName,
+        address: company?.companyAddress || company?.address,
+        emailId: company?.emailId,
+        mobileNo: company?.mobileNo,
+        imageFile: company?.imageFile,
+        stampImage: company?.stampImage
+      },
 
-  // Format product data for API
-  const formattedProductData = productData.map((item, index) => ({
-    id: index + 1,
-    productName: item.items || 'Unnamed Product',
-    quantity: item.quantity || 0,
-    price: item.unitCost || 0,
-    total: item.totalCost || 0
-  }));
-
-  // Prepare the complete request body
-  const submissionData = {
-    productData: formattedProductData,
-    productColumns: [
-      { key: "productName", title: "Product Name", type: "text" },
-      { key: "quantity", title: "Quantity", type: "number" },
-      { key: "price", title: "Price", type: "number" },
-      { key: "total", title: "Total", type: "number" }
-    ],
-    shippedPayload: [
-      {
+      // Customer info
+      billedTo: {
         customerName: selectedCustomer?.customerName || '',
         address: selectedCustomer?.address || '',
-        mobileNumber: selectedCustomer?.mobileNumber || ''
-      }
-    ],
-    vendorCode: data.vendorCode || '',
-    purchaseOrder: data.purchaseOrder || '',
-    invoiceDate: data.invoiceDate || '',
-    dueDate: data.dueDate || '',
-    subTotal: subTotal.toFixed(2),
-    status: "Active",
-    bankId: data.bankName?.value || '',
-    notes: data.notes || '',
-    salesPerson: data.salesPerson || '',
-    shippingMethod: data.shippingMethod || '',
-    shippingTerms: data.shippingTerms || '',
-    paymentTerms: data.paymentTerms || 'Net 30',
-    deliveryDate: data.deliveryDate || '',
-    invoiceNo: `INV-${Date.now()}`
-  };
+        mobileNumber: selectedCustomer?.mobileNumber || '',
+        email: selectedCustomer?.email || '',
+        customerGstNo: selectedCustomer?.customerGstNo || ''
+      },
 
-  // For preview data - include bank details
-  const previewData = {
-    ...submissionData,
-    billedTo: {
-      customerName: selectedCustomer?.customerName || '',
-      address: selectedCustomer?.address || '',
-      mobileNumber: selectedCustomer?.mobileNumber || ''
-    },
-    shippedTo: {
-      customerName: data.shipToName || '',
-      address: data.shipToAddress || '',
-      mobileNumber: data.shipToMobile || ''
-    },
-    company: {
-      companyName: company?.companyName,
-      address: company?.address,
-      emailId: company?.emailId,
-      mobileNo: company?.mobileNo,
-      imageFile: company?.imageFile
-    },
-     bankDetails: selectedBank || {
-      bankName: '',
-      accountNumber: '',
-      accountType: '',
-      branch: '',
-      ifscCode: '',
-      address: ''
-    }
-  };
+      // Shipping info (if different from billedTo)
+      shippedTo: {
+        customerName: data.shipToName || selectedCustomer?.customerName || '',
+        address: data.shipToAddress || selectedCustomer?.address || '',
+        mobileNumber: data.shipToMobile || selectedCustomer?.mobileNumber || ''
+      },
 
-  setPreviewData(previewData);
-  setSubmissionData(submissionData);
-  setShowPreview(true);
-};
+      // Invoice details
+      invoiceNo: `INV-${Date.now()}`,
+      invoiceDate: data.invoiceDate || '',
+      dueDate: data.dueDate || '',
+      purchaseOrder: data.purchaseOrder || '',
+
+      // Product details
+      productData: formattedProductData,
+      productColumns: [
+        { key: "productName", title: "Product Name", type: "text" },
+        { key: "quantity", title: "Quantity", type: "number" },
+        { key: "price", title: "Price", type: "number" },
+        { key: "total", title: "Total", type: "number" }
+      ],
+
+      // Financial details
+      subTotal: subTotal.toFixed(2),
+      notes: data.notes || '',
+
+      // Bank details
+      bankDetails: selectedBank || {
+        bankName: '',
+        accountNumber: '',
+        accountType: '',
+        branch: '',
+        ifscCode: '',
+        address: ''
+      },
+
+      // Additional fields for Template 2
+      salesPerson: data.salesPerson || '',
+      shippingMethod: data.shippingMethod || '',
+      shippingTerms: data.shippingTerms || '',
+      paymentTerms: data.paymentTerms || 'Net 30',
+      deliveryDate: data.deliveryDate || ''
+    };
+
+    setPreviewData(previewData);
+    setSubmissionData({
+      ...previewData,
+      customerId: selectedCustomer?.customerId,
+      bankId: selectedBank?.bankId
+    });
+    setShowPreview(true);
+  };
 
   const handleConfirmSubmission = async () => {
-    try {
-      const success = await InvoicePostApi(submissionData);
-      if (success) {
-        setShowPreview(true);
-        reset();
-      }
-    } catch (error) {
-      console.error("Error downloading the PDF:", error);
-      handleError(error);
-    }
-  };
+  try {
+    // Ensure these values are properly set
+    const companyId = company?.id; // Changed from company?.companyId
+    const customerId = submissionData?.customerId;
+    
+    console.log("Submitting with:", { 
+      companyId, 
+      customerId,
+      data: submissionData 
+    });
 
+    if (!companyId) {
+      throw new Error("Company ID is missing");
+    }
+    
+    if (!customerId) {
+      throw new Error("Customer ID is missing");
+    }
+
+    const response = await InvoicePostApi(
+      companyId,
+      customerId,
+      submissionData
+    );
+    
+    if (response) {
+      setShowPreview(false);
+      reset();
+    }
+  } catch (error) {
+    console.error("Error creating invoice:", error);
+    toast.error(`Failed to create invoice: ${error.message}`);
+  }
+};
   const handleError = (errors) => {
     if (errors.response) {
       const status = errors.response.status;
@@ -1252,10 +1276,29 @@ const InvoiceRegistration = () => {
                 </div>
               </form>
               {showPreview && (
-                <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                  <div className="modal-dialog modal-lg">
-                    <div className="modal-content">
-                      <div className="modal-header">
+                <div className="modal" style={{
+                  display: 'block',
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1050,
+                  overflow: 'auto'
+                }}>
+                  <div className="modal-dialog modal-xl" style={{
+                    maxWidth: '90%',
+                    margin: '30px auto'
+                  }}>
+                    <div className="modal-content" style={{
+                      border: 'none',
+                      borderRadius: '0.3rem'
+                    }}>
+                      <div className="modal-header" style={{
+                        borderBottom: '1px solid #dee2e6',
+                        padding: '1rem'
+                      }}>
                         <h5 className="modal-title">Invoice Preview</h5>
                         <button
                           type="button"
@@ -1264,11 +1307,22 @@ const InvoiceRegistration = () => {
                             setShowPreview(false);
                             setPreviewData(null);
                           }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '1.5rem',
+                            fontWeight: 'bold',
+                            cursor: 'pointer'
+                          }}
                         >
-                          <span>&times;</span>
+                          &times;
                         </button>
                       </div>
-                      <div className="modal-body">
+                      <div className="modal-body" style={{
+                        padding: '0',
+                        overflow: 'auto',
+                        maxHeight: 'calc(100vh - 200px)'
+                      }}>
                         {previewData && (
                           <InvoicePreview
                             previewData={previewData}
@@ -1276,7 +1330,10 @@ const InvoiceRegistration = () => {
                           />
                         )}
                       </div>
-                      <div className="modal-footer">
+                      <div className="modal-footer" style={{
+                        borderTop: '1px solid #dee2e6',
+                        padding: '1rem'
+                      }}>
                         <button
                           type="button"
                           className="btn btn-secondary"

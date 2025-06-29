@@ -334,6 +334,28 @@ export const EmployeePostApi = (data) => {
   return axiosInstance.post('/employee', data);
 }
 
+export const uploadEmployeeImage = (employeeId, file) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return axiosInstance.post(`/${companyName}/employee/${employeeId}/image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+export const getEmployeeImage = (employeeId) => {
+  const companyName = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${companyName}/employee/${employeeId}/image`);
+};
+
+
+export const CandidateToEmployeePostApi = (candidateId, data) => {
+  return axiosInstance.post(`/candidate/${candidateId}`, data);
+}
+
+
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}`)
@@ -1128,17 +1150,50 @@ export const BankPutApiById = (companyId, bankId, data) => {
     });
 };
 
-export const InvoicePostApi = (companyId, customerId, data) => {
-  return axiosInstance.post(`/company/${companyId}/customer/${customerId}/invoice`, data)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error creating product:', error);
-      throw error;
-    });
+export const InvoicePostApi = async (companyId, customerId, data) => {
+  // Validate inputs
+  if (!companyId || !customerId) {
+    console.error('Missing required parameters:', { companyId, customerId });
+    return Promise.reject(new Error('Missing companyId or customerId'));
+  }
+
+  try {
+    const response = await axiosInstance.post(
+      `/company/${encodeURIComponent(companyId)}/customer/${encodeURIComponent(customerId)}/invoice`,
+      JSON.stringify(data), // Ensure JSON format
+      {
+        responseType: 'blob', // Expect binary PDF
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/pdf',
+        },
+      }
+    );
+
+    // Create a blob URL and trigger download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice_${companyId}_${customerId}.pdf`; // Dynamic filename
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true;
+  } catch (error) {
+    console.error('Error downloading invoice:', error);
+    throw error;
+  }
 };
 
-export const InvoiceGetAllApi = (companyId) => {
-  return axiosInstance.get(`/company/${companyId}/invoice`);
+
+export const InvoiceGetAllApi = (companyId, customerId = null) => {
+  const params = {};
+  if (customerId) {
+    params.customerId = customerId;
+  }
+  return axiosInstance.get(`/company/${companyId}/invoice`, { params });
 };
 
 export const InvoiceGetByCustomerIdApi = (companyId, customerId) => {

@@ -103,7 +103,7 @@ const CandidatesView = () => {
             setSelectedCandidate(candidate);
             setDocumentsLoading(true);
             const response = await getDocumentByIdAPI(candidate.id);
-            
+
             if (response && response.data && response.data.documentEntities) {
                 setDocuments(transformApiResponse(response.data));
             } else {
@@ -227,6 +227,18 @@ const CandidatesView = () => {
                         title="View Documents"
                     >
                         <i className="bi bi-file-earmark-text" style={{ fontSize: "1.2rem", color: "#0d6efd" }}></i>
+                    </button>
+                    <button
+                        className="btn btn-sm me-2"
+                        style={{ backgroundColor: "transparent", border: "none" }}
+                        onClick={() => navigate(`/candidate-to-employee/${row.id}`, {
+                            state: {
+                                candidate: row
+                            }
+                        })}
+                        title="Register as Employee"
+                    >
+                        <i className="bi bi-person-plus" style={{ fontSize: "1.2rem", color: "#198754" }}></i>
                     </button>
                     <button
                         className="btn btn-sm"

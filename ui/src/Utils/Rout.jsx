@@ -98,8 +98,8 @@ import InvoiceTemplate1 from '../CompanyModule/Settings/InvoiceTemplates/Invoice
 import InvoiceTemplate2 from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate2';
 import EmployeeDocumentUpload from '../CompanyModule/Employee/EmployeeDocumentUpload';
 import EmployeeDocumentView from '../CompanyModule/Employee/EmployeeDocumentView';
-import InvoiceForm from '../CompanyModule/Settings/InvoiceTemplates/InvoiceForm';
 import InvoiceTemplates from '../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplates';
+import CandidateToEmployee from '../CompanyModule/Candidate/CandidateToEmployee';
 
 export const allAvailableRoutes = [
   {path: '/main', allowedTypes: ['ems_admin', 'company_admin', 'Admin', 'HR', 'employee']},
@@ -160,6 +160,7 @@ export const allAvailableRoutes = [
   {path: '/getTaxSlab', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/addTaxSlab', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/companyTdsView', allowedTypes: ['company_admin', 'Admin', 'HR'] },
+  {path: '/candidate-to-employee/:id', allowedTypes: ['company_admin', 'Admin', 'HR'] },
   {path: '/employeeSalaryUpdate', allowedTypes: ['company_admin', 'Admin', 'HR', 'employee'] },
   {path: '/customerRegistration', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
   {path: '/customersView', allowedTypes: ['company_admin', 'Admin', 'Accountant'] },
@@ -291,6 +292,10 @@ const Routing = () => {
       <Route
         path="/employeeRegister"
         element={<ProtectedRoute element={<EmployeeRegister/>} allowedTypes={['company_admin', 'Admin', 'HR']} />}
+      />
+      <Route
+        path="/candidate-to-employee/:id"
+        element={<ProtectedRoute element={<CandidateToEmployee/>} allowedTypes={['company_admin', 'Admin', 'HR']} />}
       />
       <Route
         path="/employeeView"
