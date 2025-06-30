@@ -25,7 +25,7 @@ public class InvoiceRequest {
     private List<ProductColumnsRequest> productColumns;
 
     @Valid
-    private List<ShippedPayload> shippedPayload;
+    private ShippedPayload shippedPayload;
 
     private String vendorCode;
     private String purchaseOrder;
