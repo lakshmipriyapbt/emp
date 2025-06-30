@@ -308,6 +308,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             // Generate HTML from FreeMarker template
             Map<String, Object> model = new HashMap<>();
             model.put(Constants.INVOICE, invoiceResponse.getInvoice());
+            model.put(Constants.SHIPPED_TO, invoiceResponse.getInvoice().getShippedPayload());
             model.put(Constants.COMPANY, invoiceResponse.getCompany());
             model.put(Constants.CUSTOMER, invoiceResponse.getCustomer());
             model.put(Constants.BANK_1, invoiceResponse.getBank());
