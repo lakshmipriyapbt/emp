@@ -1,333 +1,296 @@
-import React from "react";
+import React from 'react';
+import { useAuth } from '../../../Context/AuthContext';
 
 const InvoiceTemplate2 = ({
-  InvoiceStaticData = {},
-  companyData = {},
-  bankDetails = {}
+  companyLogo,
+  companyData,
+  InvoiceStaticData,
+  bankDetails
 }) => {
-  // Safely access nested properties with fallbacks
-  const billedTo = InvoiceStaticData.billedTo || {};
-  const company = companyData || {};
-  const products = InvoiceStaticData.productData || [];
-  const productColumns = InvoiceStaticData.productColumns || [
-    { key: "productName", title: "Product Name" },
-    { key: "quantity", title: "Quantity" },
-    { key: "price", title: "Price" }
-  ];
-
-  // Calculate totals
-  const subTotal = parseFloat(InvoiceStaticData.subTotal) || 0;
-  const sgst = subTotal * 0.09;
-  const cgst = subTotal * 0.09;
-  const grandTotal = subTotal + sgst + cgst;
-
-  
-  const numberToWords = (num) => {
-  const single = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-  const double = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-  const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
-  if (num === 0) return 'Zero';
-  
-  const convertLessThanOneThousand = (n) => {
-    if (n === 0) return '';
-    if (n < 10) return single[n];
-    if (n < 20) return double[n - 10];
-    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + single[n % 10] : '');
-    
-    const hundred = Math.floor(n / 100);
-    const remainder = n % 100;
-    return single[hundred] + ' Hundred' + (remainder !== 0 ? ' and ' + convertLessThanOneThousand(remainder) : '');
-  };
-  
-  const convert = (n) => {
-    if (n === 0) return 'Zero';
-    
-    let result = '';
-    const crore = Math.floor(n / 10000000);
-    n %= 10000000;
-    
-    const lakh = Math.floor(n / 100000);
-    n %= 100000;
-    
-    const thousand = Math.floor(n / 1000);
-    n %= 1000;
-    
-    if (crore > 0) {
-      result += convertLessThanOneThousand(crore) + ' Crore ';
-    }
-    if (lakh > 0) {
-      result += convertLessThanOneThousand(lakh) + ' Lakh ';
-    }
-    if (thousand > 0) {
-      result += convertLessThanOneThousand(thousand) + ' Thousand ';
-    }
-    if (n > 0) {
-      result += convertLessThanOneThousand(n);
-    }
-    
-    return result.trim();
-  };
-  
-  return convert(num) + ' Rupees Only';
-};
-
+  console.log("Received Bank Details in Template:", bankDetails);
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
-      {/* Header with PAN, GST & Logo */}
-      <div className="invoice-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-        <div className="tax-info">
-          <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-            {company.panNo ? `PAN: ${company.panNo}` : "PAN: Not Available"}
-          </p>
-          <p style={{ margin: "0", fontSize: "14px", fontWeight: "600" }}>
-            {company.gstNo ? `GST: ${company.gstNo}` : "GST: Not Available"}
-          </p>
-        </div>
-        <div className="logo-placeholder">
+      {/* Header with company info, logo, and invoice info */}
+      <div className="invoice-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "30px" }}>
+        {/* Company Info - Left Side */}
+        <div className="company-info" style={{ flex: 1 }}>
           <div style={{
-            height: "60px",
-            width: "155px",
+            fontSize: "20px",
+            fontWeight: "bold",
+            marginBottom: "5px"
+          }}>{companyData?.companyName}</div>
+
+          <div style={{ fontSize: "14px" }}>
+            <div>{companyData?.address}</div>
+            <div>{companyData?.emailId}, {companyData?.mobileNo}</div>
+          </div>
+        </div>
+
+        {/* Company Logo - Center */}
+        <div className="logo-placeholder" style={{
+          flex: 0.5,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <div style={{
+            width: "180px",
+            height: "150px",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            color: "#999",
-            fontSize: "14px"
+            color: "#999"
           }}>
-            {company.imageFile ? (<img src={company.imageFile} alt="Company Logo" />) : "No Logo Available"}
+            {companyData?.imageFile ? <img src={companyData.imageFile} alt="Company Logo" /> : "No Logo Available"}
+          </div>
+        </div>
+
+        {/* Invoice Info - Right Side */}
+        <div className="invoice-meta" style={{ flex: 1, textAlign: "right" }}>
+          <div style={{
+            fontSize: "20px",
+            fontWeight: "bold",
+            marginBottom: "10px"
+          }}>
+            Invoice
+          </div>
+
+          <div style={{ fontSize: "14px" }}>
+            <div><strong>Date:</strong> {InvoiceStaticData.invoiceDate}</div>
+            <div><strong>Invoice #:</strong> {InvoiceStaticData.invoiceNo}</div>
+            <div><strong>Purchase order #:</strong> {InvoiceStaticData.purchaseOrder}</div>
+            <div><strong>Payment due by:</strong>  {InvoiceStaticData.dueDate}</div>
           </div>
         </div>
       </div>
 
-      <h1 className="invoice-title" style={{ textAlign: "center", margin: "0 0 30px 0", fontSize: "28px", fontWeight: "700" }}>Invoice</h1>
-      
-      <div className="invoice-content">
-        <div className="row" style={{ marginBottom: "30px" }}>
-          {/* Billing Information */}
-          <div className="col-md-6">
-            <div className="billing-info">
-              <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>Billed To,</p>
-              <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.customerName || "Customer Name"},
-              </p>
-              <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.email || "Email ID"},
-              </p>
-              <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.mobileNumber || "Mobile Number"},
-              </p>
-              <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.address || "Address"},
-              </p>
-              <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.customerGstNo || "GST"}
-              </p>
-            </div>
-          </div>
-          
-          {/* Invoice Meta Data */}
-          <div className="col-md-6">
-            <div className="invoice-meta" style={{ textAlign: "right" }}>
-              <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>
-                <span style={{ display: "inline-block", width: "120px", textAlign: "left" }}>Invoice ID:</span>
-                <span>{InvoiceStaticData.invoiceNo || "N/A"}</span>
-              </p>
-              <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>
-                <span style={{ display: "inline-block", width: "120px", textAlign: "left" }}>Invoice Date:</span>
-                <span>{InvoiceStaticData.invoiceDate || "N/A"}</span>
-              </p>
-              <p style={{ margin: "0", fontSize: "14px", fontWeight: "600" }}>
-                <span style={{ display: "inline-block", width: "120px", textAlign: "left" }}>Due Date:</span>
-                <span>{InvoiceStaticData.dueDate || "N/A"}</span>
-              </p>
-            </div>
+      {/* Billed To and Ship To sections side by side */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "30px",
+      }}>
+        {/* Billed To - Left Side */}
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontWeight: "bold",
+            marginBottom: "5px",
+            fontSize: "15px",
+            backgroundColor: "#efeded",
+            borderRadius: "4px",
+            padding: "5px 10px",
+            display: "inline-block",
+          }}>Billed to</div>
+          <div style={{ fontSize: "14px" }}>
+            <div>Client name: {InvoiceStaticData.billedTo?.customerName}</div>
+            <div>Address: {InvoiceStaticData.billedTo?.address}</div>
+            <div>Phone: {InvoiceStaticData.billedTo?.mobileNumber}</div>
           </div>
         </div>
 
-        {/* Sales Info Table with Vertical Lines */}
-        {InvoiceStaticData.salesPerson && (
-          <div className="sales-info-table" style={{ marginBottom: "30px" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
-              <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Sales Person</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Shipping Method</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Shipping Terms</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Payment Terms</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Due Date</th>
-                  <th style={{ padding: "10px", border: "1px solid #000", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Delivery Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.salesPerson}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.shippingMethod}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.shippingTerms}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.paymentTerms}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.dueDate}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.deliveryDate}</td>
-                </tr>
-              </tbody>
-            </table>
+        {/* Ship To - Right Side */}
+        <div style={{ flex: 1, textAlign: "right" }}>
+          <div style={{
+            fontWeight: "bold",
+            marginBottom: "5px",
+            fontSize: "15px",
+            backgroundColor: "#efeded",
+            borderRadius: "4px",
+            padding: "5px 10px",
+            display: "inline-block",
+          }}>Ship To</div>
+          <div style={{ fontSize: "14px" }}>
+            <div>Client name: {InvoiceStaticData.shippedTo?.customerName}</div>
+            <div>Address: {InvoiceStaticData.shippedTo?.address}</div>
+            <div>Phone: {InvoiceStaticData.shippedTo?.mobileNumber}</div>
           </div>
-        )}
-
-        {/* Dynamic Invoice Table */}
-        <div className="invoice-table" style={{ marginBottom: "30px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "0" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#efeded" }}>
-                <th style={{ padding: "10px", textAlign: "center", fontSize: "14px", fontWeight: "600" }}>S.No</th>
-                {productColumns.map((col, index) => (
-                  <th key={index} style={{ padding: "10px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>
-                    {col.title}
-                  </th>
-                ))}
-                {/* <th style={{ padding: "10px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Total Price</th> */}
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product, index) => (
-                <tr key={index}>
-                  <td style={{ padding: "10px", textAlign: "center", fontSize: "14px", borderBottom: "1px solid #eee" }}>
-                    {index + 1}
-                  </td>
-                  {productColumns.map((col, colIndex) => (
-                    <td key={colIndex} style={{ padding: "10px", textAlign: "left", fontSize: "14px", borderBottom: "1px solid #eee" }}>
-                      {product[col.key]}
-                    </td>
-                  ))}
-                  {/* <td style={{ padding: "10px", textAlign: "left", fontSize: "14px", borderBottom: "1px solid #eee" }}>
-                    {(Number(product.quantity) * Number(product.price)).toFixed(2)}
-                  </td> */}
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600", borderTop: "1px solid #eee" }}>
-                  Total Amount(Rs)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px", borderTop: "1px solid #eee" }}>
-                  {subTotal.toFixed(2)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-                  SGST (9%)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
-                  {sgst.toFixed(2)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-                  CGST (9%)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
-                  {cgst.toFixed(2)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-                  Grand Total (Rs)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>
-                  {grandTotal.toFixed(2)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length + 1} style={{ padding: "10px", textAlign: "center", fontSize: "14px", fontWeight: "600", borderTop: "1px solid #eee" }}>
-                  In Words: {numberToWords(Math.floor(grandTotal))}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length + 1} style={{ padding: "10px", textAlign: "center", fontSize: "14px", borderTop: "1px solid #eee" }}>
-                  The payment should be made favouring <strong>{company.companyName}</strong> or direct deposit as per the information below.
-                </td>
-              </tr>
-            </tfoot>
-          </table>
         </div>
+      </div>
 
-        {/* Bank Details */}
-        <div className="bank-details-section">
-          <div className="row">
-            {/* Left Section - Bank Details */}
-            <div className="col-md-6">
-              <div className="bank-details">
-                <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px" }}>Bank Details</h5>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Bank Name :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.bankName}</div>
-                </div>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Number :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.accountNumber}</div>
-                </div>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Type :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.accountType}</div>
-                </div>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>IFSC Code :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.ifscCode}</div>
-                </div>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Branch :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.branch}</div>
-                </div>
-
-                <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
-                  <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
-                </div>
+      {/* Items Table */}
+      <div style={{
+        width: "100%",
+        marginBottom: "20px",
+        borderCollapse: "collapse"
+      }}>
+        {/* Table Header */}
+        <div style={{
+          display: "flex",
+          background: "#f5f5f5",
+          fontWeight: "bold",
+          borderBottom: "2px solid #bbb",
+          padding: "8px 0"
+        }}>
+          <div style={{ flex: 1, textAlign: "left", paddingLeft: "10px" }}>#</div>
+          {InvoiceStaticData.productColumns.map((col, idx) => (
+            <div key={idx} style={{ flex: 1, textAlign: "left" }}>{col.title}</div>
+          ))}
+          {/* <div style={{ flex: 1, textAlign: "left" }}>Total</div> */}
+        </div>
+        {/* Table Rows */}
+        {InvoiceStaticData.productData.map((item, idx) => (
+          <div key={idx} style={{
+            display: "flex",
+            borderBottom: "1px solid #ddd",
+            padding: "8px 0"
+          }}>
+            <div style={{ flex: 1, textAlign: "left", paddingLeft: "10px" }}>{idx + 1}</div>
+            {InvoiceStaticData.productColumns.map((col, cidx) => (
+              <div key={cidx} style={{ flex: 1, textAlign: "left" }}>
+                {item[col.key]}
               </div>
-            </div>
-
-            {/* Right Section - Stamp & Authorized Signature */}
-            <div className="col-md-6">
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                <div style={{
-                  height: "60px",
-                  width: "155px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  color: "#999",
-                  fontSize: "14px",
-                  marginBottom: "15px"
-                }}>
-                {company?.stampImage ? <img src={company.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
-                </div>
-
-                <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>{company?.companyName}</p>
-                  <h5 style={{ margin: "0", fontSize: "16px", fontWeight: "600" }}>Authorized Signature</h5>
-                </div>
-              </div>
-            </div>
+            ))}
+            {/* <div style={{ flex: 1, textAlign: "left" }}>
+              {Number(item.quantity) * Number(item.price)}
+            </div> */}
           </div>
-          
-          <hr style={{ margin: "30px 0" }} />
-          
-          <div className="footer" style={{ margin: "40px 0 0 0" }}>
-            <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-              {company?.companyName},
-            </p>
-            <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px" }}>
-              {company?.address}
-            </p>
-            <p style={{ textAlign: "center", margin: "0", fontSize: "14px" }}>
-              {company?.emailId}, {company?.mobileNo}
-            </p>
+        ))}
+      </div>
+
+      {/* Price Breakdown Section */}
+      <div style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: "20px",
+        paddingRight: "40px",
+      }}>
+        <div style={{
+          width: "300px",
+          paddingTop: "10px"
+        }}>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "5px"
+          }}>
+            <div style={{ fontWeight: "bold" }}>Subtotal:</div>
+            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.subTotal}</div>
+          </div>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "5px"
+          }}>
+            <div style={{ fontWeight: "bold" }}>CGST:</div>
+            <div style={{ paddingRight: "95px" }}>{(InvoiceStaticData.subTotal * 0.09).toFixed(2)}</div>
+          </div>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "5px"
+          }}>
+            <div style={{ fontWeight: "bold" }}>SGST:</div>
+            <div style={{ paddingRight: "95px" }}>{(InvoiceStaticData.subTotal * 0.09).toFixed(2)}</div>
+          </div>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontWeight: "bold",
+            fontSize: "16px",
+            borderTop: "1px solid #ddd",
+            paddingTop: "10px",
+            marginTop: "10px"
+          }}>
+            <div>Total:</div>
+            <div style={{ paddingRight: "90px" }}>
+              {(parseFloat(InvoiceStaticData.subTotal) * 1.18).toFixed(2)}
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Notes and bank details side by side */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "20px"
+      }}>
+        {/* Notes - Left Side */}
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontWeight: "bold",
+            marginBottom: "10px",
+            backgroundColor: "#efeded",
+            padding: "5px 15px",
+            borderRadius: "4px",
+            fontSize: "15px",
+            display: "inline-block",
+          }}>
+            Special notes and instructions
+          </div>
+          <div style={{ fontSize: "14px" }}>
+            <div>{InvoiceStaticData.notes}</div>
+            <div>Kindly issue all cheques in the name of the company</div>
+          </div>
+        </div>
+
+        {/* Bank Details - Right Side */}
+        <div style={{
+          flex: 1,
+          textAlign: "right"
+        }}>
+          <div style={{
+            fontWeight: "bold",
+            marginBottom: "10px",
+            backgroundColor: "#efeded",
+            padding: "5px 15px",
+            borderRadius: "4px",
+            fontSize: "15px",
+            display: "inline-block",
+          }}>
+            BANK ACCOUNT DETAILS
+          </div>
+          <div style={{ fontSize: "14px", lineHeight: "1.8" }}>
+            <div>Bank Name: {bankDetails?.bankName}</div>
+            <div>Account Holder: {companyData?.companyName}</div>
+            <div>Account Number: {bankDetails?.accountNumber}</div>
+            <div>Account Type: {bankDetails?.accountType}</div>
+            <div>Branch: {bankDetails?.branch}</div>
+            <div>IFSC Code: {bankDetails?.ifscCode}</div>
+            <div>Address: {bankDetails?.address}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Company stamp and thank you message */}
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{
+          width: "180px",
+          height: "150px",
+          border: "1px dashed #ccc",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "#999",
+          marginBottom: "10px"
+        }}>
+          {companyData?.stampImage ? <img src={companyData.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
+        </div>
+        <div style={{
+          fontStyle: "italic",
+          marginBottom: "20px",
+          fontSize: "14px"
+        }}>
+          Thank you for your business!
+        </div>
+      </div>
+
+      {/* Contact information */}
+      <div style={{ marginBottom: "30px", fontSize: "14px" }}>
+        <div>
+          Should you have any enquiries concerning this invoice, please contact us.
+        </div>
+      </div>
+
+      {/* Footer Contact Info */}
+      <div style={{
+        fontSize: "13px",
+        textAlign: "center",
+        borderTop: "1px solid #ddd",
+        paddingTop: "10px"
+      }}>
+        <div style={{ marginBottom: "5px" }}>{companyData?.address}</div>
+        <div>{companyData?.mobileNo} | {companyData?.emailId}</div>
       </div>
     </div>
   );

@@ -157,6 +157,16 @@ const InvoiceRegistration = () => {
       // Set fields visibility based on template
       if (templateNumber === "1") {
         setTemplateFields({
+           showShipTo: false,
+          showNotes: false,
+          showSalesPerson: true,
+          showShippingMethod: true,
+          showShippingTerms: true,
+          showPaymentTerms: true,
+          showDeliveryDate: true
+        });
+      } else if (templateNumber === "2") {
+        setTemplateFields({
           showShipTo: true,
           showNotes: true,
           showSalesPerson: false,
@@ -164,16 +174,6 @@ const InvoiceRegistration = () => {
           showShippingTerms: false,
           showPaymentTerms: false,
           showDeliveryDate: false
-        });
-      } else if (templateNumber === "2") {
-        setTemplateFields({
-          showShipTo: false,
-          showNotes: false,
-          showSalesPerson: true,
-          showShippingMethod: true,
-          showShippingTerms: true,
-          showPaymentTerms: true,
-          showDeliveryDate: true
         });
       }
     } catch (error) {
