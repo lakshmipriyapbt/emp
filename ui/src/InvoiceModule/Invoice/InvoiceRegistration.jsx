@@ -84,6 +84,7 @@ const InvoiceRegistration = () => {
       0
     ).toFixed(2)
   );
+  
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
@@ -157,7 +158,7 @@ const InvoiceRegistration = () => {
       // Set fields visibility based on template
       if (templateNumber === "1") {
         setTemplateFields({
-           showShipTo: false,
+          showShipTo: false,
           showNotes: false,
           showSalesPerson: true,
           showShippingMethod: true,

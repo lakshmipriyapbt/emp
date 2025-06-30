@@ -9,6 +9,7 @@ import { fetchInvoices } from "../../Redux/InvoiceSlice";
 import Loader from "../../Utils/Loader";
 import { toast } from "react-toastify";
 import InvoicePreview from "../../CompanyModule/Settings/InvoiceTemplates/InvoicePreview";
+import { InvoiceDownloadById } from "../../Utils/Axios";
 
 const InvoiceView = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const InvoiceView = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { employee } = useAuth();
   const companyId = employee?.companyId;
 
@@ -32,16 +34,21 @@ const InvoiceView = () => {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, companyId]);  
+  }, [dispatch, companyId]);
 
   useEffect(() => {
     if (invoices?.data && Array.isArray(invoices.data)) {
-      const filtered = invoices.data.filter((invoice) => {
+      const filtered = invoices.data.map(item => ({
+        ...item.invoice,
+        customer: item.customer,
+        company: item.company,
+        bank: item.bank
+      })).filter((invoice) => {
         const invoiceNo = invoice.invoiceNo ? invoice.invoiceNo.toLowerCase() : "";
         const clientName = invoice.customer?.customerName ? invoice.customer.customerName.toLowerCase() : "";
         const state = invoice.customer?.state ? invoice.customer.state.toLowerCase() : "";
         const invoiceDate = invoice.invoiceDate ? invoice.invoiceDate.toLowerCase() : "";
-  
+
         return (
           invoiceNo.includes(search.toLowerCase()) ||
           clientName.includes(search.toLowerCase()) ||
@@ -52,40 +59,68 @@ const InvoiceView = () => {
       setFilteredData(filtered);
     } else {
       setFilteredData([]);
-      toast.error(error);
+      if (error) {
+        toast.error(error);
+      }
     }
-  }, [invoices, search]);  
+  }, [invoices, search, error]);
 
   const handleView = (invoice) => {
     setSelectedInvoice(invoice);
     setShowPreview(true);
   };
 
-  const handleDownload = (format) => {
-    if (!selectedInvoice) return;
-    
-    // Replace this with your actual API endpoint
-    const downloadUrl = `/api/invoices/download/${selectedInvoice.invoiceId}?format=${format}`;
-    
-    // Create a temporary anchor element to trigger the download
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', `invoice_${selectedInvoice.invoiceNo}.${format}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async (format) => {
+    if (!selectedInvoice || !companyId) return;
+
+    setIsDownloading(true);
+    try {
+      if (format === 'pdf') {
+        const success = await InvoiceDownloadById(
+          companyId,
+          selectedInvoice.customerId,
+          selectedInvoice.invoiceId
+        );
+
+        if (!success) {
+          toast.error("Failed to download invoice");
+        }
+      } else {
+        // For other formats (like PNG), you might need a different API endpoint
+        toast.info("Image download feature coming soon");
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download invoice");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+  const getStateCodeFromGST = (gstNumber) => {
+    if (!gstNumber || gstNumber.length < 2) return null;
+    return gstNumber.substring(0, 2);
   };
 
   const columns = [
     {
       name: <h6><b>#</b></h6>,
       selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
-      width: "50px",
+      width: "70px",
+    },
+    {
+      name: <h6><b>Invoice Number</b></h6>,
+      selector: (row) => row.invoiceNo,
+      width: "180px",
+    },
+    {
+      name: <h6><b>Invoice Date</b></h6>,
+      selector: (row) => row.invoiceDate,
+      width: "160px",
     },
     {
       name: <h6><b>Client Name</b></h6>,
       selector: (row) => (
-        <div title={row.customerName || ""}>
+        <div title={row.customer?.customerName || ""}>
           {row.customer?.customerName && row.customer?.customerName.length > 18
             ? row.customer?.customerName.slice(0, 20) + "..."
             : row.customer?.customerName}
@@ -97,21 +132,6 @@ const InvoiceView = () => {
       name: <h6><b>Mobile Number</b></h6>,
       selector: (row) => row.customer?.mobileNumber,
       width: "170px",
-    },
-    {
-      name: <h6><b>State</b></h6>,
-      selector: (row) => row.customer?.state,
-      width: "150px",
-    },
-    {
-      name: <h6><b>Invoice Number</b></h6>,
-      selector: (row) => row.invoiceNo,
-      width: "180px",
-    },
-    {
-      name: <h6><b>Invoice Date</b></h6>,
-      selector: (row) => row.invoiceDate,
-      width: "160px",
     },
     {
       name: <h6><b>Actions</b></h6>,
@@ -133,6 +153,88 @@ const InvoiceView = () => {
 
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
+  };
+
+  const transformInvoiceForPreview = (invoice) => {
+    if (!invoice) return null;
+
+    // Calculate GST based on company and customer state codes
+    const companyStateCode = getStateCodeFromGST(invoice.company?.gstNo);
+    const customerStateCode = getStateCodeFromGST(invoice.customer?.customerGstNo);
+    const hasCustomerGST = !!invoice.customer?.customerGstNo;
+
+    let sgst = '0.00';
+    let cgst = '0.00';
+    let igst = '0.00';
+
+    if (hasCustomerGST) {
+      if (companyStateCode === customerStateCode) {
+        // Same state - apply SGST and CGST
+        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.09);
+        sgst = gstAmount.toFixed(2);
+        cgst = gstAmount.toFixed(2);
+      } else {
+        // Different state - apply IGST
+        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.18);
+        igst = gstAmount.toFixed(2);
+      }
+    }
+
+    // Calculate grand total
+    const subTotal = parseFloat(invoice.subTotal || 0);
+    const grandTotal = (subTotal + parseFloat(sgst) + parseFloat(cgst) + parseFloat(igst)).toFixed(2);
+
+    return {
+      company: {
+        companyName: invoice.company?.companyName,
+        address: invoice.company?.companyAddress,
+        emailId: invoice.company?.emailId,
+        mobileNo: invoice.company?.mobileNo,
+        imageFile: invoice.company?.imageFile,
+        stampImage: invoice.company?.stampImage,
+        gstNo: invoice.company?.gstNo
+      },
+      billedTo: {
+        customerName: invoice.customer?.customerName || '',
+        address: invoice.customer?.address || '',
+        mobileNumber: invoice.customer?.mobileNumber || '',
+        email: invoice.customer?.email || '',
+        customerGstNo: invoice.customer?.customerGstNo || '',
+        state: invoice.customer?.state || '',
+        stateCode: customerStateCode
+      },
+      invoiceNo: invoice.invoiceNo || '',
+      invoiceDate: invoice.invoiceDate || '',
+      dueDate: invoice.dueDate || '',
+      purchaseOrder: invoice.purchaseOrder || '',
+      productData: invoice.productData || [],
+      productColumns: invoice.productColumns || [
+        { key: "productName", title: "Product Name", type: "text" },
+        { key: "quantity", title: "Quantity", type: "number" },
+        { key: "price", title: "Price", type: "number" },
+        { key: "total", title: "Total", type: "number" }
+      ],
+      subTotal: subTotal.toFixed(2),
+      grandTotal: grandTotal,
+      notes: invoice.notes || '',
+      bankDetails: invoice.bank || {
+        bankName: '',
+        accountNumber: '',
+        accountType: '',
+        branch: '',
+        ifscCode: '',
+        address: ''
+      },
+      salesPerson: invoice.salesPerson || '',
+      shippingMethod: invoice.shippingMethod || '',
+      shippingTerms: invoice.shippingTerms || '',
+      paymentTerms: invoice.paymentTerms || '',
+      deliveryDate: invoice.deliveryDate || '',
+      sgst,
+      cgst,
+      igst,
+      hasCustomerGST // Add this flag for template to use
+    };
   };
 
   return (
@@ -171,7 +273,7 @@ const InvoiceView = () => {
                   <div className="card-header">
                     <div className="row">
                       <div className="col-md-4">
-                        <Link to={"/invoiceRegistartion"}>
+                        <Link to="/invoiceRegistration">
                           <button className="btn btn-primary">Add Invoice</button>
                         </Link>
                       </div>
@@ -223,7 +325,7 @@ const InvoiceView = () => {
                       borderBottom: '1px solid #dee2e6',
                       padding: '1rem'
                     }}>
-                      <h5 className="modal-title">Invoice Preview - {selectedInvoice.invoiceNo}</h5>
+                      <h5 className="modal-title">Invoice Preview</h5>
                       <button
                         type="button"
                         className="close"
@@ -245,17 +347,7 @@ const InvoiceView = () => {
                       maxHeight: 'calc(100vh - 200px)'
                     }}>
                       <InvoicePreview
-                        previewData={{
-                          ...selectedInvoice,
-                          company: {
-                            companyName: employee?.company?.companyName,
-                            address: employee?.company?.companyAddress,
-                            emailId: employee?.company?.emailId,
-                            mobileNo: employee?.company?.mobileNo,
-                            imageFile: employee?.company?.imageFile,
-                            stampImage: employee?.company?.stampImage
-                          }
-                        }}
+                        previewData={transformInvoiceForPreview(selectedInvoice)}
                         selectedTemplate={employee?.company?.invoiceTemplateNo || "1"}
                       />
                     </div>
@@ -272,19 +364,18 @@ const InvoiceView = () => {
                       </button>
                       <button
                         type="button"
-                        className="btn btn-primary me-2"
+                        className="btn btn-primary me-2 d-flex align-items-center"
                         onClick={() => handleDownload('pdf')}
+                        disabled={isDownloading}
                       >
-                        <Download className="me-1" />
-                        Download PDF
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-info"
-                        onClick={() => handleDownload('png')}
-                      >
-                        <Download className="me-1" />
-                        Download Image
+                        {isDownloading ? (
+                          <span>Downloading...</span>
+                        ) : (
+                          <>
+                            <Download className="me-1" />
+                            <span>Download PDF</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

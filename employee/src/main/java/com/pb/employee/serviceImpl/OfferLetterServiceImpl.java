@@ -2,6 +2,7 @@ package com.pb.employee.serviceImpl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
+import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.dao.InternOfferLetterDao;
 import com.pb.employee.dao.OfferLetterDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
@@ -10,12 +11,16 @@ import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.OfferLetterRequest;
+import com.pb.employee.request.OfferLetterUpdateRequest;
 import com.pb.employee.service.OfferLetterService;
 import com.pb.employee.util.*;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -24,6 +29,7 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyDescriptor;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -113,6 +119,78 @@ public class OfferLetterServiceImpl implements OfferLetterService {
         }
     }
 
+    @Override
+    public Collection<OfferLetterEntity> getOfferLetter(String companyName, String offerLetterId) throws EmployeeException {
+        try {
+            log.debug("Fetching company entity for companyName: {}", companyName);
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company not found for companyName: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
+            log.debug("Fetching offer letter(s) for offerLetterId: {} in company: {}", offerLetterId, companyName);
+            return offerLetterDao.getOfferLetter(companyEntity.getShortName(), offerLetterId);
+
+        } catch (EmployeeException e) {
+            log.error("EmployeeException while fetching offer letters: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching offer letters for companyName: {} and offerLetterId: {}", companyName, offerLetterId, e);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.OFFER_LETTER_NOT_FOUND), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> updateOfferLetter(String companyName, String offerLetterId, OfferLetterUpdateRequest offerLetterUpdateRequest)
+            throws EmployeeException, IOException {
+
+        try {
+            log.debug("Validating offer letter existence for offerLetterId: {} in companyName: {}", offerLetterId, companyName);
+
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company not found for companyName: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
+            SalaryConfigurationEntity salaryConfig = openSearchOperations.getSalaryStructureById(offerLetterUpdateRequest.getSalaryConfigurationId(), null, Constants.INDEX_EMS + "_" + companyEntity.getShortName());
+            if (salaryConfig == null || !Constants.ACTIVE.equals(salaryConfig.getStatus())) {
+                log.error("Salary configuration is invalid for salaryConfigurationId: {}", offerLetterUpdateRequest.getSalaryConfigurationId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_SALARY_NOT_FOUND), HttpStatus.NOT_FOUND);
+            }
+
+            Collection<OfferLetterEntity> offerLetters = offerLetterDao.getOfferLetter(companyEntity.getShortName(), offerLetterId);
+            OfferLetterEntity existingOffer = offerLetters.stream().findFirst().orElse(null);
+
+            if (existingOffer == null) {
+                log.error("Offer letter not found for offerLetterId: {}", offerLetterId);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.OFFER_LETTER_NOT_FOUND), offerLetterId), HttpStatus.NOT_FOUND);
+            }
+
+            if (isOfferLetterSame(existingOffer, offerLetterUpdateRequest)) {
+                log.warn("No changes detected for offerLetterId: {}", offerLetterId);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.No_UPDATE_DONE_IN_OFFER_LETTER), HttpStatus.BAD_REQUEST);
+            }
+
+            OfferLetterEntity updatedOffer = objectMapper.convertValue(offerLetterUpdateRequest, OfferLetterEntity.class);
+
+            BeanUtils.copyProperties(updatedOffer, existingOffer, getNullPropertyNames(updatedOffer));
+
+            offerLetterDao.update(existingOffer, companyEntity.getShortName());
+            log.info("Offer letter updated successfully for offerLetterId: {}", offerLetterId);
+
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+
+        } catch (EmployeeException e) {
+            log.error("EmployeeException while updating offer letter: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error while updating offer letter for offerLetterId {}: {}", offerLetterId, e.getMessage(), e);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FAILED_TO_UPDATE_OFFER_LETTER), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private byte[] generatePdfFromHtml(String html) throws IOException {
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -125,4 +203,28 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             throw new IOException(e.getMessage());
         }
     }
+
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        return Arrays.stream(src.getPropertyDescriptors())
+                .map(PropertyDescriptor::getName)
+                .filter(name -> src.getPropertyValue(name) == null)
+                .toArray(String[]::new);
+    }
+
+    private boolean isOfferLetterSame(OfferLetterEntity existing, OfferLetterUpdateRequest updated) {
+        return Objects.equals(existing.getOfferDate(), updated.getOfferDate()) &&
+                Objects.equals(existing.getReferenceNo(), updated.getReferenceNo()) &&
+                Objects.equals(existing.getEmployeeName(), updated.getEmployeeName()) &&
+                Objects.equals(existing.getEmployeeFatherName(), updated.getEmployeeFatherName()) &&
+                Objects.equals(existing.getEmployeeAddress(), updated.getEmployeeAddress()) &&
+                Objects.equals(existing.getEmployeeContactNo(), updated.getEmployeeContactNo()) &&
+                Objects.equals(existing.getJoiningDate(), updated.getJoiningDate()) &&
+                Objects.equals(existing.getJobLocation(), updated.getJobLocation()) &&
+                Objects.equals(existing.getSalaryPackage(), updated.getSalaryPackage()) &&
+                Objects.equals(existing.getDesignation(), updated.getDesignation()) &&
+                Objects.equals(existing.getDepartment(), updated.getDepartment()) &&
+                Objects.equals(existing.getSalaryConfigurationId(), updated.getSalaryConfigurationId());
+    }
+
 }

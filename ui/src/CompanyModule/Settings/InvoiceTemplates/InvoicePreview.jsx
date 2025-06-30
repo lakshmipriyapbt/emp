@@ -24,25 +24,6 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
       },
       InvoiceStaticData: {
         ...previewData,
-        billedTo: previewData.billedTo || {
-          customerName: previewData.shippedPayload?.[0]?.customerName || '',
-          address: previewData.shippedPayload?.[0]?.address || '',
-          mobileNumber: previewData.shippedPayload?.[0]?.mobileNumber || '',
-          email: previewData.shippedPayload?.[0]?.email || '',
-          customerGstNo: previewData.shippedPayload?.[0]?.customerGstNo || '',
-        },
-        shippedTo: previewData.shippedTo || previewData.billedTo || {
-          customerName: previewData.shippedPayload?.[0]?.customerName || '',
-          address: previewData.shippedPayload?.[0]?.address || '',
-          mobileNumber: previewData.shippedPayload?.[0]?.mobileNumber || ''
-        },
-        subTotal,
-        grandTotal,
-        productColumns: previewData.productColumns || [
-          { key: "productName", title: "Product Name" },
-          { key: "quantity", title: "Quantity" },
-          { key: "price", title: "Price" }
-        ]
       },
       bankDetails: previewData.bankDetails || {}
     };
