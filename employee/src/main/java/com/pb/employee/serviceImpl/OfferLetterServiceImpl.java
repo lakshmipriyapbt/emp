@@ -168,20 +168,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.OFFER_LETTER_NOT_FOUND), offerLetterId), HttpStatus.NOT_FOUND);
             }
 
-            boolean isSame = Objects.equals(existingOffer.getOfferDate(), offerLetterUpdateRequest.getOfferDate()) &&
-                    Objects.equals(existingOffer.getReferenceNo(), offerLetterUpdateRequest.getReferenceNo()) &&
-                    Objects.equals(existingOffer.getEmployeeName(), offerLetterUpdateRequest.getEmployeeName()) &&
-                    Objects.equals(existingOffer.getEmployeeFatherName(), offerLetterUpdateRequest.getEmployeeFatherName()) &&
-                    Objects.equals(existingOffer.getEmployeeAddress(), offerLetterUpdateRequest.getEmployeeAddress()) &&
-                    Objects.equals(existingOffer.getEmployeeContactNo(), offerLetterUpdateRequest.getEmployeeContactNo()) &&
-                    Objects.equals(existingOffer.getJoiningDate(), offerLetterUpdateRequest.getJoiningDate()) &&
-                    Objects.equals(existingOffer.getJobLocation(), offerLetterUpdateRequest.getJobLocation()) &&
-                    Objects.equals(existingOffer.getSalaryPackage(), offerLetterUpdateRequest.getSalaryPackage()) &&
-                    Objects.equals(existingOffer.getDesignation(), offerLetterUpdateRequest.getDesignation()) &&
-                    Objects.equals(existingOffer.getDepartment(), offerLetterUpdateRequest.getDepartment()) &&
-                    Objects.equals(existingOffer.getSalaryConfigurationId(), offerLetterUpdateRequest.getSalaryConfigurationId());
-
-            if (isSame) {
+            if (isOfferLetterSame(existingOffer, offerLetterUpdateRequest)) {
                 log.warn("No changes detected for offerLetterId: {}", offerLetterId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.No_UPDATE_DONE_IN_OFFER_LETTER), HttpStatus.BAD_REQUEST);
             }
@@ -223,6 +210,21 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 .map(PropertyDescriptor::getName)
                 .filter(name -> src.getPropertyValue(name) == null)
                 .toArray(String[]::new);
+    }
+
+    private boolean isOfferLetterSame(OfferLetterEntity existing, OfferLetterUpdateRequest updated) {
+        return Objects.equals(existing.getOfferDate(), updated.getOfferDate()) &&
+                Objects.equals(existing.getReferenceNo(), updated.getReferenceNo()) &&
+                Objects.equals(existing.getEmployeeName(), updated.getEmployeeName()) &&
+                Objects.equals(existing.getEmployeeFatherName(), updated.getEmployeeFatherName()) &&
+                Objects.equals(existing.getEmployeeAddress(), updated.getEmployeeAddress()) &&
+                Objects.equals(existing.getEmployeeContactNo(), updated.getEmployeeContactNo()) &&
+                Objects.equals(existing.getJoiningDate(), updated.getJoiningDate()) &&
+                Objects.equals(existing.getJobLocation(), updated.getJobLocation()) &&
+                Objects.equals(existing.getSalaryPackage(), updated.getSalaryPackage()) &&
+                Objects.equals(existing.getDesignation(), updated.getDesignation()) &&
+                Objects.equals(existing.getDepartment(), updated.getDepartment()) &&
+                Objects.equals(existing.getSalaryConfigurationId(), updated.getSalaryConfigurationId());
     }
 
 }
