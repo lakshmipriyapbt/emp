@@ -726,6 +726,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Object existingEmployee;
         Optional<EmployeeDocumentEntity> documentEntityOptional;
+        Collection<CandidateEntity> candidates;
         try {
             CompanyEntity company = openSearchOperations.getCompanyByCompanyName(request.getCompanyName(), Constants.INDEX_EMS);
             if (company == null) {
@@ -733,7 +734,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            Collection<CandidateEntity> candidates = candidateDao.getCandidates(request.getCompanyName(), candidateId, company.getId());
+            candidates= candidateDao.getCandidates(request.getCompanyName(), candidateId, company.getId());
             if (CollectionUtils.isEmpty(candidates)) {
                 log.warn("Candidate not found for candidateId: {}, companyName: {}, companyId: {}", candidateId, request.getCompanyName(), company.getId());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_EXIST), HttpStatus.NOT_FOUND);
@@ -801,6 +802,16 @@ public class EmployeeServiceImpl implements EmployeeService {
             openSearchOperations.saveEntity(companyEntity, resourceId, index);
             log.info("Saved employee company entity with id {}", resourceId);
 
+            candidateDao.get(candidates.stream().findFirst().get().getId(), request.getCompanyName())
+                    .ifPresent(candidate -> {
+                        candidate.setStatus(Constants.CONVERTED);
+                        try {
+                            candidateDao.save(candidate, request.getCompanyName());
+                        } catch (EmployeeException e) {
+                            throw new RuntimeException(e);
+                        }
+                        log.info("Updated candidate status to CONVERTED for candidateId {}", candidate.getId());
+                    });
             if (documentEntityOptional.isPresent()) {
                 EmployeeDocumentEntity document = documentEntityOptional.get();
                 document.setReferenceId(resourceId);

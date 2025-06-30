@@ -102,7 +102,7 @@ public class CandidateServiceImpl implements CandidateService {
             try {
                 String companyUrl = EmailUtils.getBaseUrl(request) + candidateRequest.getCompanyName() + Constants.SLASH + Constants.CANDIDATE_LOGIN ;
                 log.info("The company url : "+companyUrl);
-                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,null);
+                emailUtils.sendCandidateRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE);
             } catch (Exception e) {
                 log.error("Error sending email to candidate: {}", candidateRequest.getEmailId());
                 throw new RuntimeException(e);
