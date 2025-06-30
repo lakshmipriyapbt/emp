@@ -211,4 +211,5 @@ public class Constants {
     public static final String OFFER_LETTER = "offerLetter";
     public static final String INTERN_OFFER_LETTER = "intern_offer_letter";
     public static final String INTERNSHIP_CERTIFICATE = "internshipCertificate";
+    public static final String CANDIDATE_LOGIN="candidateLogin";
 }
