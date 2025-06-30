@@ -1150,43 +1150,23 @@ export const BankPutApiById = (companyId, bankId, data) => {
     });
 };
 
-export const InvoicePostApi = async (companyId, customerId, data) => {
+export const InvoicePostApi = (companyId, customerId, data) => {
   // Validate inputs
   if (!companyId || !customerId) {
     console.error('Missing required parameters:', { companyId, customerId });
     return Promise.reject(new Error('Missing companyId or customerId'));
   }
 
-  try {
-    const response = await axiosInstance.post(
-      `/company/${encodeURIComponent(companyId)}/customer/${encodeURIComponent(customerId)}/invoice`,
-      JSON.stringify(data), // Ensure JSON format
-      {
-        responseType: 'blob', // Expect binary PDF
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/pdf',
-        },
-      }
-    );
-
-    // Create a blob URL and trigger download
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Invoice_${companyId}_${customerId}.pdf`; // Dynamic filename
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-    return true;
-  } catch (error) {
-    console.error('Error downloading invoice:', error);
+  return axiosInstance.post(
+    `/company/${encodeURIComponent(companyId)}/customer/${encodeURIComponent(customerId)}/invoice`,
+    data
+  )
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Error creating invoice:', error);
     throw error;
-  }
+  });
 };
-
 
 export const InvoiceGetAllApi = (companyId, customerId = null) => {
   const params = {};

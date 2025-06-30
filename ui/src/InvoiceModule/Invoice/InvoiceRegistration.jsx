@@ -476,40 +476,44 @@ const InvoiceRegistration = () => {
   };
 
   const handleConfirmSubmission = async () => {
-  try {
-    // Ensure these values are properly set
-    const companyId = company?.id; // Changed from company?.companyId
-    const customerId = submissionData?.customerId;
-    
-    console.log("Submitting with:", { 
-      companyId, 
-      customerId,
-      data: submissionData 
-    });
+    try {
+      // Ensure these values are properly set
+      const companyId = company?.id; // Changed from company?.companyId
+      const customerId = submissionData?.customerId;
 
-    if (!companyId) {
-      throw new Error("Company ID is missing");
-    }
-    
-    if (!customerId) {
-      throw new Error("Customer ID is missing");
-    }
+      console.log("Submitting with:", {
+        companyId,
+        customerId,
+        data: submissionData
+      });
 
-    const response = await InvoicePostApi(
-      companyId,
-      customerId,
-      submissionData
-    );
-    
-    if (response) {
-      setShowPreview(false);
-      reset();
+      if (!companyId) {
+        throw new Error("Company ID is missing");
+      }
+
+      if (!customerId) {
+        throw new Error("Customer ID is missing");
+      }
+
+      const response = await InvoicePostApi(
+        companyId,
+        customerId,
+        submissionData
+      );
+
+      if (response) {
+        setShowPreview(false);
+        reset();
+        toast.success("Invoice created successfully!");
+
+        // ✅ Redirect to invoice view page
+        navigate("/invoiceView");
+      }
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      toast.error(`Failed to create invoice: ${error.message}`);
     }
-  } catch (error) {
-    console.error("Error creating invoice:", error);
-    toast.error(`Failed to create invoice: ${error.message}`);
-  }
-};
+  };
   const handleError = (errors) => {
     if (errors.response) {
       const status = errors.response.status;
@@ -561,6 +565,15 @@ const InvoiceRegistration = () => {
       dueDate: "",
       bankName: null,
       products: [],
+      shipToName: "",
+      shipToAddress: "",
+      shipToMobile: "",
+      notes: "",
+      salesPerson: "",
+      shippingMethod: "",
+      shippingTerms: "",
+      paymentTerms: "",
+      deliveryDate: ""
     });
 
     setProductData([]);  // Clear product rows
@@ -997,10 +1010,29 @@ const InvoiceRegistration = () => {
                           <input
                             type="text"
                             className="form-control"
-                            id="shipToName"
-                            {...register("shipToName")}
                             placeholder="Enter Ship To Name"
+                            id="shipToName"
+                            {...register("shipToName", {
+                              required: "Ship To Name is required",
+                              minLength: {
+                                value: 3,
+                                message:
+                                  "Ship To Name must be at least 3 characters long",
+                              },
+                              maxLength: {
+                                value: 10,
+                                message: "Ship To Name cannot exceed 10 characters",
+                              },
+                            })}
                           />
+                          {errors.shipToName && (
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
+                              {errors.shipToName.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="form-group row">
@@ -1012,9 +1044,27 @@ const InvoiceRegistration = () => {
                             type="text"
                             className="form-control"
                             id="shipToAddress"
-                            {...register("shipToAddress")}
                             placeholder="Enter Ship To Address"
+                            {...register("shipToAddress", {
+                              required: "Ship To Address is required",
+                              minLength: {
+                                value: 3,
+                                message: "Ship To Address must be at least 3 characters long",
+                              },
+                              maxLength: {
+                                value: 100,
+                                message: "Ship To Address cannot exceed 100 characters",
+                              },
+                            })}
                           />
+                          {errors.shipToAddress && (
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
+                              {errors.shipToAddress.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="form-group row">
@@ -1025,10 +1075,24 @@ const InvoiceRegistration = () => {
                           <input
                             type="text"
                             className="form-control"
-                            id="shipToMobile"
-                            {...register("shipToMobile")}
                             placeholder="Enter Ship To Mobile"
+                            id="shipToMobile"
+                            {...register("shipToMobile", {
+                              required: "Ship To Mobile is required",
+                              pattern: {
+                                value: /^[0-9]{10}$/,
+                                message: "Ship To Mobile must be a 10-digit number",
+                              },
+                            })}
                           />
+                          {errors.shipToMobile && (
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
+                              {errors.shipToMobile.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </>
@@ -1043,10 +1107,28 @@ const InvoiceRegistration = () => {
                         <textarea
                           className="form-control"
                           id="notes"
-                          {...register("notes")}
                           placeholder="Enter special notes and instructions"
                           rows={3}
+                          {...register("notes", {
+                            required: "Special Notes are required",
+                            minLength: {
+                              value: 10,
+                              message: "Special Notes must be at least 10 characters long",
+                            },
+                            maxLength: {
+                              value: 500,
+                              message: "Special Notes cannot exceed 500 characters",
+                            },
+                          })}
                         />
+                        {errors.notes && (
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
+                            {errors.notes.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1061,9 +1143,27 @@ const InvoiceRegistration = () => {
                           type="text"
                           className="form-control"
                           id="salesPerson"
-                          {...register("salesPerson")}
                           placeholder="Enter Sales Person Name"
+                          {...register("salesPerson", {
+                            required: "Sales Person Name is required",
+                            minLength: {
+                              value: 3,
+                              message: "Sales Person Name must be at least 3 characters long",
+                            },
+                            maxLength: {
+                              value: 100,
+                              message: "Sales Person Name cannot exceed 100 characters",
+                            },
+                          })}
                         />
+                        {errors.salesPerson && (
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
+                            {errors.salesPerson.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1078,9 +1178,27 @@ const InvoiceRegistration = () => {
                           type="text"
                           className="form-control"
                           id="shippingMethod"
-                          {...register("shippingMethod")}
                           placeholder="Enter Shipping Method"
+                          {...register("shippingMethod", {
+                            required: "Shipping Method is required",
+                            minLength: {
+                              value: 3,
+                              message: "Shipping Method must be at least 3 characters long",
+                            },
+                            maxLength: {
+                              value: 100,
+                              message: "Shipping Method cannot exceed 100 characters",
+                            },
+                          })}
                         />
+                        {errors.shippingMethod && (
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
+                            {errors.shippingMethod.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1095,9 +1213,27 @@ const InvoiceRegistration = () => {
                           type="text"
                           className="form-control"
                           id="shippingTerms"
-                          {...register("shippingTerms")}
                           placeholder="Enter Shipping Terms"
+                          {...register("shippingTerms", {
+                            required: "Shipping Terms are required",
+                            minLength: {
+                              value: 3,
+                              message: "Shipping Terms must be at least 3 characters long",
+                            },
+                            maxLength: {
+                              value: 100,
+                              message: "Shipping Terms cannot exceed 100 characters",
+                            },
+                          })}
                         />
+                        {errors.shippingTerms && (
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
+                            {errors.shippingTerms.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1112,9 +1248,27 @@ const InvoiceRegistration = () => {
                           type="text"
                           className="form-control"
                           id="paymentTerms"
-                          {...register("paymentTerms")}
                           placeholder="Enter Payment Terms"
+                          {...register("paymentTerms", {
+                            required: "Payment Terms are required",
+                            minLength: {
+                              value: 3,
+                              message: "Payment Terms must be at least 3 characters long"
+                            },
+                            maxLength: {
+                              value: 100,
+                              message: "Payment Terms cannot exceed 100 characters"
+                            },
+                          })}
                         />
+                        {errors.paymentTerms && (
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
+                            {errors.paymentTerms.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1129,8 +1283,29 @@ const InvoiceRegistration = () => {
                           type="date"
                           className="form-control"
                           id="deliveryDate"
-                          {...register("deliveryDate")}
+                          {...register("deliveryDate", {
+                            required: "Delivery Date is required",
+                            validate: (value) => {
+                              const invoiceDate = watch("invoiceDate");
+                              if (!invoiceDate) {
+                                return "Invoice Date is required before selecting Delivery Date";
+                              }
+                              const invoiceDateObj = new Date(invoiceDate);
+                              const deliveryDateObj = new Date(value);
+                              if (deliveryDateObj < invoiceDateObj) {
+                                return "Delivery Date cannot be before Invoice Date";
+                              }
+                              return true;
+                            }
+                          })}
                         />
+                        {errors.deliveryDate && (
+                          <p
+                            className="errorMsg"
+                          >
+                            {errors.deliveryDate.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
