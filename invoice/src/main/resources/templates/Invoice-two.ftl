@@ -68,7 +68,7 @@
     width: 250px;
     }
     .ship-to {
-    top: 18%;
+    top: 14%;
     position: absolute;
     right: 10px;
     padding-right: 15px; /* Slightly reduced padding */
@@ -220,6 +220,7 @@
         </div>
         <div class="ship-to">
             <#if invoice.shippedPayload?has_content>
+                  <#assign shipped = invoice.shippedPayload />
                     <div class="section-title">Ship to</div>
                     <p>Client name: ${shipped.customerName!'-'}</p>
                     <p>${shipped.address!'-'}</p>
@@ -281,23 +282,14 @@
                <#assign sGstValue = (sGst??)?then(sGst?number, 0.00) />
 
                <#if iGstValue gt 0>
-                   <tr>
-                       <p><span>IGST</span>${iGstValue?string("0.00")}</span></p>
-                   </tr>
+                       <p>IGST:${iGstValue?string("0.00")}</p>
                <#elseif cGstValue gt 0 && sGstValue gt 0>
-                   <tr>
-                       <p><span>CGST</span><span>:${cGstValue?string("0.00")}</span></p>
-                   </tr>
-                   <tr>
-                       <p><span>SGST</span><span>:${sGstValue?string("0.00")}</span></p>
-                   </tr>
+
+                       <p>CGST:${cGstValue?string("0.00")}</p>
+                       <p>SGST:${sGstValue?string("0.00")}</p>
                <#else>
-                   <tr>
-                       <p><span>CGST</span><span>:${cGstValue?string("0.00")}</span></p>
-                   </tr>
-                   <tr>
-                       <p><span>SGST</span><span>:${sGstValue?string("0.00")}</span></p>
-                   </tr>
+                      <p>CGST:${cGstValue?string("0.00")}</p>
+                       <p>SGST:${sGstValue?string("0.00")}</p>
                </#if>
             <p class="total"><span>Total</span><span>:${invoice.grandTotal}</span></p>
         </div>

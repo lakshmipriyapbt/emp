@@ -68,4 +68,5 @@ public class Constants {
     public static final String COMPANY = "company";
     public static final String BANK_1 = "bank";
     public static final String TEMPLATE = "template";
+    public static final String SHIPPED_TO = "shipped";
 }

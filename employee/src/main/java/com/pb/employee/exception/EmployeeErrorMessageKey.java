@@ -178,8 +178,10 @@ public enum EmployeeErrorMessageKey {
     FAILED_TO_UPDATE_INTERNSHIP_CERTIFICATE("failed.to.update.internship.certificate"),
     INTERN_OFFER_LETTER_NOT_FOUND("intern.offer.letter.not.found"),
     FAILED_TO_UPDATE_INTERN_OFFER_LETTER("failed.to.update.intern.offer.letter"),
-    NO_UPDATE_DONE_IN_INTERN_OFFER("no.update.done.in.intern.offer"),;
-
+    NO_UPDATE_DONE_IN_INTERN_OFFER("no.update.done.in.intern.offer"),
+    OFFER_LETTER_NOT_FOUND("offer.letter.not.found"),
+    FAILED_TO_UPDATE_OFFER_LETTER("failed.to.update.offer.letter"),
+    No_UPDATE_DONE_IN_OFFER_LETTER("no.update.done.in.offer.letter");
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {
