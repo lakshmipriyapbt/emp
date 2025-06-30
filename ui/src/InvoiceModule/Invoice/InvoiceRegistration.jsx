@@ -85,61 +85,65 @@ const InvoiceRegistration = () => {
     ).toFixed(2)
   );
 
-  const validateInput = (type, value) => {
-    if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
-    if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
-    if (type === "number") return /^\d+(\.\d{1,2})?$/.test(value);
-    if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
+  const validateItemName = (value) => {
+    if (!value) return "Item name is required";
+    if (value.length < 3) return "Item name must be at least 3 characters";
+    if (value.length > 250) return "Item name cannot exceed 250 characters";
+    if (!/^[a-zA-Z0-9 _\-.,&()]+$/.test(value)) {
+      return "Item name contains invalid characters";
+    }
     return true;
   };
-  const validateField = (index, key, value) => {
-    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
 
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters"
-      },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/,
-        patternMessage: "HSN must contain only numbers"
-      },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters"
-      }
-    };
-
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (!fieldValidation) return true;
-
-    if (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.errorMessage,
-        },
-      }));
-      return false;
+  const validateHSN = (value) => {
+    if (!value) return "HSN number is required";
+    if (!/^[0-9]{4,12}$/.test(value)) {
+      return "HSN must be 4-12 digits (numbers only)";
     }
+    return true;
+  };
 
-    if (fieldValidation.pattern && !fieldValidation.pattern.test(value)) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.patternMessage,
-        },
-      }));
-      return false;
+  const validateService = (value) => {
+    if (value && value.length > 0) {
+      if (value.length < 3) return "Service must be at least 3 characters";
+      if (value.length > 60) return "Service cannot exceed 60 characters";
     }
+    return true;
+  };
 
+  const validateQuantity = (value) => {
+    if (!value) return "Quantity is required";
+    const num = Number(value);
+    if (isNaN(num)) return "Must be a valid number";
+    if (num < 1) return "Quantity must be at least 1";
+    if (num > 9999) return "Quantity cannot exceed 9999";
+    if (!Number.isInteger(num)) return "Quantity must be a whole number";
+    return true;
+  };
+
+  const validateUnitCost = (value) => {
+    if (!value) return "Unit cost is required";
+    const num = Number(value);
+    if (isNaN(num)) return "Must be a valid number";
+    if (num < 0.01) return "Unit cost must be at least 0.01";
+    if (num > 999999.99) return "Unit cost cannot exceed 999,999.99";
+    if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+      return "Unit cost must have max 2 decimal places";
+    }
+    return true;
+  };
+
+  const validateGST = (value) => {
+    if (!value) return "GST percentage is required";
+    // Allow input with or without % sign
+    const cleanValue = value.replace('%', '');
+    const num = Number(cleanValue);
+    if (isNaN(num)) return "Must be a valid percentage";
+    if (num < 0) return "GST cannot be negative";
+    if (num > 28) return "GST cannot exceed 28%";
+    if (!/^([0-9]{1,2}(\.[0-9]{1,2})?|100)%?$/.test(value)) {
+      return "Invalid GST percentage (0-28%)";
+    }
     return true;
   };
 
@@ -157,16 +161,6 @@ const InvoiceRegistration = () => {
       // Set fields visibility based on template
       if (templateNumber === "1") {
         setTemplateFields({
-          showShipTo: true,
-          showNotes: true,
-          showSalesPerson: false,
-          showShippingMethod: false,
-          showShippingTerms: false,
-          showPaymentTerms: false,
-          showDeliveryDate: false
-        });
-      } else if (templateNumber === "2") {
-        setTemplateFields({
           showShipTo: false,
           showNotes: false,
           showSalesPerson: true,
@@ -175,6 +169,16 @@ const InvoiceRegistration = () => {
           showPaymentTerms: true,
           showDeliveryDate: true
         });
+      } else if (templateNumber === "2") {
+        setTemplateFields({
+          showShipTo: true,
+          showNotes: true,
+          showSalesPerson: false,
+          showShippingMethod: false,
+          showShippingTerms: false,
+          showPaymentTerms: false,
+          showDeliveryDate: false
+        });
       }
     } catch (error) {
       handleError(error);
@@ -182,54 +186,12 @@ const InvoiceRegistration = () => {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return ""; // If the date is falsy, return an empty string
-
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0"); // Get the day, ensuring two digits
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Get the month (0-indexed)
-    const year = d.getFullYear(); // Get the full year
-
-    return `${day}-${month}-${year}`;
-  };
-
-  // Calculate tax (example 10%)
-  const calculateTax = (subtotal) => {
-    return (subtotal * 0.1).toFixed(2);
-  };
-
-  // Calculate total including tax
-  const calculateTotal = (subtotal) => {
-    return (parseFloat(subtotal) * 1.1).toFixed(2);
-  };
-
-
+  // Update the updateData function to use these validations
   const updateData = (index, key, value) => {
     const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
     const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
 
-    // Field-specific validation rules
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters",
-      },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/, // Only numbers allowed
-        patternMessage: "HSN must contain only numbers",
-      },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters",
-      },
-    };
-
-    // Always update the field value (allow typing)
+    // First update the value regardless of validation
     setProductData((prevData) => {
       const updatedData = [...prevData];
       updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
@@ -252,30 +214,47 @@ const InvoiceRegistration = () => {
       return updatedData;
     });
 
-    // Validate in real-time (but don't block input)
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (fieldValidation) {
-      let error = null;
+    // Then validate based on field type
+    let error = null;
 
-      // Check min/max length
-      if (value.length > 0 && (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength)) {
-        error = fieldValidation.errorMessage;
-      }
-
-      // Check HSN pattern (if applicable)
-      if (normalizedKey === "hsn" && fieldValidation.pattern && !fieldValidation.pattern.test(value) && value.length > 0) {
-        error = fieldValidation.patternMessage;
-      }
-
-      // Update errors (if any)
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: error,
-        },
-      }));
+    switch (normalizedKey) {
+      case "items":
+        error = validateItemName(value) === true ? null : validateItemName(value);
+        break;
+      case "hsn":
+        error = validateHSN(value) === true ? null : validateHSN(value);
+        break;
+      case "service":
+        error = validateService(value) === true ? null : validateService(value);
+        break;
+      case "quantity":
+        error = validateQuantity(value) === true ? null : validateQuantity(value);
+        break;
+      case "unitCost":
+        error = validateUnitCost(value) === true ? null : validateUnitCost(value);
+        break;
+      case "gstPercentage":
+        error = validateGST(value) === true ? null : validateGST(value);
+        break;
+      default:
+        // For custom fields
+        if (value && value.length > 0) {
+          if (colType === "number" && !/^\d+(\.\d{1,2})?$/.test(value)) {
+            error = "Must be a valid number";
+          } else if (colType === "percentage" && !/^([0-9]{1,2}(\.[0-9]{1,2})?|100)%?$/.test(value)) {
+            error = "Must be a valid percentage (0-100)";
+          }
+        }
     }
+
+    // Update errors state
+    setFieldErrors((prev) => ({
+      ...prev,
+      [index]: {
+        ...(prev[index] || {}),
+        [normalizedKey]: error,
+      },
+    }));
   };
 
   useEffect(() => {
@@ -381,7 +360,94 @@ const InvoiceRegistration = () => {
     console.log(customerOptions);
   }, [customers]);
 
+  // Add this validation check before form submission
+  const validateBeforeSubmit = () => {
+    let isValid = true;
+    const newErrors = {};
+
+    // Validate product rows
+    productData.forEach((row, index) => {
+      const rowErrors = {};
+
+      // Validate required fields
+      if (!row.items) {
+        rowErrors.items = "Item name is required";
+        isValid = false;
+      } else {
+        const itemValid = validateItemName(row.items);
+        if (itemValid !== true) {
+          rowErrors.items = itemValid;
+          isValid = false;
+        }
+      }
+
+      if (!row.hsn) {
+        rowErrors.hsn = "HSN number is required";
+        isValid = false;
+      } else {
+        const hsnValid = validateHSN(row.hsn);
+        if (hsnValid !== true) {
+          rowErrors.hsn = hsnValid;
+          isValid = false;
+        }
+      }
+
+      if (!row.quantity) {
+        rowErrors.quantity = "Quantity is required";
+        isValid = false;
+      } else {
+        const qtyValid = validateQuantity(row.quantity);
+        if (qtyValid !== true) {
+          rowErrors.quantity = qtyValid;
+          isValid = false;
+        }
+      }
+
+      if (!row.unitCost) {
+        rowErrors.unitCost = "Unit cost is required";
+        isValid = false;
+      } else {
+        const costValid = validateUnitCost(row.unitCost);
+        if (costValid !== true) {
+          rowErrors.unitCost = costValid;
+          isValid = false;
+        }
+      }
+
+      if (!row.gstPercentage) {
+        rowErrors.gstPercentage = "GST percentage is required";
+        isValid = false;
+      } else {
+        const gstValid = validateGST(row.gstPercentage);
+        if (gstValid !== true) {
+          rowErrors.gstPercentage = gstValid;
+          isValid = false;
+        }
+      }
+
+      // Validate service if provided
+      if (row.service) {
+        const serviceValid = validateService(row.service);
+        if (serviceValid !== true) {
+          rowErrors.service = serviceValid;
+          isValid = false;
+        }
+      }
+
+      if (Object.keys(rowErrors).length > 0) {
+        newErrors[index] = rowErrors;
+      }
+    });
+
+    setFieldErrors(newErrors);
+    return isValid;
+  };
   const onSubmit = (data) => {
+    // First validate product rows
+    if (!validateBeforeSubmit()) {
+      toast.error("Please fix all validation errors before submitting");
+      return;
+    }
     // Find the full customer and bank details
     const selectedCustomer = customers.find(
       cust => cust.customerId === data.customerName.value
@@ -1368,35 +1434,24 @@ const InvoiceRegistration = () => {
                         {productData.map((row, rowIndex) => (
                           <tr key={rowIndex}>
                             {productColumns.map((col) => (
-                              <td key={col.key}>
+                              <td key={col.key} className={fieldErrors[rowIndex]?.[col.key] ? "has-error" : ""}>
                                 <input
-                                  type={
-                                    col.type === "percentage"
-                                      ? "text"
-                                      : col.type
-                                  }
-                                  className="form-control"
+                                  type={col.type === "percentage" ? "text" : col.type}
+                                  className={`form-control ${fieldErrors[rowIndex]?.[col.key] ? "is-invalid" : ""}`}
                                   value={row[col.key] || ""}
-                                  onChange={(e) =>
-                                    updateData(
-                                      rowIndex,
-                                      col.key,
-                                      e.target.value
-                                    )
+                                  onChange={(e) => updateData(rowIndex, col.key, e.target.value)}
+                                  placeholder={
+                                    col.key === "gstPercentage" ? "e.g. 18 or 18%" :
+                                      col.key === "unitCost" ? "0.00" :
+                                        col.key === "quantity" ? "1" :
+                                          ""
                                   }
                                 />
-                                {fieldErrors[rowIndex] &&
-                                  fieldErrors[rowIndex][col.key] && (
-                                    <p
-                                      className="errorMsg"
-                                      style={{
-                                        color: "red",
-                                        fontSize: "0.8em",
-                                      }}
-                                    >
-                                      {fieldErrors[rowIndex][col.key]}
-                                    </p>
-                                  )}
+                                {fieldErrors[rowIndex]?.[col.key] && (
+                                  <div className="invalid-feedback d-block" style={{ fontSize: "0.8rem" }}>
+                                    {fieldErrors[rowIndex][col.key]}
+                                  </div>
+                                )}
                               </td>
                             ))}
                             <td>
@@ -1410,25 +1465,6 @@ const InvoiceRegistration = () => {
                             </td>
                           </tr>
                         ))}
-                        {/* SubTotal Row */}
-                        <tr>
-                          <td
-                            colSpan={productColumns.length - 1}
-                            className="text-end"
-                          >
-                            <strong>Sub Total(₹):</strong>
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={subTotal.toFixed(2)}
-                              readOnly
-                            />
-                          </td>
-
-                          <td></td>
-                        </tr>
                       </tbody>
                     </table>
                     <DeletePopup

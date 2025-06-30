@@ -1,11 +1,39 @@
 import React from "react";
 
+const getStateCodeFromGST = (gstNumber) => {
+  if (!gstNumber || gstNumber.length < 2) return null;
+  return gstNumber.substring(0, 2);
+};
+
+const calculateTaxes = (subTotal, companyGST, customerGST) => {
+  const companyStateCode = getStateCodeFromGST(companyGST);
+  const customerStateCode = getStateCodeFromGST(customerGST);
+  const hasCustomerGST = !!customerGST;
+  
+  let sgst = '0.00';
+  let cgst = '0.00';
+  let igst = '0.00';
+  
+  if (hasCustomerGST) {
+    if (companyStateCode === customerStateCode) {
+      // Same state - apply SGST and CGST
+      const gstAmount = (parseFloat(subTotal) * 0.09).toFixed(2);
+      sgst = gstAmount;
+      cgst = gstAmount;
+    } else {
+      // Different state - apply IGST
+      igst = (parseFloat(subTotal) * 0.18).toFixed(2);
+    }
+  }
+
+  return { sgst, cgst, igst, hasCustomerGST };
+};
+
 const InvoiceTemplate2 = ({
   InvoiceStaticData = {},
   companyData = {},
   bankDetails = {}
 }) => {
-  // Safely access nested properties with fallbacks
   const billedTo = InvoiceStaticData.billedTo || {};
   const company = companyData || {};
   const products = InvoiceStaticData.productData || [];
@@ -15,66 +43,67 @@ const InvoiceTemplate2 = ({
     { key: "price", title: "Price" }
   ];
 
-  // Calculate totals
   const subTotal = parseFloat(InvoiceStaticData.subTotal) || 0;
-  const sgst = subTotal * 0.09;
-  const cgst = subTotal * 0.09;
-  const grandTotal = subTotal + sgst + cgst;
+  const { sgst, cgst, igst, hasCustomerGST } = calculateTaxes(
+    subTotal,
+    company.gstNo,
+    billedTo.customerGstNo
+  );
+  
+  const grandTotal = (subTotal + parseFloat(sgst) + parseFloat(cgst) + parseFloat(igst)).toFixed(2);
 
-  
   const numberToWords = (num) => {
-  const single = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-  const double = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-  const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-  
-  if (num === 0) return 'Zero';
-  
-  const convertLessThanOneThousand = (n) => {
-    if (n === 0) return '';
-    if (n < 10) return single[n];
-    if (n < 20) return double[n - 10];
-    if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + single[n % 10] : '');
+    const single = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const double = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
     
-    const hundred = Math.floor(n / 100);
-    const remainder = n % 100;
-    return single[hundred] + ' Hundred' + (remainder !== 0 ? ' and ' + convertLessThanOneThousand(remainder) : '');
+    if (num === 0) return 'Zero';
+    
+    const convertLessThanOneThousand = (n) => {
+      if (n === 0) return '';
+      if (n < 10) return single[n];
+      if (n < 20) return double[n - 10];
+      if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + single[n % 10] : '');
+      
+      const hundred = Math.floor(n / 100);
+      const remainder = n % 100;
+      return single[hundred] + ' Hundred' + (remainder !== 0 ? ' and ' + convertLessThanOneThousand(remainder) : '');
+    };
+    
+    const convert = (n) => {
+      if (n === 0) return 'Zero';
+      
+      let result = '';
+      const crore = Math.floor(n / 10000000);
+      n %= 10000000;
+      
+      const lakh = Math.floor(n / 100000);
+      n %= 100000;
+      
+      const thousand = Math.floor(n / 1000);
+      n %= 1000;
+      
+      if (crore > 0) {
+        result += convertLessThanOneThousand(crore) + ' Crore ';
+      }
+      if (lakh > 0) {
+        result += convertLessThanOneThousand(lakh) + ' Lakh ';
+      }
+      if (thousand > 0) {
+        result += convertLessThanOneThousand(thousand) + ' Thousand ';
+      }
+      if (n > 0) {
+        result += convertLessThanOneThousand(n);
+      }
+      
+      return result.trim();
+    };
+    
+    return convert(num) + ' Rupees Only';
   };
-  
-  const convert = (n) => {
-    if (n === 0) return 'Zero';
-    
-    let result = '';
-    const crore = Math.floor(n / 10000000);
-    n %= 10000000;
-    
-    const lakh = Math.floor(n / 100000);
-    n %= 100000;
-    
-    const thousand = Math.floor(n / 1000);
-    n %= 1000;
-    
-    if (crore > 0) {
-      result += convertLessThanOneThousand(crore) + ' Crore ';
-    }
-    if (lakh > 0) {
-      result += convertLessThanOneThousand(lakh) + ' Lakh ';
-    }
-    if (thousand > 0) {
-      result += convertLessThanOneThousand(thousand) + ' Thousand ';
-    }
-    if (n > 0) {
-      result += convertLessThanOneThousand(n);
-    }
-    
-    return result.trim();
-  };
-  
-  return convert(num) + ' Rupees Only';
-};
 
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
-      {/* Header with PAN, GST & Logo */}
       <div className="invoice-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <div className="tax-info">
           <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
@@ -103,7 +132,6 @@ const InvoiceTemplate2 = ({
       
       <div className="invoice-content">
         <div className="row" style={{ marginBottom: "30px" }}>
-          {/* Billing Information */}
           <div className="col-md-6">
             <div className="billing-info">
               <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>Billed To,</p>
@@ -120,12 +148,11 @@ const InvoiceTemplate2 = ({
                 {billedTo.address || "Address"},
               </p>
               <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-                {billedTo.customerGstNo || "GST"}
+                {billedTo.customerGstNo || "GST: Not Provided"}
               </p>
             </div>
           </div>
           
-          {/* Invoice Meta Data */}
           <div className="col-md-6">
             <div className="invoice-meta" style={{ textAlign: "right" }}>
               <p style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>
@@ -144,7 +171,6 @@ const InvoiceTemplate2 = ({
           </div>
         </div>
 
-        {/* Sales Info Table with Vertical Lines */}
         {InvoiceStaticData.salesPerson && (
           <div className="sales-info-table" style={{ marginBottom: "30px" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
@@ -172,7 +198,6 @@ const InvoiceTemplate2 = ({
           </div>
         )}
 
-        {/* Dynamic Invoice Table */}
         <div className="invoice-table" style={{ marginBottom: "30px" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "0" }}>
             <thead>
@@ -183,7 +208,6 @@ const InvoiceTemplate2 = ({
                     {col.title}
                   </th>
                 ))}
-                {/* <th style={{ padding: "10px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>Total Price</th> */}
               </tr>
             </thead>
             <tbody>
@@ -197,9 +221,6 @@ const InvoiceTemplate2 = ({
                       {product[col.key]}
                     </td>
                   ))}
-                  {/* <td style={{ padding: "10px", textAlign: "left", fontSize: "14px", borderBottom: "1px solid #eee" }}>
-                    {(Number(product.quantity) * Number(product.price)).toFixed(2)}
-                  </td> */}
                 </tr>
               ))}
             </tbody>
@@ -212,30 +233,48 @@ const InvoiceTemplate2 = ({
                   {subTotal.toFixed(2)}
                 </td>
               </tr>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-                  SGST (9%)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
-                  {sgst.toFixed(2)}
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-                  CGST (9%)
-                </td>
-                <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
-                  {cgst.toFixed(2)}
-                </td>
-              </tr>
+              
+              {hasCustomerGST && (
+                igst !== '0.00' ? (
+                  <tr>
+                    <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
+                      IGST (18%)
+                    </td>
+                    <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
+                      {igst}
+                    </td>
+                  </tr>
+                ) : (
+                  <>
+                    <tr>
+                      <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
+                        SGST (9%)
+                      </td>
+                      <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
+                        {sgst}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
+                        CGST (9%)
+                      </td>
+                      <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
+                        {cgst}
+                      </td>
+                    </tr>
+                  </>
+                )
+              )}
+              
               <tr>
                 <td colSpan={productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
                   Grand Total (Rs)
                 </td>
                 <td style={{ padding: "10px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>
-                  {grandTotal.toFixed(2)}
+                  {grandTotal}
                 </td>
               </tr>
+              
               <tr>
                 <td colSpan={productColumns.length + 1} style={{ padding: "10px", textAlign: "center", fontSize: "14px", fontWeight: "600", borderTop: "1px solid #eee" }}>
                   In Words: {numberToWords(Math.floor(grandTotal))}
@@ -250,10 +289,8 @@ const InvoiceTemplate2 = ({
           </table>
         </div>
 
-        {/* Bank Details */}
         <div className="bank-details-section">
           <div className="row">
-            {/* Left Section - Bank Details */}
             <div className="col-md-6">
               <div className="bank-details">
                 <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px" }}>Bank Details</h5>
@@ -290,7 +327,6 @@ const InvoiceTemplate2 = ({
               </div>
             </div>
 
-            {/* Right Section - Stamp & Authorized Signature */}
             <div className="col-md-6">
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
                 <div style={{
