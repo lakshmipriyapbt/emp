@@ -725,6 +725,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         String index = ResourceIdUtils.generateCompanyIndex(request.getCompanyName());
 
         Object existingEmployee;
+        Optional<EmployeeDocumentEntity> documentEntityOptional;
         try {
             CompanyEntity company = openSearchOperations.getCompanyByCompanyName(request.getCompanyName(), Constants.INDEX_EMS);
             if (company == null) {
@@ -739,7 +740,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
 
             // Candidate exists, now check if they have uploaded documents
-            Optional<EmployeeDocumentEntity> documentEntityOptional = employeeDocumentDao.getByDocuments(candidateId, null, request.getCompanyName());
+            documentEntityOptional = employeeDocumentDao.getByDocuments(candidateId, request.getCompanyName());
             if (documentEntityOptional.isEmpty()) {
                 log.warn("Candidate {} has not uploaded any documents in company {}", candidateId, request.getCompanyName());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_UPLOADED_DOCUMENTS), HttpStatus.NOT_FOUND);
@@ -800,10 +801,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             openSearchOperations.saveEntity(companyEntity, resourceId, index);
             log.info("Saved employee company entity with id {}", resourceId);
 
-            Optional<EmployeeDocumentEntity> candidateDocOpt = employeeDocumentDao.getByDocuments(candidateId, null, request.getCompanyName());
-            if (candidateDocOpt.isPresent()) {
-                EmployeeDocumentEntity document = candidateDocOpt.get();
-                document.setEmployeeRefId(resourceId);
+            if (documentEntityOptional.isPresent()) {
+                EmployeeDocumentEntity document = documentEntityOptional.get();
+                document.setReferenceId(resourceId);
                 log.info("Linking employeeRefId {} to existing candidate document {}", resourceId, document.getId());
                 employeeDocumentDao.save(document, request.getCompanyName());
                 log.info("Linked candidate document to employee {}", resourceId);

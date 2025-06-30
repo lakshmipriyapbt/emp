@@ -15,8 +15,8 @@ import java.util.List;
 public class EmployeeDocumentEntity extends AbstractEntity{
 
     private String id;
-    private String candidateId;
-    private String employeeRefId;
+    private String companyName;
+    private String referenceId;
     private String folderPath;
     private String profile;
 
