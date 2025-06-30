@@ -82,7 +82,7 @@ export const NAV_CONFIG = {
             icon: 'receipt', // 🧾
             items: [
                 { title: 'Invoice View', path: '/invoiceView' },
-                { title: 'Invoice Registration', path: '/invoiceRegistartion' }
+                { title: 'Invoice Registration', path: '/invoiceRegistration' }
             ]
         },
         {
@@ -108,7 +108,7 @@ export const NAV_CONFIG = {
                 { title: 'Interns Offer Template', path: '/internOfferTemplate' },
                 { title: 'Intern Certificate Template', path: '/internsTemplates' },
                 { title: 'Payslip Template', path: '/payslipTemplates' },
-                { title: 'Invoice Template', path: '/invoiceTemplate1' }
+                { title: 'Invoice Template', path: '/invoiceTemplates' },
             ]
         }
     ],
@@ -301,6 +301,16 @@ export const NAV_CONFIG = {
             title: 'Payslips',
             path: '/employeePayslip',
             icon: 'receipt'
+        },
+        {
+            title: 'Documents Upload',
+            path: '/employeeDocumentUpload',
+            icon: 'file-earmark-arrow-up' // Recommended
+        },
+        {
+            title: 'Documents View',
+            path: '/employeeDocumentView',
+            icon: 'file-earmark-text' // Recommended
         }
     ],
     Accountant: [

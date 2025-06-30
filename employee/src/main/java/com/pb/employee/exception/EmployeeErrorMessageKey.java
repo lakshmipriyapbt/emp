@@ -169,7 +169,16 @@ public enum EmployeeErrorMessageKey {
     UNABLE_DELETE_APPRAISAL("unable.delete.appraisal"),
     NO_UPDATE_DONE_IN_APPRAISAL("no.update.done.in.appraisal"),
     DOCUMENT_ALREADY_EXISTS("document.already.exists"),
-    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),;
+    CANDIDATE_OR_EMPLOYEE_ID_REQUIRED("candidate.or.employee.id.required"),
+    CANDIDATE_NOT_EXIST("candidate.not.exist"),
+    CANDIDATE_NOT_UPLOADED_DOCUMENTS("candidate.not.uploaded.documents"),
+    CANDIDATE_ALREADY_EXISTS("candidate.already.exists"),
+    UNABLE_GET_IMAGE("unable.get.image"),
+    INTERNSHIP_NOT_FOUND("internship.not.found"),
+    FAILED_TO_UPDATE_INTERNSHIP_CERTIFICATE("failed.to.update.internship.certificate"),
+    INTERN_OFFER_LETTER_NOT_FOUND("intern.offer.letter.not.found"),
+    FAILED_TO_UPDATE_INTERN_OFFER_LETTER("failed.to.update.intern.offer.letter"),
+    NO_UPDATE_DONE_IN_INTERN_OFFER("no.update.done.in.intern.offer"),;
 
     private final String key;
 

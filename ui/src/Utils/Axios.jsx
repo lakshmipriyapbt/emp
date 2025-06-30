@@ -334,6 +334,28 @@ export const EmployeePostApi = (data) => {
   return axiosInstance.post('/employee', data);
 }
 
+export const uploadEmployeeImage = (employeeId, file) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return axiosInstance.post(`/${companyName}/employee/${employeeId}/image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+export const getEmployeeImage = (employeeId) => {
+  const companyName = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${companyName}/employee/${employeeId}/image`);
+};
+
+
+export const CandidateToEmployeePostApi = (candidateId, data) => {
+  return axiosInstance.post(`/candidate/${candidateId}`, data);
+}
+
+
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
   return axiosInstance.get(`/${company}/employee/${employeeId}`)
@@ -1129,16 +1151,29 @@ export const BankPutApiById = (companyId, bankId, data) => {
 };
 
 export const InvoicePostApi = (companyId, customerId, data) => {
-  return axiosInstance.post(`/company/${companyId}/customer/${customerId}/invoice`, data)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error creating product:', error);
-      throw error;
-    });
+  // Validate inputs
+  if (!companyId || !customerId) {
+    console.error('Missing required parameters:', { companyId, customerId });
+    return Promise.reject(new Error('Missing companyId or customerId'));
+  }
+
+  return axiosInstance.post(
+    `/company/${encodeURIComponent(companyId)}/customer/${encodeURIComponent(customerId)}/invoice`,
+    data
+  )
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Error creating invoice:', error);
+    throw error;
+  });
 };
 
-export const InvoiceGetAllApi = (companyId) => {
-  return axiosInstance.get(`/company/${companyId}/invoice`);
+export const InvoiceGetAllApi = (companyId, customerId = null) => {
+  const params = {};
+  if (customerId) {
+    params.customerId = customerId;
+  }
+  return axiosInstance.get(`/company/${companyId}/invoice`, { params });
 };
 
 export const InvoiceGetByCustomerIdApi = (companyId, customerId) => {
@@ -1391,18 +1426,25 @@ export const CandidateDeleteApi = (id) => {  // Changed parameter name to be mor
   }
 };
 
-export const getDocumentByIdAPI = async (candidateId) => {
+export const getDocumentByIdAPI = async (candidateId = '', employeeId = '') => {
   const companyName = localStorage.getItem("companyName");
   
   try {
     const response = await axiosInstance.get(
-      `/${companyName}/candidate/${candidateId}/documents`
+      `/${companyName}/documents`, 
+      {
+        params: {
+          ...(candidateId && { candidateId }), // Only include if not empty
+          ...(employeeId && { employeeId })   // Only include if not empty
+        }
+      }
     );
     return response.data;
   } catch (error) {
     console.error('Error fetching documents:', {
       url: error.config?.url,
       method: error.config?.method,
+      params: error.config?.params,
       response: error.response?.data
     });
     throw error;
@@ -1422,6 +1464,49 @@ export const deleteDocumentByIdAPI = async (candidateId, documentId) => {
       url: error.config?.url,
       method: error.config?.method,
       response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Log the data being sent for debugging
+  console.log("Uploading to:", `/${companyName}/employee/${employeeId}/upload`);
+  console.log("Document names:", docNames);
+  console.log("Files:", files.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size
+  })));
+
+  // Add data to FormData
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+    formData.append(`files[${index}]`, files[index]);
+  });
+
+  try {
+    const response = await axiosInstance.post(
+      `/${companyName}/employee/${employeeId}/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading employee documents:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers,
+      data: error.config?.data,
+      response: error.response?.data,
+      status: error.response?.status
     });
     throw error;
   }

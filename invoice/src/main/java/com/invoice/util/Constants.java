@@ -55,7 +55,8 @@ public class Constants {
     public static final String PRODUCT = "product";
     public static final String BANK = "bank_details";
     public static final String TYPE = "type";
-    public static final String TEMPLATE = "invoice-template.ftl";
+    public static final String INVOICE_ONE = "invoice-one.ftl";
+    public static final String INVOICE_TWO = "invoice-two.ftl";
     public static final String ATTACHMENT =  "attachment";
     public static final String INVOICE_ =  "Invoice-";
     public static final String PDF = ".pdf";
@@ -64,4 +65,7 @@ public class Constants {
     public static final String IGST = "iGst";
     public static final String SGST = "sGst";
     public static final String CGST = "cGst";
+    public static final String COMPANY = "company";
+    public static final String BANK_1 = "bank";
+    public static final String TEMPLATE = "template";
 }

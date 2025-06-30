@@ -32,7 +32,7 @@ public class EmployeeDocumentDaoImpl extends AbstractDao<EmployeeDocumentEntity>
                 filters.add(new Filter(Constants.CANDIDATE_ID, Operator.EQ, candidateId));
             }
             if (StringUtils.isNotBlank(employeeId)) {
-                filters.add(new Filter(Constants.EMPLOYEE_ID, Operator.EQ, employeeId));
+                filters.add(new Filter(Constants.EMPLOYEEREF_ID, Operator.EQ, employeeId));
             }
             Collection<EmployeeDocumentEntity> result = search(filters, companyName);
 

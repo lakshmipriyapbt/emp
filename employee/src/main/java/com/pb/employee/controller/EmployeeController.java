@@ -129,4 +129,18 @@ public class EmployeeController {
         return employeeService.getEmployeeId(companyName, employeeIdRequest);
     }
 
+    @RequestMapping(value = "candidate/{candidateId}", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.registerEmployeeWithCandidate.tag}", description = "${api.registerEmployeeWithCandidate.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
+    public ResponseEntity<?> registerEmployeeWithCandidate(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                           @PathVariable String candidateId,
+                                                           @RequestBody @Valid EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException {
+
+        return employeeService.registerEmployeeWithCandidate(employeeRequest,candidateId, request);
+    }
+
+
 }

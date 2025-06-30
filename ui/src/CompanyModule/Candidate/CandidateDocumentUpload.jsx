@@ -305,7 +305,7 @@ const CandidateDocumentUpload = () => {
             await new Promise(resolve => setTimeout(resolve, 500)); // Show 100% briefly
 
             toast.success('Documents uploaded successfully!');
-            navigate('/uploadSuccess', { state: { documents: data } });
+            navigate('/candidateDocumentsView', { state: { documents: data } });
 
         } catch (error) {
             if (progressInterval) clearInterval(progressInterval);
@@ -1271,4 +1271,3 @@ const CandidateDocumentUpload = () => {
 };
 
 export default CandidateDocumentUpload;
-
