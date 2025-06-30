@@ -56,13 +56,11 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     public ResponseEntity<?> registerCandidate(CandidateRequest candidateRequest, HttpServletRequest request) throws EmployeeException , IOException{
-        String defaultPassword;
         log.debug("validating name {} existed ", candidateRequest.getLastName());
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
-        Object entity = null;
         CompanyEntity companyEntity;
         EmployeeEntity employee;
-        String index = ResourceIdUtils.generateCompanyIndex(candidateRequest.getCompanyName());
+        CandidateEntity candidate;
         try {
             companyEntity = openSearchOperations.getCompanyByCompanyName(candidateRequest.getCompanyName(), Constants.INDEX_EMS);
             if (companyEntity == null) {
@@ -76,24 +74,21 @@ public class CandidateServiceImpl implements CandidateService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
             }
+            Collection<CandidateEntity> existingCandidate = candidateDao.getCandidates(candidateRequest.getCompanyName(), resourceId, companyEntity.getId());
+            if (!existingCandidate.isEmpty()) {
+                log.error("Candidate with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_EMAILID_ALREADY_EXISTS),
+                        HttpStatus.CONFLICT);
+            }
 
-            LocalDate hiringDate = LocalDate.parse(candidateRequest.getDateOfHiring());
-            LocalDate expiryDate = hiringDate.plusDays(3);
-
-            CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
+            candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
             candidate.setExpiryDate(String.valueOf(LocalDate.now().plusDays(3)));
             candidate.setType(Constants.CANDIDATE);
-            candidateDao.save(candidate, candidateRequest.getCompanyName());
-
         } catch (EmployeeException employeeException) {
             log.error("Error while saving candidate details: {}", employeeException.getMessage());
             throw employeeException;
-        } catch (Exception exception) {
-            log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(),exception.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
         String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + resourceId +"/";
         File folder = new File(candidateFolderPath);
@@ -105,7 +100,7 @@ public class CandidateServiceImpl implements CandidateService {
         }
         CompletableFuture.runAsync(() -> {
             try {
-                String companyUrl = " " ;
+                String companyUrl = EmailUtils.getBaseUrl(request) + candidateRequest.getCompanyName() + Constants.SLASH + Constants.CANDIDATE_LOGIN ;
                 log.info("The company url : "+companyUrl);
                 emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,null);
             } catch (Exception e) {
@@ -113,6 +108,14 @@ public class CandidateServiceImpl implements CandidateService {
                 throw new RuntimeException(e);
             }
         });
+
+        try {
+            candidateDao.save(candidate, candidateRequest.getCompanyName());
+        } catch (Exception e) {
+            log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(), e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);

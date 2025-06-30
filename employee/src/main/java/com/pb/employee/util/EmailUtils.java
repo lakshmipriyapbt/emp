@@ -69,7 +69,7 @@ public class EmailUtils {
         String formattedText = mailText.replace("{emailId}", emailId);
         formattedText = formattedText.replace("{url}", url);  // Finally replace the URL
         formattedText = formattedText.replace("{name}", name);// Finally replace the URL
-        formattedText = formattedText.replace("{password}", defaultPassword);
+        formattedText = formattedText.replace("{password}", defaultPassword == null ? "" : defaultPassword);
 
         mailMessage.setText(formattedText);
         javaMailSender.send(mailMessage);
