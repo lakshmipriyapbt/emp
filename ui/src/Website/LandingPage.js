@@ -186,7 +186,7 @@ const LandingPage = () => {
                 <List className="text-3xl" weight="regular" />
               </button>
               <a href=" ">
-                <img src="assets/images/cublogo.png" alt="cub Hrm logo"  className="h-[120px]"/>
+                <img src="assets/images/cubLogo.png" alt="cub Hrm logo"  className="h-[120px]"/>
               </a>
             </div>
             {/* Desktop Navigation */}
@@ -365,7 +365,7 @@ const LandingPage = () => {
         >
           <div className="flex justify-between items-center w-full p-4 sm:p-8">
             <a href=" ">
-              <img src="assets/images/cublogo.png" alt="logo" />
+              <img src="assets/images/cubLogo.png" alt="logo" />
             </a>
             {/* Mobile Menu Close Button */}
             <button
