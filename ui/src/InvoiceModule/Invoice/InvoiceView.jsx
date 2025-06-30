@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Eye } from "react-bootstrap-icons";
+import { Eye, Download } from "react-bootstrap-icons";
 import { useNavigate, Link } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +8,8 @@ import { useAuth } from "../../Context/AuthContext";
 import { fetchInvoices } from "../../Redux/InvoiceSlice";
 import Loader from "../../Utils/Loader";
 import { toast } from "react-toastify";
+import InvoicePreview from "../../CompanyModule/Settings/InvoiceTemplates/InvoicePreview";
+import { InvoiceDownloadById } from "../../Utils/Axios";
 
 const InvoiceView = () => {
   const dispatch = useDispatch();
@@ -18,33 +20,35 @@ const InvoiceView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { employee } = useAuth();
   const companyId = employee?.companyId;
 
-  // Fetch invoices on component mount
   useEffect(() => {
     if (companyId) {
       setIsFetching(true);
       const timer = setTimeout(() => {
-        dispatch(fetchInvoices(companyId)).finally(()=>setIsFetching(false));
-      }, 500); // Delay of 500ms
-      // Clear the timeout if the component unmounts or companyId changes
+        dispatch(fetchInvoices(companyId)).finally(() => setIsFetching(false));
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [dispatch, companyId]);  
-
-  console.log("invoices",invoices.data)
+  }, [dispatch, companyId]);
 
   useEffect(() => {
     if (invoices?.data && Array.isArray(invoices.data)) {
-      console.log("Filtering with search:", search);
-  
-      const filtered = invoices.data.filter((invoice) => {
+      const filtered = invoices.data.map(item => ({
+        ...item.invoice,
+        customer: item.customer,
+        company: item.company,
+        bank: item.bank
+      })).filter((invoice) => {
         const invoiceNo = invoice.invoiceNo ? invoice.invoiceNo.toLowerCase() : "";
         const clientName = invoice.customer?.customerName ? invoice.customer.customerName.toLowerCase() : "";
         const state = invoice.customer?.state ? invoice.customer.state.toLowerCase() : "";
         const invoiceDate = invoice.invoiceDate ? invoice.invoiceDate.toLowerCase() : "";
-  
+
         return (
           invoiceNo.includes(search.toLowerCase()) ||
           clientName.includes(search.toLowerCase()) ||
@@ -52,40 +56,72 @@ const InvoiceView = () => {
           invoiceDate.includes(search.toLowerCase())
         );
       });
-  
-      console.log("Filtered Data:", filtered);
       setFilteredData(filtered);
     } else {
       setFilteredData([]);
-      toast.error(error);
+      if (error) {
+        toast.error(error);
+      }
     }
-  }, [invoices, search]);  
+  }, [invoices, search, error]);
 
-  console.log("filteredData",filteredData); 
-  // Navigate to the Invoice PDF view page
-  const handleView = (customerId, invoiceId) => {
-    navigate("/invoicePdf", { state: { customerId, invoiceId } });
+  const handleView = (invoice) => {
+    setSelectedInvoice(invoice);
+    setShowPreview(true);
+  };
+
+  const handleDownload = async (format) => {
+    if (!selectedInvoice || !companyId) return;
+
+    setIsDownloading(true);
+    try {
+      if (format === 'pdf') {
+        const success = await InvoiceDownloadById(
+          companyId,
+          selectedInvoice.customerId,
+          selectedInvoice.invoiceId
+        );
+
+        if (!success) {
+          toast.error("Failed to download invoice");
+        }
+      } else {
+        // For other formats (like PNG), you might need a different API endpoint
+        toast.info("Image download feature coming soon");
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download invoice");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+  const getStateCodeFromGST = (gstNumber) => {
+    if (!gstNumber || gstNumber.length < 2) return null;
+    return gstNumber.substring(0, 2);
   };
 
   const columns = [
     {
-      name: (
-        <h6>
-          <b>#</b>
-        </h6>
-      ),
+      name: <h6><b>#</b></h6>,
       selector: (row, index) => (currentPage - 1) * rowsPerPage + index + 1,
-      width: "50px",
+      width: "70px",
     },
     {
-      name: (
-        <h6>
-          <b>Client Name</b>
-        </h6>
-      ),
+      name: <h6><b>Invoice Number</b></h6>,
+      selector: (row) => row.invoiceNo,
+      width: "180px",
+    },
+    {
+      name: <h6><b>Invoice Date</b></h6>,
+      selector: (row) => row.invoiceDate,
+      width: "160px",
+    },
+    {
+      name: <h6><b>Client Name</b></h6>,
       selector: (row) => (
-        <div title={row.customerName || ""}>
-          {row.customerc?.ustomerName && row.customer?.customerName.length > 18
+        <div title={row.customer?.customerName || ""}>
+          {row.customer?.customerName && row.customer?.customerName.length > 18
             ? row.customer?.customerName.slice(0, 20) + "..."
             : row.customer?.customerName}
         </div>
@@ -93,68 +129,18 @@ const InvoiceView = () => {
       width: "190px",
     },
     {
-      name: (
-        <h6>
-          <b>Mobile Number</b>
-        </h6>
-      ),
-      selector: (row) =>  row.customer?.mobileNumber,
+      name: <h6><b>Mobile Number</b></h6>,
+      selector: (row) => row.customer?.mobileNumber,
       width: "170px",
     },
-    // {
-    //   name: "Email",
-    //   selector: (row) => row.customerEmail,
-    //   width: "200px",
-    // },
     {
-      name: (
-        <h6>
-          <b>State</b>
-        </h6>
-      ),
-      selector: (row) => row.customer?.state,
-      width: "150px",
-    },
-    // {
-    //   name: "City",
-    //   selector: (row) => row.customerCity,
-    //   width: "150px",
-    // },
-    {
-      name: (
-        <h6>
-          <b>Invoice Number</b>
-        </h6>
-      ),
-      selector: (row) => row.invoiceNo,
-      width: "180px",
-    },
-    {
-      name: (
-        <h6>
-          <b>Invoice Date</b>
-        </h6>
-      ),
-      selector: (row) => row.invoiceDate,
-      width: "160px",
-    },
-    // {
-    //   name: "Total Amount",
-    //   selector: (row) => row.totalAmount,
-    //   width: "150px",
-    // },
-    {
-      name: (
-        <h6>
-          <b>Actions</b>
-        </h6>
-      ),
+      name: <h6><b>Actions</b></h6>,
       cell: (row) => (
         <div>
           <button
-            className="btn btn-sm"
+            className="btn btn-sm me-2"
             style={{ backgroundColor: "transparent" }}
-            onClick={() => handleView(row.customerId, row.invoiceId)}
+            onClick={() => handleView(row)}
             title="View Invoice"
           >
             <Eye size={22} color="green" />
@@ -169,6 +155,88 @@ const InvoiceView = () => {
     setSearch(searchTerm);
   };
 
+  const transformInvoiceForPreview = (invoice) => {
+    if (!invoice) return null;
+
+    // Calculate GST based on company and customer state codes
+    const companyStateCode = getStateCodeFromGST(invoice.company?.gstNo);
+    const customerStateCode = getStateCodeFromGST(invoice.customer?.customerGstNo);
+    const hasCustomerGST = !!invoice.customer?.customerGstNo;
+
+    let sgst = '0.00';
+    let cgst = '0.00';
+    let igst = '0.00';
+
+    if (hasCustomerGST) {
+      if (companyStateCode === customerStateCode) {
+        // Same state - apply SGST and CGST
+        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.09);
+        sgst = gstAmount.toFixed(2);
+        cgst = gstAmount.toFixed(2);
+      } else {
+        // Different state - apply IGST
+        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.18);
+        igst = gstAmount.toFixed(2);
+      }
+    }
+
+    // Calculate grand total
+    const subTotal = parseFloat(invoice.subTotal || 0);
+    const grandTotal = (subTotal + parseFloat(sgst) + parseFloat(cgst) + parseFloat(igst)).toFixed(2);
+
+    return {
+      company: {
+        companyName: invoice.company?.companyName,
+        address: invoice.company?.companyAddress,
+        emailId: invoice.company?.emailId,
+        mobileNo: invoice.company?.mobileNo,
+        imageFile: invoice.company?.imageFile,
+        stampImage: invoice.company?.stampImage,
+        gstNo: invoice.company?.gstNo
+      },
+      billedTo: {
+        customerName: invoice.customer?.customerName || '',
+        address: invoice.customer?.address || '',
+        mobileNumber: invoice.customer?.mobileNumber || '',
+        email: invoice.customer?.email || '',
+        customerGstNo: invoice.customer?.customerGstNo || '',
+        state: invoice.customer?.state || '',
+        stateCode: customerStateCode
+      },
+      invoiceNo: invoice.invoiceNo || '',
+      invoiceDate: invoice.invoiceDate || '',
+      dueDate: invoice.dueDate || '',
+      purchaseOrder: invoice.purchaseOrder || '',
+      productData: invoice.productData || [],
+      productColumns: invoice.productColumns || [
+        { key: "productName", title: "Product Name", type: "text" },
+        { key: "quantity", title: "Quantity", type: "number" },
+        { key: "price", title: "Price", type: "number" },
+        { key: "total", title: "Total", type: "number" }
+      ],
+      subTotal: subTotal.toFixed(2),
+      grandTotal: grandTotal,
+      notes: invoice.notes || '',
+      bankDetails: invoice.bank || {
+        bankName: '',
+        accountNumber: '',
+        accountType: '',
+        branch: '',
+        ifscCode: '',
+        address: ''
+      },
+      salesPerson: invoice.salesPerson || '',
+      shippingMethod: invoice.shippingMethod || '',
+      shippingTerms: invoice.shippingTerms || '',
+      paymentTerms: invoice.paymentTerms || '',
+      deliveryDate: invoice.deliveryDate || '',
+      sgst,
+      cgst,
+      igst,
+      hasCustomerGST // Add this flag for template to use
+    };
+  };
+
   return (
     <LayOut>
       <div className="container-fluid p-0">
@@ -180,59 +248,141 @@ const InvoiceView = () => {
           </div>
         ) : (
           <>
-        <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
-          <div className="col">
-            <h1 className="h3 mb-3">
-              <strong>Invoice View</strong>
-            </h1>
-          </div>
-          <div className="col-auto">
-            <nav aria-label="breadcrumb">
-              <ol className="breadcrumb mb-0">
-                <li className="breadcrumb-item">
-                <Link to="/main" className="custom-link">Home</Link>
-                </li>
-                <li className="breadcrumb-item active">Invoices</li>
-                <li className="breadcrumb-item active">Invoice View</li>
-              </ol>
-            </nav>
-          </div>
-        </div>
+            <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
+              <div className="col">
+                <h1 className="h3 mb-3">
+                  <strong>Invoice View</strong>
+                </h1>
+              </div>
+              <div className="col-auto">
+                <nav aria-label="breadcrumb">
+                  <ol className="breadcrumb mb-0">
+                    <li className="breadcrumb-item">
+                      <Link to="/main" className="custom-link">Home</Link>
+                    </li>
+                    <li className="breadcrumb-item active">Invoices</li>
+                    <li className="breadcrumb-item active">Invoice View</li>
+                  </ol>
+                </nav>
+              </div>
+            </div>
 
-        {/* Search and Filter Form */}
-        <div className="row">
-          <div className="col-12 col-lg-12 col-xxl-12 d-flex">
-            <div className="card flex-fill">
-              <div className="card-header">
-                <div className="row">
-                  <div className="col-md-4">
-                    <Link to={"/invoiceRegistartion"}>
-                      <button className="btn btn-primary">Add Invoice</button>
-                    </Link>
+            <div className="row">
+              <div className="col-12 col-lg-12 col-xxl-12 d-flex">
+                <div className="card flex-fill">
+                  <div className="card-header">
+                    <div className="row">
+                      <div className="col-md-4">
+                        <Link to="/invoiceRegistration">
+                          <button className="btn btn-primary">Add Invoice</button>
+                        </Link>
+                      </div>
+                      <div className="col-md-4 offset-md-4 d-flex justify-content-end">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Search by Invoice Number"
+                          value={search}
+                          onChange={(e) => getFilteredList(e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="col-md-4 offset-md-4 d-flex justify-content-end">
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Search by Invoice Number"
-                      value={search}
-                      onChange={(e) => getFilteredList(e.target.value)}
-                    />
+                  <DataTable
+                    columns={columns}
+                    data={filteredData}
+                    pagination
+                    paginationPerPage={rowsPerPage}
+                    onChangePage={(page) => setCurrentPage(page)}
+                    onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Invoice Preview Modal */}
+            {showPreview && selectedInvoice && (
+              <div className="modal" style={{
+                display: 'block',
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1050,
+                overflow: 'auto'
+              }}>
+                <div className="modal-dialog modal-xl" style={{
+                  maxWidth: '90%',
+                  margin: '30px auto'
+                }}>
+                  <div className="modal-content" style={{
+                    border: 'none',
+                    borderRadius: '0.3rem'
+                  }}>
+                    <div className="modal-header" style={{
+                      borderBottom: '1px solid #dee2e6',
+                      padding: '1rem'
+                    }}>
+                      <h5 className="modal-title">Invoice Preview</h5>
+                      <button
+                        type="button"
+                        className="close"
+                        onClick={() => setShowPreview(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '1.5rem',
+                          fontWeight: 'bold',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                    <div className="modal-body" style={{
+                      padding: '0',
+                      overflow: 'auto',
+                      maxHeight: 'calc(100vh - 200px)'
+                    }}>
+                      <InvoicePreview
+                        previewData={transformInvoiceForPreview(selectedInvoice)}
+                        selectedTemplate={employee?.company?.invoiceTemplateNo || "1"}
+                      />
+                    </div>
+                    <div className="modal-footer" style={{
+                      borderTop: '1px solid #dee2e6',
+                      padding: '1rem'
+                    }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary me-2"
+                        onClick={() => setShowPreview(false)}
+                      >
+                        Close
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary me-2 d-flex align-items-center"
+                        onClick={() => handleDownload('pdf')}
+                        disabled={isDownloading}
+                      >
+                        {isDownloading ? (
+                          <span>Downloading...</span>
+                        ) : (
+                          <>
+                            <Download className="me-1" />
+                            <span>Download PDF</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-              <DataTable
-                columns={columns}
-                data={filteredData}
-                pagination
-                paginationPerPage={rowsPerPage}
-                onChangePage={(page) => setCurrentPage(page)}
-                onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
-              />
-            </div>
-          </div>
-        </div>
-        </>
+            )}
+          </>
         )}
       </div>
     </LayOut>

@@ -100,11 +100,11 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             employeeDocument.setId(resourceId);
             if (candidate != null) {
                 employeeDocument.setReferenceId(candidateId);
-                employeeDocument.setFolderPath(folderPath+ companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + System.currentTimeMillis()+"/");
+                employeeDocument.setFolderPath(folderPath+ companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + "_"+System.currentTimeMillis()+"/");
             }
             if (employee != null) {
                 employeeDocument.setReferenceId(employee.getId());
-                employeeDocument.setFolderPath(folderPath+companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + System.currentTimeMillis()+"/");
+                employeeDocument.setFolderPath(folderPath+companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + "_" + System.currentTimeMillis()+"/");
             }
             employeeDocument.setDocumentEntities(new ArrayList<>());
             employeeDocument.setType(Constants.DOCUMENT);
@@ -417,7 +417,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     private void multiPartFileStore(MultipartFile file, String companyName, EmployeeDocumentEntity employeeDocument) throws IOException, EmployeeException {
         if(!file.isEmpty()){
             String companyFolderPath = employeeDocument.getFolderPath();
-            String filename = companyFolderPath+Constants.SLASH+companyName+"_"+file.getOriginalFilename();
+            String filename = companyFolderPath+companyName+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
             employeeDocument.setProfile(companyFolderPath+companyName+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
