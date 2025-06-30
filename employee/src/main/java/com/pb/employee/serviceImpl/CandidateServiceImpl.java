@@ -90,7 +90,7 @@ public class CandidateServiceImpl implements CandidateService {
             log.error("Error while saving candidate details: {}", employeeException.getMessage());
             throw employeeException;
         }
-        String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + candidateRequest.getFirstName()+"_"+candidateRequest.getLastName() + System.currentTimeMillis()+"/";
+        String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + candidateRequest.getFirstName()+"_"+candidateRequest.getLastName() + "_"+System.currentTimeMillis()+"/";
         File folder = new File(candidateFolderPath);
         if (!folder.exists()) {
             folder.mkdirs();
