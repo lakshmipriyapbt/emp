@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -90,7 +89,8 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_AND_DOC_NAMES_SIZE_MISMATCH), HttpStatus.BAD_REQUEST);
             }
 
-            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(candidateId, employeeId, companyName).orElse(null);
+            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(referenceId, companyName).orElse(null);
             if (employeeDocumentEntity != null) {
                 log.info("Found existing employee document for candidate/employee");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DOCUMENT_ALREADY_EXISTS), HttpStatus.BAD_REQUEST);
@@ -99,12 +99,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             EmployeeDocumentEntity employeeDocument = new EmployeeDocumentEntity();
             employeeDocument.setId(resourceId);
             if (candidate != null) {
-                employeeDocument.setCandidateId(candidateId);
-                employeeDocument.setFolderPath(folderPath + companyName + Constants.SLASH + candidateId + Constants.SLASH);
+                employeeDocument.setReferenceId(candidateId);
+                employeeDocument.setFolderPath(folderPath+ companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + System.currentTimeMillis()+"/");
             }
             if (employee != null) {
-                employeeDocument.setEmployeeRefId(employee.getId());
-                employeeDocument.setFolderPath(folderPath + companyName + Constants.SLASH + employeeId + Constants.SLASH);
+                employeeDocument.setReferenceId(employee.getId());
+                employeeDocument.setFolderPath(folderPath+companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + System.currentTimeMillis()+"/");
             }
             employeeDocument.setDocumentEntities(new ArrayList<>());
             employeeDocument.setType(Constants.DOCUMENT);
@@ -151,7 +151,8 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     public ResponseEntity<?> getEmployeeDocumentsById(String companyName, String candidateId, String employeeId, HttpServletRequest request) throws EmployeeException {
         try {
             validateEmployeeOrCandidate(companyName, candidateId, employeeId);
-            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(candidateId, employeeId, companyName).orElse(null);
+            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(referenceId, companyName).orElse(null);
             if (employeeDocumentEntity == null) {
                 log.error("No documents found for candidate ID: {}", candidateId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_DOCUMENTS_FOUND), HttpStatus.NOT_FOUND);
@@ -179,32 +180,28 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     }
 
     private void validateEmployeeOrCandidate(String companyName, String candidateId, String employeeId) throws EmployeeException {
-        if (StringUtils.isBlank(candidateId) && StringUtils.isBlank(employeeId)) {
-            log.error("Both candidateId and employeeId are null or empty");
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_OR_EMPLOYEE_ID_REQUIRED), HttpStatus.BAD_REQUEST);
-        }
         String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
-            try {
-                if (candidateId != null &&!candidateId.isEmpty()){
-                    CandidateEntity candidate = candidateDao.get(candidateId, companyName).orElse(null);
-                    if (candidate == null) {
-                        log.error("Candidate not found for ID: {}", candidateId);
-                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.BAD_REQUEST);
-                    }
-                } else if (employeeId != null && !employeeId.isEmpty()) {
-                    // Assuming there's a method to validate employee by ID
-                    EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
-                    if (employee == null) {
-                        log.error("Employee not found for ID: {}", employeeId);
-                        throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.BAD_REQUEST);
-                    }
+        try {
+            if (candidateId != null &&!candidateId.isEmpty()){
+                CandidateEntity candidate = candidateDao.get(candidateId, companyName).orElse(null);
+                if (candidate == null) {
+                    log.error("Candidate not found for ID: {}", candidateId);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.BAD_REQUEST);
                 }
-            }catch (EmployeeException ex) {
-                log.error("Error while validating candidate or employee: {}", ex.getMessage(), ex);
-                throw ex;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } else if (employeeId != null && !employeeId.isEmpty()) {
+                // Assuming there's a method to validate employee by ID
+                EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+                if (employee == null) {
+                    log.error("Employee not found for ID: {}", employeeId);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.BAD_REQUEST);
+                }
             }
+        }catch (EmployeeException ex) {
+            log.error("Error while validating candidate or employee: {}", ex.getMessage(), ex);
+            throw ex;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -213,14 +210,14 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     public ResponseEntity<?> deleteDocumentsByReferenceId(String companyName, String candidateId, String employeeId, String documentId) throws EmployeeException {
         try {
             validateEmployeeOrCandidate(companyName, candidateId, employeeId);
-            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(candidateId, employeeId, companyName).orElse(null);
+            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(referenceId, companyName).orElse(null);
             if (employeeDocumentEntity == null||(!employeeDocumentEntity.getId().equals(documentId))){
                 log.error("No documents found for candidate ID: {} or employeeId: {}", candidateId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_DOCUMENTS_FOUND), HttpStatus.NOT_FOUND);
             }
 
-            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
-            String folder = folderPath + companyName + Constants.SLASH + referenceId + Constants.SLASH;
+            String folder = employeeDocumentEntity.getFolderPath();
             File directory = new File(folder);
 
             if (!directory.exists() || !directory.isDirectory()) {
@@ -280,7 +277,8 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
             validateEmployeeOrCandidate(companyName, candidateId, employeeId);
 
-            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(candidateId, employeeId, companyName).orElse(null);
+            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(referenceId, companyName).orElse(null);
             if (employeeDocumentEntity == null) {
                 log.info("No existing document found for candidate/employee");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.NO_DOCUMENTS_FOUND), HttpStatus.BAD_REQUEST);
@@ -295,18 +293,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 log.error("Files and document names size mismatch");
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.FILES_AND_DOC_NAMES_SIZE_MISMATCH), HttpStatus.BAD_REQUEST);
             }
-
             // Set folder path and IDs
-            String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
-            String folder = folderPath + companyName + Constants.SLASH + referenceId + Constants.SLASH;
+            String folder = employeeDocumentEntity.getFolderPath();
             employeeDocumentEntity.setFolderPath(folder);
             employeeDocumentEntity.setDocumentEntities(new ArrayList<>());
             if (StringUtils.isNotBlank(candidateId)) {
-                employeeDocumentEntity.setCandidateId(candidateId);
-                employeeDocumentEntity.setEmployeeRefId(null);
-            } else {
-                employeeDocumentEntity.setCandidateId(null);
-                employeeDocumentEntity.setEmployeeRefId(employeeId);
+                employeeDocumentEntity.setReferenceId(candidateId);
             }
 
             File dir = new File(folder);
@@ -355,7 +347,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             log.error("Employee not found for ID: {}", employeeId);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
-       EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(null, employeeId, companyName).orElse(null);
+        EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(employeeId, companyName).orElse(null);
         if(employeeDocumentEntity == null){
             log.error("Employee document entity not found for employeeId: {}", employeeId);
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DOCUMENT_FOLDER_NOT_FOUND), HttpStatus.NOT_FOUND);
@@ -370,7 +362,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                     log.error("Invalid file type: {}", contentType);
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
                 }
-                multiPartFileStore(file, companyName, employeeId, employeeDocumentEntity);
+                multiPartFileStore(file, companyName, employeeDocumentEntity);
             }
 
             employeeDocumentDao.save(employeeDocumentEntity, companyName);
@@ -400,7 +392,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
         try {
-            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(null, employeeId, companyName).orElse(null);
+            EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(employeeId, companyName).orElse(null);
             if (employeeDocumentEntity == null || CollectionUtils.isEmpty(employeeDocumentEntity.getDocumentEntities())) {
                 log.error("Employee document entity not found for employeeId: {}", employeeId);
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.DOCUMENT_FOLDER_NOT_FOUND), HttpStatus.NOT_FOUND);
@@ -422,12 +414,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         }
     }
 
-    private void multiPartFileStore(MultipartFile file,String companyName,String employeeId,EmployeeDocumentEntity employeeDocument) throws IOException, EmployeeException {
+    private void multiPartFileStore(MultipartFile file, String companyName, EmployeeDocumentEntity employeeDocument) throws IOException, EmployeeException {
         if(!file.isEmpty()){
-            String companyFolderPath = folderPath + companyName + Constants.SLASH + employeeId;
+            String companyFolderPath = employeeDocument.getFolderPath();
             String filename = companyFolderPath+Constants.SLASH+companyName+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            employeeDocument.setProfile(companyName+Constants.SLASH+employeeId+Constants.SLASH+companyName+"_"+file.getOriginalFilename());
+            employeeDocument.setProfile(companyFolderPath+companyName+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
