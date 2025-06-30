@@ -9,7 +9,6 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.InternshipOfferLetterRequest;
 import com.pb.employee.request.OfferLetterRequest;
 import com.pb.employee.service.OfferLetterService;
 import com.pb.employee.util.*;
@@ -113,76 +112,6 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @Override
-    public ResponseEntity<byte[]> downloadInternShipOfferLetter(InternshipOfferLetterRequest req, HttpServletRequest httpReq) throws EmployeeException {
-
-        String resourceId = ResourceIdUtils.generateInternOfferLetterId(req.getEmployeeName(), String.valueOf(LocalDate.now()));
-        try {
-            SSLUtil.disableSSLVerification();
-
-            CompanyEntity rawCompany = openSearchOperations.getCompanyById(req.getCompanyId(), null, Constants.INDEX_EMS);
-            if (rawCompany == null) {
-                log.error("Company not found");
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), req.getCompanyId()), HttpStatus.NOT_FOUND);
-            }
-            Entity company = CompanyUtils.unmaskCompanyProperties(rawCompany, httpReq);
-
-            LocalDate start = LocalDate.parse(req.getStartDate());
-            LocalDate end = LocalDate.parse(req.getEndDate());
-
-            if (!end.isAfter(start))
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.END_DATE_BEFORE_START_DATE), HttpStatus.BAD_REQUEST);
-            if (Objects.equals(req.getHrMobileNo(), req.getMobileNo()))
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.MOBILE_NUMBER_MISMATCH), HttpStatus.BAD_REQUEST);
-            if (Objects.equals(req.getHrEmail(), req.getInternEmail()))
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ID_MISS_MATCH), HttpStatus.BAD_REQUEST);
-
-            Map<String, Object> model = new HashMap<>();
-            model.put(Constants.COMPANY, company);
-            model.put(Constants.OFFER_LETTER_REQUEST, req);
-
-            if (!req.isDraft()) {
-                String imageUrl = rawCompany.getImageFile();
-                BufferedImage image = ImageIO.read(new URL(imageUrl));
-                if (image == null)
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
-
-                BufferedImage watermark = CompanyUtils.applyOpacity(image, 0.1f, 1.6d, 30);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(watermark, "png", baos);
-                model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
-            } else model.put(Constants.BLURRED_IMAGE, "");
-
-            // ✅ Save internship offer letter before generating PDF
-            InternOfferLetterEntity entity = objectMapper.convertValue(req, InternOfferLetterEntity.class);
-            entity.setId(resourceId);
-            entity.setType(Constants.INTERN_OFFER_LETTER);
-
-            Template template = freeMarkerConfig.getTemplate(Constants.INTERNSHIP_OFFER_LETTER_TEMPLATE);
-            StringWriter writer = new StringWriter();
-            template.process(model, writer);
-
-            byte[] pdf = generatePdfFromHtml(writer.toString());
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER_PDF).build());
-
-            log.info("saving the internOfferLetter");
-            internOfferLetterDao.save(entity, rawCompany.getCompanyName());
-
-
-            return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
-
-        } catch (EmployeeException ex) {
-            log.error("Exception occurred while generating the internshipOfferLetter {}", ex.getMessage());
-            throw ex;
-        } catch (Exception e) {
-            log.error("Exception occurred while generating the internshipOfferLetter: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
 
     private byte[] generatePdfFromHtml(String html) throws IOException {
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#\\d{1,5};)", "&amp;");
