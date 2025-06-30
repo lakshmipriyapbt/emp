@@ -84,6 +84,7 @@ const InvoiceRegistration = () => {
       0
     ).toFixed(2)
   );
+  
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
@@ -157,16 +158,6 @@ const InvoiceRegistration = () => {
       // Set fields visibility based on template
       if (templateNumber === "1") {
         setTemplateFields({
-          showShipTo: true,
-          showNotes: true,
-          showSalesPerson: false,
-          showShippingMethod: false,
-          showShippingTerms: false,
-          showPaymentTerms: false,
-          showDeliveryDate: false
-        });
-      } else if (templateNumber === "2") {
-        setTemplateFields({
           showShipTo: false,
           showNotes: false,
           showSalesPerson: true,
@@ -174,6 +165,16 @@ const InvoiceRegistration = () => {
           showShippingTerms: true,
           showPaymentTerms: true,
           showDeliveryDate: true
+        });
+      } else if (templateNumber === "2") {
+        setTemplateFields({
+          showShipTo: true,
+          showNotes: true,
+          showSalesPerson: false,
+          showShippingMethod: false,
+          showShippingTerms: false,
+          showPaymentTerms: false,
+          showDeliveryDate: false
         });
       }
     } catch (error) {
