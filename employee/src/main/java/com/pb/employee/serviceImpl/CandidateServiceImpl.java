@@ -60,7 +60,6 @@ public class CandidateServiceImpl implements CandidateService {
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
         CompanyEntity companyEntity;
         EmployeeEntity employee;
-        CandidateEntity existingCandidate;
         CandidateEntity candidate;
         try {
             companyEntity = openSearchOperations.getCompanyByCompanyName(candidateRequest.getCompanyName(), Constants.INDEX_EMS);
@@ -75,8 +74,8 @@ public class CandidateServiceImpl implements CandidateService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
             }
-            existingCandidate = openSearchOperations.getCandidateByEmailId(candidateRequest.getEmailId(), candidateRequest.getCompanyName());
-            if (existingCandidate != null) {
+            Collection<CandidateEntity> existingCandidate = candidateDao.getCandidates(candidateRequest.getCompanyName(), resourceId, companyEntity.getId());
+            if (!existingCandidate.isEmpty()) {
                 log.error("Candidate with email {} already exists", candidateRequest.getEmailId());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_EMAILID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
