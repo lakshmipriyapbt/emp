@@ -12,6 +12,6 @@ public interface EmployeeDocumentDao extends Dao<EmployeeDocumentEntity> {
         return EmployeeDocumentEntity.class;
     }
 
-    Optional<EmployeeDocumentEntity> getByDocuments(String candidateId, String employeeId,  String companyName);
+    Optional<EmployeeDocumentEntity> getByDocuments(String referenceId,  String companyName);
 
 }
