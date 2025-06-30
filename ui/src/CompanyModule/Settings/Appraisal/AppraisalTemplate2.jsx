@@ -27,21 +27,21 @@ const AppraisalTemplate2 = ({
         overflow: "hidden",
       }}
     >
-      {!draft &&(
-       <div style={{ textAlign: "left" }}>
-        {companyData ? (
-          <img
-            className="align-middle"
-            src={companyData?.imageFile}
-            alt="Logo"
-            style={{ height: "100px", width: "150px" }}
-          />
-        ) : (
-          <p>Logo</p>
-        )}
-      </div> )}
+      {!draft && (
+        <div style={{ textAlign: "left" }}>
+          {companyData ? (
+            <img
+              className="align-middle"
+              src={companyData?.imageFile}
+              alt="Logo"
+              style={{ height: "100px", width: "150px" }}
+            />
+          ) : (
+            <p>Logo</p>
+          )}
+        </div>)}
 
-       {!draft &&(<div
+      {!draft && (<div
         style={{
           position: "absolute",
           top: "30%",
@@ -49,7 +49,7 @@ const AppraisalTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
-          opacity:0.3,
+          opacity: 0.3,
           border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
@@ -58,7 +58,7 @@ const AppraisalTemplate2 = ({
           backgroundPosition: "center",
           zIndex: 1,
         }}
-      /> )}
+      />)}
       <h4 className="text-center p-3">APPRAISAL LETTER</h4>
 
       <div className="row d-flex justify-content-between p-1">
@@ -197,16 +197,23 @@ const AppraisalTemplate2 = ({
         <div className="mt-5 pt-3">
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
+            {!draft && (
+              <img
+                src={companyData?.stampImage}
+                alt="stampImage"
+                style={{
+                  height: "100px",
+                  width: "160px",
+                  marginBottom: "10px" // Add space below the stamp
+                }}
+              />
+            )}
             <p>Authorized Signature</p>
-            {!draft &&( <img 
-           src={companyData?.stampImage}
-           alt="stampImage"
-           style={{ height: "100px", width: "160px" }}/> )}
-            <h4>{companyData.companyName},</h4>
+            <h4>{companyData?.companyName},</h4>
             <p>
-              {companyData.mobileNo} | {companyData.emailId},
+              {companyData?.mobileNo} | {companyData?.emailId},
             </p>
-            <p>{companyData.companyAddress}.</p>
+            <p>{companyData?.companyAddress}.</p>
           </div>
         </div>
       </div>

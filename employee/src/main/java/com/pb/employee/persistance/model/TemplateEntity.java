@@ -31,5 +31,7 @@ public class TemplateEntity implements Entity  {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String internshipTemplateNo;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String invoiceTemplateNo;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String type;
 }

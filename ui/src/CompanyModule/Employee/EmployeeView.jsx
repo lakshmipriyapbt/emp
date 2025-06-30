@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { PencilSquare, Wallet } from "react-bootstrap-icons";
+import { PencilSquare, Wallet, FileEarmarkText } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI } from "../../Utils/Axios";
+import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
 import { useAuth } from "../../Context/AuthContext";
+import { FileEarmarkPdf, FileEarmarkWord, FileEarmarkImage, Download } from "react-bootstrap-icons";
 
 const EmployeeView = () => {
   const [search, setSearch] = useState("");
@@ -19,29 +20,31 @@ const EmployeeView = () => {
   const [selectedEmployeeDownloadFormat, setSelectedEmployeeDownloadFormat] = useState("");
   const [selectedBankDownloadFormat, setSelectedBankDownloadFormat] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // Local loading state
+  const [isFetching, setIsFetching] = useState(true);
+  const [documents, setDocuments] = useState([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  
   const { employee } = useAuth();
   const companyId = employee?.companyId;
-  const Navigate = useNavigate();
-  const dispatch = useDispatch(); // Initialize dispatch function
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // Select employee state from Redux store
   const { data: employees, status, error, loading } = useSelector(
     (state) => state.employees
   );
 
-  // Step 1: Fetch employees when component mounts
   useEffect(() => {
     if (companyId) {
       setIsFetching(true);
       const timer = setTimeout(() => {
         dispatch(fetchEmployees(companyId)).finally(() => setIsFetching(false));
-      }, 500); // Delay of 500ms
+      }, 500);
 
       return () => clearTimeout(timer);
     }
   }, [dispatch, companyId]);
-
 
   const getMonthNames = () => {
     return Array.from({ length: 12 }, (_, i) =>
@@ -59,13 +62,65 @@ const EmployeeView = () => {
   };
 
   const handleSalary = (id) => {
-    Navigate(`/employeeSalaryList?id=${id}`);
+    navigate(`/employeeSalaryList?id=${id}`);
   };
-
 
   const handleEdit = (id) => {
-    Navigate(`/employeeRegister`, { state: { id } });
+    navigate(`/employeeRegister`, { state: { id } });
   };
+
+  const handleViewDocuments = async (employee) => {
+  try {
+    setSelectedEmployee(employee);
+    setDocumentsLoading(true);
+    
+    // First try with employeeId parameter only
+    let response = await getDocumentByIdAPI('', employee.id); // empty candidateId
+    
+    // If no documents found with employeeId, try with candidateId as fallback
+    if ((!response?.data?.documentEntities || response.error?.message === "No Documents Found.")) {
+      response = await getDocumentByIdAPI(employee.id, ''); // empty employeeId
+    }
+
+    if (response?.data?.documentEntities) {
+      // Transform the documents data
+      const transformedDocs = response.data.documentEntities.map(doc => ({
+        name: doc.docName,
+        url: doc.filePath,
+        status: 'uploaded',
+        type: doc.filePath?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 
+              doc.filePath?.toLowerCase().match(/\.(doc|docx)$/) ? 'application/msword' :
+              doc.filePath?.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/) ? 'image/*' :
+              'application/octet-stream',
+        size: 0
+      }));
+      
+      setDocuments(transformedDocs);
+    } else {
+      setDocuments([]);
+      toast.info(response?.error?.message || 'No documents found for this employee');
+    }
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    toast.error(error.response?.data?.error?.message || 'Failed to load documents. Please try again later.');
+  } finally {
+    setDocumentsLoading(false);
+    setShowDocumentsModal(true);
+  }
+};
+
+
+  const getFileIcon = (type, name) => {
+    if (type?.includes('pdf') || name?.toLowerCase().endsWith('.pdf')) {
+      return <FileEarmarkPdf className="text-danger" size={24} />;
+    } else if (type?.includes('word') || name?.toLowerCase().endsWith('.doc') || name?.toLowerCase().endsWith('.docx')) {
+      return <FileEarmarkWord className="text-primary" size={24} />;
+    } else if (type?.includes('image') || ['.jpg', '.jpeg', '.png', '.gif'].some(ext => name?.toLowerCase().endsWith(ext))) {
+      return <FileEarmarkImage className="text-success" size={24} />;
+    }
+    return <FileEarmarkPdf className="text-secondary" size={24} />;
+  };
+
   const handleEmployeeDownload = async (format) => {
     if (!format) {
       toast.warning("Please select a file format!");
@@ -79,7 +134,7 @@ const EmployeeView = () => {
       toast.error("Download failed. Please try again.");
     } finally {
       setIsDownloading(false);
-      setSelectedEmployeeDownloadFormat(""); // Reset the dropdown
+      setSelectedEmployeeDownloadFormat("");
     }
   };
 
@@ -96,7 +151,7 @@ const EmployeeView = () => {
       toast.error("Download failed. Please try again.");
     } finally {
       setIsDownloading(false);
-      setSelectedBankDownloadFormat(""); // Reset the dropdown
+      setSelectedBankDownloadFormat("");
     }
   };
 
@@ -110,7 +165,6 @@ const EmployeeView = () => {
             color: "#fff",
             background: "green"
           }}
-        // className="bg-primary"
         >
           Active
         </b>
@@ -216,15 +270,23 @@ const EmployeeView = () => {
       name: <h6><b>Status</b></h6>,
       selector: row => row.status || "Unknown",
       cell: row => statusMappings[row.status]?.label || "Unknown",
-      width: "110px",
+      width: "100px",
     },
     {
       name: <h5><b>Actions</b></h5>,
       cell: row => (
         <div>
           <button
-            className="btn btn-sm"
-            style={{ backgroundColor: "transparent", border: "none", padding: "0", marginRight: "10px" }}
+            className="btn btn-sm me-2"
+            style={{ backgroundColor: "transparent", border: "none" }}
+            onClick={() => handleViewDocuments(row)}
+            title="View Documents"
+          >
+            <FileEarmarkText size={22} color="#0d6efd" />
+          </button>
+          <button
+            className="btn btn-sm me-2"
+            style={{ backgroundColor: "transparent", border: "none" }}
             onClick={() => handleSalary(row.id)}
             title="View Salary"
           >
@@ -232,7 +294,7 @@ const EmployeeView = () => {
           </button>
           <button
             className="btn btn-sm"
-            style={{ backgroundColor: "transparent", border: "none", padding: "0", marginRight: "10px" }}
+            style={{ backgroundColor: "transparent", border: "none" }}
             onClick={() => handleEdit(row.id)}
             title="Edit"
           >
@@ -240,6 +302,7 @@ const EmployeeView = () => {
           </button>
         </div>
       ),
+      width: "180px",
     }
   ];
 
@@ -259,37 +322,24 @@ const EmployeeView = () => {
   const toInputTitleCase = (e) => {
     const input = e.target;
     let value = input.value;
-    const cursorPosition = input.selectionStart; // Save the cursor position
-    // Remove leading spaces
+    const cursorPosition = input.selectionStart;
     value = value.replace(/^\s+/g, '');
-    // Ensure only alphabets and spaces are allowed
     const allowedCharsRegex = /^[a-zA-Z0-9\s!@#&()*/,.\\-]+$/;
     value = value.split('').filter(char => allowedCharsRegex.test(char)).join('');
-    // Capitalize the first letter of each word
     const words = value.split(' ');
-    // Capitalize the first letter of each word and lowercase the rest
     const capitalizedWords = words.map(word => {
       if (word.length > 0) {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
       }
       return '';
     });
-    // Join the words back into a string
     let formattedValue = capitalizedWords.join(' ');
-    // Remove spaces not allowed (before the first two characters)
     if (formattedValue.length > 2) {
       formattedValue = formattedValue.slice(0, 2) + formattedValue.slice(2).replace(/\s+/g, ' ');
     }
-    // Update input value
     input.value = formattedValue;
-    // Restore the cursor position
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
-
-  const showToast = (message, type) => {
-    toast[type](message);
-  };
-
 
   return (
     <LayOut>
@@ -312,16 +362,12 @@ const EmployeeView = () => {
                     <li className="breadcrumb-item">
                       <Link to="/main" className="custom-link">Home</Link>
                     </li>
-
-                    <li className="breadcrumb-item active">
-                      Employees
-                    </li>
+                    <li className="breadcrumb-item active">Employees</li>
                   </ol>
                 </nav>
               </div>
             </div>
 
-            {/**Department View TableForm */}
             <div className="row">
               <div className="col-12 col-lg-12 col-xxl-12 d-flex">
                 <div className="card flex-fill">
@@ -333,7 +379,6 @@ const EmployeeView = () => {
                             <button className="btn btn-primary">Add Employee</button>
                           </Link>
                         </div>
-                        {/* Employee List Download */}
                         <div className="col-auto">
                           <select
                             className="form-select bg-primary border-0 text-white"
@@ -349,8 +394,6 @@ const EmployeeView = () => {
                             <option value="pdf">PDF (.pdf)</option>
                           </select>
                         </div>
-
-                        {/* Bank List Download */}
                         <div className="col-auto">
                           <select
                             className="form-select bg-primary border-0 text-white"
@@ -384,7 +427,6 @@ const EmployeeView = () => {
                             style={{ paddingBottom: '6px' }}
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
-
                           >
                             <option value="">Select Year</option>
                             {getRecentYears().map((year) => (
@@ -410,11 +452,7 @@ const EmployeeView = () => {
                           </select>
                         </div>
                       </div>
-
-                      <div
-                        className="dropdown-divider"
-                        style={{ borderTopColor: "#d7d9dd" }}
-                      />
+                      <div className="dropdown-divider" style={{ borderTopColor: "#d7d9dd" }} />
                     </div>
                   </div>
                   {filteredEmployees?.length > 0 ? (
@@ -434,6 +472,86 @@ const EmployeeView = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Documents Modal */}
+        {showDocumentsModal && (
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    Documents for {selectedEmployee?.firstName} {selectedEmployee?.lastName}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setShowDocumentsModal(false);
+                      setDocuments([]);
+                    }}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {documentsLoading ? (
+                    <div className="text-center py-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="mt-3">Loading documents...</p>
+                    </div>
+                  ) : documents.length === 0 ? (
+                    <div className="text-center py-5">
+                      <p className="text-muted">No documents found for this employee</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <table className="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Document</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {documents.map((doc, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  {getFileIcon(doc.type, doc.name)}
+                                  <span className="ms-3">{doc.name}</span>
+                                </div>
+                              </td>
+                              <td>
+                                <a
+                                  href={doc.url}
+                                  className="btn btn-sm btn-outline-primary me-2"
+                                >
+                                  <Download className="me-1" /> View
+                                </a>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowDocumentsModal(false);
+                      setDocuments([]);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </LayOut>
