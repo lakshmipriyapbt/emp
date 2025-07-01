@@ -262,17 +262,18 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
         String companyIndex = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
+        templateNo = openSearchOperations.getCompanyTemplates(companyEntity.getShortName());
+        if (templateNo ==null) {
+            log.error("company templates are not exist ");
+            throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
+                    HttpStatus.NOT_FOUND);
+        }
+
         SSLUtil.disableSSLVerification();
         InvoiceModel invoiceEntity = openSearchOperations.getInvoiceById(companyIndex,null,invoiceId);
         if (invoiceEntity == null) {
             log.error("Invoice with ID {} not found", invoiceId);
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVOICE_NOT_FOUND), HttpStatus.NOT_FOUND);
-        }
-
-        if (invoiceEntity.getInvoiceTemplateNo() ==null){
-            log.error("company templates are not exist ");
-            throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
-                    HttpStatus.NOT_FOUND);
         }
         // Fetch Customer Model
         CustomerModel customerModel=customerRepository.findById(customerId)
@@ -309,7 +310,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             model.put(Constants.CGST,invoiceResponse.getInvoice().getCGst());
 
             // Choose the template based on the template number
-            String templateName = switch (Integer.parseInt(invoiceEntity.getInvoiceTemplateNo())) {
+            String templateName = switch (Integer.parseInt(templateNo.getInvoiceTemplateNo())) {
                 case 1 -> Constants.INVOICE_ONE;
                 case 2 -> Constants.INVOICE_TWO;
                 default -> throw new IllegalArgumentException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.INVALID_TEMPLATE_NUMBER));
