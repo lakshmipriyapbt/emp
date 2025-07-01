@@ -91,14 +91,6 @@ public class CandidateServiceImpl implements CandidateService {
             throw employeeException;
         }
 
-        String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + candidateRequest.getFirstName()+"_"+candidateRequest.getLastName() + "_"+System.currentTimeMillis()+"/";
-        File folder = new File(candidateFolderPath);
-        if (!folder.exists()) {
-            folder.mkdirs();
-            log.info("Candidate folder created successfully at {}", candidateFolderPath);
-        } else {
-            log.warn("Candidate folder already exists or failed to create at {}", candidateFolderPath);
-        }
         CompletableFuture.runAsync(() -> {
             try {
                 String companyUrl = EmailUtils.getBaseUrl(request) + candidateRequest.getCompanyName() + Constants.SLASH + Constants.CANDIDATE_LOGIN ;
