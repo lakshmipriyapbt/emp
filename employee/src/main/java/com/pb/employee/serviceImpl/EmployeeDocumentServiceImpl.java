@@ -53,12 +53,18 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     @Override
     public ResponseEntity<?> uploadEmployeeDocument(String companyName, String candidateId, String employeeId, EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
         String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = null;
         CandidateEntity candidate = null;
         EmployeeEntity employee = null;
         String resourceId;
+        String documentPath = "";
         try {
             List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
-
+            company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (company == null) {
+                log.error("Company not found for name: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
             if (candidateId != null) {
                 candidate = candidateDao.get(candidateId, companyName).orElse(null);
                 if (candidate == null) {
@@ -100,11 +106,13 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             employeeDocument.setId(resourceId);
             if (candidate != null) {
                 employeeDocument.setReferenceId(candidateId);
-                employeeDocument.setFolderPath(folderPath+ companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + "_"+System.currentTimeMillis()+"/");
+                documentPath = companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + "_"+candidate.getEmailId()+"/";
+                employeeDocument.setFolderPath(folderPath+documentPath );
             }
             if (employee != null) {
                 employeeDocument.setReferenceId(employee.getId());
-                employeeDocument.setFolderPath(folderPath+companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + "_" + System.currentTimeMillis()+"/");
+                documentPath = companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + "_"+employee.getEmailId()+"/";
+                employeeDocument.setFolderPath(folderPath+documentPath );
             }
             employeeDocument.setDocumentEntities(new ArrayList<>());
             employeeDocument.setType(Constants.DOCUMENT);
@@ -127,11 +135,8 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_TYPE, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
                 }
 
-                storeEmployeeDocument(file, companyName, candidateId != null ? candidateId : employeeId, docName, employeeDocument);
+                storeEmployeeDocument(file, companyName, documentPath, docName, employeeDocument);
             }
-
-//
-//            candidateId != null ? candidateId : employeeId,
 
             employeeDocumentDao.save(employeeDocument, companyName);
             log.info("Saved the employee document for candidate/employee");
@@ -248,12 +253,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         }
     }
 
-    private void storeEmployeeDocument(MultipartFile file, String companyName, String candidateId, String docName, EmployeeDocumentEntity employeeDocumentEntity) throws IOException {
+    private void storeEmployeeDocument(MultipartFile file, String companyName, String documentPath, String docName, EmployeeDocumentEntity employeeDocumentEntity) throws IOException {
 
-        String candidateFolder = folderPath + companyName + Constants.SLASH + candidateId + Constants.SLASH;
+        String candidateFolder = employeeDocumentEntity.getFolderPath();
         String filename = candidateFolder + docName + "_" + file.getOriginalFilename();
 
-        String filePath = companyName + Constants.SLASH + candidateId + Constants.SLASH + docName + "_" + file.getOriginalFilename();
+        String filePath = companyName + documentPath + docName + "_" + file.getOriginalFilename();
 
         boolean isDuplicate = employeeDocumentEntity.getDocumentEntities().stream()
                 .anyMatch(document -> document.getFilePath().equals(filePath));
@@ -273,10 +278,30 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     }
 
     public ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
+        String documentPath = "";
+        CandidateEntity candidate = null;
+        EmployeeEntity employee = null;
+        String resourceId = null;
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
         try {
             List<String> allowedFileTypes = Arrays.asList(Constants.FILE_PDF, Constants.FILE_DOC, Constants.FILE_DOCX);
-            validateEmployeeOrCandidate(companyName, candidateId, employeeId);
-
+            if (candidateId != null) {
+                candidate = candidateDao.get(candidateId, companyName).orElse(null);
+                if (candidate == null) {
+                    log.error("Candidate not found for ID: {}", candidateId);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.BAD_REQUEST);
+                }
+                documentPath = companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + "_"+System.currentTimeMillis()+"/";
+            } else if (employeeId != null) {
+                employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+                if (employee == null) {
+                    log.error("Employee not found for ID: {}", employeeId);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.BAD_REQUEST);
+                }
+                documentPath = companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + "_"+System.currentTimeMillis()+"/";
+            } else {
+                throw new EmployeeException("Either candidateId or employeeId must be provided", HttpStatus.BAD_REQUEST);
+            }
             String referenceId = StringUtils.isNotBlank(candidateId) ? candidateId : employeeId;
             EmployeeDocumentEntity employeeDocumentEntity = employeeDocumentDao.getByDocuments(referenceId, companyName).orElse(null);
             if (employeeDocumentEntity == null) {
@@ -301,6 +326,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 employeeDocumentEntity.setReferenceId(candidateId);
             }
 
+
             File dir = new File(folder);
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -317,7 +343,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 if (!allowedFileTypes.contains(contentType)) {
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_TYPE, file.getOriginalFilename()), HttpStatus.BAD_REQUEST);
                 }
-                storeEmployeeDocument(file, companyName, referenceId, docName, employeeDocumentEntity);
+                storeEmployeeDocument(file, companyName, documentPath, docName, employeeDocumentEntity);
             }
 
             employeeDocumentDao.save(employeeDocumentEntity, companyName);
@@ -419,7 +445,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             String companyFolderPath = employeeDocument.getFolderPath();
             String filename = companyFolderPath+companyName+"_"+file.getOriginalFilename();
             file.transferTo(new File(filename));
-            employeeDocument.setProfile(companyFolderPath+companyName+"_"+file.getOriginalFilename());
+            employeeDocument.setProfile(companyName+"_"+file.getOriginalFilename());
             ResponseEntity.ok(filename);
         }
     }
