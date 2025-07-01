@@ -42,7 +42,7 @@ const InvoiceTemplate2 = ({
             alignItems: "center",
             color: "#999"
           }}>
-            {companyData?.imageFile ? <img src={companyData.imageFile} alt="Company Logo" /> : "No Logo Available"}
+            {company?.imageFile ? <img src={company.imageFile} alt="Company Logo" /> : "No Logo Available"}
           </div>
         </div>
 
