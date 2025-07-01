@@ -141,7 +141,8 @@ const InvoiceTemplate1 = ({
               </tr>
            
                  {/* Tax Rows */}
-{(InvoiceStaticData.invoice.sgst !== "0.00" && InvoiceStaticData.invoice.cgst !== "0.00") ? (
+{(InvoiceStaticData.invoice.sgst !== "0.00" && InvoiceStaticData.invoice.sgst !== "" &&
+  InvoiceStaticData.invoice.cgst !== "0.00" && InvoiceStaticData.invoice.cgst !== "") ? (
   <>
     <tr>
       <td colSpan={InvoiceStaticData.invoice.productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
@@ -161,14 +162,16 @@ const InvoiceTemplate1 = ({
     </tr>
   </>
 ) : (
-  <tr>
-    <td colSpan={InvoiceStaticData.invoice.productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
-      IGST
-    </td>
-    <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
-      {InvoiceStaticData.invoice.igst}
-    </td>
-  </tr>
+  (InvoiceStaticData.invoice.igst !== "0.00" && InvoiceStaticData.invoice.igst !== "") ? (
+    <tr>
+      <td colSpan={InvoiceStaticData.invoice.productColumns.length} style={{ padding: "10px", textAlign: "right", fontSize: "14px", fontWeight: "600" }}>
+        IGST
+      </td>
+      <td style={{ padding: "10px", textAlign: "left", fontSize: "14px" }}>
+        {InvoiceStaticData.invoice.igst}
+      </td>
+    </tr>
+  ) : null
 )}
                  
               {/* {hasCustomerGST && (
