@@ -40,4 +40,8 @@ public class InvoiceRequest {
     private String shippingTerms;
     private String paymentTerms;
     private String deliveryDate;
+
+    @Pattern(regexp = "^[12]{1}$", message = "{invoice.template.message}")
+    private String invoiceTemplateNo;
+
 }

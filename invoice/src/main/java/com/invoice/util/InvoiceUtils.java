@@ -119,6 +119,7 @@ public class InvoiceUtils {
         entity.setShippingTerms(maskValue(request.getShippingTerms()));
         entity.setPaymentTerms(maskValue(request.getPaymentTerms()));
         entity.setDeliveryDate(maskValue(request.getDeliveryDate()));
+        entity.setInvoiceTemplateNo(maskValue(request.getInvoiceTemplateNo()));
 
         return entity;
     }
@@ -222,6 +223,7 @@ public class InvoiceUtils {
             invoiceEntity.setShippingMethod(unMaskValue(invoiceEntity.getShippingMethod()));
             invoiceEntity.setPaymentTerms(unMaskValue(invoiceEntity.getPaymentTerms()));
             invoiceEntity.setDeliveryDate(unMaskValue(invoiceEntity.getDeliveryDate()));
+            invoiceEntity.setInvoiceTemplateNo(unMaskValue(invoiceEntity.getInvoiceTemplateNo()));
 
             // Unmask productData (List<Map<String, String>>)
             if (invoiceEntity.getProductData() != null) {

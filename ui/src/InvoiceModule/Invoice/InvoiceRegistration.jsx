@@ -84,63 +84,14 @@ const InvoiceRegistration = () => {
       0
     ).toFixed(2)
   );
-  
+
 
   const validateInput = (type, value) => {
+    if (value === "") return true; // Allow clearing the field
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
     if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
     if (type === "number") return /^\d+(\.\d{1,2})?$/.test(value);
     if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
-    return true;
-  };
-  const validateField = (index, key, value) => {
-    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters"
-      },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/,
-        patternMessage: "HSN must contain only numbers"
-      },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters"
-      }
-    };
-
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (!fieldValidation) return true;
-
-    if (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.errorMessage,
-        },
-      }));
-      return false;
-    }
-
-    if (fieldValidation.pattern && !fieldValidation.pattern.test(value)) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.patternMessage,
-        },
-      }));
-      return false;
-    }
-
     return true;
   };
 
@@ -183,101 +134,56 @@ const InvoiceRegistration = () => {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return ""; // If the date is falsy, return an empty string
+const updateData = (index, key, value) => {
+  const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
+  const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
 
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0"); // Get the day, ensuring two digits
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Get the month (0-indexed)
-    const year = d.getFullYear(); // Get the full year
-
-    return `${day}-${month}-${year}`;
-  };
-
-  // Calculate tax (example 10%)
-  const calculateTax = (subtotal) => {
-    return (subtotal * 0.1).toFixed(2);
-  };
-
-  // Calculate total including tax
-  const calculateTotal = (subtotal) => {
-    return (parseFloat(subtotal) * 1.1).toFixed(2);
-  };
-
-
-  const updateData = (index, key, value) => {
-    const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
-    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-
-    // Field-specific validation rules
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters",
+  // Validate using validateInput for product details only
+  if (!validateInput(colType, value)) {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [index]: {
+        ...(prev[index] || {}),
+        [normalizedKey]: `Invalid ${colType} value`,
       },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/, // Only numbers allowed
-        patternMessage: "HSN must contain only numbers",
+    }));
+    // Optionally, return here to prevent updating invalid value
+    return;
+  } else {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [index]: {
+        ...(prev[index] || {}),
+        [normalizedKey]: null,
       },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters",
-      },
-    };
+    }));
+  }
 
-    // Always update the field value (allow typing)
-    setProductData((prevData) => {
-      const updatedData = [...prevData];
-      updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
+  // ...existing update logic...
+  setProductData((prevData) => {
+    const updatedData = [...prevData];
+    updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
 
-      // Auto-calculate totalCost if quantity/unitCost/GST changes
-      if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
-        const quantity = parseFloat(updatedData[index].quantity) || 0;
-        const unitCost = parseFloat(updatedData[index].unitCost) || 0;
-        const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
+    // Auto-calculate totalCost if quantity/unitCost/GST changes
+    if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
+      const quantity = parseFloat(updatedData[index].quantity) || 0;
+      const unitCost = parseFloat(updatedData[index].unitCost) || 0;
+      const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
 
-        if (value === "") {
-          updatedData[index].totalCost = "";
-        } else {
-          const subTotal = quantity * unitCost;
-          const gstAmount = (subTotal * gstPercentage) / 100;
-          updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
-        }
+      if (value === "") {
+        updatedData[index].totalCost = "";
+      } else {
+        const subTotal = quantity * unitCost;
+        const gstAmount = (subTotal * gstPercentage) / 100;
+        updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
       }
-
-      return updatedData;
-    });
-
-    // Validate in real-time (but don't block input)
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (fieldValidation) {
-      let error = null;
-
-      // Check min/max length
-      if (value.length > 0 && (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength)) {
-        error = fieldValidation.errorMessage;
-      }
-
-      // Check HSN pattern (if applicable)
-      if (normalizedKey === "hsn" && fieldValidation.pattern && !fieldValidation.pattern.test(value) && value.length > 0) {
-        error = fieldValidation.patternMessage;
-      }
-
-      // Update errors (if any)
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: error,
-        },
-      }));
     }
-  };
+
+    return updatedData;
+  });
+
+  // ...existing field-specific validation logic (optional)...
+};
 
   useEffect(() => {
     if (Array.isArray(products)) {
@@ -383,7 +289,6 @@ const InvoiceRegistration = () => {
   }, [customers]);
 
   const onSubmit = (data) => {
-    // Find the full customer and bank details
     const selectedCustomer = customers.find(
       cust => cust.customerId === data.customerName.value
     );
@@ -393,27 +298,18 @@ const InvoiceRegistration = () => {
     );
     const selectedBank = selectedBankOption?.bankData;
 
-    // Format product data
+    // Format product data to match backend expectations
     const formattedProductData = productData.map((item, index) => ({
-      id: index + 1,
-      productName: item.items || 'Unnamed Product',
+      items: item.items || 'Unnamed Product',
+      hsn: item.hsn || '',
+      service: item.service || '',
       quantity: item.quantity || 0,
-      price: item.unitCost || 0,
-      total: item.totalCost || 0
+      unitCost: item.unitCost || 0,
+      gstPercentage: item.gstPercentage || 0,
+      totalCost: item.totalCost || 0
     }));
 
-    // Prepare the complete preview data
     const previewData = {
-      // Company info
-      company: {
-        companyName: company?.companyName,
-        address: company?.companyAddress || company?.address,
-        emailId: company?.emailId,
-        mobileNo: company?.mobileNo,
-        imageFile: company?.imageFile,
-        stampImage: company?.stampImage
-      },
-
       // Customer info
       billedTo: {
         customerName: selectedCustomer?.customerName || '',
@@ -422,44 +318,26 @@ const InvoiceRegistration = () => {
         email: selectedCustomer?.email || '',
         customerGstNo: selectedCustomer?.customerGstNo || ''
       },
-
-      // Shipping info (if different from billedTo)
-      shippedTo: {
-        customerName: data.shipToName || selectedCustomer?.customerName || '',
-        address: data.shipToAddress || selectedCustomer?.address || '',
-        mobileNumber: data.shipToMobile || selectedCustomer?.mobileNumber || ''
-      },
-
+      // Shipping info
+      shippedPayload: [{
+        customerName: data.shipToName || '',
+        address: data.shipToAddress || '',
+        mobileNumber: data.shipToMobile || ''
+      }],
       // Invoice details
       invoiceNo: `INV-${Date.now()}`,
       invoiceDate: data.invoiceDate || '',
       dueDate: data.dueDate || '',
       purchaseOrder: data.purchaseOrder || '',
-
       // Product details
       productData: formattedProductData,
-      productColumns: [
-        { key: "productName", title: "Product Name", type: "text" },
-        { key: "quantity", title: "Quantity", type: "number" },
-        { key: "price", title: "Price", type: "number" },
-        { key: "total", title: "Total", type: "number" }
-      ],
-
+      productColumns: productColumns,
       // Financial details
       subTotal: subTotal.toFixed(2),
       notes: data.notes || '',
-
-      // Bank details
-      bankDetails: selectedBank || {
-        bankName: '',
-        accountNumber: '',
-        accountType: '',
-        branch: '',
-        ifscCode: '',
-        address: ''
-      },
-
-      // Additional fields for Template 2
+      // Bank details - include the full bank object
+      bankDetails: selectedBank || {},
+      // Additional fields
       salesPerson: data.salesPerson || '',
       shippingMethod: data.shippingMethod || '',
       shippingTerms: data.shippingTerms || '',
@@ -468,46 +346,55 @@ const InvoiceRegistration = () => {
     };
 
     setPreviewData(previewData);
+    console.log("Preview Data:", previewData);
     setSubmissionData({
       ...previewData,
       customerId: selectedCustomer?.customerId,
-      bankId: selectedBank?.bankId
+      bankId: selectedBank?.bankId, 
+      bankDetails: selectedBank
     });
     setShowPreview(true);
   };
 
   const handleConfirmSubmission = async () => {
     try {
-      // Ensure these values are properly set
-      const companyId = company?.id; // Changed from company?.companyId
+      const companyId = company?.id;
       const customerId = submissionData?.customerId;
+      const bankId = submissionData?.bankId;
+      console.log("bankId*****", bankId);
 
-      console.log("Submitting with:", {
-        companyId,
-        customerId,
-        data: submissionData
-      });
-
-      if (!companyId) {
-        throw new Error("Company ID is missing");
+      if (!companyId || !customerId) {
+        throw new Error("Company ID or Customer ID is missing");
       }
 
-      if (!customerId) {
-        throw new Error("Customer ID is missing");
-      }
+      // Transform the data to match backend expectations
+      const invoiceData = {
+        productData: submissionData.productData,
+        productColumns: submissionData.productColumns,
+        shippedPayload: submissionData.shippedPayload[0] || {}, // Convert array to object
+        vendorCode: submissionData.purchaseOrder,
+        purchaseOrder: submissionData.purchaseOrder,
+        invoiceDate: submissionData.invoiceDate,
+        dueDate: submissionData.dueDate,
+        subTotal: submissionData.subTotal,
+        status: "Pending", // Default status
+        bankId: bankId,
+        notes: submissionData.notes,
+        salesPerson: submissionData.salesPerson,
+        shippingMethod: submissionData.shippingMethod,
+        shippingTerms: submissionData.shippingTerms,
+        paymentTerms: submissionData.paymentTerms,
+        deliveryDate: submissionData.deliveryDate
+      };
 
-      const response = await InvoicePostApi(
-        companyId,
-        customerId,
-        submissionData
-      );
+      console.log("Submitting invoice data:", invoiceData);
+
+      const response = await InvoicePostApi(companyId, customerId, invoiceData);
 
       if (response) {
         setShowPreview(false);
         reset();
         toast.success("Invoice created successfully!");
-
-        // ✅ Redirect to invoice view page
         navigate("/invoiceView");
       }
     } catch (error) {
@@ -1017,8 +904,7 @@ const InvoiceRegistration = () => {
                               required: "Ship To Name is required",
                               minLength: {
                                 value: 3,
-                                message:
-                                  "Ship To Name must be at least 3 characters long",
+                                message: "Ship To Name must be at least 3 characters long",
                               },
                               maxLength: {
                                 value: 10,
@@ -1027,10 +913,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToName && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToName.message}
                             </p>
                           )}
@@ -1059,10 +942,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToAddress && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToAddress.message}
                             </p>
                           )}
@@ -1087,10 +967,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToMobile && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToMobile.message}
                             </p>
                           )}
@@ -1123,10 +1000,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.notes && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.notes.message}
                           </p>
                         )}
@@ -1158,10 +1032,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.salesPerson && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.salesPerson.message}
                           </p>
                         )}
@@ -1193,10 +1064,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.shippingMethod && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.shippingMethod.message}
                           </p>
                         )}
@@ -1228,10 +1096,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.shippingTerms && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.shippingTerms.message}
                           </p>
                         )}
@@ -1263,10 +1128,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.paymentTerms && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.paymentTerms.message}
                           </p>
                         )}
@@ -1301,9 +1163,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.deliveryDate && (
-                          <p
-                            className="errorMsg"
-                          >
+                          <p className="errorMsg">
                             {errors.deliveryDate.message}
                           </p>
                         )}

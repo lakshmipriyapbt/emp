@@ -69,13 +69,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.COMPANY_NOT_FOUND), HttpStatus.NOT_FOUND);
         }
 
-        templateNo = openSearchOperations.getCompanyTemplates(companyEntity.getShortName());
-        if (templateNo ==null){
-            log.error("company templates are not exist ");
-            throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
-                    HttpStatus.NOT_FOUND);
-        }
-
         // Validate Invoice Date
         validateInvoiceDate(request.getInvoiceDate());
         String index = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
@@ -270,7 +263,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         String companyIndex = ResourceIdUtils.generateCompanyIndex(companyEntity.getShortName());
 
         templateNo = openSearchOperations.getCompanyTemplates(companyEntity.getShortName());
-        if (templateNo ==null){
+        if (templateNo ==null) {
             log.error("company templates are not exist ");
             throw new InvoiceException(String.format(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_GET_TEMPLATE), companyEntity.getShortName()),
                     HttpStatus.NOT_FOUND);
