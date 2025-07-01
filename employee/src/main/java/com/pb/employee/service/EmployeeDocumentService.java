@@ -18,8 +18,5 @@ public interface EmployeeDocumentService {
 
     ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeDocumentRequest employeeDocumentRequest)throws EmployeeException, IOException ;
 
-    ResponseEntity<?> uploadEmployeeImage(String companyName, String employeeId, MultipartFile file) throws EmployeeException, IOException;
-
-    ResponseEntity<?> getEmployeeImage(String companyName, String employeeId,HttpServletRequest request) throws EmployeeException, IOException;
 
 }

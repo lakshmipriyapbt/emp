@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -140,6 +141,32 @@ public class EmployeeController {
                                                            @RequestBody @Valid EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException {
 
         return employeeService.registerEmployeeWithCandidate(employeeRequest,candidateId, request);
+    }
+
+    @RequestMapping(value = "{companyName}/employee/{employeeId}/image", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.uploadEmployeeImage.tag}", description = "${api.uploadEmployeeImage.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Employee Image Uploaded Successfully")
+    public ResponseEntity<?> uploadEmployeeImage(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef}")
+                                                 @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                 @PathVariable String companyName,
+                                                 @PathVariable String employeeId,
+                                                 @RequestParam MultipartFile file) throws EmployeeException, IOException {
+        return employeeService.uploadEmployeeImage(companyName, employeeId, file);
+    }
+
+    @RequestMapping(value = "{companyName}/employee/{employeeId}/image", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getEmployeeImage.tag}", description = "${api.getEmployeeImage.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Employee Image fetched Successfully")
+    public ResponseEntity<?> getEmployeeImage(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef}")
+                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                              @PathVariable String companyName,
+                                              @PathVariable String employeeId,
+                                              HttpServletRequest request) throws EmployeeException, IOException {
+        return employeeService.getEmployeeImage(companyName, employeeId, request);
     }
 
 

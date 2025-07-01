@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
@@ -833,5 +834,94 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
     }
 
+    @Override
+    public ResponseEntity<?> uploadEmployeeImage(String companyName, String employeeId, MultipartFile file) throws EmployeeException, IOException {
+        log.info("Uploading employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+            List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
+            if (!file.isEmpty()){
+                // Validate file type
+                String contentType = file.getContentType();
+                if (!allowedFileTypes.contains(contentType)) {
+                    // Return an error response if file type is invalid
+                    log.error("Invalid file type: {}", contentType);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
+                }
+                multiPartFileStore(file, companyName, employee);
+            }
 
+            openSearchOperations.saveEntity(employee, employeeId, indexName);
+            log.info("Employee document entity saved for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        } catch (EmployeeException ex) {
+            log.error("EmployeeException while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPLOAD_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeImage(String companyName, String employeeId,HttpServletRequest request) throws EmployeeException, IOException {
+        log.info("Fetching employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+
+            if (employee.getProfileImage()!= null){
+                String baseUrl = getBaseUrl(request);
+                String image = baseUrl + "var/www/ems/assets/img/" + employee.getProfileImage();
+                employee.setProfileImage(image);
+            }
+            log.info("Fetched employee image for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(employee.getProfileImage()), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void multiPartFileStore(MultipartFile file, String companyName, EmployeeEntity employee) throws IOException, EmployeeException {
+        if(!file.isEmpty()){
+            String companyFolderPath = folderPath + companyName+"/" + employee.getFirstName()+"_"+employee.getEmailId()+"/";
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            String filename = companyFolderPath+companyName+"_"+file.getOriginalFilename();
+            file.transferTo(new File(filename));
+            employee.setProfileImage(companyName+"/" + employee.getFirstName()+"_"+employee.getEmailId()+"/"+companyName+"_"+file.getOriginalFilename());
+            ResponseEntity.ok(filename);
+        }
+    }
+
+    public static String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme(); // http or https
+        String serverName = request.getServerName(); // localhost or IP address
+        int serverPort = request.getServerPort(); // port number
+        String contextPath = request.getContextPath(); // context path
+
+        return scheme + "://" + serverName + ":" + serverPort + contextPath;
+    }
 }
