@@ -27,7 +27,7 @@ const staticInvoiceData = {
     subTotal: "4141.80",
     grandTotal: "4141.80",
     grandTotalInWords: "Four Thousand One Hundred and Forty One Rupees Only",
-    notes: "Hsdfgdfvgbhrhtegredrv",
+    notes: "Hsdfgdfvgbhrhtegredrv", 
     productData: [
       {
         hsn: "456756",
