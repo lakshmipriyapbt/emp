@@ -84,7 +84,7 @@ const InvoiceRegistration = () => {
       0
     ).toFixed(2)
   );
-  
+
 
   const validateInput = (type, value) => {
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
@@ -383,7 +383,6 @@ const InvoiceRegistration = () => {
   }, [customers]);
 
   const onSubmit = (data) => {
-    // Find the full customer and bank details
     const selectedCustomer = customers.find(
       cust => cust.customerId === data.customerName.value
     );
@@ -393,27 +392,18 @@ const InvoiceRegistration = () => {
     );
     const selectedBank = selectedBankOption?.bankData;
 
-    // Format product data
+    // Format product data to match backend expectations
     const formattedProductData = productData.map((item, index) => ({
-      id: index + 1,
-      productName: item.items || 'Unnamed Product',
+      items: item.items || 'Unnamed Product',
+      hsn: item.hsn || '',
+      service: item.service || '',
       quantity: item.quantity || 0,
-      price: item.unitCost || 0,
-      total: item.totalCost || 0
+      unitCost: item.unitCost || 0,
+      gstPercentage: item.gstPercentage || 0,
+      totalCost: item.totalCost || 0
     }));
 
-    // Prepare the complete preview data
     const previewData = {
-      // Company info
-      company: {
-        companyName: company?.companyName,
-        address: company?.companyAddress || company?.address,
-        emailId: company?.emailId,
-        mobileNo: company?.mobileNo,
-        imageFile: company?.imageFile,
-        stampImage: company?.stampImage
-      },
-
       // Customer info
       billedTo: {
         customerName: selectedCustomer?.customerName || '',
@@ -422,44 +412,26 @@ const InvoiceRegistration = () => {
         email: selectedCustomer?.email || '',
         customerGstNo: selectedCustomer?.customerGstNo || ''
       },
-
-      // Shipping info (if different from billedTo)
-      shippedTo: {
-        customerName: data.shipToName || selectedCustomer?.customerName || '',
-        address: data.shipToAddress || selectedCustomer?.address || '',
-        mobileNumber: data.shipToMobile || selectedCustomer?.mobileNumber || ''
-      },
-
+      // Shipping info
+      shippedPayload: [{
+        customerName: data.shipToName || '',
+        address: data.shipToAddress || '',
+        mobileNumber: data.shipToMobile || ''
+      }],
       // Invoice details
       invoiceNo: `INV-${Date.now()}`,
       invoiceDate: data.invoiceDate || '',
       dueDate: data.dueDate || '',
       purchaseOrder: data.purchaseOrder || '',
-
       // Product details
       productData: formattedProductData,
-      productColumns: [
-        { key: "productName", title: "Product Name", type: "text" },
-        { key: "quantity", title: "Quantity", type: "number" },
-        { key: "price", title: "Price", type: "number" },
-        { key: "total", title: "Total", type: "number" }
-      ],
-
+      productColumns: productColumns,
       // Financial details
       subTotal: subTotal.toFixed(2),
       notes: data.notes || '',
-
-      // Bank details
-      bankDetails: selectedBank || {
-        bankName: '',
-        accountNumber: '',
-        accountType: '',
-        branch: '',
-        ifscCode: '',
-        address: ''
-      },
-
-      // Additional fields for Template 2
+      // Bank details - include the full bank object
+      bankDetails: selectedBank || {},
+      // Additional fields
       salesPerson: data.salesPerson || '',
       shippingMethod: data.shippingMethod || '',
       shippingTerms: data.shippingTerms || '',
@@ -471,43 +443,56 @@ const InvoiceRegistration = () => {
     setSubmissionData({
       ...previewData,
       customerId: selectedCustomer?.customerId,
-      bankId: selectedBank?.bankId
+      bankId: selectedBank?.bankId, 
+      bankDetails: selectedBank
     });
     setShowPreview(true);
   };
 
   const handleConfirmSubmission = async () => {
     try {
-      // Ensure these values are properly set
-      const companyId = company?.id; // Changed from company?.companyId
+      const companyId = company?.id;
       const customerId = submissionData?.customerId;
+      const bankId = submissionData?.bankId;
+      console.log("bankId*****", bankId);
 
-      console.log("Submitting with:", {
-        companyId,
-        customerId,
-        data: submissionData
-      });
-
-      if (!companyId) {
-        throw new Error("Company ID is missing");
+      if (!companyId || !customerId) {
+        throw new Error("Company ID or Customer ID is missing");
       }
 
-      if (!customerId) {
-        throw new Error("Customer ID is missing");
-      }
+      // Transform the data to match backend expectations
+      const invoiceData = {
+        productData: submissionData.productData.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        })),
+        productColumns: submissionData.productColumns,
+        shippedPayload: submissionData.shippedPayload[0] || {}, // Convert array to object
+        vendorCode: submissionData.purchaseOrder,
+        purchaseOrder: submissionData.purchaseOrder,
+        invoiceDate: submissionData.invoiceDate,
+        dueDate: submissionData.dueDate,
+        subTotal: submissionData.subTotal,
+        status: "Pending", // Default status
+        bankId: bankId,
+        notes: submissionData.notes,
+        salesPerson: submissionData.salesPerson,
+        shippingMethod: submissionData.shippingMethod,
+        shippingTerms: submissionData.shippingTerms,
+        paymentTerms: submissionData.paymentTerms,
+        deliveryDate: submissionData.deliveryDate
+      };
 
-      const response = await InvoicePostApi(
-        companyId,
-        customerId,
-        submissionData
-      );
+      console.log("Submitting invoice data:", invoiceData);
+
+      const response = await InvoicePostApi(companyId, customerId, invoiceData);
 
       if (response) {
         setShowPreview(false);
         reset();
         toast.success("Invoice created successfully!");
-
-        // ✅ Redirect to invoice view page
         navigate("/invoiceView");
       }
     } catch (error) {
@@ -1017,8 +1002,7 @@ const InvoiceRegistration = () => {
                               required: "Ship To Name is required",
                               minLength: {
                                 value: 3,
-                                message:
-                                  "Ship To Name must be at least 3 characters long",
+                                message: "Ship To Name must be at least 3 characters long",
                               },
                               maxLength: {
                                 value: 10,
@@ -1027,10 +1011,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToName && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToName.message}
                             </p>
                           )}
@@ -1059,10 +1040,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToAddress && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToAddress.message}
                             </p>
                           )}
@@ -1087,10 +1065,7 @@ const InvoiceRegistration = () => {
                             })}
                           />
                           {errors.shipToMobile && (
-                            <p
-                              className="errorMsg"
-                              style={{ marginLeft: "6px", marginBottom: "0" }}
-                            >
+                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                               {errors.shipToMobile.message}
                             </p>
                           )}
@@ -1123,10 +1098,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.notes && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.notes.message}
                           </p>
                         )}
@@ -1158,10 +1130,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.salesPerson && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.salesPerson.message}
                           </p>
                         )}
@@ -1193,10 +1162,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.shippingMethod && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.shippingMethod.message}
                           </p>
                         )}
@@ -1228,10 +1194,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.shippingTerms && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.shippingTerms.message}
                           </p>
                         )}
@@ -1263,10 +1226,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.paymentTerms && (
-                          <p
-                            className="errorMsg"
-                            style={{ marginLeft: "6px", marginBottom: "0" }}
-                          >
+                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
                             {errors.paymentTerms.message}
                           </p>
                         )}
@@ -1301,9 +1261,7 @@ const InvoiceRegistration = () => {
                           })}
                         />
                         {errors.deliveryDate && (
-                          <p
-                            className="errorMsg"
-                          >
+                          <p className="errorMsg">
                             {errors.deliveryDate.message}
                           </p>
                         )}

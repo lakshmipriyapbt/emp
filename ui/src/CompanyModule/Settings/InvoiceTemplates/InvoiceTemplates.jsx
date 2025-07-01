@@ -17,54 +17,57 @@ const InvoiceTemplates = () => {
   const { company = {} } = useAuth();
 
 // Static data for the invoice template
-  const staticInvoiceData = {
+ const staticInvoiceData = {
   productData: [
-    { productName: "Wireless Mouse", quantity: "2", price: "500" },
-    { productName: "Keyboard", quantity: "1", price: "700" }
+    { productName: "USB-C Hub", quantity: "3", price: "1200" },
+    { productName: "Laptop Stand", quantity: "2", price: "1500" },
+    { productName: "Webcam", quantity: "1", price: "2500" }
   ],
   productColumns: [
     { key: "productName", title: "Product Name", type: "text" },
     { key: "quantity", title: "Quantity", type: "number" },
     { key: "price", title: "Price", type: "number" }
   ],
-   billedTo: {  // Add this object
-    customerName: "Ramesh Bole",
-    email: "ramesh@example.com",
-    mobileNumber: "+91-9876543210",
-    address: "123, MG Road, Bengaluru, Karnataka, 560001",
-    customerGstNo: "22ABCDE1234F1Z5"
+  billedTo: {
+    customerName: "Sneha Kapoor",
+    email: "sneha.kapoor@techverse.com",
+    mobileNumber: "+91-9123456780",
+    address: "502, Park Avenue, Andheri West, Mumbai, Maharashtra, 400053",
+    customerGstNo: "27AABCT1234J1ZL"
   },
   shippedPayload: [
     {
-      customerName: "Ramesh Bole",
-      address: "123, MG Road, Bengaluru, Karnataka, 560001",
-      mobileNumber: "+91-9876543210",
+      customerName: "john doe",
+      address: "Logistics Dept, TechVerse Pvt Ltd, MIDC, Andheri East, Mumbai, 400093",
+      mobileNumber: "+91-9123456780"
     }
   ],
-  vendorCode: "VEND12345",
-  purchaseOrder: "PO987654",
-  invoiceDate: "2025-06-25",
-  invoiceNo: "INV2025-001",
-  dueDate: "2025-07-10",
-  subTotal: "1700",
-  status: "Pending",
-  bankId: "BANK001",
-  notes: "Please deliver between 10 AM to 5 PM.",
-  salesPerson: "Anjali Sharma",
-  shippingMethod: "Courier",
-  shippingTerms: "Delivery within 7 working days",
-  paymentTerms: "Net 15",
-  deliveryDate: "2025-06-28"
+  vendorCode: "VEND56789",
+  purchaseOrder: "PO123456",
+  invoiceDate: "2025-06-20",
+  invoiceNo: "INV2025-045",
+  dueDate: "2025-07-05",
+  subTotal: "7900",
+  status: "Unpaid",
+  bankId: "BANK567",
+  notes: "Kindly confirm receipt upon delivery.",
+  salesPerson: "Rajeev Menon",
+  shippingMethod: "Blue Dart Express",
+  shippingTerms: "Delivery within 5 business days",
+  paymentTerms: "Net 30",
+  deliveryDate: "2025-06-23"
 };
+
 const bankDetails = {
-    accountHolder: "VBRS IT SOLUTIONS PVT LTD",
-    accountNumber: "8767876787",
-    bankName: "State Bank of India",
-    accountType: "Current",
-    ifscCode: "SBIN0001234",
-    branch: "Hyderabad Main Branch",
-    address: "Bank Street, Koti, Hyderabad, Telangana 500001"
-  }
+  accountHolder: "Tech Innovators Pvt Ltd",
+  accountNumber: "1234567890",
+  bankName: "HDFC Bank",
+  accountType: "Current",
+  ifscCode: "HDFC0000456",
+  branch: "Koramangala Branch",
+  address: "No. 65, 1st Main Road, Koramangala, Bengaluru, Karnataka 560034"
+};
+
 
 
   const fetchTemplate = async () => {

@@ -321,7 +321,7 @@ const InvoiceTemplate1 = ({
                 </div>
 
                 <div style={{ display: "flex", marginBottom: "5px" }}>
-                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
+                  <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
                   <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
                 </div>
               </div>

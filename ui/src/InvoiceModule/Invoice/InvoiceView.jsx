@@ -155,87 +155,71 @@ const InvoiceView = () => {
     setSearch(searchTerm);
   };
 
-  const transformInvoiceForPreview = (invoice) => {
-    if (!invoice) return null;
+ const transformInvoiceForPreview = (invoice) => {
+  if (!invoice) return null;
 
-    // Calculate GST based on company and customer state codes
-    const companyStateCode = getStateCodeFromGST(invoice.company?.gstNo);
-    const customerStateCode = getStateCodeFromGST(invoice.customer?.customerGstNo);
-    const hasCustomerGST = !!invoice.customer?.customerGstNo;
-
-    let sgst = '0.00';
-    let cgst = '0.00';
-    let igst = '0.00';
-
-    if (hasCustomerGST) {
-      if (companyStateCode === customerStateCode) {
-        // Same state - apply SGST and CGST
-        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.09);
-        sgst = gstAmount.toFixed(2);
-        cgst = gstAmount.toFixed(2);
-      } else {
-        // Different state - apply IGST
-        const gstAmount = (parseFloat(invoice.subTotal || 0) * 0.18);
-        igst = gstAmount.toFixed(2);
-      }
-    }
-
-    // Calculate grand total
-    const subTotal = parseFloat(invoice.subTotal || 0);
-    const grandTotal = (subTotal + parseFloat(sgst) + parseFloat(cgst) + parseFloat(igst)).toFixed(2);
-
-    return {
-      company: {
-        companyName: invoice.company?.companyName,
-        address: invoice.company?.companyAddress,
-        emailId: invoice.company?.emailId,
-        mobileNo: invoice.company?.mobileNo,
-        imageFile: invoice.company?.imageFile,
-        stampImage: invoice.company?.stampImage,
-        gstNo: invoice.company?.gstNo
-      },
-      billedTo: {
-        customerName: invoice.customer?.customerName || '',
-        address: invoice.customer?.address || '',
-        mobileNumber: invoice.customer?.mobileNumber || '',
-        email: invoice.customer?.email || '',
-        customerGstNo: invoice.customer?.customerGstNo || '',
-        state: invoice.customer?.state || '',
-        stateCode: customerStateCode
-      },
-      invoiceNo: invoice.invoiceNo || '',
-      invoiceDate: invoice.invoiceDate || '',
-      dueDate: invoice.dueDate || '',
-      purchaseOrder: invoice.purchaseOrder || '',
-      productData: invoice.productData || [],
-      productColumns: invoice.productColumns || [
-        { key: "productName", title: "Product Name", type: "text" },
-        { key: "quantity", title: "Quantity", type: "number" },
-        { key: "price", title: "Price", type: "number" },
-        { key: "total", title: "Total", type: "number" }
-      ],
-      subTotal: subTotal.toFixed(2),
-      grandTotal: grandTotal,
-      notes: invoice.notes || '',
-      bankDetails: invoice.bank || {
-        bankName: '',
-        accountNumber: '',
-        accountType: '',
-        branch: '',
-        ifscCode: '',
-        address: ''
-      },
-      salesPerson: invoice.salesPerson || '',
-      shippingMethod: invoice.shippingMethod || '',
-      shippingTerms: invoice.shippingTerms || '',
-      paymentTerms: invoice.paymentTerms || '',
-      deliveryDate: invoice.deliveryDate || '',
-      sgst,
-      cgst,
-      igst,
-      hasCustomerGST // Add this flag for template to use
-    };
+  return {
+    company: {
+      companyName: invoice.company?.companyName,
+      address: invoice.company?.companyAddress,
+      emailId: invoice.company?.emailId,
+      mobileNo: invoice.company?.mobileNo,
+      imageFile: invoice.company?.imageFile,
+      stampImage: invoice.company?.stampImage,
+      gstNo: invoice.company?.gstNo,
+      panNo: invoice.company?.panNo
+    },
+    billedTo: {
+      customerName: invoice.customer?.customerName || '',
+      address: invoice.customer?.address || '',
+      mobileNumber: invoice.customer?.mobileNumber || '',
+      email: invoice.customer?.email || '',
+      customerGstNo: invoice.customer?.customerGstNo || ''
+    },
+    invoiceNo: invoice.invoiceNo || '',
+    invoiceDate: invoice.invoiceDate || '',
+    dueDate: invoice.dueDate || '',
+    purchaseOrder: invoice.purchaseOrder || '',
+    productData: invoice.productData?.map(item => ({
+      items: item.items || item.productName || 'Unnamed Product',
+      hsn: item.hsn || '',
+      service: item.service || '',
+      quantity: item.quantity || 0,
+      unitCost: item.unitCost || item.price || 0,
+      gstPercentage: item.gstPercentage || 0,
+      totalCost: item.totalCost || (item.quantity * item.price) || 0
+    })) || [],
+    productColumns: invoice.productColumns || [
+      { key: "items", title: "Item" },
+      { key: "hsn", title: "HSN-no" },
+      { key: "service", title: "Service" },
+      { key: "quantity", title: "Quantity" },
+      { key: "unitCost", title: "Unit Cost" },
+      { key: "gstPercentage", title: "GST (%)" },
+      { key: "totalCost", title: "Total Cost" }
+    ],
+    subTotal: invoice.subTotal || '0.00',
+    notes: invoice.notes || '',
+    bankDetails: invoice.bank || {
+      bankName: '',
+      accountNumber: '',
+      accountType: '',
+      branch: '',
+      ifscCode: '',
+      address: ''
+    },
+    salesPerson: invoice.salesPerson || '',
+    shippingMethod: invoice.shippingMethod || '',
+    shippingTerms: invoice.shippingTerms || '',
+    paymentTerms: invoice.paymentTerms || 'Net 30',
+    deliveryDate: invoice.deliveryDate || '',
+    shippedPayload: [{
+      customerName: invoice.customer?.customerName || '',
+      address: invoice.customer?.address || '',
+      mobileNumber: invoice.customer?.mobileNumber || ''
+    }]
   };
+};
 
   return (
     <LayOut>
@@ -348,7 +332,7 @@ const InvoiceView = () => {
                     }}>
                       <InvoicePreview
                         previewData={transformInvoiceForPreview(selectedInvoice)}
-                        selectedTemplate={employee?.company?.invoiceTemplateNo || "1"}
+                        selectedTemplate={employee?.company?.invoiceTemplateNo}
                       />
                     </div>
                     <div className="modal-footer" style={{
