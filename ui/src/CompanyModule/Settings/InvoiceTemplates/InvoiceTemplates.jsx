@@ -16,57 +16,88 @@ const InvoiceTemplates = () => {
   const [isFetched, setIsFetched] = useState(false);
   const { company = {} } = useAuth();
 
-// Static data for the invoice template
-  const staticInvoiceData = {
-  productData: [
-    { productName: "Wireless Mouse", quantity: "2", price: "500" },
-    { productName: "Keyboard", quantity: "1", price: "700" }
-  ],
-  productColumns: [
-    { key: "productName", title: "Product Name", type: "text" },
-    { key: "quantity", title: "Quantity", type: "number" },
-    { key: "price", title: "Price", type: "number" }
-  ],
-   billedTo: {  // Add this object
-    customerName: "Ramesh Bole",
-    email: "ramesh@example.com",
-    mobileNumber: "+91-9876543210",
-    address: "123, MG Road, Bengaluru, Karnataka, 560001",
-    customerGstNo: "22ABCDE1234F1Z5"
+// Place this at the top of your file (outside the component)
+const staticInvoiceData = {
+  invoice: {
+    vendorCode: "11212254",
+    purchaseOrder: "11212254",
+    invoiceDate: "2025-06-17",
+    dueDate: "2025-07-17",
+    invoiceNo: "2025-26-006",
+    subTotal: "4141.80",
+    grandTotal: "4141.80",
+    grandTotalInWords: "Four Thousand One Hundred and Forty One Rupees Only",
+    notes: "Hsdfgdfvgbhrhtegredrv",
+    productData: [
+      {
+        hsn: "456756",
+        quantity: "65",
+        service: "sdthg",
+        unitCost: "54",
+        gstPercentage: "18",
+        items: "dsfhgn",
+        totalCost: "4141.80"
+      }
+    ],
+    productColumns: [
+      { key: "items", title: "Item", type: "text" },
+      { key: "hsn", title: "HSN-no", type: "text" },
+      { key: "service", title: "Service", type: "text" },
+      { key: "quantity", title: "Quantity", type: "number" },
+      { key: "unitCost", title: "Unit Cost", type: "number" },
+      { key: "gstPercentage", title: "GST (%)", type: "number" },
+      { key: "totalCost", title: "Total Cost", type: "number" }
+    ],
+    shippedPayload: {
+      customerName: "sdfd",
+      address: "asdfgfv",
+      mobileNumber: "9002343430"
+    },
+    status: "Pending",
+    type: "invoice",
+    salesPerson: "",
+    shippingMethod: "",
+    shippingTerms: "",
+    paymentTerms: "Net 30",
+    deliveryDate: "",
+    cgst: "18",
+    sgst: "18",
+    igst: "18"
   },
-  shippedPayload: [
-    {
-      customerName: "Ramesh Bole",
-      address: "123, MG Road, Bengaluru, Karnataka, 560001",
-      mobileNumber: "+91-9876543210",
-    }
-  ],
-  vendorCode: "VEND12345",
-  purchaseOrder: "PO987654",
-  invoiceDate: "2025-06-25",
-  invoiceNo: "INV2025-001",
-  dueDate: "2025-07-10",
-  subTotal: "1700",
-  status: "Pending",
-  bankId: "BANK001",
-  notes: "Please deliver between 10 AM to 5 PM.",
-  salesPerson: "Anjali Sharma",
-  shippingMethod: "Courier",
-  shippingTerms: "Delivery within 7 working days",
-  paymentTerms: "Net 15",
-  deliveryDate: "2025-06-28"
-};
-const bankDetails = {
-    accountHolder: "VBRS IT SOLUTIONS PVT LTD",
-    accountNumber: "8767876787",
-    bankName: "State Bank of India",
-    accountType: "Current",
-    ifscCode: "SBIN0001234",
-    branch: "Hyderabad Main Branch",
-    address: "Bank Street, Koti, Hyderabad, Telangana 500001"
+  company: {
+    gstNo: "27AAPCS1293R1ZD",
+    panNo: "AAPCS1293R",
+    companyName: "FEED",
+    companyAddress: "Hyderabad",
+    companyType: "Private Limited",
+    cinNo: "U85300GJ2020NPL114653",
+    shortName: "feed",
+    mobileNo: "+91 9023446653",
+    emailId: "feed@gmail.com"
+  },
+  customer: {
+    customerName: "Bala Narednra",
+    address: "Hyderabad",
+    state: "Telangana",
+    city: "Hyderabad",
+    pinCode: "500081",
+    stateCode: "",
+    mobileNumber: "+919335935503",
+    email: "balanarendra@gmail.com",
+    customerGstNo: "",
+    status: "QWN0aXZl"
+  },
+  bank: {
+    accountNumber: "770766505404340",
+    accountType: "Savings",
+    bankName: "HDFC Bank",
+    branch: "Narasaraopet",
+    ifscCode: "HDFC0001245",
+    address: "Hyderabad",
+    type: "bank_details"
   }
-
-
+};
+// ...rest of your component code...
   const fetchTemplate = async () => {
     try {
       const res = await TemplateGetAPI(company.id);
@@ -101,7 +132,8 @@ const bankDetails = {
             companyLogo={company?.imageFile || "default-logo.png"}
             companyData={company}
             InvoiceStaticData={staticInvoiceData}
-            bankDetails={bankDetails}
+            
+            bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
           />
         ),
@@ -114,7 +146,7 @@ const bankDetails = {
             companyLogo={company?.imageFile || "default-logo.png"}
             companyData={company}
             InvoiceStaticData={staticInvoiceData}
-            bankDetails={bankDetails}
+            bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
           />
         ),
