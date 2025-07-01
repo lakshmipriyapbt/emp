@@ -182,7 +182,8 @@ public enum EmployeeErrorMessageKey {
     OFFER_LETTER_NOT_FOUND("offer.letter.not.found"),
     FAILED_TO_UPDATE_OFFER_LETTER("failed.to.update.offer.letter"),
     No_UPDATE_DONE_IN_OFFER_LETTER("no.update.done.in.offer.letter"),
-    OFFER_LETTER_REF_EXIST("offer.letter.ref.exist");
+    OFFER_LETTER_REF_EXIST("offer.letter.ref.exist"),
+    USED_PASSWORD("used.password");
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {
