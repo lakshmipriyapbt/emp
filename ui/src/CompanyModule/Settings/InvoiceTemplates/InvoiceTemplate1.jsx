@@ -1,22 +1,25 @@
 import React from "react";
+import { useAuth } from "../../../Context/AuthContext";
 
 
 const InvoiceTemplate1 = ({
   InvoiceStaticData = {},
-  companyData = {},
+  companyData={},
   bankDetails = {}
 }) => {
-  const company = companyData || {};
+  const { company } = useAuth();
+  console.log("InvoiceStaticData:", InvoiceStaticData); 
+  console.log("companyData:", companyData);
 
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
       <div className="invoice-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <div className="tax-info">
           <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-            {company.panNo ? `PAN: ${company.panNo}` : "PAN: Not Available"}
+            {companyData.panNo ? `PAN: ${companyData.panNo}` : "PAN: Not Available"}
           </p>
           <p style={{ margin: "0", fontSize: "14px", fontWeight: "600" }}>
-            {company.gstNo ? `GST: ${company.gstNo}` : "GST: Not Available"}
+            {companyData.gstNo ? `GST: ${companyData.gstNo}` : "GST: Not Available"}
           </p>
         </div>
         <div className="logo-placeholder">
@@ -198,7 +201,7 @@ const InvoiceTemplate1 = ({
               </tr>
               <tr>
                 <td colSpan={InvoiceStaticData.invoice.productColumns.length + 1} style={{ padding: "10px", textAlign: "center", fontSize: "14px", borderTop: "1px solid #eee" }}>
-                  The payment should be made favouring <strong>{company.companyName}</strong> or direct deposit as per the information below.
+                  The payment should be made favouring <strong>{companyData.companyName}</strong> or direct deposit as per the information below.
                 </td>
               </tr>
             </tfoot>
@@ -259,7 +262,7 @@ const InvoiceTemplate1 = ({
                 </div>
 
                 <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>{company?.companyName}</p>
+                  <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>{companyData?.companyName}</p>
                   <h5 style={{ margin: "0", fontSize: "16px", fontWeight: "600" }}>Authorized Signature</h5>
                 </div>
               </div>
@@ -270,13 +273,13 @@ const InvoiceTemplate1 = ({
           
           <div className="footer" style={{ margin: "40px 0 0 0" }}>
             <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
-              {company?.companyName},
+              {companyData?.companyName},
             </p>
             <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px" }}>
-              {company?.address}
+              {companyData?.address}
             </p>
             <p style={{ textAlign: "center", margin: "0", fontSize: "14px" }}>
-              {company?.emailId}, {company?.mobileNo}
+              {companyData?.emailId}, {companyData?.mobileNo}
             </p>
           </div>
         </div>
