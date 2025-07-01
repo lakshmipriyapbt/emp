@@ -891,7 +891,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             if (employee.getProfileImage()!= null){
                 String baseUrl = getBaseUrl(request);
-                String image = baseUrl + "var/www/ems/assets/img/" + employee.getProfileImage();
+                String image = baseUrl + folderPath + employee.getProfileImage();
                 employee.setProfileImage(image);
             }
             log.info("Fetched employee image for employeeId: {}", employeeId);
