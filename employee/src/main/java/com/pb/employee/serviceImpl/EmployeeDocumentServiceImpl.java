@@ -106,12 +106,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             employeeDocument.setId(resourceId);
             if (candidate != null) {
                 employeeDocument.setReferenceId(candidateId);
-                documentPath = companyName+"/" + candidate.getFirstName()+"_"+candidate.getLastName() + "_"+candidate.getEmailId()+"/";
+                documentPath = companyName+"/" + candidate.getFirstName()+"_"+candidate.getEmailId()+"/";
                 employeeDocument.setFolderPath(folderPath+documentPath );
             }
             if (employee != null) {
                 employeeDocument.setReferenceId(employee.getId());
-                documentPath = companyName+"/" + employee.getFirstName()+"_"+employee.getLastName() + "_"+employee.getEmailId()+"/";
+                documentPath = companyName+"/" + employee.getFirstName()+"_"+employee.getEmailId()+"/";
                 employeeDocument.setFolderPath(folderPath+documentPath );
             }
             employeeDocument.setDocumentEntities(new ArrayList<>());
