@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import React, { useMemo } from "react";
 import InvoiceTemplate1 from "./InvoiceTemplate1";
 import InvoiceTemplate2 from "./InvoiceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";
@@ -43,14 +42,6 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
     }
 
     const grandTotal = subTotal + cgst + sgst + igst;
-    console.log("GrandTotal Calculation:", {
-  subTotal,
-  cgst,
-  sgst,
-  igst,
-  grandTotal
-});
-
     return {
       companyData: {
         ...company,
