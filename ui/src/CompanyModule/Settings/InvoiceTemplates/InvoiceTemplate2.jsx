@@ -164,36 +164,37 @@ const InvoiceTemplate2 = ({
             <div style={{ fontWeight: "bold" }}>Subtotal:</div>
             <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.subTotal}</div>
           </div>
-          {(InvoiceStaticData.invoice.sgst !== "0.00" && InvoiceStaticData.invoice.cgst !== "0.00") ? (
-         <>
-         <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "5px"
-          }}>
-            <div style={{ fontWeight: "bold" }}>CGST:</div>
-            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.cgst}</div>
-          </div>
-          
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "5px"
-          }}>
-            <div style={{ fontWeight: "bold" }}>SGST:</div>
-            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.sgst}</div>
-          </div>
-          </>
-          ) : (
-            <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "5px"
-          }}>
-            <div style={{ fontWeight: "bold" }}>IGST:</div>
-            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.igst}</div>
-          </div>
-          )}
+       {(InvoiceStaticData.invoice.cgst !== "0.00" && InvoiceStaticData.invoice.sgst !== "0.00" && InvoiceStaticData.invoice.cgst !== "" && InvoiceStaticData.invoice.sgst !== "") ? (
+  <>
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: "5px"
+    }}>
+      <div style={{ fontWeight: "bold" }}>CGST:</div>
+      <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.cgst}</div>
+    </div>
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: "5px"
+    }}>
+      <div style={{ fontWeight: "bold" }}>SGST:</div>
+      <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.sgst}</div>
+    </div>
+  </>
+) : (
+  (InvoiceStaticData.invoice.igst !== "0.00" && InvoiceStaticData.invoice.igst !== "") ? (
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      marginBottom: "5px"
+    }}>
+      <div style={{ fontWeight: "bold" }}>IGST:</div>
+      <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.igst}</div>
+    </div>
+  ) : null
+)}
           <div style={{
             display: "flex",
             justifyContent: "space-between",

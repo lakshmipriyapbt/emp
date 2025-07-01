@@ -186,11 +186,11 @@ export const allAvailableRoutes = [
   {path: '/uploadSuccess', allowedTypes: ['candidate'] },
   {path: '/candidateDashboard', allowedTypes: ['candidate'] },
   {path: '/candidateProfile', allowedTypes: ['candidate'] },
-  {path: '/candidateDocumentsView', allowedTypes: ['candidate'] },
+  {path: '/candidateDocumentsView', allowedTypes: ['company_admin', 'Admin','HR','candidate'] },
   {path: '/invoiceTemplate1', allowedTypes: ['company_admin', 'Admin' , 'Accountant'] },
   {path: '/invoiceTemplate2', allowedTypes: ['company_admin', 'Admin' , 'Accountant'] },
   {path: '/employeeDocumentUpload', allowedTypes: ['employee'] },
-  {path: '/employeeDocumentView', allowedTypes: ['employee'] },
+  {path: '/employeeDocumentView', allowedTypes: ['company_admin', 'Admin','HR','employee'] },
 ];
 
 const Routing = () => {

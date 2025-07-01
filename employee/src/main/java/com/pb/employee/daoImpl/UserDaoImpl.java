@@ -24,7 +24,7 @@ public class UserDaoImpl extends AbstractDao<UserEntity> implements UserDao {
     @Override
     public Collection<UserEntity> getUsers(String companyName, String userId, String companyId) throws EmployeeException {
         Collection<Filter> filters = new ArrayList<>();
-        if (StringUtils.isNotBlank(companyName)) {
+        if (StringUtils.isNotBlank(companyId)) {
             filters.add(new Filter(Constants.COMPANY_ID, Operator.EQ, companyId));
         }
         if (StringUtils.isNotBlank(userId)) {

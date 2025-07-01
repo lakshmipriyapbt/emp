@@ -1428,28 +1428,27 @@ export const CandidateDeleteApi = (id) => {  // Changed parameter name to be mor
 
 export const getDocumentByIdAPI = async (candidateId = '', employeeId = '') => {
   const companyName = localStorage.getItem("companyName");
-  
+
   try {
     const response = await axiosInstance.get(
-      `/${companyName}/documents`, 
+      `/${companyName}/documents`,
       {
         params: {
-          ...(candidateId && { candidateId }), // Only include if not empty
-          ...(employeeId && { employeeId })   // Only include if not empty
+          ...(candidateId && { candidateId }),
+          ...(employeeId && { employeeId })
         }
       }
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching documents:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      params: error.config?.params,
-      response: error.response?.data
-    });
-    throw error;
+    if (error.response && error.response.status === 404) {
+      return null; // Gracefully handle 404
+    }
+    // Suppress all other errors silently
+    return null;
   }
 };
+
 
 export const deleteDocumentByIdAPI = async (candidateId, documentId) => {
   const companyName = localStorage.getItem("companyName");

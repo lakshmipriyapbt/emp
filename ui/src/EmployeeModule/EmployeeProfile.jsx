@@ -66,28 +66,33 @@ const EmployeeProfile = () => {
     };
 
     const handleUpload = async () => {
-        if (!selectedFile) {
-            toast.warning("Please select a file first");
-            return;
-        }
+    if (!selectedFile) {
+        toast.warning("Please select a file first");
+        return;
+    }
 
-        try {
-            await dispatch(uploadProfileImage({
-                userId: authUser.userId,
-                file: selectedFile
-            })).unwrap();
-            
-            toast.success("Profile photo uploaded successfully!");
-            setSelectedFile(null);
-            setLocalPreview("");
-        } catch (error) {
-            console.error("Error uploading photo:", error);
-            toast.error(error || "Failed to upload photo. Please try again.");
-        }
-    };
+    try {
+        await dispatch(uploadProfileImage({
+            userId: authUser.userId,
+            file: selectedFile
+        })).unwrap();
+
+        // Refetch the image to ensure the latest version is in Redux
+        dispatch(fetchProfileImage(authUser.userId));
+
+        toast.success("Profile photo uploaded successfully!");
+        setSelectedFile(null);
+        setLocalPreview("");
+    } catch (error) {
+        console.error("Error uploading photo:", error);
+        toast.error(error || "Failed to upload photo. Please try again.");
+    }
+};
+
 
     // Determine which image to display
-    const displayImage = localPreview || imageUrl;
+    const displayImage = localPreview || (imageUrl ? `${imageUrl}?t=${Date.now()}` : "");
+
 
     // Fallback image component
     const renderFallbackImage = () => (
