@@ -38,13 +38,12 @@ const EmployeeDocumentView = () => {
                 setDocuments(transformApiResponse(response.data));
             } else {
                 setDocuments([]);
-                toast.info('No documents found for this employee');
             }
         } catch (error) {
             console.error('Error fetching documents:', error);
 
             if (error.response?.status === 404) {
-                toast.error(error.response.data?.message || 'Documents endpoint not found');
+                toast.error(error.response.data?.message);
             } else {
                 toast.error('Failed to load documents. Please try again later.');
             }
