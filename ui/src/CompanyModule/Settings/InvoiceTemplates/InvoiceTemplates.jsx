@@ -19,10 +19,6 @@ const InvoiceTemplates = () => {
 // Place this at the top of your file (outside the component)
 const staticInvoiceData = {
   invoice: {
-    invoiceId: "invoice-06ef9d62623852889eec9e7eaa0f7f19",
-    companyId: "company-09353387931db36c8af0e1b3658ddffe",
-    customerId: "customer-80236e68ad1b9d4bf579936846f5035b",
-    bankId: "bank_details-08345785a4f2a422f7adde167c7b219d",
     vendorCode: "11212254",
     purchaseOrder: "11212254",
     invoiceDate: "2025-06-17",
@@ -69,7 +65,6 @@ const staticInvoiceData = {
     igst: "18"
   },
   company: {
-    id: "company-09353387931db36c8af0e1b3658ddffe",
     gstNo: "27AAPCS1293R1ZD",
     panNo: "AAPCS1293R",
     companyName: "FEED",
@@ -81,8 +76,6 @@ const staticInvoiceData = {
     emailId: "feed@gmail.com"
   },
   customer: {
-    customerId: "customer-80236e68ad1b9d4bf579936846f5035b",
-    companyId: "company-09353387931db36c8af0e1b3658ddffe",
     customerName: "Bala Narednra",
     address: "Hyderabad",
     state: "Telangana",
@@ -95,7 +88,6 @@ const staticInvoiceData = {
     status: "QWN0aXZl"
   },
   bank: {
-    bankId: "bank_details-08345785a4f2a422f7adde167c7b219d",
     accountNumber: "770766505404340",
     accountType: "Savings",
     bankName: "HDFC Bank",
