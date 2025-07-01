@@ -28,8 +28,5 @@ public class UserUpdateRequest {
     @Size(min = 2, max = 20, message = "{userType.size.message}")
     private String userType;
 
-    @Nullable
-    @Schema(example = "departmentId")
-    @Pattern(regexp = "^\\s*$|^.{2,40}$", message = "{department.size.message}")
     private String department;
 }
