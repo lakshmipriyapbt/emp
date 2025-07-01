@@ -87,60 +87,11 @@ const InvoiceRegistration = () => {
 
 
   const validateInput = (type, value) => {
+    if (value === "") return true; // Allow clearing the field
     if (/^\s$/.test(value)) return false; // Disallow leading & trailing spaces
     if (type === "text") return /^[a-zA-Z0-9 _\-.,&()]+$/.test(value); // Allows letters, numbers, spaces, and special characters
     if (type === "number") return /^\d+(\.\d{1,2})?$/.test(value);
     if (type === "percentage") return /^([0-9]{1,2}|100)%?$/.test(value); // 1-3 digits with %
-    return true;
-  };
-  const validateField = (index, key, value) => {
-    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters"
-      },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/,
-        patternMessage: "HSN must contain only numbers"
-      },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters"
-      }
-    };
-
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (!fieldValidation) return true;
-
-    if (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.errorMessage,
-        },
-      }));
-      return false;
-    }
-
-    if (fieldValidation.pattern && !fieldValidation.pattern.test(value)) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: fieldValidation.patternMessage,
-        },
-      }));
-      return false;
-    }
-
     return true;
   };
 
@@ -183,101 +134,56 @@ const InvoiceRegistration = () => {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return ""; // If the date is falsy, return an empty string
+const updateData = (index, key, value) => {
+  const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
+  const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
 
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0"); // Get the day, ensuring two digits
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Get the month (0-indexed)
-    const year = d.getFullYear(); // Get the full year
-
-    return `${day}-${month}-${year}`;
-  };
-
-  // Calculate tax (example 10%)
-  const calculateTax = (subtotal) => {
-    return (subtotal * 0.1).toFixed(2);
-  };
-
-  // Calculate total including tax
-  const calculateTotal = (subtotal) => {
-    return (parseFloat(subtotal) * 1.1).toFixed(2);
-  };
-
-
-  const updateData = (index, key, value) => {
-    const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
-    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
-
-    // Field-specific validation rules
-    const fieldValidations = {
-      items: {
-        minLength: 3,
-        maxLength: 250,
-        errorMessage: "Item must be between 3-250 characters",
+  // Validate using validateInput for product details only
+  if (!validateInput(colType, value)) {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [index]: {
+        ...(prev[index] || {}),
+        [normalizedKey]: `Invalid ${colType} value`,
       },
-      hsn: {
-        minLength: 4,
-        maxLength: 12,
-        errorMessage: "HSN must be between 4-12 characters",
-        pattern: /^[0-9]+$/, // Only numbers allowed
-        patternMessage: "HSN must contain only numbers",
+    }));
+    // Optionally, return here to prevent updating invalid value
+    return;
+  } else {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [index]: {
+        ...(prev[index] || {}),
+        [normalizedKey]: null,
       },
-      service: {
-        minLength: 3,
-        maxLength: 60,
-        errorMessage: "Service must be between 3-60 characters",
-      },
-    };
+    }));
+  }
 
-    // Always update the field value (allow typing)
-    setProductData((prevData) => {
-      const updatedData = [...prevData];
-      updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
+  // ...existing update logic...
+  setProductData((prevData) => {
+    const updatedData = [...prevData];
+    updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
 
-      // Auto-calculate totalCost if quantity/unitCost/GST changes
-      if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
-        const quantity = parseFloat(updatedData[index].quantity) || 0;
-        const unitCost = parseFloat(updatedData[index].unitCost) || 0;
-        const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
+    // Auto-calculate totalCost if quantity/unitCost/GST changes
+    if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
+      const quantity = parseFloat(updatedData[index].quantity) || 0;
+      const unitCost = parseFloat(updatedData[index].unitCost) || 0;
+      const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
 
-        if (value === "") {
-          updatedData[index].totalCost = "";
-        } else {
-          const subTotal = quantity * unitCost;
-          const gstAmount = (subTotal * gstPercentage) / 100;
-          updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
-        }
+      if (value === "") {
+        updatedData[index].totalCost = "";
+      } else {
+        const subTotal = quantity * unitCost;
+        const gstAmount = (subTotal * gstPercentage) / 100;
+        updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
       }
-
-      return updatedData;
-    });
-
-    // Validate in real-time (but don't block input)
-    const fieldValidation = fieldValidations[normalizedKey];
-    if (fieldValidation) {
-      let error = null;
-
-      // Check min/max length
-      if (value.length > 0 && (value.length < fieldValidation.minLength || value.length > fieldValidation.maxLength)) {
-        error = fieldValidation.errorMessage;
-      }
-
-      // Check HSN pattern (if applicable)
-      if (normalizedKey === "hsn" && fieldValidation.pattern && !fieldValidation.pattern.test(value) && value.length > 0) {
-        error = fieldValidation.patternMessage;
-      }
-
-      // Update errors (if any)
-      setFieldErrors((prev) => ({
-        ...prev,
-        [index]: {
-          ...(prev[index] || {}),
-          [normalizedKey]: error,
-        },
-      }));
     }
-  };
+
+    return updatedData;
+  });
+
+  // ...existing field-specific validation logic (optional)...
+};
 
   useEffect(() => {
     if (Array.isArray(products)) {
@@ -440,6 +346,7 @@ const InvoiceRegistration = () => {
     };
 
     setPreviewData(previewData);
+    console.log("Preview Data:", previewData);
     setSubmissionData({
       ...previewData,
       customerId: selectedCustomer?.customerId,
@@ -462,12 +369,7 @@ const InvoiceRegistration = () => {
 
       // Transform the data to match backend expectations
       const invoiceData = {
-        productData: submissionData.productData.map(item => ({
-          productName: item.productName,
-          quantity: item.quantity,
-          price: item.price,
-          total: item.total
-        })),
+        productData: submissionData.productData,
         productColumns: submissionData.productColumns,
         shippedPayload: submissionData.shippedPayload[0] || {}, // Convert array to object
         vendorCode: submissionData.purchaseOrder,

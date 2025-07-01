@@ -15,7 +15,7 @@ import java.util.Collection;
 public interface OfferLetterService {
 
 
-    ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request);
+    ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest offerLetterRequest, HttpServletRequest request) throws EmployeeException;
 
     Collection<OfferLetterEntity> getOfferLetter(String companyName, String offerLetterId) throws EmployeeException;
 

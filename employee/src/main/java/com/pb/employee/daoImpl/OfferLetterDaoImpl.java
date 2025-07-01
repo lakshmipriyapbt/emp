@@ -32,16 +32,6 @@ public class OfferLetterDaoImpl extends AbstractDao<OfferLetterEntity> implement
             filters.add(new Filter(Constants.ID, Operator.EQ, offerLetterId));
         }
 
-        log.info("Searching offer letter in index [{}] for offerLetterId={}", companyName, offerLetterId);
-        Collection<OfferLetterEntity> results = search(filters, companyName);
-
-        if (results.isEmpty()) {
-            log.error("Offer letter not found for offerLetterId: {}", offerLetterId);
-            throw new EmployeeException(
-                    String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.OFFER_LETTER_NOT_FOUND), offerLetterId),
-                    HttpStatus.NOT_FOUND
-            );
-        }
-        return results;
+        return search(filters, companyName);
     }
 }

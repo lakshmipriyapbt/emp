@@ -2,12 +2,13 @@ import React from 'react';
 import { useAuth } from '../../../Context/AuthContext';
 
 const InvoiceTemplate2 = ({
-  companyLogo,
-  companyData,
-  InvoiceStaticData,
-  bankDetails
+  companyData={},
+  InvoiceStaticData={},
+  bankDetails={}
 }) => {
-  console.log("Received Bank Details in Template:", bankDetails);
+  const { company } = useAuth();
+  console.log("companyData:", companyData);
+  console.log("Invoice Customer Data:", InvoiceStaticData);
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
       {/* Header with company info, logo, and invoice info */}
@@ -56,10 +57,10 @@ const InvoiceTemplate2 = ({
           </div>
 
           <div style={{ fontSize: "14px" }}>
-            <div><strong>Date:</strong> {InvoiceStaticData.invoiceDate}</div>
-            <div><strong>Invoice #:</strong> {InvoiceStaticData.invoiceNo}</div>
-            <div><strong>Purchase order #:</strong> {InvoiceStaticData.purchaseOrder}</div>
-            <div><strong>Payment due by:</strong>  {InvoiceStaticData.dueDate}</div>
+            <div><strong>Date:</strong> {InvoiceStaticData.invoice.invoiceDate}</div>
+            <div><strong>Invoice #:</strong> {InvoiceStaticData.invoice.invoiceNo}</div>
+            <div><strong>Purchase order #:</strong> {InvoiceStaticData.invoice.purchaseOrder}</div>
+            <div><strong>Payment due by:</strong>  {InvoiceStaticData.invoice.dueDate}</div>
           </div>
         </div>
       </div>
@@ -82,11 +83,11 @@ const InvoiceTemplate2 = ({
             display: "inline-block",
           }}>Billed to</div>
           <div style={{ fontSize: "14px" }}>
-            <div>Client name: {InvoiceStaticData.billedTo?.customerName}</div>
-            <div>Address: {InvoiceStaticData.billedTo?.address}</div>
-            <div>Phone: {InvoiceStaticData.billedTo?.mobileNumber}</div>
-            <div>Email: {InvoiceStaticData.billedTo?.email}</div>
-            <div>GST No: {InvoiceStaticData.billedTo?.customerGstNo}</div>
+            <div>Client name: {InvoiceStaticData.customer?.customerName}</div>
+            <div>Address: {InvoiceStaticData.customer?.address}</div>
+            <div>Phone: {InvoiceStaticData.customer?.mobileNumber}</div>
+            <div>Email: {InvoiceStaticData.customer?.email}</div>
+            <div>GST No: {InvoiceStaticData.customer?.customerGstNo}</div>
           </div>
         </div>
 
@@ -102,9 +103,9 @@ const InvoiceTemplate2 = ({
             display: "inline-block",
           }}>Ship To</div>
           <div style={{ fontSize: "14px" }}>
-            <div>Client name: {InvoiceStaticData.shippedPayload?.[0]?.customerName || InvoiceStaticData.billedTo?.customerName}</div>
-            <div>Address: {InvoiceStaticData.shippedPayload?.[0]?.address || InvoiceStaticData.billedTo?.address}</div>
-            <div>Phone: {InvoiceStaticData.shippedPayload?.[0]?.mobileNumber || InvoiceStaticData.billedTo?.mobileNumber}</div>
+            <div>Recievers name: {InvoiceStaticData.shippedPayload?.[0]?.customerName || InvoiceStaticData.customer?.customerName}</div>
+            <div>Address: {InvoiceStaticData.shippedPayload?.[0]?.address || InvoiceStaticData.customer?.address}</div>
+            <div>Phone: {InvoiceStaticData.shippedPayload?.[0]?.mobileNumber || InvoiceStaticData.customer?.mobileNumber}</div>
           </div>
         </div>
       </div>
@@ -124,19 +125,19 @@ const InvoiceTemplate2 = ({
           padding: "8px 0"
         }}>
           <div style={{ flex: 1, textAlign: "left", paddingLeft: "10px" }}>#</div>
-          {InvoiceStaticData.productColumns.map((col, idx) => (
+          {InvoiceStaticData.invoice.productColumns.map((col, idx) => (
             <div key={idx} style={{ flex: 1, textAlign: "left" }}>{col.title}</div>
           ))}
         </div>
         {/* Table Rows */}
-        {InvoiceStaticData.productData.map((item, idx) => (
+        {InvoiceStaticData.invoice.productData.map((item, idx) => (
           <div key={idx} style={{
             display: "flex",
             borderBottom: "1px solid #ddd",
             padding: "8px 0"
           }}>
             <div style={{ flex: 1, textAlign: "left", paddingLeft: "10px" }}>{idx + 1}</div>
-            {InvoiceStaticData.productColumns.map((col, cidx) => (
+            {InvoiceStaticData.invoice.productColumns.map((col, cidx) => (
               <div key={cidx} style={{ flex: 1, textAlign: "left" }}>
                 {item[col.key]}
               </div>
@@ -144,7 +145,6 @@ const InvoiceTemplate2 = ({
           </div>
         ))}
       </div>
-
       {/* Price Breakdown Section */}
       <div style={{
         display: "flex",
@@ -162,24 +162,38 @@ const InvoiceTemplate2 = ({
             marginBottom: "5px"
           }}>
             <div style={{ fontWeight: "bold" }}>Subtotal:</div>
-            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.subTotal}</div>
+            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.subTotal}</div>
           </div>
-          <div style={{
+          {(InvoiceStaticData.invoice.sgst !== "0.00" && InvoiceStaticData.invoice.cgst !== "0.00") ? (
+         <>
+         <div style={{
             display: "flex",
             justifyContent: "space-between",
             marginBottom: "5px"
           }}>
             <div style={{ fontWeight: "bold" }}>CGST:</div>
-            <div style={{ paddingRight: "95px" }}>{(InvoiceStaticData.subTotal * 0.09).toFixed(2)}</div>
+            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.cgst}</div>
           </div>
+          
           <div style={{
             display: "flex",
             justifyContent: "space-between",
             marginBottom: "5px"
           }}>
             <div style={{ fontWeight: "bold" }}>SGST:</div>
-            <div style={{ paddingRight: "95px" }}>{(InvoiceStaticData.subTotal * 0.09).toFixed(2)}</div>
+            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.sgst}</div>
           </div>
+          </>
+          ) : (
+            <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "5px"
+          }}>
+            <div style={{ fontWeight: "bold" }}>IGST:</div>
+            <div style={{ paddingRight: "95px" }}>{InvoiceStaticData.invoice.igst}</div>
+          </div>
+          )}
           <div style={{
             display: "flex",
             justifyContent: "space-between",
@@ -191,7 +205,7 @@ const InvoiceTemplate2 = ({
           }}>
             <div>Total:</div>
             <div style={{ paddingRight: "90px" }}>
-              {(parseFloat(InvoiceStaticData.subTotal) * 1.18).toFixed(2)}
+              {(InvoiceStaticData.invoice.grandTotal) || 0}
             </div>
           </div>
         </div>

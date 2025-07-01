@@ -16,60 +16,88 @@ const InvoiceTemplates = () => {
   const [isFetched, setIsFetched] = useState(false);
   const { company = {} } = useAuth();
 
-// Static data for the invoice template
- const staticInvoiceData = {
-  productData: [
-    { productName: "USB-C Hub", quantity: "3", price: "1200" },
-    { productName: "Laptop Stand", quantity: "2", price: "1500" },
-    { productName: "Webcam", quantity: "1", price: "2500" }
-  ],
-  productColumns: [
-    { key: "productName", title: "Product Name", type: "text" },
-    { key: "quantity", title: "Quantity", type: "number" },
-    { key: "price", title: "Price", type: "number" }
-  ],
-  billedTo: {
-    customerName: "Sneha Kapoor",
-    email: "sneha.kapoor@techverse.com",
-    mobileNumber: "+91-9123456780",
-    address: "502, Park Avenue, Andheri West, Mumbai, Maharashtra, 400053",
-    customerGstNo: "27AABCT1234J1ZL"
+// Place this at the top of your file (outside the component)
+const staticInvoiceData = {
+  invoice: {
+    vendorCode: "11212254",
+    purchaseOrder: "11212254",
+    invoiceDate: "2025-06-17",
+    dueDate: "2025-07-17",
+    invoiceNo: "2025-26-006",
+    subTotal: "4141.80",
+    grandTotal: "4141.80",
+    grandTotalInWords: "Four Thousand One Hundred and Forty One Rupees Only",
+    notes: "Hsdfgdfvgbhrhtegredrv",
+    productData: [
+      {
+        hsn: "456756",
+        quantity: "65",
+        service: "sdthg",
+        unitCost: "54",
+        gstPercentage: "18",
+        items: "dsfhgn",
+        totalCost: "4141.80"
+      }
+    ],
+    productColumns: [
+      { key: "items", title: "Item", type: "text" },
+      { key: "hsn", title: "HSN-no", type: "text" },
+      { key: "service", title: "Service", type: "text" },
+      { key: "quantity", title: "Quantity", type: "number" },
+      { key: "unitCost", title: "Unit Cost", type: "number" },
+      { key: "gstPercentage", title: "GST (%)", type: "number" },
+      { key: "totalCost", title: "Total Cost", type: "number" }
+    ],
+    shippedPayload: {
+      customerName: "sdfd",
+      address: "asdfgfv",
+      mobileNumber: "9002343430"
+    },
+    status: "Pending",
+    type: "invoice",
+    salesPerson: "",
+    shippingMethod: "",
+    shippingTerms: "",
+    paymentTerms: "Net 30",
+    deliveryDate: "",
+    cgst: "18",
+    sgst: "18",
+    igst: "18"
   },
-  shippedPayload: [
-    {
-      customerName: "john doe",
-      address: "Logistics Dept, TechVerse Pvt Ltd, MIDC, Andheri East, Mumbai, 400093",
-      mobileNumber: "+91-9123456780"
-    }
-  ],
-  vendorCode: "VEND56789",
-  purchaseOrder: "PO123456",
-  invoiceDate: "2025-06-20",
-  invoiceNo: "INV2025-045",
-  dueDate: "2025-07-05",
-  subTotal: "7900",
-  status: "Unpaid",
-  bankId: "BANK567",
-  notes: "Kindly confirm receipt upon delivery.",
-  salesPerson: "Rajeev Menon",
-  shippingMethod: "Blue Dart Express",
-  shippingTerms: "Delivery within 5 business days",
-  paymentTerms: "Net 30",
-  deliveryDate: "2025-06-23"
+  company: {
+    gstNo: "27AAPCS1293R1ZD",
+    panNo: "AAPCS1293R",
+    companyName: "FEED",
+    companyAddress: "Hyderabad",
+    companyType: "Private Limited",
+    cinNo: "U85300GJ2020NPL114653",
+    shortName: "feed",
+    mobileNo: "+91 9023446653",
+    emailId: "feed@gmail.com"
+  },
+  customer: {
+    customerName: "Bala Narednra",
+    address: "Hyderabad",
+    state: "Telangana",
+    city: "Hyderabad",
+    pinCode: "500081",
+    stateCode: "",
+    mobileNumber: "+919335935503",
+    email: "balanarendra@gmail.com",
+    customerGstNo: "",
+    status: "QWN0aXZl"
+  },
+  bank: {
+    accountNumber: "770766505404340",
+    accountType: "Savings",
+    bankName: "HDFC Bank",
+    branch: "Narasaraopet",
+    ifscCode: "HDFC0001245",
+    address: "Hyderabad",
+    type: "bank_details"
+  }
 };
-
-const bankDetails = {
-  accountHolder: "Tech Innovators Pvt Ltd",
-  accountNumber: "1234567890",
-  bankName: "HDFC Bank",
-  accountType: "Current",
-  ifscCode: "HDFC0000456",
-  branch: "Koramangala Branch",
-  address: "No. 65, 1st Main Road, Koramangala, Bengaluru, Karnataka 560034"
-};
-
-
-
+// ...rest of your component code...
   const fetchTemplate = async () => {
     try {
       const res = await TemplateGetAPI(company.id);
@@ -104,7 +132,8 @@ const bankDetails = {
             companyLogo={company?.imageFile || "default-logo.png"}
             companyData={company}
             InvoiceStaticData={staticInvoiceData}
-            bankDetails={bankDetails}
+            
+            bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
           />
         ),
@@ -117,7 +146,7 @@ const bankDetails = {
             companyLogo={company?.imageFile || "default-logo.png"}
             companyData={company}
             InvoiceStaticData={staticInvoiceData}
-            bankDetails={bankDetails}
+            bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
           />
         ),
