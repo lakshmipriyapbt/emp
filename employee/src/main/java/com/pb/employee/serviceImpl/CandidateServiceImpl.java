@@ -123,7 +123,10 @@ public class CandidateServiceImpl implements CandidateService {
                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
            }
            log.debug("Getting Company Calendar by companyName: {}", companyName);
-           return candidateDao.getCandidates(companyName, candidateId, companyEntity.getId());
+           Collection<CandidateEntity> candidateEntities = candidateDao.getCandidates(companyName, candidateId, companyEntity.getId());
+           return candidateEntities.stream()
+                   .filter(c -> !Constants.CONVERTED.equalsIgnoreCase(c.getStatus()))
+                   .toList();
        } catch (Exception e) {
            throw new RuntimeException(e);
        }
