@@ -205,10 +205,26 @@ export default function CandidateToEmployee() {
             navigate("/employeeView");
         } catch (error) {
             console.error("Error converting candidate:", error);
-            const message = error.response?.data?.message || "Error converting candidate to employee";
-            setErrorMessage(message);
-            toast.error(message);
+
+            const status = error.response?.status;
+            const backendMessage = error.response?.data?.error?.message || error.response?.data?.message;
+
+            let userFriendlyMessage = "An unexpected error occurred. Please try again.";
+
+            if (status === 404 && backendMessage?.includes("not uploaded any documents")) {
+                userFriendlyMessage = "Candidate has not uploaded any documents. Please ensure all required documents are submitted before conversion.";
+            } else if (status === 400) {
+                userFriendlyMessage = backendMessage || "Invalid request. Please check the form data.";
+            } else if (status === 500) {
+                userFriendlyMessage = "Server error occurred. Please contact support if the issue persists.";
+            } else if (backendMessage) {
+                userFriendlyMessage = backendMessage;
+            }
+
+            setErrorMessage(userFriendlyMessage);
+            toast.error(userFriendlyMessage);
         }
+
     };
 
     // Fetch data functions

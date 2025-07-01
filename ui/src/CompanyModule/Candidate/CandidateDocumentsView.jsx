@@ -37,19 +37,17 @@ const CandidateDocumentsView = () => {
                 setDocuments(transformApiResponse(response.data));
             } else {
                 setDocuments([]);
-                toast.info('No documents found for this candidate');
             }
         } catch (error) {
-            console.error('Error fetching documents:', error);
-            
-            if (error.response?.status === 404) {
-                toast.error(error.response.data?.message || 'Documents endpoint not found');
-            } else {
-                toast.error('Failed to load documents. Please try again later.');
-            }
-        } finally {
-            setLoading(false);
+        console.error('Error fetching documents:', error);
+        setDocuments([]);
+        // Only show toast for unexpected errors, not for 404
+        if (!error.response || error.response.status !== 404) {
+            toast.error('Failed to load documents. Please try again later.');
         }
+    } finally {
+        setLoading(false);
+    }
     };
 
     const transformDocuments = (formData) => {
@@ -111,7 +109,9 @@ const CandidateDocumentsView = () => {
     };
 
     const transformApiResponse = (apiData) => {
-        if (!apiData || !apiData.documentEntities) return [];
+       if (!apiData || !apiData.documentEntities || apiData.documentEntities.length === 0) {
+        return [];
+    }
 
         return apiData.documentEntities.map(doc => ({
             name: doc.docName,

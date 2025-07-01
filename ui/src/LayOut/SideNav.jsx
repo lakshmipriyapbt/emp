@@ -127,7 +127,11 @@ const SideNav = () => {
   return (
     <aside className="side-nav">
       <div className="logo-container">
-        {company?.imageFile ? (
+        {userRole?.includes("candidate") ? (
+          <div className="candidate-welcome">
+            <span>Candidate Portal</span>
+          </div>
+        ) : company?.imageFile ? (
           <img
             src={company.imageFile}
             alt="Company Logo"
@@ -150,18 +154,12 @@ const SideNav = () => {
             tabIndex="0"
             role="button"
           />
-        ) : userRole?.includes("candidate") ? (
-          <div className="candidate-welcome" onClick={() => navigate('/')}>
-            <span>Candidate Portal</span>
+        ) : (
+          <div className="default-logo" onClick={() => navigate('/main')} tabIndex="0" role="button">
+            <span>Logo</span>
           </div>
-        ) :
-          (
-            <div className="default-logo" onClick={() => navigate('/main')} tabIndex="0" role="button">
-              <span>Logo</span>
-            </div>
-          )}
+        )}
       </div>
-
       <nav className="nav-items-container">
         <ul className="nav-items">
           {getRoleNavItems.map((item) => renderNavItem(item))}
