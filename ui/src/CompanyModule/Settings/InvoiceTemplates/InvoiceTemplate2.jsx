@@ -8,7 +8,6 @@ const InvoiceTemplate2 = ({
 }) => {
   const { company } = useAuth();
   console.log("companyData:", companyData);
-  console.log("Invoice Customer Data:", InvoiceStaticData);
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
       {/* Header with company info, logo, and invoice info */}
