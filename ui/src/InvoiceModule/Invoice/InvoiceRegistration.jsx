@@ -43,7 +43,6 @@ const InvoiceRegistration = () => {
   ]);
   const authUser = useAuth();
   const company = authUser?.company || {};
-  console.log("Company Data***", company);
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -310,14 +309,15 @@ const updateData = (index, key, value) => {
     }));
 
     const previewData = {
-      // Customer info
-      billedTo: {
+      customer: {
         customerName: selectedCustomer?.customerName || '',
         address: selectedCustomer?.address || '',
         mobileNumber: selectedCustomer?.mobileNumber || '',
         email: selectedCustomer?.email || '',
         customerGstNo: selectedCustomer?.customerGstNo || ''
       },
+      bank: selectedBank || {},
+      invoice:{   
       // Shipping info
       shippedPayload: [{
         customerName: data.shipToName || '',
@@ -336,13 +336,14 @@ const updateData = (index, key, value) => {
       subTotal: subTotal.toFixed(2),
       notes: data.notes || '',
       // Bank details - include the full bank object
-      bankDetails: selectedBank || {},
       // Additional fields
       salesPerson: data.salesPerson || '',
       shippingMethod: data.shippingMethod || '',
       shippingTerms: data.shippingTerms || '',
       paymentTerms: data.paymentTerms || 'Net 30',
       deliveryDate: data.deliveryDate || ''
+      }
+      
     };
 
     setPreviewData(previewData);
@@ -368,24 +369,27 @@ const updateData = (index, key, value) => {
       }
 
       // Transform the data to match backend expectations
-      const invoiceData = {
-        productData: submissionData.productData,
-        productColumns: submissionData.productColumns,
-        shippedPayload: submissionData.shippedPayload[0] || {}, // Convert array to object
-        vendorCode: submissionData.purchaseOrder,
-        purchaseOrder: submissionData.purchaseOrder,
-        invoiceDate: submissionData.invoiceDate,
-        dueDate: submissionData.dueDate,
-        subTotal: submissionData.subTotal,
-        status: "Pending", // Default status
-        bankId: bankId,
-        notes: submissionData.notes,
-        salesPerson: submissionData.salesPerson,
-        shippingMethod: submissionData.shippingMethod,
-        shippingTerms: submissionData.shippingTerms,
-        paymentTerms: submissionData.paymentTerms,
-        deliveryDate: submissionData.deliveryDate
-      };
+       const invoice = submissionData.invoice || {};
+    const invoiceData = {
+      productData: invoice.productData,
+      productColumns: invoice.productColumns,
+      shippedPayload: Array.isArray(invoice.shippedPayload)
+        ? invoice.shippedPayload[0] || {}
+        : invoice.shippedPayload || {},
+      vendorCode: invoice.vendorCode,
+      purchaseOrder: invoice.purchaseOrder,
+      invoiceDate: invoice.invoiceDate,
+      dueDate: invoice.dueDate,
+      subTotal: invoice.subTotal,
+      notes: invoice.notes,
+      salesPerson: invoice.salesPerson,
+      shippingMethod: invoice.shippingMethod,
+      shippingTerms: invoice.shippingTerms,
+      paymentTerms: invoice.paymentTerms,
+      deliveryDate: invoice.deliveryDate,
+      status: "Pending", // Default status
+      bankId: bankId,
+    };
 
       console.log("Submitting invoice data:", invoiceData);
 
