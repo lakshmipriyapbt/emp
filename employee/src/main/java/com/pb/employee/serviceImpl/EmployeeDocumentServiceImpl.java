@@ -258,7 +258,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         String candidateFolder = employeeDocumentEntity.getFolderPath();
         String filename = candidateFolder + docName + "_" + file.getOriginalFilename();
 
-        String filePath = companyName + documentPath + docName + "_" + file.getOriginalFilename();
+        String filePath =  documentPath + docName + "_" + file.getOriginalFilename();
 
         boolean isDuplicate = employeeDocumentEntity.getDocumentEntities().stream()
                 .anyMatch(document -> document.getFilePath().equals(filePath));
