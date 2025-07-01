@@ -151,7 +151,6 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
         }
     }
 
-
     @Override
     public ResponseEntity<?> getEmployeeDocumentsById(String companyName, String candidateId, String employeeId, HttpServletRequest request) throws EmployeeException {
         try {
@@ -208,8 +207,6 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             throw new RuntimeException(e);
         }
     }
-
-
 
     @Override
     public ResponseEntity<?> deleteDocumentsByReferenceId(String companyName, String candidateId, String employeeId, String documentId) throws EmployeeException {
@@ -325,7 +322,6 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
             if (StringUtils.isNotBlank(candidateId)) {
                 employeeDocumentEntity.setReferenceId(candidateId);
             }
-
 
             File dir = new File(folder);
             if (!dir.exists()) {
