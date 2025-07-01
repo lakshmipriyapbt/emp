@@ -277,7 +277,7 @@ const InvoiceTemplate2 = ({
           color: "#999",
           marginBottom: "10px"
         }}>
-          {companyData?.stampImage ? <img src={companyData.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
+          {company?.stampImage ? <img src={company.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
         </div>
         <div style={{
           fontStyle: "italic",
