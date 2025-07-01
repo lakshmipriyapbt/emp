@@ -40,4 +40,5 @@ public class InvoiceRequest {
     private String shippingTerms;
     private String paymentTerms;
     private String deliveryDate;
+    private String invoiceTemplateNo;
 }
