@@ -4,10 +4,12 @@ import { useAuth } from "../../../Context/AuthContext";
 
 const InvoiceTemplate1 = ({
   InvoiceStaticData = {},
-  companyData = {},
+  companyData={},
   bankDetails = {}
 }) => {
   const { company } = useAuth();
+  console.log("InvoiceStaticData:", InvoiceStaticData); 
+  console.log("companyData:", companyData);
 
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
