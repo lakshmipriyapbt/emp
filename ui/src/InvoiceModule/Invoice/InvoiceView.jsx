@@ -8,8 +8,8 @@ import { useAuth } from "../../Context/AuthContext";
 import { fetchInvoices } from "../../Redux/InvoiceSlice";
 import Loader from "../../Utils/Loader";
 import { toast } from "react-toastify";
-import InvoicePreview from "../../CompanyModule/Settings/InvoiceTemplates/InvoicePreview";
-import { InvoiceDownloadById } from "../../Utils/Axios";
+import { InvoiceDownloadById, InvoiceGetApiById } from "../../Utils/Axios";
+import InvoicePdf from "./InvoicePdf";
 
 const InvoiceView = () => {
   const dispatch = useDispatch();
@@ -17,6 +17,7 @@ const InvoiceView = () => {
   const { invoices, loading, error } = useSelector((state) => state.invoices);
   const [isFetching, setIsFetching] = useState(true);
   const [search, setSearch] = useState("");
+  const [invoiceDataById, setInvoiceDataById] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
@@ -65,10 +66,24 @@ const InvoiceView = () => {
     }
   }, [invoices, search, error]);
 
-  const handleView = (invoice) => {
-    setSelectedInvoice(invoice);
-    setShowPreview(true);
-  };
+const handleView = async (invoice) => {
+  setSelectedInvoice(invoice);
+  setShowPreview(true);
+  setInvoiceDataById(null); // Reset before fetching
+
+  try {
+    const data = await InvoiceGetApiById(
+      companyId,
+      invoice.customerId,
+      invoice.invoiceId
+    );
+    setInvoiceDataById(data.data);
+    console.log("Invoice Data By Id:", data.data);
+  } catch (error) {
+    toast.error("Failed to fetch invoice details");
+    setShowPreview(false);
+  }
+};
 
   const handleDownload = async (format) => {
     if (!selectedInvoice || !companyId) return;
@@ -95,10 +110,6 @@ const InvoiceView = () => {
     } finally {
       setIsDownloading(false);
     }
-  };
-  const getStateCodeFromGST = (gstNumber) => {
-    if (!gstNumber || gstNumber.length < 2) return null;
-    return gstNumber.substring(0, 2);
   };
 
   const columns = [
@@ -154,72 +165,6 @@ const InvoiceView = () => {
   const getFilteredList = (searchTerm) => {
     setSearch(searchTerm);
   };
-
- const transformInvoiceForPreview = (invoice) => {
-  if (!invoice) return null;
-
-  return {
-    company: {
-      companyName: invoice.company?.companyName,
-      address: invoice.company?.companyAddress,
-      emailId: invoice.company?.emailId,
-      mobileNo: invoice.company?.mobileNo,
-      imageFile: invoice.company?.imageFile,
-      stampImage: invoice.company?.stampImage,
-      gstNo: invoice.company?.gstNo,
-      panNo: invoice.company?.panNo
-    },
-    billedTo: {
-      customerName: invoice.customer?.customerName || '',
-      address: invoice.customer?.address || '',
-      mobileNumber: invoice.customer?.mobileNumber || '',
-      email: invoice.customer?.email || '',
-      customerGstNo: invoice.customer?.customerGstNo || ''
-    },
-    invoiceNo: invoice.invoiceNo || '',
-    invoiceDate: invoice.invoiceDate || '',
-    dueDate: invoice.dueDate || '',
-    purchaseOrder: invoice.purchaseOrder || '',
-    productData: invoice.productData?.map(item => ({
-      items: item.items || item.productName || 'Unnamed Product',
-      hsn: item.hsn || '',
-      service: item.service || '',
-      quantity: item.quantity || 0,
-      unitCost: item.unitCost || item.price || 0,
-      gstPercentage: item.gstPercentage || 0,
-      totalCost: item.totalCost || (item.quantity * item.price) || 0
-    })) || [],
-    productColumns: invoice.productColumns || [
-      { key: "items", title: "Item" },
-      { key: "hsn", title: "HSN-no" },
-      { key: "service", title: "Service" },
-      { key: "quantity", title: "Quantity" },
-      { key: "unitCost", title: "Unit Cost" },
-      { key: "gstPercentage", title: "GST (%)" },
-      { key: "totalCost", title: "Total Cost" }
-    ],
-    subTotal: invoice.subTotal || '0.00',
-    notes: invoice.notes || '',
-    bankDetails: invoice.bank || {
-      bankName: '',
-      accountNumber: '',
-      accountType: '',
-      branch: '',
-      ifscCode: '',
-      address: ''
-    },
-    salesPerson: invoice.salesPerson || '',
-    shippingMethod: invoice.shippingMethod || '',
-    shippingTerms: invoice.shippingTerms || '',
-    paymentTerms: invoice.paymentTerms || 'Net 30',
-    deliveryDate: invoice.deliveryDate || '',
-    shippedPayload: [{
-      customerName: invoice.customer?.customerName || '',
-      address: invoice.customer?.address || '',
-      mobileNumber: invoice.customer?.mobileNumber || ''
-    }]
-  };
-};
 
   return (
     <LayOut>
@@ -309,7 +254,7 @@ const InvoiceView = () => {
                       borderBottom: '1px solid #dee2e6',
                       padding: '1rem'
                     }}>
-                      <h5 className="modal-title">Invoice Preview</h5>
+                      <h5 className="modal-title">Invoice View</h5>
                       <button
                         type="button"
                         className="close"
@@ -330,10 +275,14 @@ const InvoiceView = () => {
                       overflow: 'auto',
                       maxHeight: 'calc(100vh - 200px)'
                     }}>
-                      <InvoicePreview
-                        previewData={transformInvoiceForPreview(selectedInvoice)}
-                        selectedTemplate={employee?.company?.invoiceTemplateNo}
-                      />
+                    {invoiceDataById? (
+                        <InvoicePdf previewData={invoiceDataById} />
+                      ) : (
+                        <div className="text-center p-5">
+                          <Loader />
+                          <p>Loading invoice data...</p>
+                        </div>
+                      )}
                     </div>
                     <div className="modal-footer" style={{
                       borderTop: '1px solid #dee2e6',
