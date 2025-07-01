@@ -4,14 +4,12 @@ package com.pb.employee.serviceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
+import com.pb.employee.dao.UserDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
-import com.pb.employee.persistance.model.CompanyEntity;
-import com.pb.employee.persistance.model.CustomerEntity;
-import com.pb.employee.persistance.model.EmployeeEntity;
-import com.pb.employee.persistance.model.Entity;
+import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
 import com.pb.employee.service.CompanyService;
 import com.pb.employee.service.CustomerService;
@@ -53,6 +51,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public ResponseEntity<?> registerCompany(CompanyRequest companyRequest,HttpServletRequest request, String status) throws EmployeeException{
@@ -455,36 +456,56 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public ResponseEntity<?> passwordResetForEmployee(EmployeePasswordReset employeePasswordReset, String id) throws EmployeeException {
         EmployeeEntity employee;
+        Optional<UserEntity> user;
         String index = ResourceIdUtils.generateCompanyIndex(employeePasswordReset.getCompanyName());
         try {
-            employee = openSearchOperations.getEmployeeById(id, null, index);
-            if (employee == null){
-                log.error("employee are not {} found", id);
-                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_ALREADY_EXISTS), employeePasswordReset.getCompanyName()),
-                        HttpStatus.CONFLICT);
-            }
-            byte[] decodedBytes = Base64.getDecoder().decode(employee.getPassword());
-            String decodedPassword = new String(decodedBytes, StandardCharsets.UTF_8);
-            if (!decodedPassword.equals(employeePasswordReset.getPassword())){
-                log.debug("checking the given Password..");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
-                        HttpStatus.NOT_FOUND);
-            }
+
             // Check if the old password and new password are the same to throw exception
             if (employeePasswordReset.getPassword().equals(employeePasswordReset.getNewPassword())) {
                 log.error("you can't update with the previous password");
                 return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(Constants.USED_PASSWORD)),
                         HttpStatus.BAD_REQUEST);
             }
-            String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
-            employee.setPassword(newPassword);
-            if (employee.getCompanyId() != null && employee.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
-                CompanyEntity companyEntity = openSearchOperations.getCompanyById(employee.getCompanyId(), null, Constants.INDEX_EMS);
-                companyEntity.setPassword(newPassword);
-                openSearchOperations.saveEntity(companyEntity, employee.getCompanyId(), Constants.INDEX_EMS);
+            user = userDao.get(id, employeePasswordReset.getCompanyName());
+            if (user.isEmpty()) {
+                employee = openSearchOperations.getEmployeeById(id, null, index);
+                if (employee == null) {
+                    log.error("employee are not {} found", id);
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_ALREADY_EXISTS), employeePasswordReset.getCompanyName()),
+                            HttpStatus.CONFLICT);
+                }
+                byte[] decodedBytes = Base64.getDecoder().decode(employee.getPassword());
+                String decodedPassword = new String(decodedBytes, StandardCharsets.UTF_8);
+                if (!decodedPassword.equals(employeePasswordReset.getPassword())){
+                    log.debug("checking the given Password..");
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
+                            HttpStatus.NOT_FOUND);
+                }
+                String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
+                employee.setPassword(newPassword);
+                if (employee.getCompanyId() != null && employee.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
+                    CompanyEntity companyEntity = openSearchOperations.getCompanyById(employee.getCompanyId(), null, Constants.INDEX_EMS);
+                    companyEntity.setPassword(newPassword);
+                    openSearchOperations.saveEntity(companyEntity, employee.getCompanyId(), Constants.INDEX_EMS);
 
+                }
+                openSearchOperations.saveEntity(employee, id, index);
+            }else {
+                log.error("user are not {} found", id);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE),
+                        HttpStatus.NOT_FOUND);
             }
-            openSearchOperations.saveEntity(employee, id, index);
+            byte[] decodedBytes = Base64.getDecoder().decode(user.get().getPassword());
+            String decodedPassword = new String(decodedBytes, StandardCharsets.UTF_8);
+            if (!decodedPassword.equals(employeePasswordReset.getPassword())){
+                log.debug("checking the given Password..");
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
+                        HttpStatus.NOT_FOUND);
+            }
+            String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
+            user.get().setPassword(newPassword);
+            userDao.save(user.get(), employeePasswordReset.getCompanyName());
+
 
         } catch (Exception ex) {
             log.error("Exception while fetching user {}, {}", employeePasswordReset.getCompanyName(), ex);
