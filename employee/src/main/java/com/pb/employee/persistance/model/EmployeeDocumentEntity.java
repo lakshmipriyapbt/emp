@@ -18,7 +18,5 @@ public class EmployeeDocumentEntity extends AbstractEntity{
     private String companyName;
     private String referenceId;
     private String folderPath;
-    private String profile;
-
    private List<DocumentEntity> documentEntities;
 }

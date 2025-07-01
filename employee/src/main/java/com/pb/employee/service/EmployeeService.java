@@ -6,6 +6,7 @@ import com.pb.employee.request.*;
 import com.pb.employee.response.EmployeeResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -25,4 +26,7 @@ public interface EmployeeService {
     ResponseEntity<?> getEmployeeId(String companyName, EmployeeIdRequest employeeIdRequest) throws IOException, EmployeeException;
 
     ResponseEntity<?> registerEmployeeWithCandidate(EmployeeRequest employeeRequest, String candidateId, HttpServletRequest request) throws EmployeeException;
-}
+
+    ResponseEntity<?> uploadEmployeeImage(String companyName, String employeeId, MultipartFile file) throws EmployeeException, IOException;
+
+    ResponseEntity<?> getEmployeeImage(String companyName, String employeeId,HttpServletRequest request) throws EmployeeException, IOException;}
