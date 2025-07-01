@@ -130,9 +130,8 @@ const staticInvoiceData = {
         content: (data) => (
           <InvoiceTemplate1
             companyLogo={company?.imageFile || "default-logo.png"}
-            companyData={company}
+            companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
-            
             bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
           />
@@ -144,7 +143,7 @@ const staticInvoiceData = {
         content: (data) => (
           <InvoiceTemplate2
             companyLogo={company?.imageFile || "default-logo.png"}
-            companyData={company}
+            companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
             bankDetails={staticInvoiceData.bank|| {}}
             // Add other invoice-specific props here
