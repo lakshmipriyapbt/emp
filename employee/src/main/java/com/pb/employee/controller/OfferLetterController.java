@@ -40,7 +40,7 @@ public class OfferLetterController {
                     example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
             @RequestHeader(Constants.AUTH_KEY) String authToken,
             @RequestBody @Valid OfferLetterRequest offerLetterRequest,
-            HttpServletRequest request) {
+            HttpServletRequest request) throws EmployeeException {
 
         // ✅ Saving is done inside the service
         return offerLetterService.downloadOfferLetter(offerLetterRequest, request);

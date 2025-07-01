@@ -60,7 +60,7 @@ public class OfferLetterServiceImpl implements OfferLetterService {
     private InternOfferLetterDao internOfferLetterDao;
 
     @Override
-    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<byte[]> downloadOfferLetter(OfferLetterRequest request, HttpServletRequest httpRequest) throws EmployeeException {
 
         String resourceId = ResourceIdUtils.generateOfferLetterId(request.getReferenceNo());
         try {
@@ -98,6 +98,15 @@ public class OfferLetterServiceImpl implements OfferLetterService {
                 model.put(Constants.BLURRED_IMAGE, Constants.DATA + Base64.getEncoder().encodeToString(baos.toByteArray()));
             }
 
+            Collection<OfferLetterEntity> offerLetters = offerLetterDao.getOfferLetter(rawCompany.getShortName(), null);
+            if (offerLetters != null && !offerLetters.isEmpty()) {
+                OfferLetterEntity offerLetter = offerLetters.iterator().next(); // or use a loop if needed
+                if (Objects.equals(offerLetter.getReferenceNo(), request.getReferenceNo())) {
+                    log.error("Offer letter not found for referenceNo: {}", offerLetter.getReferenceNo());
+                    throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.OFFER_LETTER_REF_EXIST), offerLetter.getReferenceNo()), HttpStatus.NOT_FOUND);
+                }
+            }
+
             OfferLetterEntity entity = objectMapper.convertValue(request, OfferLetterEntity.class);
             entity.setId(resourceId);
             entity.setType(Constants.OFFER_LETTER);
@@ -112,6 +121,10 @@ public class OfferLetterServiceImpl implements OfferLetterService {
             headers.setContentDisposition(ContentDisposition.builder(Constants.ATTACHMENT).filename(Constants.OFFER_LETTER_PDF).build());
             offerLetterDao.save(entity, rawCompany.getShortName());
             return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+
+        }catch (EmployeeException employeeException){
+            log.error("EmployeeException occurred while generating offer letter: {}", employeeException.getMessage());
+            throw  employeeException;
 
         } catch (Exception e) {
             log.error("Error occurred while generating offer letter: {}", e.getMessage(), e);
