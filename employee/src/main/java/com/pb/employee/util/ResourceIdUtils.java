@@ -216,4 +216,6 @@ public class ResourceIdUtils {
         }
         return prefix + md5Hash;
     }
+
+
 }

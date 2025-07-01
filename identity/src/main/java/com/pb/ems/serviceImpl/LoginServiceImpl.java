@@ -99,6 +99,11 @@ public class LoginServiceImpl implements LoginService {
                         throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.CANDIDATE_INACTIVE),
                                 HttpStatus.FORBIDDEN);
                     }
+                    if (!candidate.getStatus().equalsIgnoreCase(Constants.ACTIVE)) {
+                        log.error("Candidate is not active");
+                        throw new IdentityException(ErrorMessageHandler.getMessage(IdentityErrorMessageKey.CANDIDATE_NOT_FOUND),
+                                HttpStatus.FORBIDDEN);
+                    }
                 }
                 CompletableFuture.runAsync(() -> {
                     try {
