@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import React, { useMemo } from "react";
 import InvoiceTemplate1 from "./InvoiceTemplate1";
 import InvoiceTemplate2 from "./InvoiceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";
@@ -7,16 +6,42 @@ import { useAuth } from "../../../Context/AuthContext";
 const InvoicePreview = ({ previewData, selectedTemplate }) => {
   const { company } = useAuth();
 
-  const transformDataForTemplates = () => {
+ const transformDataForTemplates = () => {
     if (!previewData) return null;
 
-    // Calculate totals if not provided
-    const subTotal = previewData.subTotal || 
-      (previewData.productData?.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0) || 0);
-    const sgst = subTotal * 0.09;
-    const cgst = subTotal * 0.09;
-    const grandTotal = subTotal + sgst + cgst;
+    // Get GST numbers
+    const companyGst = previewData.company?.gstNo || previewData.company?.gst || "";
+    const customerGst = previewData.customer?.customerGstNo || previewData.customer?.gstNo || "";
 
+    // Calculate subTotal as a number
+    const productData = previewData.invoice?.productData || previewData.productData || [];
+    const subTotal = Number(
+      previewData.invoice?.subTotal
+        || previewData.subTotal
+        || productData.reduce(
+          (sum, item) =>
+            sum +
+            (Number(item.unitCost || item.price || 0) * Number(item.quantity || 0)),
+          0
+        )
+    );
+
+    let cgst = 0, sgst = 0, igst = 0;
+
+    if (
+      customerGst &&
+      companyGst &&
+      companyGst.slice(0, 2) === customerGst.slice(0, 2)
+    ) {
+      // Same state: CGST + SGST
+      cgst = subTotal * 0.09;
+      sgst = subTotal * 0.09;
+    } else if (customerGst && companyGst) {
+      // Different state: IGST
+      igst = subTotal * 0.18;
+    }
+
+    const grandTotal = subTotal + cgst + sgst + igst;
     return {
       companyData: {
         ...company,
@@ -24,8 +49,16 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
       },
       InvoiceStaticData: {
         ...previewData,
+        invoice: {
+          ...previewData.invoice,
+          subTotal: subTotal.toFixed(2),
+          cgst: cgst ? cgst.toFixed(2) : "",
+          sgst: sgst ? sgst.toFixed(2) : "",
+          igst: igst ? igst.toFixed(2) : "",
+          grandTotal: grandTotal.toFixed(2),
+        },
       },
-      bankDetails: previewData.bankDetails || {}
+      bankDetails: previewData.bank || {},
     };
   };
 

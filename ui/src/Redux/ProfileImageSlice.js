@@ -5,15 +5,12 @@ export const fetchProfileImage = createAsyncThunk(
   'profile/fetchImage',
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await getEmployeeImage(userId);
-      if (response.data.data) {
-        // Sanitize URL if needed
-        return response.data.data.replace(/\\/g, '/');
-      }
-      return null;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile image');
-    }
+  const response = await getEmployeeImage(userId);
+  // Use response.data.data if it exists, otherwise fall back to response.data.path
+  return response.data.data || response.data.path || null;
+} catch (error) {
+  return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile image');
+}
   }
 );
 
@@ -22,11 +19,8 @@ export const uploadProfileImage = createAsyncThunk(
   async ({ userId, file }, { rejectWithValue }) => {
     try {
       const response = await uploadEmployeeImage(userId, file);
-      if (response.data) {
-        // Sanitize the URL if needed
-        return response.data.replace(/\\/g, '/');
-      }
-      return null;
+      // Return the full path from the response
+      return response.data.path || null;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to upload image');
     }
