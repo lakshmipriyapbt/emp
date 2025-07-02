@@ -4,11 +4,11 @@ import { useAuth } from '../../../Context/AuthContext';
 const InvoiceTemplate2 = ({
   companyData={},
   InvoiceStaticData={},
-  bankDetails={}
+  bankDetails={},
+  companyLogo,
+  stampImage
 }) => {
-  const { company } = useAuth();
-  console.log("companyData:", companyData);
-  console.log("Invoice Customer Data:", InvoiceStaticData);
+
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
       {/* Header with company info, logo, and invoice info */}
@@ -42,7 +42,7 @@ const InvoiceTemplate2 = ({
             alignItems: "center",
             color: "#999"
           }}>
-            {company?.imageFile ? <img src={company.imageFile} alt="Company Logo" /> : "No Logo Available"}
+            {companyLogo ? <img src={companyLogo} alt="Company Logo" /> : "No Logo Available"}
           </div>
         </div>
 
@@ -103,9 +103,9 @@ const InvoiceTemplate2 = ({
             display: "inline-block",
           }}>Ship To</div>
           <div style={{ fontSize: "14px" }}>
-            <div>Recievers name: {InvoiceStaticData.shippedPayload?.[0]?.customerName || InvoiceStaticData.customer?.customerName}</div>
-            <div>Address: {InvoiceStaticData.shippedPayload?.[0]?.address || InvoiceStaticData.customer?.address}</div>
-            <div>Phone: {InvoiceStaticData.shippedPayload?.[0]?.mobileNumber || InvoiceStaticData.customer?.mobileNumber}</div>
+            <div>Recievers name: {InvoiceStaticData.invoice.shippedPayload?.customerName }</div>
+            <div>Address: {InvoiceStaticData.invoice.shippedPayload?.address}</div>
+            <div>Phone: {InvoiceStaticData.invoice.shippedPayload?.mobileNumber}</div>
           </div>
         </div>
       </div>
@@ -277,7 +277,7 @@ const InvoiceTemplate2 = ({
           color: "#999",
           marginBottom: "10px"
         }}>
-          {company?.stampImage ? <img src={company.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
+          {stampImage ? <img src={stampImage} alt="Company Stamp" /> : "No Stamp Available"}
         </div>
         <div style={{
           fontStyle: "italic",

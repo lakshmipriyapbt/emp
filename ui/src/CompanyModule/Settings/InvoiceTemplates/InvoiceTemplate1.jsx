@@ -1,15 +1,12 @@
-import React from "react";
-import { useAuth } from "../../../Context/AuthContext";
 
 
 const InvoiceTemplate1 = ({
   InvoiceStaticData = {},
   companyData={},
-  bankDetails = {}
+  bankDetails = {},
+  companyLogo,
+  stampImage
 }) => {
-  const { company } = useAuth();
-  console.log("InvoiceStaticData:", InvoiceStaticData); 
-  console.log("companyData:", companyData);
 
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
@@ -32,7 +29,7 @@ const InvoiceTemplate1 = ({
             color: "#999",
             fontSize: "14px"
           }}>
-            {company.imageFile ? (<img src={company.imageFile} alt="Company Logo" />) : "No Logo Available"}
+            {companyLogo ? (<img src={companyLogo} alt="Company Logo" />) : "No Logo Available"}
           </div>
         </div>
       </div>
@@ -79,8 +76,6 @@ const InvoiceTemplate1 = ({
             </div>
           </div>
         </div>
-
-        {InvoiceStaticData.salesPerson && (
           <div className="sales-info-table" style={{ marginBottom: "30px" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #000" }}>
               <thead>
@@ -95,17 +90,16 @@ const InvoiceTemplate1 = ({
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.salesPerson}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.shippingMethod}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.shippingTerms}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.paymentTerms}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.dueDate}</td>
-                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.deliveryDate}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.salesPerson}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.shippingMethod}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.shippingTerms}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.paymentTerms}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.dueDate}</td>
+                  <td style={{ padding: "10px", border: "1px solid #000", fontSize: "14px" }}>{InvoiceStaticData.invoice.deliveryDate}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-        )}
 
         <div className="invoice-table" style={{ marginBottom: "30px" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "0" }}>
@@ -209,63 +203,67 @@ const InvoiceTemplate1 = ({
         </div>
 
         <div className="bank-details-section">
-        <div className="row" style={{ minHeight: "120px" }}>
-  <div className="col-md-6">
-    <div className="bank-details">
-      <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px" }}>Bank Details</h5>
-      {/* ...bank details fields... */}
-      <div style={{ display: "flex", marginBottom: "5px" }}>
-        <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
-        <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
-      </div>
-        <div style={{ display: "flex", marginBottom: "5px" }}>
-              <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Number :</div>
-              <div style={{ fontSize: "14px" }}>{bankDetails?.accountNumber}</div>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="bank-details">
+                <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px" }}>Bank Details</h5>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Bank Name :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.bankName}</div>
+                </div>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Number :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.accountNumber}</div>
+                </div>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Type :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.accountType}</div>
+                </div>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>IFSC Code :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.ifscCode}</div>
+                </div>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Branch :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.branch}</div>
+                </div>
+
+                <div style={{ display: "flex", marginBottom: "5px" }}>
+                  <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
+                  <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
+                </div>
+              </div>
             </div>
 
-            <div style={{ display: "flex", marginBottom: "5px" }}>
-              <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Type :</div>
-              <div style={{ fontSize: "14px" }}>{bankDetails?.accountType}</div>
-            </div>
+            <div className="col-md-6">
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                <div style={{
+                  height: "60px",
+                  width: "155px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "#999",
+                  fontSize: "14px",
+                  marginBottom: "15px"
+                }}>
+                {stampImage ? <img src={stampImage} alt="Company Stamp" /> : "No Stamp Available"}
+                </div>
 
-            <div style={{ display: "flex", marginBottom: "5px" }}>
-              <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>IFSC Code :</div>
-              <div style={{ fontSize: "14px" }}>{bankDetails?.ifscCode}</div>
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>{companyData?.companyName}</p>
+                  <h5 style={{ margin: "0", fontSize: "16px", fontWeight: "600" }}>Authorized Signature</h5>
+                </div>
+              </div>
             </div>
-
-            <div style={{ display: "flex", marginBottom: "5px" }}>
-              <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Branch :</div>
-              <div style={{ fontSize: "14px" }}>{bankDetails?.branch}</div>
-            </div>
-
-            <div style={{ display: "flex", marginBottom: "5px" }}>
-              <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
-              <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
-            </div>
-    </div>
-  </div>
-
-  <div className="col-md-6 d-flex flex-column justify-content-end align-items-end" style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "flex-end", minHeight: "120px" }}>
-    <div style={{
-      height: "60px",
-      width: "155px",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      color: "#999",
-      fontSize: "14px",
-      marginBottom: "10px"
-    }}>
-      {company?.stampImage ? <img src={company.stampImage} alt="Company Stamp" style={{ maxHeight: "60px", maxWidth: "155px" }} /> : "No Stamp Available"}
-    </div>
-    <div style={{ textAlign: "right" }}>
-      <p style={{ margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>{companyData?.companyName}</p>
-      <h5 style={{ margin: "0", fontSize: "16px", fontWeight: "600" }}>Authorized Signature</h5>
-    </div>
-  </div>
-</div>
-        </div>
-                 <hr style={{ margin: "30px 0" }} />
+          </div>
+          
+          <hr style={{ margin: "30px 0" }} />
           
           <div className="footer" style={{ margin: "40px 0 0 0" }}>
             <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px", fontWeight: "600" }}>
@@ -278,6 +276,7 @@ const InvoiceTemplate1 = ({
               {companyData?.emailId}, {companyData?.mobileNo}
             </p>
           </div>
+        </div>
       </div>
     </div>
   );

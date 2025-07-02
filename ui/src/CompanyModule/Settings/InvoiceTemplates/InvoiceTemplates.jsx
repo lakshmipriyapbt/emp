@@ -48,18 +48,20 @@ const staticInvoiceData = {
       { key: "gstPercentage", title: "GST (%)", type: "number" },
       { key: "totalCost", title: "Total Cost", type: "number" }
     ],
-    shippedPayload: {
+    shippedPayload:
+    {
       customerName: "sdfd",
       address: "asdfgfv",
       mobileNumber: "9002343430"
-    },
+    }
+    ,
     status: "Pending",
     type: "invoice",
-    salesPerson: "",
-    shippingMethod: "",
-    shippingTerms: "",
+    salesPerson: "John Doe",
+    shippingMethod: "Standard Shipping",
+    shippingTerms: "Free Shipping",
     paymentTerms: "Net 30",
-    deliveryDate: "",
+    deliveryDate: "2025-07-01",
     cgst: "18",
     sgst: "18",
     igst: "18"
@@ -133,6 +135,7 @@ const staticInvoiceData = {
             companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
             bankDetails={staticInvoiceData.bank|| {}}
+            stampImage={company?.stampImage || "default-stamp.png"}
             // Add other invoice-specific props here
           />
         ),
@@ -146,6 +149,7 @@ const staticInvoiceData = {
             companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
             bankDetails={staticInvoiceData.bank|| {}}
+            stampImage={company?.stampImage || "default-stamp.png"}
             // Add other invoice-specific props here
           />
         ),
