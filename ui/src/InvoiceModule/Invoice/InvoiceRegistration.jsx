@@ -325,7 +325,7 @@ const updateData = (index, key, value) => {
         mobileNumber: data.shipToMobile || ''
       }],
       // Invoice details
-      invoiceNo: `INV-${Date.now()}`,
+      invoiceNo: "Auto-generated",
       invoiceDate: data.invoiceDate || '',
       dueDate: data.dueDate || '',
       purchaseOrder: data.purchaseOrder || '',
@@ -894,9 +894,12 @@ const updateData = (index, key, value) => {
                   </div>
                   {templateFields.showShipTo && (
                     <>
-                      <div className="form-group row">
+                    <span className="mb-3">
+                      <h3 className="mb-1">Shipping Details</h3>
+                    </span>
+                      <div className="form-group row mt-3">
                         <label htmlFor="shipToName" className="col-sm-2 text-right control-label col-form-label">
-                          Ship To Name
+                          Reciever's Name
                         </label>
                         <div className="col-sm-9 mb-3">
                           <input
@@ -925,7 +928,7 @@ const updateData = (index, key, value) => {
                       </div>
                       <div className="form-group row">
                         <label htmlFor="shipToAddress" className="col-sm-2 text-right control-label col-form-label">
-                          Ship To Address
+                          Reciever's Address
                         </label>
                         <div className="col-sm-9 mb-3">
                           <input
@@ -954,7 +957,7 @@ const updateData = (index, key, value) => {
                       </div>
                       <div className="form-group row">
                         <label htmlFor="shipToMobile" className="col-sm-2 text-right control-label col-form-label">
-                          Ship To Mobile
+                         Reciever's Mobile
                         </label>
                         <div className="col-sm-9 mb-3">
                           <input
@@ -1013,7 +1016,11 @@ const updateData = (index, key, value) => {
                   )}
 
                   {templateFields.showSalesPerson && (
-                    <div className="form-group row">
+                    <div>
+                      <span>
+                      <h3 className="mb-1">Sales Details</h3>
+                      </span>
+                    <div className="form-group row mt-3">
                       <label htmlFor="salesPerson" className="col-sm-2 text-right control-label col-form-label">
                         Sales Person
                       </label>
@@ -1041,6 +1048,7 @@ const updateData = (index, key, value) => {
                           </p>
                         )}
                       </div>
+                    </div>
                     </div>
                   )}
 
@@ -1150,8 +1158,10 @@ const updateData = (index, key, value) => {
                           type="date"
                           className="form-control"
                           id="deliveryDate"
+                          onClick={(e) => e.target.showPicker()}
                           {...register("deliveryDate", {
                             required: "Delivery Date is required",
+                            
                             validate: (value) => {
                               const invoiceDate = watch("invoiceDate");
                               if (!invoiceDate) {

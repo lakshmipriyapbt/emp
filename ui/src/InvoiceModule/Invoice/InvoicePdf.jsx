@@ -79,6 +79,7 @@ const InvoicePdf = ({ previewData}) => {
             companyData={previewData.company}
             InvoiceStaticData={previewData}
             bankDetails={previewData?.bank}
+            stampImage={company?.stampImage || "default-stamp.png"}
           />
         </div>
       )
@@ -92,6 +93,7 @@ const InvoicePdf = ({ previewData}) => {
             companyData={previewData.company}
             InvoiceStaticData={previewData}
             bankDetails={previewData?.bank}
+            stampImage={company?.stampImage || "default-stamp.png"}
           />
         </div>
       )

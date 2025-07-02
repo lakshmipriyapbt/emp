@@ -133,6 +133,7 @@ const staticInvoiceData = {
             companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
             bankDetails={staticInvoiceData.bank|| {}}
+            stampImage={company?.stampImage || "default-stamp.png"}
             // Add other invoice-specific props here
           />
         ),
@@ -146,6 +147,7 @@ const staticInvoiceData = {
             companyData={staticInvoiceData.company || {}}
             InvoiceStaticData={staticInvoiceData}
             bankDetails={staticInvoiceData.bank|| {}}
+            stampImage={company?.stampImage || "default-stamp.png"}
             // Add other invoice-specific props here
           />
         ),
