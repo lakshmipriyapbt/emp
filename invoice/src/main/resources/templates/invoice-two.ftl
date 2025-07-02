@@ -5,11 +5,13 @@
     <title>Invoice</title>
     <style>
 
+@media print {
             body {
-font-family: Arial, sans-serif;
-margin: 0;
-padding: 0; /* Remove body padding as @page margin will handle it */
-font-size: 10pt;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0; /* Remove body padding as @page margin will handle it */
+    font-size: 10pt;
+    }
 }
 .logo{
 
@@ -24,6 +26,7 @@ display: flex;
 max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
 height: 1025px;
 margin: 0 auto;
+overflow: hidden;
 border: 1px solid #eee;
 padding: 20px; /* Slightly reduced padding for tighter fit */
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Keep for screen view */
@@ -145,6 +148,7 @@ margin-top: 25px; /* Slightly reduced margin */
 position: absolute;
 top: 70%;
 Right: 20px;
+width: 250px;
 }
 .bank-details p {
 margin: 2px 0;
@@ -222,12 +226,12 @@ page-break-inside: avoid;
             <#if invoice.shippedPayload?has_content>
                   <#assign shipped = invoice.shippedPayload />
                     <div class="section-title">Ship to</div>
-                    <p>Client name: ${shipped.customerName!'-'}</p>
+                    <p>Recievers name: ${shipped.customerName!'-'}</p>
                     <p>${shipped.address!'-'}</p>
                     <p>Phone: ${shipped.mobileNumber!'-'}</p>
             <#else>
                 <div class="section-title">Ship to (if different)</div>
-                <p>Recievers name: ${customer.customerName!'-'}</p>
+                <p>Client name: ${customer.customerName!'-'}</p>
                 <p>${customer.address!'-'}</p>
                 <p>Phone: ${customer.mobileNumber!'-'}</p>
             </#if>
