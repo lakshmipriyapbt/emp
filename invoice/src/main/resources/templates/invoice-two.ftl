@@ -6,182 +6,183 @@
     <style>
 
             body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0; /* Remove body padding as @page margin will handle it */
-        font-size: 10pt;
-    }
-    .logo{
-        position: absolute;
-        top: 10px;
-        left: 40%;
-        width: 150px; /* Set a specific width for the logo */
-        height: 80px; /* Set a specific height for the logo */
-        display: flex;
-    }
-    .container  {
-        max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-        height: 1025px;
-        margin: 0 auto;
-        border: 1px solid #eee;
-        padding: 20px; /* Slightly reduced padding for tighter fit */
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Keep for screen view */
-        box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    }
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .company-info {
-        flex: 0 0 auto; /* prevent it from growing or shrinking */
-        width: 250px;   /* set a specific width */
-        text-align: left; /* align text to the left */
-    }
-        .invoice-heading {
-        text-align: left;
-    }
-    .invoice-info {
-        position: absolute;
-        top: 10px;
-        right: 30px;
-        text-align: left;
-    }
-    .header h1 {
-        margin: 0;
-        font-size: 22pt; /* Slightly reduced font size for header */
-        color: #333;
-    }
-    .header p {
-        margin: 2px 0;
-    }
-    .bill-ship-section {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .billed-to {
-        flex: 1;
-        padding-right: 15px; /* Slightly reduced padding */
-        width: 250px;
-    }
-    .ship-to {
-        top: 16%;
-        position: absolute;
-        right: 10px;
-        padding-right: 15px; /* Slightly reduced padding */
-        width: 250px;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    table th, table td {
-        border: 1px solid #eee;
-        padding: 7px; /* Slightly reduced padding */
-        text-align: left;
-        word-wrap: break-word; /* Ensure long content breaks within cells */
-    }
-    table th {
-        background-color: #f2f2f2;
-    }
-    .total-section {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .notes {
-        flex: 1;
-        position: absolute;
-        top: 60%;
-        left: 20px;
-        right: 15px;
-        background-color: #f2f2f2; /* Light grey */
-        height: 100px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 10px;
-        width: 300px; /* Set a specific width */
-    }
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0; /* Remove body padding as @page margin will handle it */
+font-size: 10pt;
+}
+.logo{
 
-    .section-title {
-        background-color:  #8c8c8c; /* Cement-like color */
-        color: #ffffff;            /* White font */
-        padding: 5px;
-        font-weight: bold;
-        border-radius: 4px;
-        margin-bottom: 8px;
-    }
+position: absolute;
+top: 10px;
+left: 40%;
+width: 150px; /* Set a specific width for the logo */
+height: 80px; /* Set a specific height for the logo */
+display: flex;
+}
+.container  {
+max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
+height: 1025px;
+margin: 0 auto;
+border: 1px solid #eee;
+padding: 20px; /* Slightly reduced padding for tighter fit */
+box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Keep for screen view */
+box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+.header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+margin-bottom: 25px; /* Slightly reduced margin */
+}
+.company-info {
+flex: 0 0 auto; /* prevent it from growing or shrinking */
+width: 250px;   /* set a specific width */
+text-align: left; /* align text to the left */
+}
+.invoice-heading {
+text-align: left;
+}
+.invoice-info {
+position: absolute;
+top: 10px;
+right: 30px;
+text-align: left;
+}
+.header h1 {
+margin: 0;
+font-size: 22pt; /* Slightly reduced font size for header */
+color: #333;
+}
+.header p {
+margin: 2px 0;
+}
+.bill-ship-section {
+display: flex;
+justify-content: space-between;
+margin-bottom: 25px; /* Slightly reduced margin */
+}
+.billed-to {
+flex: 1;
+padding-right: 15px; /* Slightly reduced padding */
+width: 250px;
+}
+.ship-to {
+top: 14%;
+position: absolute;
+right: 10px;
+padding-right: 15px; /* Slightly reduced padding */
+width: 250px;
+}
+table {
+width: 100%;
+border-collapse: collapse;
+margin-bottom: 25px; /* Slightly reduced margin */
+}
+table th, table td {
+border: 1px solid #eee;
+padding: 7px; /* Slightly reduced padding */
+text-align: left;
+word-wrap: break-word; /* Ensure long content breaks within cells */
+}
+table th {
+background-color: #f2f2f2;
+}
+.total-section {
+display: flex;
+justify-content: space-between;
+margin-bottom: 25px; /* Slightly reduced margin */
+}
+.notes {
+flex: 1;
+position: absolute;
+top: 60%;
+left: 20px;
+right: 15px;
+background-color: #f2f2f2; /* Light grey */
+height: 100px;
+border: 1px solid #ccc;
+border-radius: 4px;
+padding: 10px;
+width: 300px; /* Set a specific width */
+}
 
-    .notes_instructions {
-        position: absolute;
-        top: 70%;
-        left: 20px;
-        padding: 15px;
-        font-size: 8pt;
-    }
-    .amounts {
-        position: absolute;
-        top: 60%;
-        right: 10px;
-    }
-    .amounts p {
-        display: flex;
-        justify-content: space-between;
-        margin: 2px 0;
-    }
-    .amounts .total {
-        font-weight: bold;
-        font-size: 12pt; /* Slightly reduced font size for total */
-        border-top: 1px solid #eee;
-        padding-top: 5px;
-        margin-top: 10px;
-    }
-    .bank-details {
-        margin-top: 25px; /* Slightly reduced margin */
-        position: absolute;
-        top: 70%;
-        Right: 20px;
-    }
-    .bank-details p {
-     margin: 2px 0;
-    }
-    .footer {
-        position: fixed;
-        bottom: 0px;
-        text-align: center;
-        margin-top: 40px; /* Slightly reduced margin */
-        font-size: 8pt; /* Slightly reduced font size for footer */
-        color: #666;
-    }
-    .stamp {
-        position: absolute;
-        top: 75%;
-        left: 60px;
-        width: 100px; /* Set a specific width for the stamp */
-        height: 100px; /* Set a specific height for the stamp */
-        display: flex;
-    }
-    .thank-you {
-        position: absolute;
-        top: 82%;
-        font-size: 8pt;
-        margin-top: 25px; /* Slightly reduced margin */
-        left: 20px;
-        padding: 5px
-    }
+.section-title {
+background-color:  #8c8c8c; /* Cement-like color */
+color: #ffffff;            /* White font */
+padding: 5px;
+font-weight: bold;
+border-radius: 4px;
+margin-bottom: 8px;
+}
 
-    /* Specific alignment for table content based on keys */
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
+.notes_instructions {
+position: absolute;
+top: 70%;
+left: 20px;
+padding: 15px;
+font-size: 8pt;
+}
+.amounts {
+position: absolute;
+top: 60%;
+right: 10px;
+}
+.amounts p {
+display: flex;
+justify-content: space-between;
+margin: 2px 0;
+}
+.amounts .total {
+font-weight: bold;
+font-size: 12pt; /* Slightly reduced font size for total */
+border-top: 1px solid #eee;
+padding-top: 5px;
+margin-top: 10px;
+}
+.bank-details {
+margin-top: 25px; /* Slightly reduced margin */
+position: absolute;
+top: 70%;
+Right: 20px;
+}
+.bank-details p {
+margin: 2px 0;
+}
+.footer {
+position: fixed;
+bottom: 0px;
+text-align: center;
+margin-top: 40px; /* Slightly reduced margin */
+font-size: 8pt; /* Slightly reduced font size for footer */
+color: #666;
+}
+.stamp {
+position: absolute;
+top: 75%;
+left: 60px;
+width: 100px; /* Set a specific width for the stamp */
+height: 100px; /* Set a specific height for the stamp */
+display: flex;
+}
+.thank-you {
+position: absolute;
+top: 83%;
+font-size: 8pt;
+margin-top: 25px; /* Slightly reduced margin */
+left: 20px;
+padding: 5px
+}
 
-    /* Ensure content doesn't break across pages awkwardly */
-    .header, .bill-ship-section, table, .total-section, .bank-details, .thank-you, .footer {
-    page-break-inside: avoid;
-    }
+/* Specific alignment for table content based on keys */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+/* Ensure content doesn't break across pages awkwardly */
+.header, .bill-ship-section, table, .total-section, .bank-details, .thank-you, .footer {
+page-break-inside: avoid;
+}
 </style>
 </head>
 <body>
@@ -221,7 +222,7 @@
             <#if invoice.shippedPayload?has_content>
                   <#assign shipped = invoice.shippedPayload />
                     <div class="section-title">Ship to</div>
-                    <p>Recievers name: ${shipped.customerName!'-'}</p>
+                    <p>Client name: ${shipped.customerName!'-'}</p>
                     <p>${shipped.address!'-'}</p>
                     <p>Phone: ${shipped.mobileNumber!'-'}</p>
             <#else>
