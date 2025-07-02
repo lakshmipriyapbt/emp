@@ -12,7 +12,7 @@ import designationReducer from './DesignationSlice'
 import UserReducer from './UserSlice'
 import CandidateReducer from './CandidateSlice'
 import ProfileImageReducer from './ProfileImageSlice';
-import companyReducer from './companySlice'
+import companyReducer from './companySlice';
 
 const store = configureStore({
   reducer: {
