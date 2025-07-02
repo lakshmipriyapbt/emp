@@ -227,7 +227,7 @@ page-break-inside: avoid;
                     <p>Phone: ${shipped.mobileNumber!'-'}</p>
             <#else>
                 <div class="section-title">Ship to (if different)</div>
-                <p>Client name: ${customer.customerName!'-'}</p>
+                <p>Recievers name: ${customer.customerName!'-'}</p>
                 <p>${customer.address!'-'}</p>
                 <p>Phone: ${customer.mobileNumber!'-'}</p>
             </#if>
