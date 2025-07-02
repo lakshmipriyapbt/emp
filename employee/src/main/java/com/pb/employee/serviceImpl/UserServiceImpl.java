@@ -171,7 +171,7 @@ public class UserServiceImpl implements UserService {
                     }
                 }
                 if (user.getEmployeeId() != null && !user.getEmployeeId().isEmpty()) {
-                    EmployeeResponse employee = employeeService.getEmployeeById(companyName, user.getEmployeeId());
+                    EmployeeResponse employee = employeeService.getEmployeeById(companyName, user.getEmployeeId(), null);
                     if (employee != null) {
                         userResponse.setEmployee(employee);
                     }
