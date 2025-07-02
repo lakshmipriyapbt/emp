@@ -6,7 +6,6 @@ import { useAuth } from "../Context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
-import { fetchProfileImage } from "../Redux/ProfileImageSlice";
 import { useDispatch } from "react-redux";
 
 const Header = ({ toggleSidebar }) => {
@@ -44,11 +43,11 @@ const Header = ({ toggleSidebar }) => {
     }
   }, [token]);
 
-  useEffect(() => {
-    if (authUser?.userId && roles.includes("employee")) {
-      dispatch(fetchProfileImage(authUser.userId));
-    }
-  }, [authUser?.userId, dispatch, roles]);
+  // useEffect(() => {
+  //   if (authUser?.userId && roles.includes("employee")) {
+  //     dispatch(fetchProfileImage(authUser.userId));
+  //   }
+  // }, [authUser?.userId, dispatch, roles,isProfileOpen]);
 
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -98,23 +97,27 @@ const Header = ({ toggleSidebar }) => {
 
   // Function to render profile icon or photo
   const renderProfileImage = () => {
-    if (imageUrl) {
-      return (
-        <img
-          src={imageUrl}
-          alt="Profile"
-          className="rounded-circle"
-          style={{
-            width: "30px",
-            height: "30px",
-            objectFit: "cover",
-            border: "1px solid #dee2e6"
-          }}
-        />
-      );
-    }
-    return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
-  };
+  if (imageUrl) {
+    return (
+      <img
+        src={`${imageUrl.split('?')[0]}?t=${Date.now()}`}
+        alt="Profile"
+        className="rounded-circle"
+        style={{
+          width: "30px",
+          height: "30px",
+          objectFit: "cover",
+          border: "1px solid #dee2e6"
+        }}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = ''; // Fallback to icon if image fails to load
+        }}
+      />
+    );
+  }
+  return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
+};
 
   return (
     <nav className="navbar navbar-expand navbar-light navbar-bg">

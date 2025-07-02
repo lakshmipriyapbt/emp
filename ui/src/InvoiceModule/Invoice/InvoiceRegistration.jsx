@@ -319,11 +319,11 @@ const updateData = (index, key, value) => {
       bank: selectedBank || {},
       invoice:{   
       // Shipping info
-      shippedPayload: [{
+      shippedPayload: {
         customerName: data.shipToName || '',
         address: data.shipToAddress || '',
         mobileNumber: data.shipToMobile || ''
-      }],
+      },
       // Invoice details
       invoiceNo: `INV-${Date.now()}`,
       invoiceDate: data.invoiceDate || '',
