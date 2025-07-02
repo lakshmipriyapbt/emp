@@ -74,6 +74,7 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
             companyData={templateData?.companyData}
             InvoiceStaticData={templateData?.InvoiceStaticData}
             bankDetails={templateData?.bankDetails}
+            stampImage={company?.stampImage || "default-stamp.png"}
           />
         </div>
       )
@@ -83,9 +84,11 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
       component: (
         <div className="p-3">
           <InvoiceTemplate2
+            companyLogo={company?.imageFile}
             companyData={templateData?.companyData}
             InvoiceStaticData={templateData?.InvoiceStaticData}
             bankDetails={templateData?.bankDetails}
+            stampImage={company?.stampImage || "default-stamp.png"}
           />
         </div>
       )

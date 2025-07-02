@@ -17377,7 +17377,8 @@ nav.companyNavOuter .nav-tabs .nav-link.hover{
   background-color: #3f4e6c;
   color: #fcf8e3;  
   border-left: 3px solid var(--primary-color);
-  /* Removed padding changes */
+  margin-top: 3px;
+  margin-bottom: 3px;
   text-align: left;
 }
 
