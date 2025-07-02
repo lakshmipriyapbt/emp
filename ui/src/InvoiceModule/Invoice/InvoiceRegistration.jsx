@@ -267,9 +267,9 @@ const InvoiceRegistration = () => {
     // Check if customers is an array before using map
     const productOptions = Array.isArray(products)
       ? products.map((prod) => ({
-          value: prod.productId,
-          label: prod.productName,
-        }))
+        value: prod.productId,
+        label: prod.productName,
+      }))
       : [];
 
     setProduct(productOptions);
@@ -280,9 +280,9 @@ const InvoiceRegistration = () => {
     // Check if customers is an array before using map
     const customerOptions = Array.isArray(customers)
       ? customers.map((cust) => ({
-          value: cust.customerId,
-          label: cust.customerName,
-        }))
+        value: cust.customerId,
+        label: cust.customerName,
+      }))
       : [];
 
     setCustomer(customerOptions);
@@ -290,15 +290,15 @@ const InvoiceRegistration = () => {
   }, [customers]);
 
   const onSubmit = (data) => {
-      // Prevent submission if no product details are entered
-   if (
-    !productData ||
-    productData.length === 0 ||
-    productData.every(row => Object.values(row).every(val => !val))
-  ) {
-    setProductError("Please add at least one product detail before submitting.");
-    return;
-  }
+    // Prevent submission if no product details are entered
+    if (
+      !productData ||
+      productData.length === 0 ||
+      productData.every(row => Object.values(row).every(val => !val))
+    ) {
+      setProductError("Please add at least one product detail before submitting.");
+      return;
+    }
     const selectedCustomer = customers.find(
       (cust) => cust.customerId === data.customerName.value
     );
@@ -310,12 +310,12 @@ const InvoiceRegistration = () => {
 
     // Format product data to match backend expectations
     const formattedProductData = productData.map((item, index) => ({
-      items: item.items ,
-      hsn: item.hsn ,
-      service: item.service ,
-      quantity: item.quantity ,
+      items: item.items,
+      hsn: item.hsn,
+      service: item.service,
+      quantity: item.quantity,
       unitCost: item.unitCost,
-      gstPercentage: item.gstPercentage ,
+      gstPercentage: item.gstPercentage,
       totalCost: item.totalCost,
     }));
 
@@ -330,13 +330,12 @@ const InvoiceRegistration = () => {
       bank: selectedBank || {},
       invoice: {
         // Shipping info
-        shippedPayload: [
-          {
-            customerName: data.shipToName || "",
-            address: data.shipToAddress || "",
-            mobileNumber: data.shipToMobile || "",
-          },
-        ],
+        shippedPayload: {
+          customerName: data.shipToName || "",
+          address: data.shipToAddress || "",
+          mobileNumber: data.shipToMobile || "",
+        },
+
         // Invoice details
         invoiceNo: "Auto-generated",
         invoiceDate: data.invoiceDate || "",
@@ -386,7 +385,7 @@ const InvoiceRegistration = () => {
         productData: invoice.productData,
         productColumns: invoice.productColumns,
         shippedPayload: Array.isArray(invoice.shippedPayload)
-          ? invoice.shippedPayload[0] || {}
+          ? invoice.shippedPayload || {}
           : invoice.shippedPayload || {},
         vendorCode: invoice.vendorCode,
         purchaseOrder: invoice.purchaseOrder,
@@ -412,17 +411,17 @@ const InvoiceRegistration = () => {
         setShowPreview(false);
         reset();
         toast.success("Invoice created successfully!");
-        navigate("/invoiceView");
+        navigate("/invoiceView", { state: { refresh: true } }); // Pass state to trigger refresh
       }
     } catch (error) {
-  console.error("Error creating invoice:", error);
-  const errorMsg =
-    error?.response?.data?.error?.message || // If error is under error.message
-    error?.response?.data?.message ||        // If error is directly under message
-    error?.message ||                        // JS error message
-    "Failed to create invoice";
-  toast.error(errorMsg);
-}
+      console.error("Error creating invoice:", error);
+      const errorMsg =
+        error?.response?.data?.error?.message || // If error is under error.message
+        error?.response?.data?.message ||        // If error is directly under message
+        error?.message ||                        // JS error message
+        "Failed to create invoice";
+      toast.error(errorMsg);
+    }
   };
   const handleError = (errors) => {
     if (errors.response) {
@@ -602,10 +601,10 @@ const InvoiceRegistration = () => {
     const updatedColumns =
       totalCostIndex !== -1
         ? [
-            ...productColumns.slice(0, totalCostIndex),
-            newColumn,
-            ...productColumns.slice(totalCostIndex),
-          ]
+          ...productColumns.slice(0, totalCostIndex),
+          newColumn,
+          ...productColumns.slice(totalCostIndex),
+        ]
         : [...productColumns, newColumn];
 
     setProductColumns(updatedColumns);
@@ -637,9 +636,9 @@ const InvoiceRegistration = () => {
       productColumns.map((col) =>
         col.key === key
           ? {
-              ...col,
-              title: key === "totalCost" ? "Total Amount" : trimmedTitle,
-            }
+            ...col,
+            title: key === "totalCost" ? "Total Amount" : trimmedTitle,
+          }
           : col
       )
     );
@@ -720,12 +719,12 @@ const InvoiceRegistration = () => {
                 <div className="card-body">
                   <h4 className="ml-3" style={{ marginTop: "20px" }}>
                     <b>Invoice Details</b>
-                     <span className="text-muted ms-3">
-                      Please fill in the required fields marked with{" "}       
+                    <span className="text-muted ms-3">
+                      Please fill in the required fields marked with{" "}
                       <span style={{ color: "red" }}>*</span>
                     </span>
                   </h4>
-                   
+
                   {/* Customer Name Dropdown */}
                   <div className="form-group row mt-5">
                     <label
@@ -920,6 +919,17 @@ const InvoiceRegistration = () => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("invoiceDate", {
                           required: "Invoice Date is required",
+                          validate: (value) => {
+                            if (!value) return true;
+                            const selectedDate = new Date(value);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            selectedDate.setHours(0, 0, 0, 0); // Ensure both dates are at midnight
+                            if (selectedDate > today) {
+                              return "Future dates are not allowed for Invoice Date";
+                            }
+                            return true;
+                          },
                         })}
                       />
                       {errors.invoiceDate && (
@@ -985,9 +995,9 @@ const InvoiceRegistration = () => {
                                   "Ship To Name must be at least 3 characters long",
                               },
                               maxLength: {
-                                value: 10,
+                                value: 100,
                                 message:
-                                  "Ship To Name cannot exceed 10 characters",
+                                  "Ship To Name cannot exceed 100 characters",
                               },
                             })}
                           />
@@ -1022,9 +1032,9 @@ const InvoiceRegistration = () => {
                                   "Ship To Address must be at least 3 characters long",
                               },
                               maxLength: {
-                                value: 100,
+                                value: 250,
                                 message:
-                                  "Ship To Address cannot exceed 100 characters",
+                                  "Ship To Address cannot exceed 250 characters",
                               },
                             })}
                           />
@@ -1418,18 +1428,18 @@ const InvoiceRegistration = () => {
                             </td>
                           </tr>
                         ))}
-                                                    {productError && (
-  <tr>
-    <td colSpan={productColumns.length + 1}>
-      <span style={{ color: "red", fontWeight: "bold" }}>{productError}</span>
-    </td>
-  </tr>
-)}
+                        {productError && (
+                          <tr>
+                            <td colSpan={productColumns.length + 1}>
+                              <span style={{ color: "red", fontWeight: "bold" }}>{productError}</span>
+                            </td>
+                          </tr>
+                        )}
                         {/* SubTotal Row */}
                         <tr>
-                         
 
-                          
+
+
                           <td
                             colSpan={productColumns.length - 1}
                             className="text-end"
@@ -1448,7 +1458,7 @@ const InvoiceRegistration = () => {
                           <td></td>
                         </tr>
                       </tbody>
-                     
+
                     </table>
                     <DeletePopup
                       show={showDeleteModal}

@@ -1510,3 +1510,28 @@ export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => 
     throw error;
   }
 };
+
+export const updateCandidateDocument = (candidateId, documentId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Append each document name
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+  });
+  
+  // Append each file
+  files.forEach((file, index) => {
+    formData.append(`files[${index}]`, file);
+  });
+
+  return axiosInstance.patch(
+    `/${companyName}/candidate/${candidateId}/document/${documentId}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+};

@@ -3,6 +3,35 @@ import InvoiceTemplate1 from "./InvoiceTemplate1";
 import InvoiceTemplate2 from "./InvoiceTemplate2";
 import { useAuth } from "../../../Context/AuthContext";
 
+// Supports up to 999999999.99 and returns Indian-style words (Rupees & Paise)
+const convertNumberToWords = (amount) => {
+  const a = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven',
+    'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen',
+    'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  function numToWords(num) {
+    if ((num = num.toString()).length > 9) return 'Overflow';
+    const n = ('000000000' + num).substr(-9).match(/(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})/);
+    if (!n) return;
+    let str = '';
+    str += n[1] !== '00' ? (a[+n[1]] || b[n[1][0]] + ' ' + a[n[1][1]]) + ' Crore ' : '';
+    str += n[2] !== '00' ? (a[+n[2]] || b[n[2][0]] + ' ' + a[n[2][1]]) + ' Lakh ' : '';
+    str += n[3] !== '00' ? (a[+n[3]] || b[n[3][0]] + ' ' + a[n[3][1]]) + ' Thousand ' : '';
+    str += n[4] !== '0' ? (a[+n[4]] || b[n[4][0]] + ' ' + a[n[4][1]]) + ' Hundred ' : '';
+    str += n[5] !== '00' ? ((str !== '') ? 'and ' : '') + (a[+n[5]] || b[n[5][0]] + ' ' + a[n[5][1]]) + ' ' : '';
+    return str.trim();
+  }
+
+  const [rupees, paise] = amount.toFixed(2).split(".");
+  const rupeeWords = numToWords(rupees);
+  const paiseWords = paise && parseInt(paise) > 0 ? `and ${numToWords(paise)} Paise` : '';
+  return `${rupeeWords} Rupees ${paiseWords} Only`.replace(/\s+/g, ' ');
+};
+
+
 const InvoicePreview = ({ previewData, selectedTemplate }) => {
   const { company } = useAuth();
 
@@ -56,6 +85,7 @@ const InvoicePreview = ({ previewData, selectedTemplate }) => {
           sgst: sgst ? sgst.toFixed(2) : "",
           igst: igst ? igst.toFixed(2) : "",
           grandTotal: grandTotal.toFixed(2),
+          grandTotalInWords: convertNumberToWords(grandTotal),
         },
       },
       bankDetails: previewData.bank || {},

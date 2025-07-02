@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import LayOut from "../LayOut/LayOut";
-import { EmployeeGetApiById } from "../Utils/Axios";
+import { EmployeeGetApiById, uploadEmployeeImage } from "../Utils/Axios";
 import { useAuth } from "../Context/AuthContext";
 import { toast } from "react-toastify";
-import { fetchProfileImage,uploadProfileImage } from "../Redux/ProfileImageSlice";
+import { setProfileImage } from "../Redux/ProfileImageSlice";
 
 const EmployeeProfile = () => {
     const [error, setError] = useState("");
@@ -13,9 +13,10 @@ const EmployeeProfile = () => {
     const [localPreview, setLocalPreview] = useState("");
     const { authUser } = useAuth();
     const dispatch = useDispatch();
+    const [isUploading, setIsUploading] = useState(false);
     
     // Get profile image from Redux store
-    const { imageUrl, loading: isUploading } = useSelector((state) => state.profile);
+    const { imageUrl } = useSelector((state) => state.profile);
 
     useEffect(() => {
         if (!authUser?.userId) return;
@@ -26,10 +27,11 @@ const EmployeeProfile = () => {
                 const response = await EmployeeGetApiById(authUser?.userId);
                 if (response.data.data) {
                     setEmployeeData(response.data.data);
+                    // Set profile image in Redux store if available
+                    if (response.data.data.profileImage) {
+                        dispatch(setProfileImage(response.data.data.profileImage));
+                    }
                 }
-                
-                // Fetch profile image via Redux
-                dispatch(fetchProfileImage(authUser.userId));
             } catch (error) {
                 setError("Failed to fetch employee data");
                 console.error("Error fetching employee data:", error);
@@ -65,34 +67,35 @@ const EmployeeProfile = () => {
         reader.readAsDataURL(file);
     };
 
-    const handleUpload = async () => {
+   const handleUpload = async () => {
     if (!selectedFile) {
         toast.warning("Please select a file first");
         return;
     }
 
+    setIsUploading(true);
     try {
-        await dispatch(uploadProfileImage({
-            userId: authUser.userId,
-            file: selectedFile
-        })).unwrap();
-
-        // Refetch the image to ensure the latest version is in Redux
-        dispatch(fetchProfileImage(authUser.userId));
-
-        toast.success("Profile photo uploaded successfully!");
-        setSelectedFile(null);
-        setLocalPreview("");
+        // Just pass the file directly - the API function will create FormData
+        const response = await uploadEmployeeImage(authUser.userId, selectedFile);
+        
+        if (response.data.path) {
+            dispatch(setProfileImage(response.data.path));
+            const employeeResponse = await EmployeeGetApiById(authUser?.userId);
+            setEmployeeData(employeeResponse.data.data);
+            toast.success("Profile photo uploaded successfully!");
+        }
     } catch (error) {
         console.error("Error uploading photo:", error);
-        toast.error(error || "Failed to upload photo. Please try again.");
+        toast.error(error.response?.data?.message || "Failed to upload photo. Please try again.");
+    } finally {
+        setIsUploading(false);
+        setSelectedFile(null);
+        setLocalPreview("");
     }
 };
 
-
     // Determine which image to display
-    const displayImage = localPreview || (imageUrl ? `${imageUrl}?t=${Date.now()}` : "");
-
+    const displayImage = localPreview || imageUrl || "";
 
     // Fallback image component
     const renderFallbackImage = () => (
