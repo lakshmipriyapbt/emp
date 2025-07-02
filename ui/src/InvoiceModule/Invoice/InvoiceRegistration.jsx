@@ -411,7 +411,7 @@ const InvoiceRegistration = () => {
         setShowPreview(false);
         reset();
         toast.success("Invoice created successfully!");
-  navigate("/invoiceView", { state: { refresh: true } }); // Pass state to trigger refresh
+        navigate("/invoiceView", { state: { refresh: true } }); // Pass state to trigger refresh
       }
     } catch (error) {
       console.error("Error creating invoice:", error);
@@ -924,6 +924,7 @@ const InvoiceRegistration = () => {
                             const selectedDate = new Date(value);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
+                            selectedDate.setHours(0, 0, 0, 0); // Ensure both dates are at midnight
                             if (selectedDate > today) {
                               return "Future dates are not allowed for Invoice Date";
                             }
