@@ -4,7 +4,9 @@ import { useAuth } from '../../../Context/AuthContext';
 const InvoiceTemplate2 = ({
   companyData={},
   InvoiceStaticData={},
-  bankDetails={}
+  bankDetails={},
+  companyLogo,
+  stampImage
 }) => {
   const { company } = useAuth();
   console.log("companyData:", companyData);
@@ -42,7 +44,7 @@ const InvoiceTemplate2 = ({
             alignItems: "center",
             color: "#999"
           }}>
-            {company?.imageFile ? <img src={company.imageFile} alt="Company Logo" /> : "No Logo Available"}
+            {companyLogo ? <img src={companyLogo} alt="Company Logo" /> : "No Logo Available"}
           </div>
         </div>
 
@@ -277,7 +279,7 @@ const InvoiceTemplate2 = ({
           color: "#999",
           marginBottom: "10px"
         }}>
-          {company?.stampImage ? <img src={company.stampImage} alt="Company Stamp" /> : "No Stamp Available"}
+          {stampImage ? <img src={stampImage} alt="Company Stamp" /> : "No Stamp Available"}
         </div>
         <div style={{
           fontStyle: "italic",
