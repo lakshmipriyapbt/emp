@@ -24,13 +24,8 @@ display: flex;
 }
 .container  {
 max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-height: 1025px;
+height: 1000px;
 margin: 0 auto;
-overflow: hidden;
-border: 1px solid #eee;
-padding: 20px; /* Slightly reduced padding for tighter fit */
-box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Keep for screen view */
-box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 .header {
 display: flex;
@@ -71,7 +66,7 @@ padding-right: 15px; /* Slightly reduced padding */
 width: 250px;
 }
 .ship-to {
-top: 14%;
+top: 16%;
 position: absolute;
 right: 10px;
 padding-right: 15px; /* Slightly reduced padding */
@@ -320,7 +315,9 @@ page-break-inside: avoid;
         <p>Wire rtn: ${bank.ifscCode!''}</p>
     </div>
 
+
     <div class="footer">
+  <hr/>
         <p>${company.companyAddress},${company.mobileNo},${company.emailId}</p>
     </div>
 </div>
