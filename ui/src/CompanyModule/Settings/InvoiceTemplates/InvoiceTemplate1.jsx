@@ -1,5 +1,3 @@
-import React from "react";
-import { useAuth } from "../../../Context/AuthContext";
 
 
 const InvoiceTemplate1 = ({
@@ -9,9 +7,6 @@ const InvoiceTemplate1 = ({
   companyLogo,
   stampImage
 }) => {
-  const { company } = useAuth();
-  console.log("InvoiceStaticData:", InvoiceStaticData); 
-  console.log("companyData:", companyData);
 
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>

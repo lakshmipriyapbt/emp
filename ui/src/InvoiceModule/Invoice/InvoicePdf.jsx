@@ -1,72 +1,69 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useMemo} from "react";
 import { useAuth } from "../../Context/AuthContext";
 import InvoiceTemplate1 from "../../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate1";
 import InvoiceTemplate2 from "../../CompanyModule/Settings/InvoiceTemplates/InvoiceTemplate2";
-import { TemplateGetAPI } from "../../Utils/Axios";
-import { Bounce, toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 
 
-const InvoicePdf = ({ previewData}) => {
+
+const InvoicePdf = ({ previewData,invoiceTemplateNumber}) => {
   const { company } = useAuth();
-  const navigate = useNavigate();
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const selectedTemplate= invoiceTemplateNumber // Default to template 1 if not provided
  console.log("company:", company);
   console.log("previewData:", previewData);
-  useEffect(() => {
-    fetchTemplate();
-  }, [company.id]);
+  // useEffect(() => {
+  //   fetchTemplate();
+  // }, [company.id]);
 
-  const fetchTemplate = async () => {
-    try {
-      const res = await TemplateGetAPI(company.id);
-      const templateNumber = res.data.data.invoiceTemplateNo;
-        setSelectedTemplate(templateNumber);
+  // const fetchTemplate = async () => {
+  //   try {
+  //     const res = await TemplateGetAPI(company.id);
+  //     const templateNumber = res.data.data.invoiceTemplateNo;
+  //       setSelectedTemplate(templateNumber);
 
-      } catch (error) {
-        handleError(error);
-      }
-    };
-      const handleError = (errors) => {
-        if (errors.response) {
-          const status = errors.response.status;
-          let errorMessage = "";
+  //     } catch (error) {
+  //       handleError(error);
+  //     }
+  //   };
+  //     const handleError = (errors) => {
+  //       if (errors.response) {
+  //         const status = errors.response.status;
+  //         let errorMessage = "";
     
-          switch (status) {
-            case 403:
-              errorMessage = "Session Timeout!";
-              navigate("/");
-              break;
-            case 404:
-              errorMessage = "Resource Not Found!";
-              break;
-            case 406:
-              errorMessage = "Invalid Details!";
-              break;
-            case 500:
-              errorMessage = "Server Error!";
-              break;
-            default:
-              errorMessage = "An Error Occurred!";
-              break;
-          }    
-          toast.error(errorMessage, {
-            position: "top-right",
-            transition: Bounce,
-            hideProgressBar: true,
-            theme: "colored",
-            autoClose: 3000,
-          });
-        } else {
-          // toast.error("Network Error!", {
-          //   position: "top-right",
-          //   transition: Bounce,
-          //   hideProgressBar: true,
-          //   theme: "colored",
-          //   autoClose: 3000,
-          // });
-        }
-      };
+  //         switch (status) {
+  //           case 403:
+  //             errorMessage = "Session Timeout!";
+  //             navigate("/");
+  //             break;
+  //           case 404:
+  //             errorMessage = "Resource Not Found!";
+  //             break;
+  //           case 406:
+  //             errorMessage = "Invalid Details!";
+  //             break;
+  //           case 500:
+  //             errorMessage = "Server Error!";
+  //             break;
+  //           default:
+  //             errorMessage = "An Error Occurred!";
+  //             break;
+  //         }    
+  //         toast.error(errorMessage, {
+  //           position: "top-right",
+  //           transition: Bounce,
+  //           hideProgressBar: true,
+  //           theme: "colored",
+  //           autoClose: 3000,
+  //         });
+  //       } else {
+  //         // toast.error("Network Error!", {
+  //         //   position: "top-right",
+  //         //   transition: Bounce,
+  //         //   hideProgressBar: true,
+  //         //   theme: "colored",
+  //         //   autoClose: 3000,
+  //         // });
+  //       }
+  //     };
 
 
   const templates = useMemo(() => [
