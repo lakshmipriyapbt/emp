@@ -233,7 +233,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
                 if (employee.getProfileImage()!= null && !employee.getProfileImage().isEmpty()) {
                     String baseUrl = getBaseUrl(request);
-                    String image = baseUrl + "var/www/ems/assets/img/" + employee.getProfileImage();
+                    String image = baseUrl + "/var/www/ems/assets/img/" + employee.getProfileImage();
                     employeeResponse.setProfileImage(image);
                 }
                 employeeResponse.setPersonnelEntity(employeePersonnelEntity);
@@ -273,12 +273,12 @@ public class EmployeeServiceImpl implements EmployeeService {
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
             }
+            employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             if (entity.getProfileImage()!= null && !entity.getProfileImage().isEmpty() && request != null) {
                 String baseUrl = getBaseUrl(request);
-                String image = baseUrl + "var/www/ems/assets/img/" + entity.getProfileImage();
+                String image = baseUrl + "/var/www/ems/assets/img/" + entity.getProfileImage();
                 employeeResponse.setProfileImage(image);
             }
-            employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             employeeResponse.setPersonnelEntity(employeePersonnelEntity);
 
         } catch (Exception ex) {
@@ -901,7 +901,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             if (employee.getProfileImage()!= null){
                 String baseUrl = getBaseUrl(request);
-                String image = baseUrl + "var/www/ems/assets/img/" + employee.getProfileImage();
+                String image = baseUrl + "/var/www/ems/assets/img/" + employee.getProfileImage();
                 employee.setProfileImage(image);
             }
             log.info("Fetched employee image for employeeId: {}", employeeId);
