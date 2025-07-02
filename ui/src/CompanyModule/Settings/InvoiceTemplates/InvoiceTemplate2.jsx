@@ -102,9 +102,9 @@ const InvoiceTemplate2 = ({
             display: "inline-block",
           }}>Ship To</div>
           <div style={{ fontSize: "14px" }}>
-            <div>Recievers name: {InvoiceStaticData.shippedPayload?.[0]?.customerName || InvoiceStaticData.customer?.customerName}</div>
-            <div>Address: {InvoiceStaticData.shippedPayload?.[0]?.address || InvoiceStaticData.customer?.address}</div>
-            <div>Phone: {InvoiceStaticData.shippedPayload?.[0]?.mobileNumber || InvoiceStaticData.customer?.mobileNumber}</div>
+            <div>Recievers name: {InvoiceStaticData.invoice.shippedPayload?.customerName }</div>
+            <div>Address: {InvoiceStaticData.invoice.shippedPayload?.address}</div>
+            <div>Phone: {InvoiceStaticData.invoice.shippedPayload?.mobileNumber}</div>
           </div>
         </div>
       </div>
