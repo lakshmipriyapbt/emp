@@ -67,37 +67,32 @@ const EmployeeProfile = () => {
         reader.readAsDataURL(file);
     };
 
-    const handleUpload = async () => {
-        if (!selectedFile) {
-            toast.warning("Please select a file first");
-            return;
-        }
+   const handleUpload = async () => {
+    if (!selectedFile) {
+        toast.warning("Please select a file first");
+        return;
+    }
 
-        setIsUploading(true);
-        try {
-            const companyName = localStorage.getItem("companyName");
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-
-            const response = await uploadEmployeeImage(authUser.userId, formData);
-            
-            if (response.data.path) {
-                // Update the profile image in Redux store
-                dispatch(setProfileImage(response.data.path));
-                // Refetch employee data to get updated information
-                const employeeResponse = await EmployeeGetApiById(authUser?.userId);
-                setEmployeeData(employeeResponse.data.data);
-                toast.success("Profile photo uploaded successfully!");
-            }
-        } catch (error) {
-            console.error("Error uploading photo:", error);
-            toast.error(error.response?.data?.message || "Failed to upload photo. Please try again.");
-        } finally {
-            setIsUploading(false);
-            setSelectedFile(null);
-            setLocalPreview("");
+    setIsUploading(true);
+    try {
+        // Just pass the file directly - the API function will create FormData
+        const response = await uploadEmployeeImage(authUser.userId, selectedFile);
+        
+        if (response.data.path) {
+            dispatch(setProfileImage(response.data.path));
+            const employeeResponse = await EmployeeGetApiById(authUser?.userId);
+            setEmployeeData(employeeResponse.data.data);
+            toast.success("Profile photo uploaded successfully!");
         }
-    };
+    } catch (error) {
+        console.error("Error uploading photo:", error);
+        toast.error(error.response?.data?.message || "Failed to upload photo. Please try again.");
+    } finally {
+        setIsUploading(false);
+        setSelectedFile(null);
+        setLocalPreview("");
+    }
+};
 
     // Determine which image to display
     const displayImage = localPreview || imageUrl || "";
