@@ -456,14 +456,14 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public ResponseEntity<?> passwordResetForEmployee(EmployeePasswordReset employeePasswordReset, String id) throws EmployeeException {
         EmployeeEntity employee;
-        Collection<UserEntity> user;
+        Collection<UserEntity> user = null;
         String index = ResourceIdUtils.generateCompanyIndex(employeePasswordReset.getCompanyName());
         try {
 
             // Check if the old password and new password are the same to throw exception
-            if (!employeePasswordReset.getPassword().equals(employeePasswordReset.getNewPassword())) {
+            if (employeePasswordReset.getPassword().equals(employeePasswordReset.getNewPassword())) {
                 log.error("you can't update with the previous password");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USED_PASSWORD),
                         HttpStatus.NOT_FOUND);
             }
             user = userDao.getUsers(employeePasswordReset.getCompanyName(), id, null);
@@ -476,9 +476,9 @@ public class CompanyServiceImpl implements CompanyService {
                 }
                 byte[] decodedBytes = Base64.getDecoder().decode(employee.getPassword());
                 String decodedPassword = new String(decodedBytes, StandardCharsets.UTF_8);
-                if (decodedPassword.equals(employeePasswordReset.getPassword())){
+                if (!decodedPassword.equals(employeePasswordReset.getPassword())){
                     log.debug("checking the given Password..");
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USED_PASSWORD),
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
                             HttpStatus.NOT_FOUND);
                 }
                 String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());
@@ -494,9 +494,9 @@ public class CompanyServiceImpl implements CompanyService {
                 UserEntity userEntity = user.stream().findFirst().get();
                 byte[] decodedBytes = Base64.getDecoder().decode(userEntity.getPassword());
                 String decodedPassword = new String(decodedBytes, StandardCharsets.UTF_8);
-                if (decodedPassword.equals(employeePasswordReset.getPassword())) {
+                if (!decodedPassword.equals(employeePasswordReset.getPassword())) {
                     log.debug("checking the given Password..");
-                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USED_PASSWORD),
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_PASSWORD),
                             HttpStatus.NOT_FOUND);
                 }
                 String newPassword = Base64.getEncoder().encodeToString(employeePasswordReset.getNewPassword().toString().getBytes());

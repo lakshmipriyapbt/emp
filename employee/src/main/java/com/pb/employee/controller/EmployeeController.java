@@ -47,8 +47,8 @@ public class EmployeeController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getEmployee(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                         @PathVariable String companyName) throws IOException, EmployeeException {
-        return employeeService.getEmployees(companyName);
+                                         @PathVariable String companyName, HttpServletRequest request) throws IOException, EmployeeException {
+        return employeeService.getEmployees(companyName, request);
     }
 
     @RequestMapping(value = "/{companyName}/withoutAttendance", method = RequestMethod.GET)
@@ -69,10 +69,10 @@ public class EmployeeController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getEmployeeById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                             @PathVariable String companyName, @PathVariable String employeeId) throws IOException, EmployeeException {
+                                             @PathVariable String companyName, @PathVariable String employeeId, HttpServletRequest request) throws IOException, EmployeeException {
 
         return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(employeeService.getEmployeeById(companyName, employeeId)), HttpStatus.OK);
+                ResponseBuilder.builder().build().createSuccessResponse(employeeService.getEmployeeById(companyName, employeeId, request)), HttpStatus.OK);
     }
 
     @RequestMapping(value = "employee/{employeeId}", method = RequestMethod.PATCH,consumes = MediaType.APPLICATION_JSON_VALUE)
