@@ -12,8 +12,8 @@ import java.io.IOException;
 
 public interface EmployeeService {
     ResponseEntity<?> registerEmployee(EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException;
-    ResponseEntity<?> getEmployees(String companyName) throws IOException, EmployeeException;
-    EmployeeResponse getEmployeeById(String companyName, String employeeId) throws EmployeeException;
+    ResponseEntity<?> getEmployees(String companyName, HttpServletRequest request) throws IOException, EmployeeException;
+    EmployeeResponse getEmployeeById(String companyName, String employeeId, HttpServletRequest request) throws EmployeeException;
     ResponseEntity<?> updateEmployeeById(String employeeId, EmployeeUpdateRequest employeeUpdateRequest) throws IOException, EmployeeException;
     ResponseEntity<?> deleteEmployeeById( String companyName,String employeeId) throws EmployeeException;
 
