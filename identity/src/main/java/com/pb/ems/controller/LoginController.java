@@ -61,6 +61,16 @@ public class LoginController {
         return loginService.updateEmsAdmin(request);
     }
 
+    @PostMapping("candidate/login")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "${api.candidateLogin.tag}", description = "${api.candidateLogin.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
+    public ResponseEntity<?> candidateLogin(@RequestBody @Valid CandidateLoginRequest request) throws IdentityException {
+        return loginService.candidateLogin(request);
+    }
+
+
     @PostMapping("/token/validate")
     @io.swagger.v3.oas.annotations.Operation(
             summary = "${api.tokenvalidate.tag}", description = "${api.tokenvalidate.description}")
@@ -129,6 +139,15 @@ public class LoginController {
     public String getApi() {
         log.info("Entered the Employee API check controller");
         return Constants.SUCCESS;
+    }
+
+    @PostMapping("resend/otp")
+    @io.swagger.v3.oas.annotations.Operation(
+            summary = "${api.resendPassword.tag}", description = "${api.resendPassword.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description= "CREATED")
+    public ResponseEntity<?> resendOtp(@RequestBody @Valid ResendOtpRequest request) throws IdentityException {
+        return loginService.resendOtp(request);
     }
 
 

@@ -22,34 +22,32 @@ const InternShipTemplate2 = ({
       }}
     >
       <div className="d-flex justify-content-between align-items-center">
-        {/* Left side: Company Information */}
-        <div className="text-start">
-          <div style={{ textAlign: "left" }}>
-            <h4>{companyData?.companyName}</h4>
-            <p>{companyData?.companyAddress}</p>
-            <p>
-              {" "}
-              {companyData?.mobileNo} | {companyData?.emailId}
-            </p>
-          </div>
-        </div>
+  {/* Left side: Company Logo */}
+  <div>
+    {!draft && (
+      <img
+        src={companyLogo}
+        alt={`${companyData?.companyName} Logo`}
+        style={{
+          maxWidth: "160px",
+          height: "100px",
+          width: "160px",
+        }}
+      />
+    )}
+  </div>
 
-        {/* Right side: Company Logo */}
-        <div>
-          {!draft && (<img
-            src={companyLogo}
-            alt={`${companyData?.companyName} Logo`}
-            style={{
-              maxWidth: "160px",
-              position: "absolute",
-              top: "2px",
-              right: "20px",
-              height: "100px",
-              width: "160px",
-            }}
-          />)}
-        </div>
-      </div>
+  {/* Right side: Company Information */}
+  <div className="text-end">
+    <div style={{ textAlign: "right" }}>
+      <h4>{companyData?.companyName}</h4>
+      <p>{companyData?.companyAddress}</p>
+      <p>
+        {companyData?.mobileNo} | {companyData?.emailId}
+      </p>
+    </div>
+  </div>
+</div>
       {!draft && (<div
         style={{
           position: "absolute",
@@ -58,6 +56,8 @@ const InternShipTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "50%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`,
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -106,10 +106,6 @@ const InternShipTemplate2 = ({
           <p className="mb-5">With Best Wishes,</p>
           <div className="mt-5 pt-5">
             <p>Authorized Signature</p>
-            {!draft&&(<img 
-              src={companyData?.stampImage}
-              alt="Stamp"
-              style={{ height: "100px", width: "160px" }}/>)}
           </div>
         </div>
       </div>

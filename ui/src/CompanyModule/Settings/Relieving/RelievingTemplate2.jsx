@@ -13,6 +13,7 @@ const RelievingTemplate2 = ({
   lastWorkingDate,
   draft,
   date,
+  stamp
 }) => {
   // const formatDate = (date) => {
   //   const d = new Date(date);
@@ -23,7 +24,7 @@ const RelievingTemplate2 = ({
   // };
 
   // const date = formatDate(new Date());
-  
+
   const { logoFileName } = useAuth();
 
   return (
@@ -34,24 +35,30 @@ const RelievingTemplate2 = ({
         position: "relative",
       }}
     >
-      {/* Company Logo positioned at the top right */}
-       {!draft && (  <img
-        src={companyLogo}
-        alt={`${companyData.companyName} Logo`}
-        style={{
-          maxWidth: "160px",
-          position: "absolute",
-          top: "2px",
-          right: "20px",
-          height: "100px",
-          width: "160px",
-        }}
-      />)}
-      <p className="mb-2">{date}</p>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        {/* Left: Company Logo */}
+        <div>
+          {!draft && (
+            <img
+              src={companyLogo}
+              alt={`${companyData.companyName} Logo`}
+              style={{
+                maxWidth: "160px",
+                height: "100px",
+                width: "160px",
+              }}
+            />
+          )}
+        </div>
+        {/* Right: Date */}
+        <div>
+          <p className="mb-2" style={{ textAlign: "right" }}>{date}</p>
+        </div>
+      </div>
 
       <h4 className="text-center mt-2">Relieving Letter</h4>
       {/* Background Image (Watermark) */}
-        {!draft && (  <div
+      {!draft && (<div
         style={{
           position: "absolute",
           top: "40%",
@@ -59,6 +66,8 @@ const RelievingTemplate2 = ({
           right: "30%",
           width: "50%",
           height: "40%",
+          opacity: 0.3, // Adjust opacity for watermark effect
+          border: "none",
           backgroundImage: `url(${companyLogo})`, // Use the logo or another image
           transform: "rotate(340deg)",
           backgroundSize: "contain",
@@ -106,11 +115,14 @@ const RelievingTemplate2 = ({
 
         <div className="mt-5">
           <p className="mb-5">Best Regards,</p>
-          <p className="mt-5">Authorized Signature,</p>
-           {!draft && (  <img 
-           src={companyData?.stampImage}
-           alt="Stamp"
-           style={{ height: "100px", width: "160px" }}/> )}
+          {!draft && (
+            <img
+              src={stamp}
+              alt="Stamp"
+              style={{ height: "100px", width: "160px" }}
+            />
+          )}
+          <p>Authorized Signature,</p>
           <h5>{companyData.companyName}</h5>
           <p>{companyData.companyAddress}</p>
           <p>{companyData.cityStatePin}</p>

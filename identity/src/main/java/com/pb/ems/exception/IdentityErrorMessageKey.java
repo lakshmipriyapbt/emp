@@ -15,7 +15,9 @@ public enum IdentityErrorMessageKey {
     USED_PASSWORD("user.password"),
     UNABLE_TO_SEARCH("unable.search"),
     COMPANY_UNDER_REVIEW("company.under.review"),
-    EMPLOYEE_INACTIVE("employee.inactive");
+    EMPLOYEE_INACTIVE("employee.inactive"),
+    CANDIDATE_INACTIVE("candidate.inactive"),
+    CANDIDATE_NOT_FOUND("candidate.not.found"),;
     private final String key;
 
     IdentityErrorMessageKey(String keyVal) {

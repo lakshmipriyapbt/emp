@@ -10,6 +10,8 @@ import com.invoice.opensearch.OpenSearchOperations;
 import com.invoice.request.CustomerRequest;
 import com.invoice.request.InvoiceRequest;
 import com.invoice.request.ProductColumnsRequest;
+import com.invoice.request.ShippedPayload;
+import com.invoice.response.InvoiceResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ public class InvoiceUtils {
     @Autowired
     private static OpenSearchOperations openSearchOperations;
 
-    public static InvoiceModel maskInvoiceProperties(InvoiceRequest request, String invoiceId, String invoiceNo, CompanyEntity companyEntity, CustomerModel customerModel, BankEntity bankEntity) throws InvoiceException {
+    public static InvoiceModel maskInvoiceProperties(InvoiceRequest request, String invoiceId, String invoiceNo, CompanyEntity companyEntity, CustomerModel customerModel,BankEntity bankEntity) throws InvoiceException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         // Convert the InvoiceRequest to InvoiceModel
@@ -57,9 +59,7 @@ public class InvoiceUtils {
         entity.setStatus(request.getStatus());
         entity.setCompanyId(companyEntity.getId());
         entity.setCustomerId(customerModel.getCustomerId());
-        entity.setBank(bankEntity);
-        entity.setCustomer(customerModel);
-        entity.setCompany(companyEntity);
+        entity.setBankId(bankEntity.getBankId());
         entity.setInvoiceNo(invoiceNo);
 
         // Mask productData (List<Map<String, String>>)
@@ -69,7 +69,6 @@ public class InvoiceUtils {
                     .collect(Collectors.toList());
             entity.setProductData(maskedProductData);
         }
-
 
         double subTotal = parseAmount(request.getSubTotal());
         double cGst = 0.0, sGst = 0.0, iGst = 0.0, grandTotal = subTotal;
@@ -102,12 +101,25 @@ public class InvoiceUtils {
             entity.setProductColumns(maskedColumns);
         }
 
+        if (request.getShippedPayload() != null) {
+
+            ShippedPayload maskedShippedPayload = maskShippedPayload(request.getShippedPayload());
+            entity.setShippedPayload(maskedShippedPayload);
+        }
+
         // Mask other string fields
         entity.setInvoiceDate(maskValue(request.getInvoiceDate()));
+        entity.setNotes(maskValue(request.getNotes()));
         entity.setDueDate(maskValue(request.getDueDate()));
         entity.setPurchaseOrder(maskValue(request.getPurchaseOrder()));
         entity.setVendorCode(maskValue(request.getVendorCode()));
         entity.setSubTotal(maskValue(request.getSubTotal()));
+        entity.setSalesPerson(maskValue(request.getSalesPerson()));
+        entity.setShippingMethod(maskValue(request.getShippingMethod()));
+        entity.setShippingTerms(maskValue(request.getShippingTerms()));
+        entity.setPaymentTerms(maskValue(request.getPaymentTerms()));
+        entity.setDeliveryDate(maskValue(request.getDeliveryDate()));
+        entity.setInvoiceTemplateNo(maskValue(request.getInvoiceTemplateNo()));
 
         return entity;
     }
@@ -130,6 +142,14 @@ public class InvoiceUtils {
                 .build();
     }
 
+    private static ShippedPayload maskShippedPayload(ShippedPayload shippedPayload) {
+        return ShippedPayload.builder()
+                .customerName(maskValue(shippedPayload.getCustomerName()))
+                .address(maskValue(shippedPayload.getAddress()))
+                .mobileNumber(maskValue(shippedPayload.getMobileNumber()))
+                .build();
+    }
+
     // Masking logic (Base64 encoding)
     private static String maskValue(String value) {
         if (value == null || value.isEmpty()) {
@@ -138,8 +158,52 @@ public class InvoiceUtils {
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
+    public static CustomerModel unMaskCustomerProperties(CustomerModel customerModel) {
+        if (customerModel != null) {
+            log.debug("Unmasking customer: {}", customerModel);
+            customerModel.setCustomerName(unMaskValue(customerModel.getCustomerName()));
+            customerModel.setCustomerGstNo(unMaskValue(customerModel.getCustomerGstNo()));
+            customerModel.setAddress(unMaskValue(customerModel.getAddress()));
+            customerModel.setCity(unMaskValue(customerModel.getCity()));
+            customerModel.setState(unMaskValue(customerModel.getState()));
+            customerModel.setStateCode(unMaskValue(customerModel.getStateCode()));
+            customerModel.setPinCode(unMaskValue(customerModel.getPinCode()));
+            customerModel.setMobileNumber(unMaskValue(customerModel.getMobileNumber()));
+            customerModel.setEmail(unMaskValue(customerModel.getEmail()));
+        }
+        return customerModel;
+    }
 
-    public static void unMaskInvoiceProperties(InvoiceModel invoiceEntity, HttpServletRequest request) {
+    public static CompanyEntity unMaskCompanyProperties(CompanyEntity companyEntity,HttpServletRequest request) {
+        if (companyEntity != null) {
+            log.debug("Unmasking company: {}", companyEntity);
+            companyEntity.setGstNo(unMaskValue(companyEntity.getGstNo()));
+            companyEntity.setPanNo(unMaskValue(companyEntity.getPanNo()));
+            companyEntity.setMobileNo(unMaskValue(companyEntity.getMobileNo()));
+            companyEntity.setCinNo(unMaskValue(companyEntity.getCinNo()));
+            String baseUrl = getBaseUrl(request);
+            String image = baseUrl + "var/www/ems-testing/assets/img/" + companyEntity.getImageFile();
+            companyEntity.setImageFile(image);
+            String stampImage = baseUrl + "var/www/ems-testing/assets/img/" + companyEntity.getStampImage();
+            companyEntity.setStampImage(stampImage);
+        }
+        return companyEntity;
+    }
+
+    public static BankEntity unMaskBankProperties(BankEntity bankEntity) {
+        if (bankEntity != null) {
+            log.debug("Unmasking bank: {}", bankEntity);
+            bankEntity.setAccountNumber(unMaskValue(bankEntity.getAccountNumber()));
+            bankEntity.setAccountType(unMaskValue(bankEntity.getAccountType()));
+            bankEntity.setBankName(unMaskValue(bankEntity.getBankName()));
+            bankEntity.setBranch(unMaskValue(bankEntity.getBranch()));
+            bankEntity.setIfscCode(unMaskValue(bankEntity.getIfscCode()));
+            bankEntity.setAddress(unMaskValue(bankEntity.getAddress()));
+        }
+        return bankEntity;
+    }
+
+    public static void unMaskInvoiceProperties(InvoiceModel invoiceEntity) {
         if (invoiceEntity != null) {
             log.debug("Unmasking invoice: {}", invoiceEntity);
 
@@ -153,7 +217,13 @@ public class InvoiceUtils {
             invoiceEntity.setVendorCode(unMaskValue(invoiceEntity.getVendorCode()));
             invoiceEntity.setSubTotal(unMaskValue(invoiceEntity.getSubTotal()));
             invoiceEntity.setInvoiceNo(invoiceEntity.getInvoiceNo());
-
+            invoiceEntity.setNotes(unMaskValue(invoiceEntity.getNotes()));
+            invoiceEntity.setSalesPerson(unMaskValue(invoiceEntity.getSalesPerson()));
+            invoiceEntity.setShippingTerms(unMaskValue(invoiceEntity.getShippingTerms()));
+            invoiceEntity.setShippingMethod(unMaskValue(invoiceEntity.getShippingMethod()));
+            invoiceEntity.setPaymentTerms(unMaskValue(invoiceEntity.getPaymentTerms()));
+            invoiceEntity.setDeliveryDate(unMaskValue(invoiceEntity.getDeliveryDate()));
+            invoiceEntity.setInvoiceTemplateNo(unMaskValue(invoiceEntity.getInvoiceTemplateNo()));
 
             // Unmask productData (List<Map<String, String>>)
             if (invoiceEntity.getProductData() != null) {
@@ -176,86 +246,66 @@ public class InvoiceUtils {
                         .collect(Collectors.toList());
                 invoiceEntity.setProductColumns(unmaskedColumns);
             }
-
-            if (invoiceEntity.getCustomer() != null) {
-                log.debug("Before unmasking customer: {}", invoiceEntity.getCustomer());
-                invoiceEntity.getCustomer().setAddress(unMaskValue(invoiceEntity.getCustomer().getAddress()));
-                invoiceEntity.getCustomer().setCity(unMaskValue(invoiceEntity.getCustomer().getCity()));
-                invoiceEntity.getCustomer().setState(unMaskValue(invoiceEntity.getCustomer().getState()));
-                invoiceEntity.getCustomer().setStateCode(unMaskValue(invoiceEntity.getCustomer().getStateCode()));
-                invoiceEntity.getCustomer().setPinCode(unMaskValue(invoiceEntity.getCustomer().getPinCode()));
-                invoiceEntity.getCustomer().setMobileNumber(unMaskValue(invoiceEntity.getCustomer().getMobileNumber()));
-                invoiceEntity.getCustomer().setEmail(unMaskValue(invoiceEntity.getCustomer().getEmail()));
-                invoiceEntity.getCustomer().setCustomerGstNo(unMaskValue(invoiceEntity.getCustomer().getCustomerGstNo()));
-                invoiceEntity.getCustomer().setCustomerName(unMaskValue(invoiceEntity.getCustomer().getCustomerName()));
-                log.debug("After unmasking customer: {}", invoiceEntity.getCustomer());
+            if (invoiceEntity.getShippedPayload() != null) {
+                ShippedPayload unmaskedShippedPayload = unMaskShippedPayload(invoiceEntity.getShippedPayload());
+                invoiceEntity.setShippedPayload(unmaskedShippedPayload);
             }
+        }
+    }
 
-            if (invoiceEntity.getBank() != null) {
-                log.debug("Before unmasking bank: {}", invoiceEntity.getBank());
-                invoiceEntity.getBank().setAccountNumber(unMaskValue(invoiceEntity.getBank().getAccountNumber()));
-                invoiceEntity.getBank().setAccountType(unMaskValue(invoiceEntity.getBank().getAccountType()));
-                invoiceEntity.getBank().setBankName(unMaskValue(invoiceEntity.getBank().getBankName()));
-                invoiceEntity.getBank().setBranch(unMaskValue(invoiceEntity.getBank().getBranch()));
-                invoiceEntity.getBank().setIfscCode(unMaskValue(invoiceEntity.getBank().getIfscCode()));
-                invoiceEntity.getBank().setAddress(unMaskValue(invoiceEntity.getBank().getAddress()));
-                log.debug("After unmasking bank: {}", invoiceEntity.getBank());
-            }
+    public static void calculateGrandTotal(InvoiceModel invoiceEntity, InvoiceResponse invoiceResponse) {
+        double subTotal = parseAmount(invoiceEntity.getSubTotal());
+        double grandTotal = subTotal;
 
-            if (invoiceEntity.getCompany() != null) {
-                log.debug("Before unmasking company: {}", invoiceEntity.getCompany());
-                invoiceEntity.getCompany().setGstNo(unMaskValue(invoiceEntity.getCompany().getGstNo()));
-                invoiceEntity.getCompany().setPanNo(unMaskValue(invoiceEntity.getCompany().getPanNo()));
-                invoiceEntity.getCompany().setMobileNo(unMaskValue(invoiceEntity.getCompany().getMobileNo()));
-                invoiceEntity.getCompany().setCinNo(unMaskValue(invoiceEntity.getCompany().getCinNo()));
-                String baseUrl = getBaseUrl(request);
-                String image = baseUrl + "var/www/ems-testing/assets/img/" + invoiceEntity.getCompany().getImageFile();
-                invoiceEntity.getCompany().setImageFile(image);
-                String stampImage = baseUrl + "var/www/ems-testing/assets/img/" + invoiceEntity.getCompany().getStampImage();
-                invoiceEntity.getCompany().setStampImage(stampImage);
-            }
-            // Convert subTotal to a numeric value
-            double subTotal = parseAmount(invoiceEntity.getSubTotal());
-            double iGst, sGst, cGst;
-            double grandTotal = subTotal;
+        String cGstStr = invoiceEntity.getCGst();
+        String sGstStr = invoiceEntity.getSGst();
+        String iGstStr = invoiceEntity.getIGst();
 
+        try {
+            if (cGstStr != null && !cGstStr.equals("0.00") &&
+                    sGstStr != null && !sGstStr.equals("0.00")) {
 
-                    if (invoiceEntity.getCGst() != null && !invoiceEntity.getCGst().equals("0.00") && invoiceEntity.getSGst() != null && !invoiceEntity.getSGst().equals("0.00")) {
-                        cGst = Double.parseDouble(invoiceEntity.getCGst());
-                        sGst = Double.parseDouble(invoiceEntity.getSGst());
-                        grandTotal +=  cGst + sGst;
-                    } else if (invoiceEntity.getIGst() != null && !invoiceEntity.getIGst().equals("0.00")){
-                        iGst = Double.parseDouble(invoiceEntity.getIGst());
-                        grandTotal += iGst;
-                    }else if (invoiceEntity.getCGst() != null && invoiceEntity.getSGst() != null && invoiceEntity.getIGst() != null){
-                        String companyGstNo = (invoiceEntity.getCompany() != null) ? invoiceEntity.getCompany().getGstNo() : null;
-                        String customerGstNo = (invoiceEntity.getCustomer() != null) ? invoiceEntity.getCustomer().getCustomerGstNo() : null;
+                double cGst = Double.parseDouble(cGstStr);
+                double sGst = Double.parseDouble(sGstStr);
+                grandTotal += cGst + sGst;
 
-                        // Validate GST numbers
-                        if (customerGstNo != null && !customerGstNo.isEmpty() && !customerGstNo.matches("^0+$")) {
-                            if (companyGstNo != null && companyGstNo.length() >= 2 && customerGstNo.length() >= 2) {
-                                // Compare first two digits
-                                if (companyGstNo.substring(0, 2).equals(customerGstNo.substring(0, 2))) {
-                                    cGst = subTotal * 0.09; // 9% CGST
-                                    sGst = subTotal * 0.09; // 9% SGST
-                                    grandTotal += cGst + sGst;
-                                } else {
-                                    iGst = subTotal * 0.18; // 18% IGST
-                                    grandTotal += iGst;
-                                }
-                            }
+            } else if (iGstStr != null && !iGstStr.equals("0.00")) {
+                double iGst = Double.parseDouble(iGstStr);
+                grandTotal += iGst;
+
+            } else if (cGstStr != null && sGstStr != null && iGstStr != null) {
+                String companyGstNo = (invoiceResponse.getCompany() != null) ? invoiceResponse.getCompany().getGstNo() : null;
+                String customerGstNo = (invoiceResponse.getCustomer() != null) ? invoiceResponse.getCustomer().getCustomerGstNo() : null;
+
+                if (customerGstNo != null && !customerGstNo.isEmpty() && !customerGstNo.matches("^0+$")) {
+                    if (companyGstNo != null && companyGstNo.length() >= 2 &&
+                            customerGstNo.length() >= 2) {
+
+                        if (companyGstNo.substring(0, 2).equals(customerGstNo.substring(0, 2))) {
+                            double cGst = subTotal * 0.09;
+                            double sGst = subTotal * 0.09;
+                            invoiceEntity.setCGst(formatAmount(cGst));
+                            invoiceEntity.setSGst(formatAmount(sGst));
+                            invoiceEntity.setIGst("0.00");
+                            grandTotal += cGst + sGst;
+                        } else {
+                            double iGst = subTotal * 0.18;
+                            invoiceEntity.setIGst(formatAmount(iGst));
+                            invoiceEntity.setCGst("0.00");
+                            invoiceEntity.setSGst("0.00");
+                            grandTotal += iGst;
                         }
                     }
+                }
+            }
 
+            // Set grand total and total in words
             invoiceEntity.setGrandTotal(formatAmount(grandTotal));
-
-            // Convert grand total to words and set it in the entity
             BigDecimal grandTotalValue = new BigDecimal(grandTotal);
-            String grandTotalInWords = NumberToWordsConverter.convert(grandTotalValue);
-            invoiceEntity.setGrandTotalInWords(grandTotalInWords);
+            invoiceEntity.setGrandTotalInWords(NumberToWordsConverter.convert(grandTotalValue));
 
-            log.debug("Updated Invoice - cGst: {}, sGst: {}, iGst: {}, grandTotal: {}",
-                    invoiceEntity.getCGst(), invoiceEntity.getSGst(), invoiceEntity.getIGst(), invoiceEntity.getGrandTotal());
+        } catch (NumberFormatException e) {
+            log.error("Error parsing tax amounts: {}", e.getMessage(), e);
         }
     }
 
@@ -301,6 +351,15 @@ public class InvoiceUtils {
             column.setTitle(unMaskValue(column.getTitle()));
         }
         return column;
+    }
+
+    private static ShippedPayload unMaskShippedPayload(ShippedPayload shippedPayload) {
+        if (shippedPayload != null) {
+            shippedPayload.setCustomerName(unMaskValue(shippedPayload.getCustomerName()));
+            shippedPayload.setAddress(unMaskValue(shippedPayload.getAddress()));
+            shippedPayload.setMobileNumber(unMaskValue(shippedPayload.getMobileNumber()));
+        }
+        return shippedPayload;
     }
 
     /**
@@ -356,5 +415,4 @@ public class InvoiceUtils {
 
         return financialYear + "-001"; // Example: 2024-25-001
     }
-
 }

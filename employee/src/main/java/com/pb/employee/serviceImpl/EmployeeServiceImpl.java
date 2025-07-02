@@ -1,16 +1,17 @@
 package com.pb.employee.serviceImpl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
-import com.pb.employee.common.ResponseObject;
+import com.pb.employee.dao.CandidateDao;
+import com.pb.employee.dao.EmployeeDocumentDao;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.EmployeeExperience;
+import com.pb.employee.request.CandidatePayload.CandidateRequest;
+import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
 import com.pb.employee.response.EmployeeResponse;
@@ -22,23 +23,22 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
@@ -58,8 +58,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private EmailUtils emailUtils;
 
+    @Value("${file.upload.path}")
+    private  String folderPath;
+
     @Autowired
     private Configuration freemarkerConfig;
+
+    @Autowired
+    private CandidateDao candidateDao;
+
+    @Autowired
+    private EmployeeDocumentDao employeeDocumentDao;
 
     @Override
     public ResponseEntity<?> registerEmployee(EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException{
@@ -98,15 +107,31 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS), employeeRequest.getEmployeeId()),
                     HttpStatus.CONFLICT);
         }
+        try {
+            String companyFolderPath = folderPath + employeeRequest.getCompanyName();
+            File companyFolder = new File(companyFolderPath);
+            if (!companyFolder.exists()) {
+                log.error("Company folder does not exist: {}", companyFolderPath);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST), companyFolderPath),
+                        HttpStatus.NOT_FOUND);
+            }
+        }catch (EmployeeException exception){
+             log.error("Company folder does not exist");
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_FOLDER_NOT_EXIST),
+                    HttpStatus.NOT_FOUND);
+        }
+
         try{
             DepartmentEntity departmentEntity =null;
-            DesignationEntity designationEntity = null;
+            List<DesignationEntity> designationEntity = null;
             departmentEntity = openSearchOperations.getDepartmentById(employeeRequest.getDepartment(), null, index);
             if (departmentEntity == null){
-
+                return new ResponseEntity<>(
+                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
+                        HttpStatus.CONFLICT);
             }
-            designationEntity = openSearchOperations.getDesignationById(employeeRequest.getDesignation(), null, index);
-            if (designationEntity == null){
+            designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeRequest.getCompanyName(), employeeRequest.getDepartment(), employeeRequest.getDesignation());
+            if (designationEntity == null && designationEntity.size() <= 0){
                 return new ResponseEntity<>(
                         ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                         HttpStatus.CONFLICT);
@@ -114,7 +139,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
             defaultPassword = PasswordUtils.generateStrongPassword();
-            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword);
+            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword,null);
             EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(employeeRequest.getPersonnelEntity(), EmployeePersonnelEntity.class);
             employeePersonnelEntity.setEmployeeId(resourceId);
             employeePersonnelEntity.setId(employeeExperienceId);
@@ -145,7 +170,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<?> getEmployees(String companyName) throws EmployeeException, IOException {
+    public ResponseEntity<?> getEmployees(String companyName, HttpServletRequest request) throws EmployeeException, IOException {
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         List<EmployeeEntity> employeeEntities = null;
         List<EmployeeResponse> employeeResponses = new ArrayList<>();
@@ -206,6 +231,11 @@ public class EmployeeServiceImpl implements EmployeeService {
                     employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employee.getId(), index);
                 }
                 EmployeeResponse employeeResponse = objectMapper.convertValue(employee, EmployeeResponse.class);
+                if (employee.getProfileImage()!= null && !employee.getProfileImage().isEmpty()) {
+                    String baseUrl = getBaseUrl(request);
+                    String image = baseUrl + "var/www/ems/assets/img/" + employee.getProfileImage();
+                    employeeResponse.setProfileImage(image);
+                }
                 employeeResponse.setPersonnelEntity(employeePersonnelEntity);
                 employeeResponses.add(employeeResponse);
             }
@@ -224,11 +254,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeResponse getEmployeeById(String companyName, String employeeId) throws EmployeeException {
+    public EmployeeResponse getEmployeeById(String companyName, String employeeId, HttpServletRequest request) throws EmployeeException {
         log.info("getting details of {}", employeeId);
         EmployeeEntity entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
-        EmployeeResponse employeeResponse;
+        EmployeeResponse employeeResponse = null;
         EmployeePersonnelEntity employeePersonnelEntity = null;
         try {
             entity = openSearchOperations.getEmployeeById(employeeId, null, index);
@@ -242,6 +272,11 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
             if (!entity.getEmployeeType().equalsIgnoreCase(Constants.ADMIN)) {
                 employeePersonnelEntity = openSearchOperations.getEmployeePersonnelDetails(employeeId, index);
+            }
+            if (entity.getProfileImage()!= null && !entity.getProfileImage().isEmpty() && request != null) {
+                String baseUrl = getBaseUrl(request);
+                String image = baseUrl + "var/www/ems/assets/img/" + entity.getProfileImage();
+                employeeResponse.setProfileImage(image);
             }
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             employeeResponse.setPersonnelEntity(employeePersonnelEntity);
@@ -294,16 +329,17 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        DesignationEntity designationEntity = null;
-        DepartmentEntity departmentEntity = null;
+
+        DepartmentEntity departmentEntity =null;
+        List<DesignationEntity> designationEntity = null;
         departmentEntity = openSearchOperations.getDepartmentById(employeeUpdateRequest.getDepartment(), null, index);
         if (departmentEntity == null){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
                     HttpStatus.CONFLICT);
         }
-        designationEntity = openSearchOperations.getDesignationById(employeeUpdateRequest.getDesignation(), null, index);
-        if (designationEntity == null){
+        designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(employeeUpdateRequest.getCompanyName(), employeeUpdateRequest.getDepartment(), employeeUpdateRequest.getDesignation());
+        if (designationEntity == null && designationEntity.size() <= 0){
             return new ResponseEntity<>(
                     ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION)))),
                     HttpStatus.CONFLICT);
@@ -336,7 +372,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         EmployeeResponse entity = null;
         String index = ResourceIdUtils.generateCompanyIndex(companyName);
         try {
-            entity = this.getEmployeeById(companyName, employeeId);
+            entity = this.getEmployeeById(companyName, employeeId, null);
         } catch (Exception ex) {
             log.error("Exception while fetching employee details: {}", ex.getMessage(), ex);
             throw new EmployeeException(
@@ -653,5 +689,249 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
         }
         return emptyNames.toArray(new String[0]);
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeId(String companyName, EmployeeIdRequest employeeIdRequest) throws IOException, EmployeeException {
+
+        log.info("Getting employee ID for company: {}", companyName);
+        try {
+            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+            if (companyEntity == null) {
+                log.error("Company not found: {}", companyName);
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+            List<EmployeeEntity> employeeEntities = openSearchOperations.getCompanyEmployeeByData(companyName,employeeIdRequest.getEmployeeId(),null);
+
+            if (employeeEntities !=null && employeeEntities.size() > 0)  {
+                log.error("Employee ID already exist: {}", employeeIdRequest.getEmployeeId());
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_ID_ALREADY_EXISTS),employeeIdRequest.getEmployeeId()), HttpStatus.NOT_FOUND);
+            }
+            log.info("Employee ID is null: {}", employeeIdRequest.getEmployeeId());
+            return new ResponseEntity<>(
+                    ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        }catch (EmployeeException exception){
+            log.error("Exception while fetching employee ID: {}", exception.getMessage());
+            throw exception;
+        } catch (Exception e) {
+            log.error("An unexpected error occurred: {}", e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_EMPLOYEES), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> registerEmployeeWithCandidate(EmployeeRequest request, String candidateId, HttpServletRequest httpRequest) throws EmployeeException {
+        String defaultPassword;
+        log.debug("Validating candidateId {} and email {}", candidateId, request.getEmailId());
+
+        String resourceId = ResourceIdUtils.generateEmployeeResourceId(request.getEmailId());
+        String employeeExperienceId = ResourceIdUtils.generateEmployeePersonnelId(resourceId);
+        String index = ResourceIdUtils.generateCompanyIndex(request.getCompanyName());
+
+        Object existingEmployee;
+        Optional<EmployeeDocumentEntity> documentEntityOptional;
+        Collection<CandidateEntity> candidates;
+        try {
+            CompanyEntity company = openSearchOperations.getCompanyByCompanyName(request.getCompanyName(), Constants.INDEX_EMS);
+            if (company == null) {
+                log.warn("Company not found with name: {}", request.getCompanyName());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
+            candidates= candidateDao.getCandidates(request.getCompanyName(), candidateId, company.getId());
+            if (CollectionUtils.isEmpty(candidates)) {
+                log.warn("Candidate not found for candidateId: {}, companyName: {}, companyId: {}", candidateId, request.getCompanyName(), company.getId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_EXIST), HttpStatus.NOT_FOUND);
+            }
+
+            // Candidate exists, now check if they have uploaded documents
+            documentEntityOptional = employeeDocumentDao.getByDocuments(candidateId, request.getCompanyName());
+            if (documentEntityOptional.isEmpty()) {
+                log.warn("Candidate {} has not uploaded any documents in company {}", candidateId, request.getCompanyName());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_UPLOADED_DOCUMENTS), HttpStatus.NOT_FOUND);
+            }
+
+            List<EmployeeEntity> employees = openSearchOperations.getCompanyEmployees(request.getCompanyName());
+            boolean candidateAlreadyExists = employees.stream().anyMatch(emp -> candidateId.equals(emp.getCandidateId()));
+            if (candidateAlreadyExists) {
+                log.error("Candidate {} has already been converted to an employee. Cannot register again.", candidateId);
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_ALREADY_EXISTS), candidateId), HttpStatus.CONFLICT);
+            }
+
+            existingEmployee = openSearchOperations.getById(resourceId, null, index);
+            if (existingEmployee != null) {
+                log.error("Employee already exists with email: {}", request.getEmailId());
+                throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS), request.getEmailId()), HttpStatus.CONFLICT);
+            }
+
+            Map<String, Object> duplicateValues = EmployeeUtils.duplicateValues(request, employees);
+            if (!duplicateValues.isEmpty()) {
+                log.warn("Duplicate employee details found: {}", duplicateValues);
+                return new ResponseEntity<>(ResponseBuilder.builder().build().failureResponse(duplicateValues), HttpStatus.CONFLICT);
+            }
+        } catch (IOException e) {
+            log.error("Unable to get company details for {}", request.getCompanyName());
+            throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_EMPLOYEE), request.getEmailId()), HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(request.getDepartment(), null, index);
+            if (departmentEntity == null) {
+                log.warn("Department not found with ID: {} in index: {}", request.getDepartment(), index);
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT))), HttpStatus.CONFLICT);
+            }
+
+            List<DesignationEntity> designationEntity = openSearchOperations.getCompanyDesignationByDepartmentId(request.getCompanyName(), request.getDepartment(), request.getDesignation());
+            if (designationEntity == null || designationEntity.isEmpty()) {
+                log.warn("No designation found for company: {}, department: {}, designationId: {}", request.getCompanyName(), request.getDepartment(), request.getDesignation());
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DESIGNATION))), HttpStatus.CONFLICT);
+            }
+
+            List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, request.getCompanyName());
+            if (shortNameEntity.isEmpty()) {
+                log.warn("Company not found with name: {}", request.getCompanyName());
+                return new ResponseEntity<>(ResponseBuilder.builder().build().createFailureResponse(new Exception(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_COMPANY))), HttpStatus.CONFLICT);
+            }
+            defaultPassword = PasswordUtils.generateStrongPassword();
+            log.info("Generated default password for employee");
+
+            Entity companyEntity = EmployeeUtils.maskEmployeeProperties(request, resourceId, shortNameEntity.getFirst().getId(), defaultPassword, candidateId);
+            EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(request.getPersonnelEntity(), EmployeePersonnelEntity.class);
+            employeePersonnelEntity.setEmployeeId(resourceId);
+            employeePersonnelEntity.setId(employeeExperienceId);
+            employeePersonnelEntity.setType(Constants.EMPLOYEE_PERSONNEL);
+
+            openSearchOperations.saveEntity(employeePersonnelEntity, employeeExperienceId, index);
+            log.info("Saved employee personnel entity with id {}", employeeExperienceId);
+            openSearchOperations.saveEntity(companyEntity, resourceId, index);
+            log.info("Saved employee company entity with id {}", resourceId);
+
+            candidateDao.get(candidates.stream().findFirst().get().getId(), request.getCompanyName())
+                    .ifPresent(candidate -> {
+                        candidate.setStatus(Constants.CONVERTED);
+                        try {
+                            candidateDao.save(candidate, request.getCompanyName());
+                        } catch (EmployeeException e) {
+                            throw new RuntimeException(e);
+                        }
+                        log.info("Updated candidate status to CONVERTED for candidateId {}", candidate.getId());
+                    });
+            if (documentEntityOptional.isPresent()) {
+                EmployeeDocumentEntity document = documentEntityOptional.get();
+                document.setReferenceId(resourceId);
+                log.info("Linking employeeRefId {} to existing candidate document {}", resourceId, document.getId());
+                employeeDocumentDao.save(document, request.getCompanyName());
+                log.info("Linked candidate document to employee {}", resourceId);
+            }
+
+        } catch (Exception e) {
+            log.error("Unable to save employee details for email {}: {}", request.getEmailId(), e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_EMPLOYEE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                String companyUrl = EmailUtils.getBaseUrl(httpRequest) + request.getCompanyName() + Constants.SLASH + Constants.LOGIN;
+                log.info("Sending registration email to: {}", request.getEmailId());
+                emailUtils.sendRegistrationEmail(request.getEmailId(), companyUrl, Constants.EMPLOYEE, defaultPassword);
+            } catch (Exception e) {
+                log.error("Failed to send email to: {}", request.getEmailId());
+                throw new RuntimeException(e);
+            }
+        });
+
+        log.info("Employee {} registered successfully with candidateId {}", request.getEmailId(), candidateId);
+        return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<?> uploadEmployeeImage(String companyName, String employeeId, MultipartFile file) throws EmployeeException, IOException {
+        log.info("Uploading employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+            List<String> allowedFileTypes = Arrays.asList(Constants.IMAGE_JPG, Constants.IMAGE_PNG, Constants.IMAGE_SVG);
+            if (!file.isEmpty()){
+                // Validate file type
+                String contentType = file.getContentType();
+                if (!allowedFileTypes.contains(contentType)) {
+                    // Return an error response if file type is invalid
+                    log.error("Invalid file type: {}", contentType);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_IMAGE), HttpStatus.BAD_REQUEST);
+                }
+                multiPartFileStore(file, companyName, employee);
+            }
+
+            openSearchOperations.saveEntity(employee, employeeId, indexName);
+            log.info("Employee document entity saved for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.OK);
+        } catch (EmployeeException ex) {
+            log.error("EmployeeException while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while uploading employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_UPLOAD_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getEmployeeImage(String companyName, String employeeId,HttpServletRequest request) throws EmployeeException, IOException {
+        log.info("Fetching employee image for company: {}, employeeId: {}", companyName, employeeId);
+        String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
+        CompanyEntity company = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
+        if (company == null) {
+            log.error("Company not found for name: {}", companyName);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
+        }
+        EmployeeEntity employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
+        if (employee == null) {
+            log.error("Employee not found for ID: {}", employeeId);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.NOT_FOUND);
+        }
+        try {
+
+            if (employee.getProfileImage()!= null){
+                String baseUrl = getBaseUrl(request);
+                String image = baseUrl + folderPath + employee.getProfileImage();
+                employee.setProfileImage(image);
+            }
+            log.info("Fetched employee image for employeeId: {}", employeeId);
+            return new ResponseEntity<>(ResponseBuilder.builder().build().createSuccessResponse(employee.getProfileImage()), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching employee image for employeeId {}: {}", employeeId, ex.getMessage(), ex);
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_IMAGE), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void multiPartFileStore(MultipartFile file, String companyName, EmployeeEntity employee) throws IOException, EmployeeException {
+        if(!file.isEmpty()){
+            String companyFolderPath = folderPath + companyName+"/" + employee.getFirstName()+"_"+employee.getEmailId()+"/";
+            File folder = new File(companyFolderPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            String filename = companyFolderPath+companyName+"_"+file.getOriginalFilename();
+            file.transferTo(new File(filename));
+            employee.setProfileImage(companyName+"/" + employee.getFirstName()+"_"+employee.getEmailId()+"/"+companyName+"_"+file.getOriginalFilename());
+            ResponseEntity.ok(filename);
+        }
+    }
+
+    public static String getBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme(); // http or https
+        String serverName = request.getServerName(); // localhost or IP address
+        int serverPort = request.getServerPort(); // port number
+        String contextPath = request.getContextPath(); // context path
+
+        return scheme + "://" + serverName + ":" + serverPort + contextPath;
     }
 }

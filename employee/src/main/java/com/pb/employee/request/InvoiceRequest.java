@@ -24,6 +24,9 @@ public class InvoiceRequest {
     @NotEmpty(message = "{invoice.productColumns.empty}")
     private List<ProductColumnsRequest> productColumns;
 
+    @Valid
+    private ShippedPayload shippedPayload;
+
     private String vendorCode;
     private String purchaseOrder;
     private String invoiceDate;
@@ -31,5 +34,14 @@ public class InvoiceRequest {
     private String subTotal;
     private String status;
     private String bankId;
-}
+    private String notes;
+    private String salesPerson;
+    private String shippingMethod;
+    private String shippingTerms;
+    private String paymentTerms;
+    private String deliveryDate;
 
+    @Pattern(regexp = "^[12]{1}$", message = "{invoice.template.message}")
+    private String invoiceTemplateNo;
+
+}
