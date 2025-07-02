@@ -3,6 +3,8 @@ package com.pb.employee.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.dao.CandidateDao;
+import com.pb.employee.dao.UserDao;
+import com.pb.employee.daoImpl.UserDaoImpl;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -49,6 +51,9 @@ public class CandidateServiceImpl implements CandidateService {
     private CandidateDao candidateDao;
 
     @Autowired
+    private UserDao userDao;
+
+    @Autowired
     private OpenSearchOperations openSearchOperations;
 
     @Autowired
@@ -81,6 +86,14 @@ public class CandidateServiceImpl implements CandidateService {
                         HttpStatus.CONFLICT);
             }
 
+            Collection<UserEntity> existingUser = userDao.getUsers(candidateRequest.getCompanyName(),null, companyEntity.getId());
+            UserEntity user = existingUser.iterator().next();
+            if (Objects.equals(user.getEmailId(), candidateRequest.getEmailId())) {
+                log.error("User with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ALREADY_USED_BY_USER),
+                        HttpStatus.CONFLICT);
+            }
+            
             candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
