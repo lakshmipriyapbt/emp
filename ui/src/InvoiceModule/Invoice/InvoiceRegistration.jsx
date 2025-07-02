@@ -19,7 +19,8 @@ const InvoiceRegistration = () => {
     handleSubmit,
     control,
     setValue,
-    reset, watch,
+    reset,
+    watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
   // Select data from Redux store
@@ -68,7 +69,7 @@ const InvoiceRegistration = () => {
     showShippingMethod: false,
     showShippingTerms: false,
     showPaymentTerms: false,
-    showDeliveryDate: false
+    showDeliveryDate: false,
   });
 
   useEffect(() => {
@@ -78,12 +79,10 @@ const InvoiceRegistration = () => {
   }, [dispatch, companyId]);
 
   const subTotal = parseFloat(
-    productData.reduce(
-      (sum, row) => sum + (parseFloat(row.totalCost) || 0),
-      0
-    ).toFixed(2)
+    productData
+      .reduce((sum, row) => sum + (parseFloat(row.totalCost) || 0), 0)
+      .toFixed(2)
   );
-
 
   const validateInput = (type, value) => {
     if (value === "") return true; // Allow clearing the field
@@ -114,7 +113,7 @@ const InvoiceRegistration = () => {
           showShippingMethod: true,
           showShippingTerms: true,
           showPaymentTerms: true,
-          showDeliveryDate: true
+          showDeliveryDate: true,
         });
       } else if (templateNumber === "2") {
         setTemplateFields({
@@ -124,7 +123,7 @@ const InvoiceRegistration = () => {
           showShippingMethod: false,
           showShippingTerms: false,
           showPaymentTerms: false,
-          showDeliveryDate: false
+          showDeliveryDate: false,
         });
       }
     } catch (error) {
@@ -133,56 +132,58 @@ const InvoiceRegistration = () => {
     }
   };
 
-const updateData = (index, key, value) => {
-  const colType = productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())?.type || "text";
-  const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
+  const updateData = (index, key, value) => {
+    const colType =
+      productColumns.find((col) => col.key.toLowerCase() === key.toLowerCase())
+        ?.type || "text";
+    const normalizedKey = key.toLowerCase() === "quantity" ? "quantity" : key;
 
-  // Validate using validateInput for product details only
-  if (!validateInput(colType, value)) {
-    setFieldErrors((prev) => ({
-      ...prev,
-      [index]: {
-        ...(prev[index] || {}),
-        [normalizedKey]: `Invalid ${colType} value`,
-      },
-    }));
-    // Optionally, return here to prevent updating invalid value
-    return;
-  } else {
-    setFieldErrors((prev) => ({
-      ...prev,
-      [index]: {
-        ...(prev[index] || {}),
-        [normalizedKey]: null,
-      },
-    }));
-  }
-
-  // ...existing update logic...
-  setProductData((prevData) => {
-    const updatedData = [...prevData];
-    updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
-
-    // Auto-calculate totalCost if quantity/unitCost/GST changes
-    if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
-      const quantity = parseFloat(updatedData[index].quantity) || 0;
-      const unitCost = parseFloat(updatedData[index].unitCost) || 0;
-      const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
-
-      if (value === "") {
-        updatedData[index].totalCost = "";
-      } else {
-        const subTotal = quantity * unitCost;
-        const gstAmount = (subTotal * gstPercentage) / 100;
-        updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
-      }
+    // Validate using validateInput for product details only
+    if (!validateInput(colType, value)) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [index]: {
+          ...(prev[index] || {}),
+          [normalizedKey]: `Invalid ${colType} value`,
+        },
+      }));
+      // Optionally, return here to prevent updating invalid value
+      return;
+    } else {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [index]: {
+          ...(prev[index] || {}),
+          [normalizedKey]: null,
+        },
+      }));
     }
 
-    return updatedData;
-  });
+    // ...existing update logic...
+    setProductData((prevData) => {
+      const updatedData = [...prevData];
+      updatedData[index] = { ...updatedData[index], [normalizedKey]: value };
 
-  // ...existing field-specific validation logic (optional)...
-};
+      // Auto-calculate totalCost if quantity/unitCost/GST changes
+      if (["quantity", "unitCost", "gstPercentage"].includes(normalizedKey)) {
+        const quantity = parseFloat(updatedData[index].quantity) || 0;
+        const unitCost = parseFloat(updatedData[index].unitCost) || 0;
+        const gstPercentage = parseFloat(updatedData[index].gstPercentage) || 0;
+
+        if (value === "") {
+          updatedData[index].totalCost = "";
+        } else {
+          const subTotal = quantity * unitCost;
+          const gstAmount = (subTotal * gstPercentage) / 100;
+          updatedData[index].totalCost = (subTotal + gstAmount).toFixed(2);
+        }
+      }
+
+      return updatedData;
+    });
+
+    // ...existing field-specific validation logic (optional)...
+  };
 
   useEffect(() => {
     if (Array.isArray(products)) {
@@ -214,7 +215,7 @@ const updateData = (index, key, value) => {
         value: bank.bankId,
         label: bank.bankName,
         // Include the full bank object
-        bankData: bank
+        bankData: bank,
       }));
       setFormattedBanks(bankOptions);
     }
@@ -265,9 +266,9 @@ const updateData = (index, key, value) => {
     // Check if customers is an array before using map
     const productOptions = Array.isArray(products)
       ? products.map((prod) => ({
-        value: prod.productId,
-        label: prod.productName,
-      }))
+          value: prod.productId,
+          label: prod.productName,
+        }))
       : [];
 
     setProduct(productOptions);
@@ -278,9 +279,9 @@ const updateData = (index, key, value) => {
     // Check if customers is an array before using map
     const customerOptions = Array.isArray(customers)
       ? customers.map((cust) => ({
-        value: cust.customerId,
-        label: cust.customerName,
-      }))
+          value: cust.customerId,
+          label: cust.customerName,
+        }))
       : [];
 
     setCustomer(customerOptions);
@@ -288,62 +289,68 @@ const updateData = (index, key, value) => {
   }, [customers]);
 
   const onSubmit = (data) => {
+      // Prevent submission if no product details are entered
+  if (!productData || productData.length === 0) {
+    toast.error("Please add at least one product detail before submitting.");
+    return;
+  }
     const selectedCustomer = customers.find(
-      cust => cust.customerId === data.customerName.value
+      (cust) => cust.customerId === data.customerName.value
     );
 
     const selectedBankOption = formattedBanks.find(
-      bank => bank.value === data.bankName
+      (bank) => bank.value === data.bankName
     );
     const selectedBank = selectedBankOption?.bankData;
 
     // Format product data to match backend expectations
     const formattedProductData = productData.map((item, index) => ({
-      items: item.items || 'Unnamed Product',
-      hsn: item.hsn || '',
-      service: item.service || '',
+      items: item.items || "Unnamed Product",
+      hsn: item.hsn || "",
+      service: item.service || "",
       quantity: item.quantity || 0,
       unitCost: item.unitCost || 0,
       gstPercentage: item.gstPercentage || 0,
-      totalCost: item.totalCost || 0
+      totalCost: item.totalCost || 0,
     }));
 
     const previewData = {
       customer: {
-        customerName: selectedCustomer?.customerName || '',
-        address: selectedCustomer?.address || '',
-        mobileNumber: selectedCustomer?.mobileNumber || '',
-        email: selectedCustomer?.email || '',
-        customerGstNo: selectedCustomer?.customerGstNo || ''
+        customerName: selectedCustomer?.customerName || "",
+        address: selectedCustomer?.address || "",
+        mobileNumber: selectedCustomer?.mobileNumber || "",
+        email: selectedCustomer?.email || "",
+        customerGstNo: selectedCustomer?.customerGstNo || "",
       },
       bank: selectedBank || {},
-      invoice:{   
-      // Shipping info
-      shippedPayload: [{
-        customerName: data.shipToName || '',
-        address: data.shipToAddress || '',
-        mobileNumber: data.shipToMobile || ''
-      }],
-      // Invoice details
-      invoiceNo: "Auto-generated",
-      invoiceDate: data.invoiceDate || '',
-      dueDate: data.dueDate || '',
-      purchaseOrder: data.purchaseOrder || '',
-      // Product details
-      productData: formattedProductData,
-      productColumns: productColumns,
-      // Financial details
-      subTotal: subTotal.toFixed(2),
-      notes: data.notes || '',
-      // Bank details - include the full bank object
-      // Additional fields
-      salesPerson: data.salesPerson || '',
-      shippingMethod: data.shippingMethod || '',
-      shippingTerms: data.shippingTerms || '',
-      paymentTerms: data.paymentTerms || 'Net 30',
-      deliveryDate: data.deliveryDate || ''
-      }
-      
+      invoice: {
+        // Shipping info
+        shippedPayload: [
+          {
+            customerName: data.shipToName || "",
+            address: data.shipToAddress || "",
+            mobileNumber: data.shipToMobile || "",
+          },
+        ],
+        // Invoice details
+        invoiceNo: "Auto-generated",
+        invoiceDate: data.invoiceDate || "",
+        dueDate: data.dueDate || "",
+        purchaseOrder: data.purchaseOrder || "",
+        // Product details
+        productData: formattedProductData,
+        productColumns: productColumns,
+        // Financial details
+        subTotal: subTotal.toFixed(2),
+        notes: data.notes || "",
+        // Bank details - include the full bank object
+        // Additional fields
+        salesPerson: data.salesPerson || "",
+        shippingMethod: data.shippingMethod || "",
+        shippingTerms: data.shippingTerms || "",
+        paymentTerms: data.paymentTerms || "Net 30",
+        deliveryDate: data.deliveryDate || "",
+      },
     };
 
     setPreviewData(previewData);
@@ -351,8 +358,8 @@ const updateData = (index, key, value) => {
     setSubmissionData({
       ...previewData,
       customerId: selectedCustomer?.customerId,
-      bankId: selectedBank?.bankId, 
-      bankDetails: selectedBank
+      bankId: selectedBank?.bankId,
+      bankDetails: selectedBank,
     });
     setShowPreview(true);
   };
@@ -369,27 +376,28 @@ const updateData = (index, key, value) => {
       }
 
       // Transform the data to match backend expectations
-       const invoice = submissionData.invoice || {};
-    const invoiceData = {
-      productData: invoice.productData,
-      productColumns: invoice.productColumns,
-      shippedPayload: Array.isArray(invoice.shippedPayload)
-        ? invoice.shippedPayload[0] || {}
-        : invoice.shippedPayload || {},
-      vendorCode: invoice.vendorCode,
-      purchaseOrder: invoice.purchaseOrder,
-      invoiceDate: invoice.invoiceDate,
-      dueDate: invoice.dueDate,
-      subTotal: invoice.subTotal,
-      notes: invoice.notes,
-      salesPerson: invoice.salesPerson,
-      shippingMethod: invoice.shippingMethod,
-      shippingTerms: invoice.shippingTerms,
-      paymentTerms: invoice.paymentTerms,
-      deliveryDate: invoice.deliveryDate,
-      status: "Pending", // Default status
-      bankId: bankId,
-    };
+      const invoice = submissionData.invoice || {};
+      const invoiceData = {
+        productData: invoice.productData,
+        productColumns: invoice.productColumns,
+        shippedPayload: Array.isArray(invoice.shippedPayload)
+          ? invoice.shippedPayload[0] || {}
+          : invoice.shippedPayload || {},
+        vendorCode: invoice.vendorCode,
+        purchaseOrder: invoice.purchaseOrder,
+        invoiceDate: invoice.invoiceDate,
+        dueDate: invoice.dueDate,
+        subTotal: invoice.subTotal,
+        notes: invoice.notes,
+        salesPerson: invoice.salesPerson,
+        shippingMethod: invoice.shippingMethod,
+        shippingTerms: invoice.shippingTerms,
+        paymentTerms: invoice.paymentTerms,
+        deliveryDate: invoice.deliveryDate,
+        status: "Pending", // Default status
+        bankId: bankId,
+        invoiceTemplateNo: selectedTemplate, // Use selected template or default to "1"
+      };
 
       console.log("Submitting invoice data:", invoiceData);
 
@@ -465,10 +473,10 @@ const updateData = (index, key, value) => {
       shippingMethod: "",
       shippingTerms: "",
       paymentTerms: "",
-      deliveryDate: ""
+      deliveryDate: "",
     });
 
-    setProductData([]);  // Clear product rows
+    setProductData([]); // Clear product rows
     toast.info("Form cleared!", { position: "top-right", autoClose: 1000 });
   };
 
@@ -527,7 +535,8 @@ const updateData = (index, key, value) => {
   const joiningDate = watch("invoiceDate");
 
   const validateDueDate = (dueDate) => {
-    if (!joiningDate) return "Invoice Date is required before selecting End Date";
+    if (!joiningDate)
+      return "Invoice Date is required before selecting End Date";
 
     const joinDateObj = new Date(joiningDate);
     const endDateObj = new Date(dueDate);
@@ -583,10 +592,10 @@ const updateData = (index, key, value) => {
     const updatedColumns =
       totalCostIndex !== -1
         ? [
-          ...productColumns.slice(0, totalCostIndex),
-          newColumn,
-          ...productColumns.slice(totalCostIndex),
-        ]
+            ...productColumns.slice(0, totalCostIndex),
+            newColumn,
+            ...productColumns.slice(totalCostIndex),
+          ]
         : [...productColumns, newColumn];
 
     setProductColumns(updatedColumns);
@@ -607,7 +616,9 @@ const updateData = (index, key, value) => {
 
     // Prevent invalid titles when the employee confirms the change
     if (trimmedTitle === "New Field") {
-      toast.error("Column title cannot be 'New Field'. Please enter a valid title.");
+      toast.error(
+        "Column title cannot be 'New Field'. Please enter a valid title."
+      );
       return;
     }
 
@@ -615,14 +626,45 @@ const updateData = (index, key, value) => {
     setProductColumns(
       productColumns.map((col) =>
         col.key === key
-          ? { ...col, title: key === "totalCost" ? "Total Amount" : trimmedTitle }
+          ? {
+              ...col,
+              title: key === "totalCost" ? "Total Amount" : trimmedTitle,
+            }
           : col
       )
     );
   };
 
-
   const addRow = () => setProductData([...productData, {}]);
+
+  // Render loading message or template not available message
+  if (!templateAvailable) {
+    return (
+      <LayOut>
+        <div className="container-fluid p-0">
+          <div className="row justify-content-center">
+            <div className="col-8 text-center mt-5">
+              <h2>No Invoice Template Available</h2>
+              <p>
+                To set up the Invoice templates before proceeding, Please select
+                the Template from Settings{" "}
+                <Link
+                  to="/invoiceTemplates"
+                  className="custom-link text-primary bg-opacity-25"
+                >
+                  Invoice Templates{" "}
+                </Link>
+              </p>
+              <p>
+                Please contact the administrator to set up the Invoice templates
+                before proceeding.
+              </p>
+            </div>
+          </div>
+        </div>
+      </LayOut>
+    );
+  }
 
   return (
     <LayOut>
@@ -637,7 +679,9 @@ const updateData = (index, key, value) => {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0">
                 <li className="breadcrumb-item">
-                  <Link to="/main" className="custom-link">Home</Link>
+                  <Link to="/main" className="custom-link">
+                    Home
+                  </Link>
                 </li>
                 <li className="breadcrumb-item active">Invoices</li>
                 <li className="breadcrumb-item active">Invoice Registration</li>
@@ -648,15 +692,17 @@ const updateData = (index, key, value) => {
         <div className="row">
           <div className="col-12">
             <div className="card">
-              <div className="card-header">
-                <h5 className="card-title" style={{ marginBottom: "0px" }}>
-                  Invoice Registration Form
-                </h5>
-                <div
-                  className="dropdown-divider"
-                  style={{ borderTopColor: "#d7d9dd" }}
-                />
+              <div className="card-header d-flex justify-content-between align-items-center">
+                <h5 className="card-title mb-3">Invoice Registration Form</h5>
+                <span
+                  className="badge bg-primary"
+                  style={{ fontSize: "1rem" }}
+                  title="To change the template, go to Settings > Invoice Templates"
+                >
+                  Current Template: {selectedTemplate || "N/A"}
+                </span>
               </div>
+              <hr />
               <form
                 className="form-horizontal"
                 onSubmit={handleSubmit(onSubmit)}
@@ -664,8 +710,12 @@ const updateData = (index, key, value) => {
                 <div className="card-body">
                   <h4 className="ml-3" style={{ marginTop: "20px" }}>
                     <b>Invoice Details</b>
+                     <span className="text-muted ms-3">
+                      Please fill in the required fields marked with{" "}       
+                      <span style={{ color: "red" }}>*</span>
+                    </span>
                   </h4>
-
+                   
                   {/* Customer Name Dropdown */}
                   <div className="form-group row mt-5">
                     <label
@@ -727,7 +777,10 @@ const updateData = (index, key, value) => {
                             } // Find the selected bank by matching value (bankId)
                             onChange={(selectedOption) => {
                               // Handle bank selection
-                              console.log("Selected Bank Option:", selectedOption);
+                              console.log(
+                                "Selected Bank Option:",
+                                selectedOption
+                              );
                               field.onChange(
                                 selectedOption ? selectedOption.value : null
                               ); // Update the bankId (value) in form
@@ -766,8 +819,10 @@ const updateData = (index, key, value) => {
                         {...register("vendorCode", {
                           required: "Vendor Code is required",
                           pattern: {
-                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
-                            message: "Must contain at least one number. Only alphabets are not allowed."
+                            value:
+                              /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
+                            message:
+                              "Must contain at least one number. Only alphabets are not allowed.",
                           },
                           minLength: {
                             value: 3,
@@ -809,8 +864,10 @@ const updateData = (index, key, value) => {
                         {...register("purchaseOrder", {
                           required: "Purchase Order is required",
                           pattern: {
-                            value: /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
-                            message: "Must contain at least one number. Only alphabets are not allowed."
+                            value:
+                              /^(?=.*\d)(?=.*[A-Za-z0-9])[\dA-Za-z()\-_/&]+$/,
+                            message:
+                              "Must contain at least one number. Only alphabets are not allowed.",
                           },
                           minLength: {
                             value: 3,
@@ -882,7 +939,7 @@ const updateData = (index, key, value) => {
                         onClick={(e) => e.target.showPicker()}
                         {...register("dueDate", {
                           required: "Due Date is required",
-                          validate: validateDueDate
+                          validate: validateDueDate,
                         })}
                       />
                       {errors.dueDate && (
@@ -894,11 +951,14 @@ const updateData = (index, key, value) => {
                   </div>
                   {templateFields.showShipTo && (
                     <>
-                    <span className="mb-3">
-                      <h3 className="mb-1">Shipping Details</h3>
-                    </span>
+                      <span className="mb-3">
+                        <h3 className="mb-1">Shipping Details</h3>
+                      </span>
                       <div className="form-group row mt-3">
-                        <label htmlFor="shipToName" className="col-sm-2 text-right control-label col-form-label">
+                        <label
+                          htmlFor="shipToName"
+                          className="col-sm-2 text-right control-label col-form-label"
+                        >
                           Reciever's Name
                         </label>
                         <div className="col-sm-9 mb-3">
@@ -911,23 +971,31 @@ const updateData = (index, key, value) => {
                               required: "Ship To Name is required",
                               minLength: {
                                 value: 3,
-                                message: "Ship To Name must be at least 3 characters long",
+                                message:
+                                  "Ship To Name must be at least 3 characters long",
                               },
                               maxLength: {
                                 value: 10,
-                                message: "Ship To Name cannot exceed 10 characters",
+                                message:
+                                  "Ship To Name cannot exceed 10 characters",
                               },
                             })}
                           />
                           {errors.shipToName && (
-                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
                               {errors.shipToName.message}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="form-group row">
-                        <label htmlFor="shipToAddress" className="col-sm-2 text-right control-label col-form-label">
+                        <label
+                          htmlFor="shipToAddress"
+                          className="col-sm-2 text-right control-label col-form-label"
+                        >
                           Reciever's Address
                         </label>
                         <div className="col-sm-9 mb-3">
@@ -940,24 +1008,32 @@ const updateData = (index, key, value) => {
                               required: "Ship To Address is required",
                               minLength: {
                                 value: 3,
-                                message: "Ship To Address must be at least 3 characters long",
+                                message:
+                                  "Ship To Address must be at least 3 characters long",
                               },
                               maxLength: {
                                 value: 100,
-                                message: "Ship To Address cannot exceed 100 characters",
+                                message:
+                                  "Ship To Address cannot exceed 100 characters",
                               },
                             })}
                           />
                           {errors.shipToAddress && (
-                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
                               {errors.shipToAddress.message}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="form-group row">
-                        <label htmlFor="shipToMobile" className="col-sm-2 text-right control-label col-form-label">
-                         Reciever's Mobile
+                        <label
+                          htmlFor="shipToMobile"
+                          className="col-sm-2 text-right control-label col-form-label"
+                        >
+                          Reciever's Mobile
                         </label>
                         <div className="col-sm-9 mb-3">
                           <input
@@ -969,12 +1045,16 @@ const updateData = (index, key, value) => {
                               required: "Ship To Mobile is required",
                               pattern: {
                                 value: /^[0-9]{10}$/,
-                                message: "Ship To Mobile must be a 10-digit number",
+                                message:
+                                  "Ship To Mobile must be a 10-digit number",
                               },
                             })}
                           />
                           {errors.shipToMobile && (
-                            <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
                               {errors.shipToMobile.message}
                             </p>
                           )}
@@ -985,7 +1065,10 @@ const updateData = (index, key, value) => {
 
                   {templateFields.showNotes && (
                     <div className="form-group row">
-                      <label htmlFor="notes" className="col-sm-2 text-right control-label col-form-label">
+                      <label
+                        htmlFor="notes"
+                        className="col-sm-2 text-right control-label col-form-label"
+                      >
                         Special Notes
                       </label>
                       <div className="col-sm-9 mb-3">
@@ -998,16 +1081,21 @@ const updateData = (index, key, value) => {
                             required: "Special Notes are required",
                             minLength: {
                               value: 10,
-                              message: "Special Notes must be at least 10 characters long",
+                              message:
+                                "Special Notes must be at least 10 characters long",
                             },
                             maxLength: {
                               value: 500,
-                              message: "Special Notes cannot exceed 500 characters",
+                              message:
+                                "Special Notes cannot exceed 500 characters",
                             },
                           })}
                         />
                         {errors.notes && (
-                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
                             {errors.notes.message}
                           </p>
                         )}
@@ -1018,43 +1106,54 @@ const updateData = (index, key, value) => {
                   {templateFields.showSalesPerson && (
                     <div>
                       <span>
-                      <h3 className="mb-1">Sales Details</h3>
+                        <h3 className="mb-1">Sales Details</h3>
                       </span>
-                    <div className="form-group row mt-3">
-                      <label htmlFor="salesPerson" className="col-sm-2 text-right control-label col-form-label">
-                        Sales Person
-                      </label>
-                      <div className="col-sm-9 mb-3">
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="salesPerson"
-                          placeholder="Enter Sales Person Name"
-                          {...register("salesPerson", {
-                            required: "Sales Person Name is required",
-                            minLength: {
-                              value: 3,
-                              message: "Sales Person Name must be at least 3 characters long",
-                            },
-                            maxLength: {
-                              value: 100,
-                              message: "Sales Person Name cannot exceed 100 characters",
-                            },
-                          })}
-                        />
-                        {errors.salesPerson && (
-                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
-                            {errors.salesPerson.message}
-                          </p>
-                        )}
+                      <div className="form-group row mt-3">
+                        <label
+                          htmlFor="salesPerson"
+                          className="col-sm-2 text-right control-label col-form-label"
+                        >
+                          Sales Person
+                        </label>
+                        <div className="col-sm-9 mb-3">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="salesPerson"
+                            placeholder="Enter Sales Person Name"
+                            {...register("salesPerson", {
+                              required: "Sales Person Name is required",
+                              minLength: {
+                                value: 3,
+                                message:
+                                  "Sales Person Name must be at least 3 characters long",
+                              },
+                              maxLength: {
+                                value: 100,
+                                message:
+                                  "Sales Person Name cannot exceed 100 characters",
+                              },
+                            })}
+                          />
+                          {errors.salesPerson && (
+                            <p
+                              className="errorMsg"
+                              style={{ marginLeft: "6px", marginBottom: "0" }}
+                            >
+                              {errors.salesPerson.message}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
                     </div>
                   )}
 
                   {templateFields.showShippingMethod && (
                     <div className="form-group row">
-                      <label htmlFor="shippingMethod" className="col-sm-2 text-right control-label col-form-label">
+                      <label
+                        htmlFor="shippingMethod"
+                        className="col-sm-2 text-right control-label col-form-label"
+                      >
                         Shipping Method
                       </label>
                       <div className="col-sm-9 mb-3">
@@ -1067,16 +1166,21 @@ const updateData = (index, key, value) => {
                             required: "Shipping Method is required",
                             minLength: {
                               value: 3,
-                              message: "Shipping Method must be at least 3 characters long",
+                              message:
+                                "Shipping Method must be at least 3 characters long",
                             },
                             maxLength: {
                               value: 100,
-                              message: "Shipping Method cannot exceed 100 characters",
+                              message:
+                                "Shipping Method cannot exceed 100 characters",
                             },
                           })}
                         />
                         {errors.shippingMethod && (
-                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
                             {errors.shippingMethod.message}
                           </p>
                         )}
@@ -1086,7 +1190,10 @@ const updateData = (index, key, value) => {
 
                   {templateFields.showShippingTerms && (
                     <div className="form-group row">
-                      <label htmlFor="shippingTerms" className="col-sm-2 text-right control-label col-form-label">
+                      <label
+                        htmlFor="shippingTerms"
+                        className="col-sm-2 text-right control-label col-form-label"
+                      >
                         Shipping Terms
                       </label>
                       <div className="col-sm-9 mb-3">
@@ -1099,16 +1206,21 @@ const updateData = (index, key, value) => {
                             required: "Shipping Terms are required",
                             minLength: {
                               value: 3,
-                              message: "Shipping Terms must be at least 3 characters long",
+                              message:
+                                "Shipping Terms must be at least 3 characters long",
                             },
                             maxLength: {
                               value: 100,
-                              message: "Shipping Terms cannot exceed 100 characters",
+                              message:
+                                "Shipping Terms cannot exceed 100 characters",
                             },
                           })}
                         />
                         {errors.shippingTerms && (
-                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
                             {errors.shippingTerms.message}
                           </p>
                         )}
@@ -1118,7 +1230,10 @@ const updateData = (index, key, value) => {
 
                   {templateFields.showPaymentTerms && (
                     <div className="form-group row">
-                      <label htmlFor="paymentTerms" className="col-sm-2 text-right control-label col-form-label">
+                      <label
+                        htmlFor="paymentTerms"
+                        className="col-sm-2 text-right control-label col-form-label"
+                      >
                         Payment Terms
                       </label>
                       <div className="col-sm-9 mb-3">
@@ -1131,16 +1246,21 @@ const updateData = (index, key, value) => {
                             required: "Payment Terms are required",
                             minLength: {
                               value: 3,
-                              message: "Payment Terms must be at least 3 characters long"
+                              message:
+                                "Payment Terms must be at least 3 characters long",
                             },
                             maxLength: {
                               value: 100,
-                              message: "Payment Terms cannot exceed 100 characters"
+                              message:
+                                "Payment Terms cannot exceed 100 characters",
                             },
                           })}
                         />
                         {errors.paymentTerms && (
-                          <p className="errorMsg" style={{ marginLeft: "6px", marginBottom: "0" }}>
+                          <p
+                            className="errorMsg"
+                            style={{ marginLeft: "6px", marginBottom: "0" }}
+                          >
                             {errors.paymentTerms.message}
                           </p>
                         )}
@@ -1150,7 +1270,10 @@ const updateData = (index, key, value) => {
 
                   {templateFields.showDeliveryDate && (
                     <div className="form-group row">
-                      <label htmlFor="deliveryDate" className="col-sm-2 text-right control-label col-form-label">
+                      <label
+                        htmlFor="deliveryDate"
+                        className="col-sm-2 text-right control-label col-form-label"
+                      >
                         Delivery Date
                       </label>
                       <div className="col-sm-9 mb-3">
@@ -1161,7 +1284,7 @@ const updateData = (index, key, value) => {
                           onClick={(e) => e.target.showPicker()}
                           {...register("deliveryDate", {
                             required: "Delivery Date is required",
-                            
+
                             validate: (value) => {
                               const invoiceDate = watch("invoiceDate");
                               if (!invoiceDate) {
@@ -1173,7 +1296,7 @@ const updateData = (index, key, value) => {
                                 return "Delivery Date cannot be before Invoice Date";
                               }
                               return true;
-                            }
+                            },
                           })}
                         />
                         {errors.deliveryDate && (
@@ -1314,41 +1437,60 @@ const updateData = (index, key, value) => {
                       pageName="Field"
                     />
                   </div>
-
                 </div>
                 <div className="d-flex justify-content-end gap-2 mb-3 me-2">
-                  <button type="button" className="btn btn-secondary" onClick={handleClearForm}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleClearForm}
+                  >
                     Clear
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={load}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={load}
+                  >
                     {load ? "Submitting..." : "Submit"}
                   </button>
                 </div>
               </form>
               {showPreview && (
-                <div className="modal" style={{
-                  display: 'block',
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 1050,
-                  overflow: 'auto'
-                }}>
-                  <div className="modal-dialog modal-xl" style={{
-                    maxWidth: '90%',
-                    margin: '30px auto'
-                  }}>
-                    <div className="modal-content" style={{
-                      border: 'none',
-                      borderRadius: '0.3rem'
-                    }}>
-                      <div className="modal-header" style={{
-                        borderBottom: '1px solid #dee2e6',
-                        padding: '1rem'
-                      }}>
+                <div
+                  className="modal"
+                  style={{
+                    display: "block",
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1050,
+                    overflow: "auto",
+                  }}
+                >
+                  <div
+                    className="modal-dialog modal-xl"
+                    style={{
+                      maxWidth: "90%",
+                      margin: "30px auto",
+                    }}
+                  >
+                    <div
+                      className="modal-content"
+                      style={{
+                        border: "none",
+                        borderRadius: "0.3rem",
+                      }}
+                    >
+                      <div
+                        className="modal-header"
+                        style={{
+                          borderBottom: "1px solid #dee2e6",
+                          padding: "1rem",
+                        }}
+                      >
                         <h5 className="modal-title">Invoice Preview</h5>
                         <button
                           type="button"
@@ -1358,21 +1500,24 @@ const updateData = (index, key, value) => {
                             setPreviewData(null);
                           }}
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '1.5rem',
-                            fontWeight: 'bold',
-                            cursor: 'pointer'
+                            background: "none",
+                            border: "none",
+                            fontSize: "1.5rem",
+                            fontWeight: "bold",
+                            cursor: "pointer",
                           }}
                         >
                           &times;
                         </button>
                       </div>
-                      <div className="modal-body" style={{
-                        padding: '0',
-                        overflow: 'auto',
-                        maxHeight: 'calc(100vh - 200px)'
-                      }}>
+                      <div
+                        className="modal-body"
+                        style={{
+                          padding: "0",
+                          overflow: "auto",
+                          maxHeight: "calc(100vh - 200px)",
+                        }}
+                      >
                         {previewData && (
                           <InvoicePreview
                             previewData={previewData}
@@ -1380,10 +1525,13 @@ const updateData = (index, key, value) => {
                           />
                         )}
                       </div>
-                      <div className="modal-footer" style={{
-                        borderTop: '1px solid #dee2e6',
-                        padding: '1rem'
-                      }}>
+                      <div
+                        className="modal-footer"
+                        style={{
+                          borderTop: "1px solid #dee2e6",
+                          padding: "1rem",
+                        }}
+                      >
                         <button
                           type="button"
                           className="btn btn-secondary"

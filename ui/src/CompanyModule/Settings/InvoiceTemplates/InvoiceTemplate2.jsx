@@ -8,9 +8,7 @@ const InvoiceTemplate2 = ({
   companyLogo,
   stampImage
 }) => {
-  const { company } = useAuth();
-  console.log("companyData:", companyData);
-  console.log("Invoice Customer Data:", InvoiceStaticData);
+
   return (
     <div className="invoice-template" style={{ padding: "50px 60px 50px 50px", backgroundColor: "white" }}>
       {/* Header with company info, logo, and invoice info */}
@@ -105,9 +103,9 @@ const InvoiceTemplate2 = ({
             display: "inline-block",
           }}>Ship To</div>
           <div style={{ fontSize: "14px" }}>
-            <div>Recievers name: {InvoiceStaticData.shippedPayload?.[0]?.customerName || InvoiceStaticData.customer?.customerName}</div>
-            <div>Address: {InvoiceStaticData.shippedPayload?.[0]?.address || InvoiceStaticData.customer?.address}</div>
-            <div>Phone: {InvoiceStaticData.shippedPayload?.[0]?.mobileNumber || InvoiceStaticData.customer?.mobileNumber}</div>
+            <div>Recievers name: {InvoiceStaticData.invoice.shippedPayload?.[0]?.customerName }</div>
+            <div>Address: {InvoiceStaticData.invoice.shippedPayload?.[0]?.address}</div>
+            <div>Phone: {InvoiceStaticData.invoice.shippedPayload?.[0]?.mobileNumber}</div>
           </div>
         </div>
       </div>
