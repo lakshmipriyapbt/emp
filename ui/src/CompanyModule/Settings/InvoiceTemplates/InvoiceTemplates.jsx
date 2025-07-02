@@ -48,13 +48,13 @@ const staticInvoiceData = {
       { key: "gstPercentage", title: "GST (%)", type: "number" },
       { key: "totalCost", title: "Total Cost", type: "number" }
     ],
-    shippedPayload: [
+    shippedPayload:
     {
       customerName: "sdfd",
       address: "asdfgfv",
       mobileNumber: "9002343430"
     }
-    ],
+    ,
     status: "Pending",
     type: "invoice",
     salesPerson: "John Doe",

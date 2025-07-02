@@ -62,6 +62,7 @@ const InvoiceRegistration = () => {
   const [templateAvailable, setTemplateAvailable] = useState(true);
   const [previewData, setPreviewData] = useState(null);
   const [submissionData, setSubmissionData] = useState(null);
+  const [productError, setProductError] = useState(null);
   const [templateFields, setTemplateFields] = useState({
     showShipTo: false,
     showNotes: false,
@@ -290,8 +291,12 @@ const InvoiceRegistration = () => {
 
   const onSubmit = (data) => {
       // Prevent submission if no product details are entered
-  if (!productData || productData.length === 0) {
-    toast.error("Please add at least one product detail before submitting.");
+   if (
+    !productData ||
+    productData.length === 0 ||
+    productData.every(row => Object.values(row).every(val => !val))
+  ) {
+    setProductError("Please add at least one product detail before submitting.");
     return;
   }
     const selectedCustomer = customers.find(
@@ -305,13 +310,13 @@ const InvoiceRegistration = () => {
 
     // Format product data to match backend expectations
     const formattedProductData = productData.map((item, index) => ({
-      items: item.items || "Unnamed Product",
-      hsn: item.hsn || "",
-      service: item.service || "",
-      quantity: item.quantity || 0,
-      unitCost: item.unitCost || 0,
-      gstPercentage: item.gstPercentage || 0,
-      totalCost: item.totalCost || 0,
+      items: item.items ,
+      hsn: item.hsn ,
+      service: item.service ,
+      quantity: item.quantity ,
+      unitCost: item.unitCost,
+      gstPercentage: item.gstPercentage ,
+      totalCost: item.totalCost,
     }));
 
     const previewData = {
@@ -410,9 +415,14 @@ const InvoiceRegistration = () => {
         navigate("/invoiceView");
       }
     } catch (error) {
-      console.error("Error creating invoice:", error);
-      toast.error(`Failed to create invoice: ${error.message}`);
-    }
+  console.error("Error creating invoice:", error);
+  const errorMsg =
+    error?.response?.data?.error?.message || // If error is under error.message
+    error?.response?.data?.message ||        // If error is directly under message
+    error?.message ||                        // JS error message
+    "Failed to create invoice";
+  toast.error(errorMsg);
+}
   };
   const handleError = (errors) => {
     if (errors.response) {
@@ -1408,8 +1418,18 @@ const InvoiceRegistration = () => {
                             </td>
                           </tr>
                         ))}
+                                                    {productError && (
+  <tr>
+    <td colSpan={productColumns.length + 1}>
+      <span style={{ color: "red", fontWeight: "bold" }}>{productError}</span>
+    </td>
+  </tr>
+)}
                         {/* SubTotal Row */}
                         <tr>
+                         
+
+                          
                           <td
                             colSpan={productColumns.length - 1}
                             className="text-end"
@@ -1428,6 +1448,7 @@ const InvoiceRegistration = () => {
                           <td></td>
                         </tr>
                       </tbody>
+                     
                     </table>
                     <DeletePopup
                       show={showDeleteModal}

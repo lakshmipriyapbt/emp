@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Eye, Download } from "react-bootstrap-icons";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import { useDispatch, useSelector } from "react-redux";
 import LayOut from "../../LayOut/LayOut";
@@ -13,7 +13,6 @@ import InvoicePdf from "./InvoicePdf";
 
 const InvoiceView = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { invoices, loading, error } = useSelector((state) => state.invoices);
   const [isFetching, setIsFetching] = useState(true);
   const [search, setSearch] = useState("");
@@ -24,6 +23,7 @@ const InvoiceView = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [invoiceTemplateNumber, setInvoiceTemplateNumber] = useState(null);
   const { employee } = useAuth();
   const companyId = employee?.companyId;
 
@@ -78,6 +78,7 @@ const handleView = async (invoice) => {
       invoice.invoiceId
     );
     setInvoiceDataById(data.data);
+    setInvoiceTemplateNumber(data.data.invoice.invoiceTemplateNo);
     console.log("Invoice Data By Id:", data.data);
   } catch (error) {
     toast.error("Failed to fetch invoice details");
@@ -276,7 +277,10 @@ const handleView = async (invoice) => {
                       maxHeight: 'calc(100vh - 200px)'
                     }}>
                     {invoiceDataById? (
-                        <InvoicePdf previewData={invoiceDataById} />
+                        <InvoicePdf 
+                        previewData={invoiceDataById}
+                        invoiceTemplateNumber={invoiceTemplateNumber}
+                        />
                       ) : (
                         <div className="text-center p-5">
                           <Loader />
