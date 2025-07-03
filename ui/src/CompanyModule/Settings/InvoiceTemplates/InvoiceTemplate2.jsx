@@ -22,8 +22,7 @@ const InvoiceTemplate2 = ({
           }}>{companyData?.companyName}</div>
 
           <div style={{ fontSize: "14px" }}>
-            <div>{companyData?.address}</div>
-            <div>{companyData?.emailId}, {companyData?.mobileNo}</div>
+            <div>{companyData?.emailId} <br/>{companyData?.mobileNo}</div>
           </div>
         </div>
 
@@ -232,7 +231,7 @@ const InvoiceTemplate2 = ({
             Special notes and instructions
           </div>
           <div style={{ fontSize: "14px" }}>
-            <div>{InvoiceStaticData.notes}</div>
+            <div>{InvoiceStaticData.invoice.notes}</div>
             <div>Kindly issue all cheques in the name of the company</div>
           </div>
         </div>
@@ -302,7 +301,7 @@ const InvoiceTemplate2 = ({
         borderTop: "1px solid #ddd",
         paddingTop: "10px"
       }}>
-        <div style={{ marginBottom: "5px" }}>{companyData?.address}</div>
+        <div style={{ marginBottom: "5px" }}>{companyData?.companyAddress}</div>
         <div>{companyData?.mobileNo} | {companyData?.emailId}</div>
       </div>
     </div>
