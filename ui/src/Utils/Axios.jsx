@@ -708,12 +708,10 @@ export const AllEmployeePayslipsGet = (month, year) => {
 }
 
 export const EmployeePaySlipDownloadById = async (employeeId, payslipId) => {
-  const companyName = localStorage.getItem("companyName");
-  console.log("companyName:", companyName);
-  
+  const company = localStorage.getItem("companyName");
   try {
     // Make the API request with specific headers for this request
-    const response = await axiosInstance.get(`/${companyName}/employee/${employeeId}/download/${payslipId}`, {
+    const response = await axiosInstance.get(`/${company}/employee/${employeeId}/download/${payslipId}`, {
       responseType: 'blob', // Handle the response as a binary blob
       headers: {
         'Accept': 'application/json', // Change from application/pdf to application/json

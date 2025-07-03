@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAuth } from '../../../Context/AuthContext';
 
 const InvoiceTemplate2 = ({
   companyData={},

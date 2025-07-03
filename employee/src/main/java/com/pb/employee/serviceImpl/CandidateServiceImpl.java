@@ -103,6 +103,7 @@ public class CandidateServiceImpl implements CandidateService {
             log.error("Error while saving candidate details: {}", employeeException.getMessage());
             throw employeeException;
         }
+
         CompletableFuture.runAsync(() -> {
             try {
                 String companyUrl = EmailUtils.getBaseUrl(request) + candidateRequest.getCompanyName() + Constants.SLASH + Constants.CANDIDATE_LOGIN ;

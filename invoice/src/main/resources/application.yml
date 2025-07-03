@@ -4,8 +4,8 @@ server:
   servlet:
     contextPath: /invoice
   ssl:
- enabled: true
-    key-store: /opt/ems-prod/certificates/keystore.jks
+    enabled: true
+    key-store: /opt/EMS-demo/certificates/keystore.jks
     key-store-password: pathbreaker
     key-alias: ems.pathbreakertech.in
     key-store-type: JKS

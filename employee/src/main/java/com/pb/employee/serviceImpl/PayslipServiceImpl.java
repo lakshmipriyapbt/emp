@@ -740,7 +740,6 @@ public class PayslipServiceImpl implements PayslipService {
                     log.info("Skipping attendance check for CompanyAdmin with ID {}", employee.getEmployeeId());
                     continue;
                 }
-
                 if (employee.getStatus().equalsIgnoreCase(Constants.RELIEVED)){
                     log.info("Employee is Relieved " + employee.getFirstName());
                     continue;
