@@ -191,7 +191,7 @@ page-break-inside: avoid;
        <td style="border:none;">
          <div class="company-info">
            <h3>${company.companyName}</h3>
-           <p>${company.emailId}, ${company.mobileNo}</p>
+           <p>${company.emailId}</p>
            <p>${company.mobileNo}</p>
          </div>
        </td>
