@@ -1,26 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import { useAuth } from "../../../../Context/AuthContext";
-import { companyViewByIdApi, EmployeeGetApiById } from "../../../../Utils/Axios";
-import { toast } from "react-toastify";
 
 const InternOfferPrev = ({
     previewData
 }) => {
       const [companyData, setCompanyData] = useState({});
-      const [loading, setLoading] = useState(false);
       const { company } = useAuth();
       const draft = previewData.draft;
       console.log("previre ", draft)
+
 
   return (
     <div className="p-4">
         <div className="m-3">
       <h5 className="title text-center">OFFER LETTER INTERN</h5>
-      <div className="logo text-end me-5">
+      <div className="logo text-start me-5">
         {!draft && (<img src={company?.imageFile} alt="Company Logo" 
                    style={{ height: "100px", width: "160px" }}
          />)}
       </div>
+       {!draft && (  <div
+        style={{
+          position: "absolute",
+          top: "30%",
+          left: "20%",
+          right: "30%",
+          width: "50%",
+          height: "50%",
+          opacity: 0.1, // Adjust opacity for watermark effect
+          border: "none",
+          backgroundImage: `url(${companyData?.imageFile})`, // Use the logo or another image
+          transform: "rotate(340deg)",
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          //  filter: 'blur(2px)', // Optional: adjust blur as needed
+          zIndex: 1, // Ensure it's behind the content
+        }}
+      /> )}
       <p>Date: {previewData.date}</p>
       <p>
         <b>NAME:</b> {previewData.employeeName}

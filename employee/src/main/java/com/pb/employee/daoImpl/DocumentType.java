@@ -31,5 +31,11 @@ public class DocumentType {
     public static final DocumentType COMPANY_CALENDAR = new DocumentType("company_calendar", CompanyCalendarEntity.class);
     public static final DocumentType COMPANY_TDS = new DocumentType("company_tds", TDSEntity.class);
     public static final DocumentType USER = new DocumentType("user", UserEntity.class);
-
+    public static final DocumentType CANDIDATE = new DocumentType("candidate" , CandidateEntity.class);
+    public static final DocumentType DOCUMENT = new DocumentType("document" , EmployeeDocumentEntity.class);
+    public static final DocumentType EXPERIENCE = new DocumentType("experience", ExperienceEntity.class);
+    public static final DocumentType APPRAISAL = new DocumentType("appraisal", AppraisalEntity.class);
+    public static final DocumentType OFFER_LETTER = new DocumentType("offerLetter", OfferLetterEntity.class);
+    public static final DocumentType INTERN_OFFER_LETTER = new DocumentType("intern_offer_letter", InternOfferLetterEntity.class);
+    public static final DocumentType INTERNSHIP_CERTIFICATE = new DocumentType("internship-certificate", InternshipCertificateEntity.class);
 }

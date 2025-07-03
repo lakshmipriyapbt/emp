@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import javax.annotation.Nullable;
+
 @Getter
 @Setter
 @Builder
@@ -26,7 +28,5 @@ public class UserUpdateRequest {
     @Size(min = 2, max = 20, message = "{userType.size.message}")
     private String userType;
 
-    @Schema(example = "departmentId")
-    @Size(min = 2, max = 100, message = "{department.size.message}")
     private String department;
 }

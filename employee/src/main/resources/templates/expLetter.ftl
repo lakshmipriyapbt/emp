@@ -37,12 +37,12 @@
         }
 
         .logo {
-            text-align: right;
+            text-align: left;
             background-size: contain;
         }
 
         .date {
-            text-align: left;
+            text-align: right;
             padding: 20px;
         }
 

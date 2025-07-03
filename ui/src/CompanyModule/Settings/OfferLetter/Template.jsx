@@ -185,7 +185,7 @@ const Template = () => {
                 />
                 <div className='card-body' style={{ paddingLeft: "20px", paddingRight: "20px", position: "relative", zIndex: "2" }}>
                     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-                        <div>
+                        <div className="d-flex justify-content-start align-items-center mb-3">
                             {company?.imageFile ? (
                                 <img className="align-middle" src={company?.imageFile} alt="Logo" style={{ height: "80px", width: "180px" }} />
                             ) : (
@@ -394,8 +394,6 @@ const Template = () => {
                         </p>
                         <p>
                             <strong> Notice Period without Cause:</strong>
-                        </p>
-                        <p style={{ marginTop: "-15px" }}>
                             In the event that the employment is ceased without cause, you will be provided 30 days’ notice prior to such cessation or paid severance pay in lieu of thereof equivalent to the consolidated compensation package for period of 60 days calculated on the basis of last gross salary.
                         </p>
                         <ul>
@@ -405,8 +403,6 @@ const Template = () => {
                         </ul>
                         <p>
                             You are requested to keep the compensation information highly confidential.
-                        </p>
-                        <p style={{ marginTop: "-15px" }}>
                             We look forward to your joining <strong> {companyName}</strong> soon.
                         </p>
                         <p>
@@ -614,7 +610,7 @@ const Template = () => {
                             Educational Certificates
                         </strong>
                         </p>
-                        <ul style={{ marginTop: "-15px" }}>
+                        <ul>
                             <li>10"& 12" Certificate</li>
                             <li>Diploma / Graduation Level / Post Graduation Certifications</li>
                             <li>Any Other Certification/ Diploma</li>
@@ -622,7 +618,7 @@ const Template = () => {
                         <p><strong>
                             Work Experience Related Details
                         </strong></p>
-                        <ul style={{ marginTop: "-15px" }}>
+                        <ul>
                             <li>Accepted designation letter of the last organization</li>
                             <li>Relieving letter from previous employer</li>
                             <li>Experience / Appointment letter of the last organization</li>
@@ -630,14 +626,14 @@ const Template = () => {
                         <p><strong>
                             Photographs Required
                         </strong></p>
-                        <ul style={{ marginTop: "-15px" }}>
+                        <ul>
                             <li>3 Passport Size Photograph</li>
                             <li>2 Postcard Size Photograph (Need to produce if ESI is Applicable)</li>
                         </ul>
                         <p><strong>
                             Address Proof (Any one of the following can be taken as an address proof)
                         </strong></p>
-                        <ul style={{ marginTop: "-15px" }}>
+                        <ul>
                             <li>Ration Card / Voter ID Card</li>
                             <li>AADHAR Card</li>
                         </ul>

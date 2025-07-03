@@ -37,6 +37,7 @@ public class CompanyEntity {
     private String specialAllowance;
     private String hraPercentage;
     private String shortName;
+    private String status;
     private String type;
 
 }

@@ -16,12 +16,14 @@ background: url('${blurredImage}') no-repeat center center;
 .logo {
 position: fixed;
 top: 10px;
-right: 7px;
+left: 7px;
 }
 
 .logo img {
-max-width: 90px;
-height: auto;
+max-width: 60px;
+height: 100px;
+margin-right: 20px;
+margin-bottom: 20px;
 }
 
 .content {
@@ -103,20 +105,23 @@ height: 90px;
 
     <p class="section-title">Your Internship</p>
 
+
     <p>
-      The internship will commence on <b>${offerLetter.startDate}</b> and end on <b>${offerLetter.endDate}</b>. You will work as a <b>${offerLetter.designation}</b>, reporting to <b>${offerLetter.associateName}</b>, <b>${offerLetter.associateDesignation}</b>, who will guide you during the period.
+    The internship will commence on <b>${offerLetter.startDate}</b> and will conclude on <b>${offerLetter.endDate}</b> you will be working as a <b>${offerLetter.designation}</b>. you will be directly reporting to
+     <b>${offerLetter.associateName}</b>, <b>${offerLetter.associateDesignation}</b>, who will provide guidance and support throughout your internship .
     </p>
+
 
     <p class="section-title">Compensation & Benefits</p>
 
     <p>
-      You will receive a monthly stipend of <b>₹${offerLetter.stipend}/-</b> during the internship.
+    we are pleased to offer you a <b>₹${offerLetter.stipend}/-</b> . we look forward to welcoming you to Regards.
     </p>
 
     <p class="section-title">Acceptance</p>
 
     <p>
-      Kindly sign and return this letter by <b>${offerLetter.acceptDate}</b> to confirm your acceptance. We look forward to your contribution at <b>${company.companyName}</b>.
+    To Accept this offer, please sign and return this letter by <b>${offerLetter.acceptDate}</b>. we look forward to welcoming you to Regards
     </p>
 
     <div class="signature">

@@ -17,8 +17,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: pbtjava@gmail.com
-    password: jcnsrxqjifkrvqxl
+    username: cubhrm@gmail.com
+    password: dmbn xzzi qjfr srwt
     properties:
       mail:
         smtp:
@@ -51,4 +51,3 @@ springdoc:
 file:
   upload:
     path: '/var/www/ems-testing/assets/img/'
-

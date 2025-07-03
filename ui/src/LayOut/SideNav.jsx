@@ -14,12 +14,12 @@ const SideNav = () => {
 
   // Auto-expand parent when child is active
   useEffect(() => {
-    const parentPaths = Object.keys(NAV_CONFIG).flatMap(role => 
-      NAV_CONFIG[role].flatMap(item => 
+    const parentPaths = Object.keys(NAV_CONFIG).flatMap(role =>
+      NAV_CONFIG[role].flatMap(item =>
         item.items ? item.items.map(child => ({ parent: item.path || item.title, child: child.path })) : []
       )
     );
-    
+
     const parentToExpand = parentPaths.find(({ child }) => pathname.startsWith(child))?.parent;
     if (parentToExpand) {
       setExpandedItems(prev => ({ ...prev, [parentToExpand]: true }));
@@ -69,9 +69,9 @@ const SideNav = () => {
         </li>
 
         {hasChildren && (
-          <div 
+          <div
             className={`submenu-container ${isExpanded ? 'expanded' : ''}`}
-            style={{ 
+            style={{
               maxHeight: isExpanded ? '250px' : '0',
               overflowY: isExpanded ? 'auto' : 'hidden'
             }}
@@ -105,7 +105,7 @@ const SideNav = () => {
       if (NAV_CONFIG[role]) {
         NAV_CONFIG[role].forEach(item => {
           if (item.items) {
-            const allowedChildren = item.items.filter(child => 
+            const allowedChildren = item.items.filter(child =>
               allowedPaths.includes(child.path)
             );
             if (allowedChildren.length > 0) {
@@ -120,14 +120,18 @@ const SideNav = () => {
         });
       }
     });
-    
+
     return roleItems.sort((a, b) => (a.items ? 1 : -1) - (b.items ? 1 : -1));
   }, [userRole]);
 
   return (
     <aside className="side-nav">
       <div className="logo-container">
-        {company?.imageFile ? (
+        {userRole?.includes("candidate") ? (
+          <div className="candidate-welcome">
+            <span>Candidate Portal</span>
+          </div>
+        ) : company?.imageFile ? (
           <img
             src={company.imageFile}
             alt="Company Logo"
@@ -152,11 +156,10 @@ const SideNav = () => {
           />
         ) : (
           <div className="default-logo" onClick={() => navigate('/main')} tabIndex="0" role="button">
-            <i className="bi bi-building"></i>
+            <span>Logo</span>
           </div>
         )}
       </div>
-
       <nav className="nav-items-container">
         <ul className="nav-items">
           {getRoleNavItems.map((item) => renderNavItem(item))}

@@ -93,16 +93,15 @@
         <div class="pt-4">
             <p class="mb-5">Yours Sincerely,</p>
         <div>
+        <#if !draft>
+
+                  <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
+
+        </#if>
+        <br/>
            <b>Authorized Signature</b>
-                  <br/>
-                                          <#if !draft>
-
-          <img src="${company[0].stampImage}" style="width: 100px; height: 100px;"/>
-
-</#if>
         </div>
              <h5>${company[0].companyName}</h5>
-
             <p>${company[0].companyAddress}</p>
         </div>
     </div>

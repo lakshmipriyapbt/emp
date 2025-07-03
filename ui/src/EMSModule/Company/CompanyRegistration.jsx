@@ -8,6 +8,7 @@ import {
 } from "../../Utils/Axios";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 const CompanyRegistration = () => {
   const {
@@ -306,39 +307,39 @@ const CompanyRegistration = () => {
     const input = e.target;
     let value = input.value;
     const cursorPosition = input.selectionStart; // Save the cursor position
-  
+
     // Remove leading spaces but keep trailing spaces
     const leadingTrimmedValue = value.replace(/^\s+/g, "");
-  
+
     // Ensure only alphabets (upper and lower case), numbers, and allowed special characters
     const allowedCharsRegex = /^[a-zA-Z0-9\s!-_@#&()*/,.\\-{}]+$/;
     value = leadingTrimmedValue
       .split("") // Split value into characters
       .filter((char) => allowedCharsRegex.test(char)) // Keep only allowed characters
       .join(""); // Join characters back to a string
-  
+
     // Capitalize the first letter of each word
     const words = value.split(" ");
     const capitalizedWords = words.map((word) => {
       // Capitalize first letter, ensure the rest of the word is lowercase
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     });
-  
+
     // Join the words back into a string with a single space between them
     let formattedValue = capitalizedWords.join(" ");
-  
+
     // Allow spaces at the end if the user typed them (by preserving the original input length)
     if (value.length < leadingTrimmedValue.length) {
       formattedValue = formattedValue + " ".repeat(input.value.length - formattedValue.length);
     }
-  
+
     // Update input value
     input.value = formattedValue;
-  
+
     // Restore the cursor position
     input.setSelectionRange(cursorPosition, cursorPosition);
   };
-   
+
 
   const validateREGISTER = (value) => {
     const spaceError = "Spaces are not allowed in the Register Number.";
@@ -391,7 +392,7 @@ const CompanyRegistration = () => {
     const spaceError = "Spaces are not allowed in the GST Number.";
     const patternError = "Invalid GST Number format";
 
-    if (!value){
+    if (!value) {
       return true;
     }
 
@@ -465,21 +466,21 @@ const CompanyRegistration = () => {
     } else if (/\s$/.test(value)) {
       return "Spaces at the end are not allowed."; // Trailing space error
     }
-  
+
     // Check for multiple spaces between words
     if (/\s{2,}/.test(value)) {
       return "No multiple spaces between words allowed."; // Multiple spaces error
     }
-  
+
     // Validate special characters and alphanumeric characters
     const validCharsRegex = /^[A-Za-z0-9\s,.'\-/&@#$()*+!:;]*$/;
     if (!validCharsRegex.test(value)) {
       return "Invalid characters used. Only alphabets, numbers, and special characters (, . ' - / & @ # $ ( ) *) are allowed.";
     }
-  
+
     return true; // Return true if all conditions are satisfied
   };
-  
+
   const validatePAN = (value) => {
     const spaceError = "Spaces are not allowed in the PAN Number.";
     const patternError = "Invalid PAN Number format";
@@ -657,6 +658,21 @@ const CompanyRegistration = () => {
                     <div className="col-12 col-md-6 col-lg-5 mb-3">
                       <label className="form-label">
                         Service Name <span style={{ color: "red" }}>*</span>
+                        <OverlayTrigger
+                          trigger={["hover", "focus"]}
+                          placement="top"
+                          overlay={
+                            <Tooltip className="p-2 shadow-sm border-0" style={{ minWidth: "200px", backgroundColor: '#000' }}>
+                              <p className="mb-0 small text-white fw-semibold">
+                                Remember this service name for future reference
+                              </p>
+                            </Tooltip>
+                          }
+                        >
+                          <span className="ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-info-circle text-primary"></i>
+                          </span>
+                        </OverlayTrigger>
                       </label>
                       <input
                         type="text"
@@ -703,7 +719,7 @@ const CompanyRegistration = () => {
                           required: "Company Email Id is Required",
                           pattern: {
                             value:
-                          /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                              /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
                             message: "Invalid email format",
                           },
                         })}
@@ -713,57 +729,57 @@ const CompanyRegistration = () => {
                         <p className="errorMsg">{errors.emailId.message}</p>
                       )}
                     </div>
-                        <div className="col-lg-1"></div>
-                        <div className="col-12 col-md-6 col-lg-5 mb-3">
-                          <label className="form-label">
-                            Mobile Number{" "}
-                            <span style={{ color: "red" }}>*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            className="form-control"
-                            placeholder="Enter Mobile Number"
-                            autoComplete="off"
-                            maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
-                            defaultValue="+91 " // Set the initial value to +91 with a space
-                            onInput={handlePhoneNumberChange} // Handle input changes
-                            {...register("mobileNo", {
-                              required: "Mobile Number is Required",
-                              validate: {
-                                startsWithPlus91: (value) => {
-                                  if (!value.startsWith("+91 ")) {
-                                    return "Mobile Number must start with +91.";
-                                  }
-                                  return true;
-                                },
-                                correctLength: (value) => {
-                                  if (value.length !== 14) {
-                                    return "Mobile Number is Required";
-                                  }
-                                  return true;
-                                },
-                                notRepeatingDigits: (value) => {
-                                  const isRepeating = /^(\d)\1{12}$/.test(
-                                    value
-                                  ); // Check for repeating digits
-                                  return (
-                                    !isRepeating ||
-                                    "Mobile Number cannot consist of the same digit repeated."
-                                  );
-                                },
-                              },
-                              pattern: {
-                                value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
-                                message: "Mobile Number is Required",
-                              },
-                            })}
-                          />
-                          {errors.mobileNo && (
-                            <p className="errorMsg">
-                              {errors.mobileNo.message}
-                            </p>
-                          )}
-                        </div>          
+                    <div className="col-lg-1"></div>
+                    <div className="col-12 col-md-6 col-lg-5 mb-3">
+                      <label className="form-label">
+                        Mobile Number{" "}
+                        <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="Enter Mobile Number"
+                        autoComplete="off"
+                        maxLength={14} // Limit input to 14 characters (3 for +91, 1 for space, 10 for digits)
+                        defaultValue="+91 " // Set the initial value to +91 with a space
+                        onInput={handlePhoneNumberChange} // Handle input changes
+                        {...register("mobileNo", {
+                          required: "Mobile Number is Required",
+                          validate: {
+                            startsWithPlus91: (value) => {
+                              if (!value.startsWith("+91 ")) {
+                                return "Mobile Number must start with +91.";
+                              }
+                              return true;
+                            },
+                            correctLength: (value) => {
+                              if (value.length !== 14) {
+                                return "Mobile Number is Required";
+                              }
+                              return true;
+                            },
+                            notRepeatingDigits: (value) => {
+                              const isRepeating = /^(\d)\1{12}$/.test(
+                                value
+                              ); // Check for repeating digits
+                              return (
+                                !isRepeating ||
+                                "Mobile Number cannot consist of the same digit repeated."
+                              );
+                            },
+                          },
+                          pattern: {
+                            value: /^\+91\s[6-9]\d{9}$/, // Ensure it starts with +91, followed by a space, and then 6-9 and 9 more digits
+                            message: "Mobile Number is Required",
+                          },
+                        })}
+                      />
+                      {errors.mobileNo && (
+                        <p className="errorMsg">
+                          {errors.mobileNo.message}
+                        </p>
+                      )}
+                    </div>
                     <div className="col-12 col-md-6 col-lg-5 mb-2">
                       <label className="form-label">
                         Alternate Number <span style={{ color: "red" }}>*</span>
@@ -946,7 +962,7 @@ const CompanyRegistration = () => {
                         onInput={toInputSpaceCase}
                         onKeyDown={handleEmailChange}
                         maxLength={15}
-                        onPaste={handlePaste} 
+                        onPaste={handlePaste}
                         {...register("gstNo", {
                           maxLength: {
                             value: 15,
@@ -1057,7 +1073,7 @@ const CompanyRegistration = () => {
                           required: "Personal Email Id is Required",
                           pattern: {
                             value:
-                          /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
+                              /^[a-z][a-zA-Z0-9._+-]*@[a-zA-Z0-9.-]+\.(com|in|org|net|edu|gov)$/,
                             message: "Invalid Email Format ",
                           },
                         })}
@@ -1145,7 +1161,7 @@ const CompanyRegistration = () => {
                             value: 250,
                             message: "Maximum 250 Characters allowed",
                           },
-                          validate:validateAddress
+                          validate: validateAddress
                         })}
                       />
                       {errors.address && (
@@ -1178,14 +1194,14 @@ const CompanyRegistration = () => {
                 >
                   Clear
                 </button>
-              ):(
+              ) : (
                 <button
-                className="btn btn-secondary me-2"
-                type="button"
-                onClick={backForm}
-              >
-                Back
-              </button>
+                  className="btn btn-secondary me-2"
+                  type="button"
+                  onClick={backForm}
+                >
+                  Back
+                </button>
               )}
 
               <button

@@ -116,9 +116,10 @@ public class PayslipServiceImpl implements PayslipService {
             openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
 
             EmployeeEntity finalEmployee = employee;
+            byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employeeId, request);
+
             CompletableFuture.runAsync(()->{
                 try {
-                    byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employeeId, request);
 
                     File tempPdf = File.createTempFile("payslip", ".pdf");
                     try (FileOutputStream fos = new FileOutputStream(tempPdf)) {
@@ -258,10 +259,11 @@ public class PayslipServiceImpl implements PayslipService {
                 // Save all payslips for the current employee
                 for (PayslipEntity payslipProperties : payslipPropertiesList) {
                     openSearchOperations.saveEntity(payslipProperties, paySlipId, index);
+
+                    byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employee.getEmployeeId(), request);
+
                     CompletableFuture.runAsync(()-> {
                         try {
-                            byte[] pdfBytes = downloadPayslip(payslipRequest.getCompanyName(), paySlipId, employee.getEmployeeId(), request);
-
                             File tempPdf = File.createTempFile("payslip", ".pdf");
                             try (FileOutputStream fos = new FileOutputStream(tempPdf)) {
                                 fos.write(pdfBytes);
@@ -872,9 +874,11 @@ public class PayslipServiceImpl implements PayslipService {
 
             PayslipEntity payslipProperties = PayslipUtils.maskEmployeePayslipUpdateProperties(payslipsRequest, payslipId, employeeId);
             openSearchOperations.saveEntity(payslipProperties, payslipId, index);
+
+            byte[] pdfBytes = downloadPayslip(payslipsRequest.getCompanyName(), payslipId, employeeId, request);
+
             CompletableFuture.runAsync(()-> {
                 try {
-                    byte[] pdfBytes = downloadPayslip(payslipsRequest.getCompanyName(), payslipId, employeeId, request);
 
                     File tempPdf = File.createTempFile("payslip", ".pdf");
                     try (FileOutputStream fos = new FileOutputStream(tempPdf)) {

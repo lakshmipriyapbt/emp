@@ -3,6 +3,8 @@ package com.pb.employee.util;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,27 @@ public class EmailUtils {
     @Value("${registration.rejection.mail.text}")
     public String rejectionText;
 
+    @Value("${feedback.mail.subject}")
+    public String feedbackSubject;
+
+    @Value("${feedback.mail.text}")
+    public String feedbackText;
+
+    @Value("${feedback.acknowledgement.mail.subject}")
+    private String acknowledgementSubject;
+
+    @Value("${feedback.acknowledgement.mail.text}")
+    private String acknowledgementText;
+
+    @Value("${feedback.receiver.email}")
+    private String receiverEmail;
+
+    @Value("${mail.candidate.subject}")
+    public String candidateSubject;
+
+    @Value("${mail.candidate.text}")
+    public String candidateText;
+
     @Autowired
     public JavaMailSender javaMailSender;
 
@@ -54,7 +77,7 @@ public class EmailUtils {
         String formattedText = mailText.replace("{emailId}", emailId);
         formattedText = formattedText.replace("{url}", url);  // Finally replace the URL
         formattedText = formattedText.replace("{name}", name);// Finally replace the URL
-        formattedText = formattedText.replace("{password}", defaultPassword);
+        formattedText = formattedText.replace("{password}", defaultPassword == null ? "" : defaultPassword);
 
         mailMessage.setText(formattedText);
         javaMailSender.send(mailMessage);
@@ -147,4 +170,39 @@ public class EmailUtils {
         }
     }
 
+    public void sendFeedbackEmail(String senderEmail, String description) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(receiverEmail);
+        mailMessage.setSubject(feedbackSubject.replace("{senderEmail}", senderEmail));
+        mailMessage.setText(feedbackText.replace("{senderEmail}", senderEmail).replace("{description}", description));
+        mailMessage.setFrom(senderEmail);
+        javaMailSender.send(mailMessage);
+        log.info("Feedback email sent successfully from {} to company", senderEmail);
+    }
+
+    public void sendAcknowledgementEmail(String userEmail) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(userEmail);
+        mailMessage.setSubject(acknowledgementSubject);
+        mailMessage.setText(acknowledgementText.replace("{senderEmail}", userEmail));
+        mailMessage.setFrom(receiverEmail);
+        javaMailSender.send(mailMessage);
+        log.info("Feedback acknowledgement email sent successfully to {}", userEmail);
+    }
+
+    public void sendCandidateRegistrationEmail(String emailId, String companyUrl, String candidate) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(emailId);
+        mailMessage.setSubject(candidateSubject);
+
+        String mailText = candidateText;
+        // Replace placeholders in the mail text
+        String formattedText = mailText.replace("{emailId}", emailId);
+        formattedText = formattedText.replace("{url}", companyUrl);  // Finally replace the URL
+        formattedText = formattedText.replace("{name}", candidate);// Finally replace the URL
+
+        mailMessage.setText(formattedText);
+        javaMailSender.send(mailMessage);
+        log.info("Credentials sent to the Email...");
+    }
 }

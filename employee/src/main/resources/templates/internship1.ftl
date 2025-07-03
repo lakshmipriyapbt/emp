@@ -63,7 +63,7 @@
         </div>
     </#if>
 
-    <h5 class="internship-text">Internship Experience Certificate</h5>
+    <h5 class="internship-text">INTERNSHIP CERTIFICATION</h5>
     <div class="date-info">
         <h5>Date: ${internship.date}</h5>
     </div>

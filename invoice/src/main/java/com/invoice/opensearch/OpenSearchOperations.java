@@ -3,10 +3,7 @@ package com.invoice.opensearch;
 import com.invoice.exception.InvoiceErrorMessageHandler;
 import com.invoice.exception.InvoiceErrorMessageKey;
 import com.invoice.exception.InvoiceException;
-import com.invoice.model.BankEntity;
-import com.invoice.model.CompanyEntity;
-import com.invoice.model.Entity;
-import com.invoice.model.InvoiceModel;
+import com.invoice.model.*;
 import com.invoice.util.Constants;
 import com.invoice.util.InvoiceUtils;
 import com.invoice.util.ResourceIdUtils;
@@ -233,6 +230,35 @@ public class OpenSearchOperations {
         }
         // ✅ Return first invoice number if no invoices exist
         return null;
+    }
+
+    public TemplateEntity getCompanyTemplates(String companyName) throws InvoiceException {
+        logger.debug("Getting Templates for company {}", companyName);
+        BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+        boolQueryBuilder = boolQueryBuilder
+                .filter(q -> q.matchPhrase(t -> t.field(Constants.TYPE).query(Constants.TEMPLATE)));
+        BoolQuery.Builder finalBoolQueryBuilder = boolQueryBuilder;
+        SearchResponse<TemplateEntity> searchResponse = null;
+        String index = ResourceIdUtils.generateCompanyIndex(companyName);
+
+        try {
+            // Adjust the type or field according to your index structure
+            searchResponse = esClient.search(t -> t.index(index).size(SIZE_ELASTIC_SEARCH_MAX_VAL)
+                    .query(finalBoolQueryBuilder.build()._toQuery()), TemplateEntity.class);
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+            throw new InvoiceException(InvoiceErrorMessageHandler.getMessage(InvoiceErrorMessageKey.UNABLE_TO_SEARCH), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<Hit<TemplateEntity>> hits = searchResponse.hits().hits();
+        logger.info("Number of employee hits for company {}: {}", companyName, hits.size());
+
+        if (!hits.isEmpty()) {
+            return hits.get(0).source();
+        } else {
+            return null;
+        }
+
     }
 
     public List<InvoiceModel> getPurchaseOrderNo(String index, String purchaseOrderNo) {

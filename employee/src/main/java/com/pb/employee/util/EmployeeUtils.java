@@ -1,23 +1,18 @@
 package com.pb.employee.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pb.employee.common.ResponseObject;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.persistance.model.*;
 import com.pb.employee.request.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Component;
-import javax.swing.text.Position;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import javax.swing.text.Position;
-import java.text.SimpleDateFormat;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.lang.reflect.Field;
 import java.util.Base64;
 import java.util.stream.Collectors;
 
@@ -25,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class EmployeeUtils {
 
-    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword) {
+    public static Entity maskEmployeeProperties(EmployeeRequest employeeRequest,String resourceId, String companyId, String defaultPassword, String candidateId) {
         String uan = null, pan = null, adharId = null, accountNo=null, ifscCode = null,password=null, mobileNo=null, altNo= null;
         if(employeeRequest.getPanNo() != null) {
             pan = Base64.getEncoder().encodeToString(employeeRequest.getPanNo().getBytes());
@@ -68,9 +63,9 @@ public class EmployeeUtils {
         entity.setMobileNo(mobileNo);
         entity.setAlternateNo(altNo);
         entity.setType(Constants.EMPLOYEE);
+        entity.setCandidateId(candidateId);
         return entity;
     }
-
 
     public static Entity unmaskEmployeeProperties(EmployeeEntity employeeEntity, DepartmentEntity entity, DesignationEntity designationEntity) {
         String pan = null,uanNo=null,aadhaarId=null,accountNo=null,ifscCode=null, mobileNo=null, alterNo=null;
@@ -586,6 +581,53 @@ public class EmployeeUtils {
                     return (id == null || !employeesWithAttendance.contains(id));
                 })
                 .collect(Collectors.toList());
+    }
+    public static AppraisalEntity maskAppraisalProperties(AppraisalLetterRequest appraisalLetterRequest, String resourceId, String companyId, String employeeId) {
+        String gross = null, hike = null;
+
+        if(appraisalLetterRequest.getGrossCompensation() != null) {
+           gross = Base64.getEncoder().encodeToString(appraisalLetterRequest.getGrossCompensation().getBytes(StandardCharsets.UTF_8));
+        }
+        if (appraisalLetterRequest.getSalaryHikePersentage() != null) {
+            hike = Base64.getEncoder().encodeToString(appraisalLetterRequest.getSalaryHikePersentage().getBytes(StandardCharsets.UTF_8));
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        AppraisalEntity entity = objectMapper.convertValue(appraisalLetterRequest, AppraisalEntity.class);
+        entity.setGrossCompensation(gross);
+        entity.setSalaryHikePersentage(hike);
+        entity.setId(resourceId);
+        entity.setCompanyId(companyId);
+        entity.setEmployeeId(employeeId);
+        entity.setType(Constants.APPRAISAL);
+        return entity;
+    }
+
+    public static AppraisalEntity unmaskAppraisalProperties(AppraisalEntity appraisalEntity) {
+        String gross = null, hike = null;
+        if(appraisalEntity.getGrossCompensation() != null) {
+            gross = new String(Base64.getDecoder().decode(appraisalEntity.getGrossCompensation().getBytes(StandardCharsets.UTF_8)));
+            appraisalEntity.setGrossCompensation(gross);
+        }
+        if (appraisalEntity.getSalaryHikePersentage() != null) {
+            hike = new String(Base64.getDecoder().decode(appraisalEntity.getSalaryHikePersentage().getBytes(StandardCharsets.UTF_8)));
+            appraisalEntity.setSalaryHikePersentage(hike);
+        }
+        return appraisalEntity;
+    }
+
+    public static AppraisalUpdateRequest maskAppraisalUpdateProperties(AppraisalUpdateRequest appraisalUpdateRequest) {
+        String gross = null, hike = null;
+
+        if(appraisalUpdateRequest.getGrossCompensation() != null) {
+            gross = Base64.getEncoder().encodeToString(appraisalUpdateRequest.getGrossCompensation().getBytes(StandardCharsets.UTF_8));
+            appraisalUpdateRequest.setGrossCompensation(gross);
+        }
+        if (appraisalUpdateRequest.getSalaryHikePersentage() != null) {
+            hike = Base64.getEncoder().encodeToString(appraisalUpdateRequest.getSalaryHikePersentage().getBytes(StandardCharsets.UTF_8));
+            appraisalUpdateRequest.setSalaryHikePersentage(hike);
+        }
+
+        return appraisalUpdateRequest;
     }
 
 }

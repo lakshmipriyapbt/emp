@@ -1,5 +1,4 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 
 const protocol = window.location.protocol;
 const hostname = window.location.hostname;
@@ -27,6 +26,40 @@ axiosInstance.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// // Refresh token function
+// const refreshAuthToken = async () => {
+//   const refreshToken = localStorage.getItem("refreshToken");
+//   try {
+//     const response = await axios.post(`${Login_URL}/auth/refresh`, { refreshToken });
+//     const { token, refreshToken: newRefreshToken } = response.data.data;
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("refreshToken", newRefreshToken);
+//     return token;
+//   } catch (err) {
+//     console.error("Token refresh failed:", err);
+//     localStorage.clear();
+//     window.location.href = "/login";
+//     return null;
+//   }
+// };
+
+// // Add response interceptor to auto-refresh token
+// axiosInstance.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+//       const newToken = await refreshAuthToken();
+//       if (newToken) {
+//         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+//         return axiosInstance(originalRequest);
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 export const loginApi = (data) => {
   return axios
@@ -71,6 +104,22 @@ export const CompanyloginApi = (data) => {
     });
 };
 
+export const CandidateloginApi = (data) => {
+  return axios.post(`${Login_URL}/candidate/login`, data)
+    .then(response => {
+      const { token, refreshToken } = response.data?.data || {};
+      if (token && refreshToken) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      return response.data; // Return the full response
+    })
+    .catch(error => {
+      const errorMessage = error.response?.data?.error?.message || "An unknown error occurred.";
+      console.error(errorMessage); // Log the error for debugging
+      throw new Error(errorMessage); // Throw an error with the message
+    });
+};
 
 export const ValidateOtp = (data) => {
   return axiosInstance.post(`${Login_URL}/validate`, data);
@@ -86,6 +135,10 @@ export const forgotPasswordStep2 = (data) => {
 
 export const resetPassword = (data, employeeId) => {
   return axiosInstance.patch(`/company/employee/${employeeId}/password`, data);
+}
+
+export const resendPasswordOTP = (data) => {
+  return axios.post(`${Login_URL}/resend/otp`, data);
 }
 
 export const CompanyRegistrationApi = (data) => {
@@ -175,7 +228,7 @@ export const DepartmentGetApiById = (departmentId) => {
 export const DepartmentDeleteApiById = (departmentId) => {
   const company = localStorage.getItem("companyName");
   if (!company) {
-    throw new Error("Company name not found in localStorage");
+    throw new Error("Company Name is not found");
   }
   
   return axiosInstance.delete(`/${company}/department/${departmentId}`, {
@@ -280,6 +333,28 @@ export const EmployeeNoAttendanceGetAPI = (month, year) => {
 export const EmployeePostApi = (data) => {
   return axiosInstance.post('/employee', data);
 }
+
+export const uploadEmployeeImage = (employeeId, file) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return axiosInstance.post(`/${companyName}/employee/${employeeId}/image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+export const getEmployeeImage = (employeeId) => {
+  const companyName = localStorage.getItem("companyName");
+  return axiosInstance.get(`/${companyName}/employee/${employeeId}/image`);
+};
+
+
+export const CandidateToEmployeePostApi = (candidateId, data) => {
+  return axiosInstance.post(`/candidate/${candidateId}`, data);
+}
+
 
 export const EmployeeGetApiById = (employeeId) => {
   const company = localStorage.getItem("companyName")
@@ -1078,16 +1153,29 @@ export const BankPutApiById = (companyId, bankId, data) => {
 };
 
 export const InvoicePostApi = (companyId, customerId, data) => {
-  return axiosInstance.post(`/company/${companyId}/customer/${customerId}/invoice`, data)
-    .then(response => response.data)
-    .catch(error => {
-      console.error('Error creating product:', error);
-      throw error;
-    });
+  // Validate inputs
+  if (!companyId || !customerId) {
+    console.error('Missing required parameters:', { companyId, customerId });
+    return Promise.reject(new Error('Missing companyId or customerId'));
+  }
+
+  return axiosInstance.post(
+    `/company/${encodeURIComponent(companyId)}/customer/${encodeURIComponent(customerId)}/invoice`,
+    data
+  )
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Error creating invoice:', error);
+    throw error;
+  });
 };
 
-export const InvoiceGetAllApi = (companyId) => {
-  return axiosInstance.get(`/company/${companyId}/invoice`);
+export const InvoiceGetAllApi = (companyId, customerId = null) => {
+  const params = {};
+  if (customerId) {
+    params.customerId = customerId;
+  }
+  return axiosInstance.get(`/company/${companyId}/invoice`, { params });
 };
 
 export const InvoiceGetByCustomerIdApi = (companyId, customerId) => {
@@ -1222,4 +1310,230 @@ export const getUserById = (id) => {
 export const DeleteUserById = (id) => {
   const company = localStorage.getItem("companyName");
   return axiosInstance.delete(`/${company}/user/${id}`);
+};
+
+// Candidate apis
+export const CandidatePostApi = async (candidateData) => {
+    try {
+        const response = await axiosInstance.post("/candidate", candidateData);
+        
+        // Return the full response object
+        return {
+            status: response.status,
+            data: response.data,
+            fullResponse: response
+        };
+    } catch (error) {
+        console.error('API Error:', {
+            config: error.config,
+            response: error.response,
+            message: error.message
+        });
+        
+        // Return a consistent error structure
+        return {
+            status: error.response?.status || 500,
+            error: true,
+            message: error.response?.data?.message || error.message,
+            fullResponse: error.response
+        };
+    }
+};
+export const CandidateGetAllApi = () => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  
+  return axiosInstance.get(`/candidate/${company}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateGetByIdApi = (candidateId) => {
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  return axiosInstance.get(`/candidate/${company}/${candidateId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  });
+};
+
+export const CandidateDeleteApi = (id) => {  // Changed parameter name to be more clear
+  const company = localStorage.getItem("companyName");
+  if (!company) {
+    throw new Error("Company Name is not found");
+  }
+  
+  return axiosInstance.delete(`/${company}/candidate/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    }
+  })
+  .then(response => response.data)
+  .catch(error => {
+    console.error('Delete Candidate Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  });
+};
+
+ export const uploadDocumentAPI = async (candidateId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Log the data being sent
+  console.log("Uploading to:", `/${companyName}/candidate/${candidateId}/upload`);
+  console.log("Document names:", docNames);
+  console.log("Files:", files.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size
+  })));
+
+  // Add data to FormData
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+    formData.append(`files[${index}]`, files[index]);
+  });
+
+  try {
+    const response = await axiosInstance.post(
+      `/${companyName}/candidate/${candidateId}/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Full error details:', {
+      url: error.config.url,
+      method: error.config.method,
+      headers: error.config.headers,
+      data: error.config.data,
+      response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const getDocumentByIdAPI = async (candidateId = '', employeeId = '') => {
+  const companyName = localStorage.getItem("companyName");
+
+  try {
+    const response = await axiosInstance.get(
+      `/${companyName}/documents`,
+      {
+        params: {
+          ...(candidateId && { candidateId }),
+          ...(employeeId && { employeeId })
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return null; // Gracefully handle 404
+    }
+    // Suppress all other errors silently
+    return null;
+  }
+};
+
+
+export const deleteDocumentByIdAPI = async (candidateId, documentId) => {
+  const companyName = localStorage.getItem("companyName");
+  
+  try {
+    const response = await axiosInstance.delete(
+      `/${companyName}/candidate/${candidateId}/document/${documentId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting document:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      response: error.response?.data
+    });
+    throw error;
+  }
+};
+
+export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Log the data being sent for debugging
+  console.log("Uploading to:", `/${companyName}/employee/${employeeId}/upload`);
+  console.log("Document names:", docNames);
+  console.log("Files:", files.map(f => ({
+    name: f.name,
+    type: f.type,
+    size: f.size
+  })));
+
+  // Add data to FormData
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+    formData.append(`files[${index}]`, files[index]);
+  });
+
+  try {
+    const response = await axiosInstance.post(
+      `/${companyName}/employee/${employeeId}/upload`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading employee documents:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers,
+      data: error.config?.data,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    throw error;
+  }
+};
+
+export const updateCandidateDocument = (candidateId, documentId, docNames, files) => {
+  const companyName = localStorage.getItem("companyName");
+  const formData = new FormData();
+  
+  // Append each document name
+  docNames.forEach((name, index) => {
+    formData.append(`docNames[${index}]`, name);
+  });
+  
+  // Append each file
+  files.forEach((file, index) => {
+    formData.append(`files[${index}]`, file);
+  });
+
+  return axiosInstance.patch(
+    `/${companyName}/candidate/${candidateId}/document/${documentId}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
 };
