@@ -191,8 +191,6 @@ page-break-inside: avoid;
            <h3>${company.companyName}</h3>
            <p>${company.emailId}</p>
            <p>${company.mobileNo}</p>
-           <p>Email: ${customer.email!''}</p>
-           <p>GST No: ${customer.customerGstNo!''}</p>
          </div>
        </td>
        <td style="border:none;">
@@ -215,6 +213,8 @@ page-break-inside: avoid;
            <p>Client name: ${customer.customerName}</p>
            <p>${customer.address}</p>
            <p>Phone: ${customer.mobileNumber}</p>
+           <p>Email: ${customer.email!''}</p>
+           <p>GST No: ${customer.customerGstNo!''}</p>
          </div>
        </td>
        <td style="border:none; width:50%;">
