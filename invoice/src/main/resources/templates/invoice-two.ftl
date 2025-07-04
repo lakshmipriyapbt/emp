@@ -22,8 +22,6 @@
    display: flex;
    }
  .container  {
-   max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-   height: 1000px;
    margin: 0 auto;
    }
   .header {
@@ -191,7 +189,7 @@ page-break-inside: avoid;
        <td style="border:none;">
          <div class="company-info">
            <h3>${company.companyName}</h3>
-           <p>${company.emailId}, ${company.mobileNo}</p>
+           <p>${company.emailId}</p>
            <p>${company.mobileNo}</p>
          </div>
        </td>
