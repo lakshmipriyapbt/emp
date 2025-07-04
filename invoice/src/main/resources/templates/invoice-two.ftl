@@ -303,10 +303,12 @@ page-break-inside: avoid;
         <td style="vertical-align:top; border:none; width:50%;">
           <div class="bank-details">
             <div class="section-title">BANK ACCOUNT DETAILS</div>
-            <p>Account Holder: ${bank.bankName!''}</p>
+            <p>Bank Name: ${bank.bankName!''}</p>
             <p>Account number: ${bank.accountNumber!''}</p>
-            <p>ABA rtn: ${bank.bankName!''}</p>
-            <p>Wire rtn: ${bank.ifscCode!''}</p>
+            <p>Account Type: ${bank.accountType!''}</p>
+            <p>Branch: ${bank.branch!''}</p>
+            <p>IFSC Code: ${bank.ifscCode!''}</p>
+            <p>Address: ${bank.address!''}</p>
           </div>
         </td>
       </tr>
