@@ -22,8 +22,6 @@
    display: flex;
    }
  .container  {
-   max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-   height: 1000px;
    margin: 0 auto;
    }
   .header {
