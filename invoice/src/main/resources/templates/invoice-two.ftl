@@ -191,6 +191,8 @@ page-break-inside: avoid;
            <h3>${company.companyName}</h3>
            <p>${company.emailId}</p>
            <p>${company.mobileNo}</p>
+           <p>Email: ${customer.email!''}</p>
+           <p>GST No: ${customer.customerGstNo!''}</p>
          </div>
        </td>
        <td style="border:none;">
@@ -301,10 +303,13 @@ page-break-inside: avoid;
         <td style="vertical-align:top; border:none; width:50%;">
           <div class="bank-details">
             <div class="section-title">BANK ACCOUNT DETAILS</div>
-            <p>Account Holder: ${bank.bankName!''}</p>
-            <p>Account number: ${bank.accountNumber!''}</p>
-            <p>ABA rtn: ${bank.bankName!''}</p>
-            <p>Wire rtn: ${bank.ifscCode!''}</p>
+              <p>Account Holder: ${company.companyName!''}</p>
+              <p>Bank Name: ${bank.bankName!''}</p>
+              <p>Account Number: ${bank.accountNumber!''}</p>
+              <p>Account Type: ${bank.accountType!''}</p>
+              <p>Branch: ${bank.branch!''}</p>
+              <p>IFSC Code: ${bank.ifscCode!''}</p>
+              <p>Bank Address: ${bank.address!''}</p>
           </div>
         </td>
       </tr>
