@@ -1512,26 +1512,27 @@ export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => 
 };
 
 export const updateCandidateDocument = (candidateId, documentId, docNames, files) => {
-  const companyName = localStorage.getItem("companyName");
-  const formData = new FormData();
-  
-  // Append each document name
-  docNames.forEach((name, index) => {
-    formData.append(`docNames[${index}]`, name);
-  });
-  
-  // Append each file
-  files.forEach((file, index) => {
-    formData.append(`files[${index}]`, file);
-  });
-
-  return axiosInstance.patch(
-    `/${companyName}/candidate/${candidateId}/document/${documentId}`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    const companyName = localStorage.getItem("companyName");
+    const formData = new FormData();
+    
+    // Verify counts match
+    if (docNames.length !== files.length) {
+        throw new Error(`Mismatched counts: ${docNames.length} docNames vs ${files.length} files`);
     }
-  );
+
+    // Append all documents
+    docNames.forEach((name, index) => {
+        formData.append(`docNames[${index}]`, name);
+        formData.append(`files[${index}]`, files[index]);
+    });
+
+    return axiosInstance.patch(
+        `/${companyName}/candidate/${candidateId}/document/${documentId}`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }
+    );
 };
