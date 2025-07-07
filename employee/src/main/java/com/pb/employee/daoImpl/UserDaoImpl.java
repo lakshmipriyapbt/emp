@@ -22,7 +22,7 @@ public class UserDaoImpl extends AbstractDao<UserEntity> implements UserDao {
     }
 
     @Override
-    public Collection<UserEntity> getUsers(String companyName, String userId, String companyId) throws EmployeeException {
+    public Collection<UserEntity> getUsers(String companyName, String userId, String companyId, String emailId) throws EmployeeException {
         Collection<Filter> filters = new ArrayList<>();
         if (StringUtils.isNotBlank(companyId)) {
             filters.add(new Filter(Constants.COMPANY_ID, Operator.EQ, companyId));
@@ -30,6 +30,10 @@ public class UserDaoImpl extends AbstractDao<UserEntity> implements UserDao {
         if (StringUtils.isNotBlank(userId)) {
             filters.add(new Filter(Constants.ID, Operator.EQ, userId));
         }
+        if (StringUtils.isNotBlank(emailId)) {
+            filters.add(new Filter(Constants.EMAIL_ID, Operator.EQ, emailId));
+        }
+
 
         return search(filters, companyName);
     }
