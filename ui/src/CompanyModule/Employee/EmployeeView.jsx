@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
+import {downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
@@ -26,43 +26,68 @@ const EmployeeView = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const allColumns = [
-    { name: 'Name', selector: 'Name' }, // You may need to combine firstName + lastName in backend or API
+    { name: 'Name', selector: 'Name' },
     { name: 'EmployeeId', selector: 'EmployeeId' },
-    { name: 'Pan No', selector: 'Pan No' },
-    { name: 'Aadhaar No', selector: 'Aadhaar No' },
-    { name: 'Bank Account No', selector: 'Bank Account No' },
+    { name: 'Email Id', selector: 'Email Id' },
     { name: 'Contact No', selector: 'Contact No' },
-    { name: 'Date Of Birth', selector: 'Date Of Birth' },
-    { name: 'UAN No', selector: 'UAN No' },
+    { name: 'Alternate No', selector: 'Alternate No' },
     { name: 'Department And Designation', selector: 'Department And Designation' },
+    { name: 'Date Of Hiring', selector: 'Date Of Hiring' },
+    { name: 'Date Of Birth', selector: 'Date Of Birth' },
+    { name: 'Marital Status', selector: 'maritalStatus' },
+    { name: 'Pan No', selector: 'panNo' },
+    { name: 'Aadhaar No', selector: 'aadhaarNo' },
+    { name: 'UAN No', selector: 'uanNo' },
+    { name: 'PF No', selector: 'pfNo' },
+    { name: 'Bank Account No', selector: 'bankAccountNo' },
+    { name: 'IFSC Code', selector: 'ifscCode' },
+    { name: 'Bank Name', selector: 'bankName' },
+    { name: 'Bank Branch', selector: 'bankBranch' },
+    { name: 'Current Gross', selector: 'currentGross' },
+    { name: 'Location', selector: 'location' },
+    { name: 'Temporary Address', selector: 'temporaryAddress' },
+    { name: 'Permanent Address', selector: 'permanentAddress' },
   ];
-  const excelColumns = [
+  const bankColumns = [
     "Name",
     "EmployeeId",
+    "Bank Account No",
+    "IFSC Code",
+    "Bank Name",
+    "Bank Branch",
     "Pan No",
     "Aadhaar No",
-    "Bank Account No",
-    "Contact No",
-    "Date Of Birth",
     "UAN No",
-    "Department And Designation"
+    "PF No",
+    "Contact No"
   ];
+  // const excelColumns = [
+  //   "Name",
+  //   "EmployeeId",
+  //   "Pan No",
+  //   "Aadhaar No",
+  //   "Bank Account No",
+  //   "Contact No",
+  //   "Date Of Birth",
+  //   "UAN No",
+  //   "Department And Designation"
+  // ];
 
-  const pdfColumns = [
-    "Name",
-    "EmployeeId",
-    "Aadhaar No",
-    "Bank Account No",
-    "Contact No",
-    "Date Of Birth",
-    "UAN No",
-    "Department And Designation"
-  ];
+  // const pdfColumns = [
+  //   "Name",
+  //   "EmployeeId",
+  //   "Aadhaar No",
+  //   "Bank Account No",
+  //   "Contact No",
+  //   "Date Of Birth",
+  //   "UAN No",
+  //   "Department And Designation"
+  // ];
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState(allColumns.map(col => col.name));
-  const columnsToShow = selectedEmployeeDownloadFormat === "excel"
-    ? allColumns.filter(col => excelColumns.includes(col.name))
-    : allColumns.filter(col => pdfColumns.includes(col.name));
+  // const columnsToShow = selectedEmployeeDownloadFormat === "excel"
+  //   ? allColumns.filter(col => excelColumns.includes(col.name))
+  //   : allColumns.filter(col => pdfColumns.includes(col.name));
 
 
   const { employee } = useAuth();
@@ -177,22 +202,22 @@ const EmployeeView = () => {
     }
   };
 
-  const handleBankDownload = async (format) => {
-    if (!format) {
-      toast.warning("Please select a file format!");
-      return;
-    }
+  // const handleBankDownload = async (format) => {
+  //   if (!format) {
+  //     toast.warning("Please select a file format!");
+  //     return;
+  //   }
 
-    setIsDownloading(true);
-    try {
-      await downloadEmployeeBankDataAPI(format, toast);
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-      setSelectedBankDownloadFormat("");
-    }
-  };
+  //   setIsDownloading(true);
+  //   try {
+  //     await downloadEmployeeBankDataAPI(format, toast);
+  //   } catch (error) {
+  //     toast.error("Download failed. Please try again.");
+  //   } finally {
+  //     setIsDownloading(false);
+  //     setSelectedBankDownloadFormat("");
+  //   }
+  // };
 
   const statusMappings = {
     Active: {
@@ -426,32 +451,8 @@ const EmployeeView = () => {
                               const format = e.target.value;
                               if (!format) return;
                               setSelectedEmployeeDownloadFormat(format);
-
-                              // Set default columns based on format
-                              if (format === "excel") {
-                                setSelectedColumns([
-                                  "Name",
-                                  "EmployeeId",
-                                  "Pan No",
-                                  "Aadhaar No",
-                                  "Bank Account No",
-                                  "Contact No",
-                                  "Date Of Birth",
-                                  "UAN No",
-                                  "Department And Designation"
-                                ]);
-                              } else if (format === "pdf") {
-                                setSelectedColumns([
-                                  "Name",
-                                  "EmployeeId",
-                                  "Aadhaar No",
-                                  "Bank Account No",
-                                  "Contact No",
-                                  "Date Of Birth",
-                                  "UAN No",
-                                  "Department And Designation"
-                                ]);
-                              }
+                              setSelectedBankDownloadFormat(""); // clear other
+                              setSelectedColumns(allColumns.map(col => col.name)); // default: all selected
                               setShowDownloadModal(true);
                             }}
                             disabled={isDownloading}
@@ -465,9 +466,13 @@ const EmployeeView = () => {
                           <select
                             className="form-select bg-primary border-0 text-white"
                             value={selectedBankDownloadFormat}
-                            onChange={(e) => {
-                              setSelectedBankDownloadFormat(e.target.value);
-                              handleBankDownload(e.target.value);
+                            onChange={e => {
+                              const format = e.target.value;
+                              if (!format) return;
+                              setSelectedBankDownloadFormat(format);
+                              setSelectedEmployeeDownloadFormat(""); // clear other
+                              setSelectedColumns(bankColumns); // default: only bank columns selected
+                              setShowDownloadModal(true);
                             }}
                             disabled={isDownloading}
                           >
@@ -653,7 +658,10 @@ const EmployeeView = () => {
                       </button>
                     </div>
                     <div className="row">
-                      {columnsToShow.map((column, index) => (
+                      {((selectedEmployeeDownloadFormat && !selectedBankDownloadFormat)
+                        ? allColumns
+                        : allColumns.filter(col => bankColumns.includes(col.name))
+                      ).map((column, index) => (
                         <div className="col-md-4" key={index}>
                           <div className="form-check">
                             <input
@@ -699,12 +707,15 @@ const EmployeeView = () => {
                         const selectedFields = allColumns
                           .filter(col => selectedColumns.includes(col.name))
                           .map(col => col.selector);
-                        await downloadEmployeesFileAPI(selectedEmployeeDownloadFormat, selectedFields, toast);
+                        // Use selectedEmployeeDownloadFormat or selectedBankDownloadFormat
+                        const format = selectedEmployeeDownloadFormat || selectedBankDownloadFormat;
+                        await downloadEmployeesFileAPI(format, selectedFields, toast);
                       } catch {
                         toast.error("Download failed. Please try again.");
                       } finally {
                         setIsDownloading(false);
                         setSelectedEmployeeDownloadFormat("");
+                        setSelectedBankDownloadFormat("");
                       }
                     }}
                     disabled={selectedColumns.length === 0}
