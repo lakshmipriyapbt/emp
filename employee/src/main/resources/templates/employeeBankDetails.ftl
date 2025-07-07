@@ -6,65 +6,65 @@
     <title>Employee Details</title>
     <style>
 
-.logo {
-text-align: right;
-}
+      .logo {
+       text-align: right;
+      }
 
-.logo img {
-max-width: 60px;
-height: 100px;
-margin-right: 5px;
-margin-bottom: 20px;
-margin-top: -10px;
-}
+      .logo img {
+            max-width: 60px;
+            height: 100px;
+            margin-right: 5px;
+            margin-bottom: 20px;
+            margin-top: -10px;
+      }
 
-/* Table Styling */
-table {
-width: 100%;
-border-collapse: collapse;
-margin-top: 20px;
-font-family: Arial, sans-serif;
-}
+      /* Table Styling */
+      table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+      }
 
-th, td {
-padding: 3px;
-text-align: left;
-border: 1px solid #ddd;
-word-wrap: break-word; /* Ensure content breaks properly */
-font-size: 10px;
-white-space: nowrap; /* Prevent text from wrapping */
-}
+      th, td {
+            padding: 3px;
+            text-align: left;
+            border: 1px solid #ddd;
+            word-wrap: break-word; /* Ensure content breaks properly */
+            font-size: 10px;
+            white-space: nowrap; /* Prevent text from wrapping */
+      }
 
-th {
-background-color: #f2f2f2;
-font-weight: bold;
-}
+      th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+      }
 
-/* Watermark styling */
-.watermark {
-position: fixed;
-top: 40%;
-left: 20%;
-transform: translate(-50%, -50%) rotate(30deg);
-z-index: -1;
-width: 400px;
-height: auto;
-text-align: center;
-}
+      /* Watermark styling */
+      .watermark {
+            position: fixed;
+            top: 40%;
+            left: 20%;
+            transform: translate(-50%, -50%) rotate(30deg);
+            z-index: -1;
+            width: 400px;
+            height: auto;
+            text-align: center;
+      }
 
-.watermark img {
-width: 100%;
-height: auto;
-opacity: 0.05;
-}
+      .watermark img {
+            width: 100%;
+            height: auto;
+            opacity: 0.05;
+      }
 
-/* Improve table column width */
-th, td {
-overflow: hidden;
-text-overflow: ellipsis;
-}
+      /* Improve table column width */
+      th, td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+      }
 
-</style>
+      </style>
 </head>
 <body>
 <img src="${blurredImage}" alt="Company Logo" class="watermark" />
