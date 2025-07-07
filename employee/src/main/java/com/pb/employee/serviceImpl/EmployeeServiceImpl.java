@@ -276,7 +276,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             employeeResponse = objectMapper.convertValue(entity, EmployeeResponse.class);
             if (entity.getProfileImage()!= null && !entity.getProfileImage().isEmpty() && request != null) {
                 String baseUrl = getBaseUrl(request);
-                String image = baseUrl + "/var/www/ems/assets/img/" + entity.getProfileImage();
+                String image = baseUrl + folderPath + entity.getProfileImage();
                 employeeResponse.setProfileImage(image);
             }
             employeeResponse.setPersonnelEntity(employeePersonnelEntity);
