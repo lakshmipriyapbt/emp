@@ -6,42 +6,39 @@
     <title>Employee Details</title>
     <style>
 
-      .logo {
-            text-align: right;
-      }
+        .logo {
+        text-align: right;
+        }
 
-      .logo img {
+        .logo img {
             max-width: 60px;
             height: 100px;
             margin-right: 5px;
             margin-bottom: 20px;
             margin-top: -10px;
-      }
+        }
 
-      /* Table Styling */
-      table {
+        table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             font-family: Arial, sans-serif;
-      }
+        }
 
-      th, td {
+        th, td {
             padding: 3px;
             text-align: left;
             border: 1px solid #ddd;
             word-wrap: break-word; /* Ensure content breaks properly */
             font-size: 10px;
             white-space: nowrap; /* Prevent text from wrapping */
-      }
+        }
 
-      th {
+        th {
             background-color: #f2f2f2;
             font-weight: bold;
-      }
-
-      /* Watermark styling */
-      .watermark {
+        }
+        .watermark {
             position: fixed;
             top: 40%;
             left: 20%;
@@ -50,24 +47,24 @@
             width: 400px;
             height: auto;
             text-align: center;
-      }
+        }
 
-      .watermark img {
+        .watermark img {
             width: 100%;
             height: auto;
             opacity: 0.05;
-      }
+        }
 
-      /* Improve table column width */
-      th, td {
+        /* Improve table column width */
+        th, td {
             overflow: hidden;
             text-overflow: ellipsis;
-      }
+        }
 
     </style>
 </head>
 <body>
-    <img src="${blurredImage}" alt="Company Logo" class="watermark" />
+<img src="${blurredImage}" alt="Company Logo" class="watermark" />
 
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
@@ -76,24 +73,40 @@
     <h4>Company Employees</h4>
 
     <table>
-        <tr>
-            <th>Name</th>
-            <th>EmployeeId</th>
-            <th>Aadhaar No</th>
-            <th>Bank Account No</th>
-            <th>UAN No</th>
-        </tr>
-
-        <#list data as person>
-            <tr>
-                <td>${person.firstName} ${person.lastName}</td>
-                <td>${person.employeeId}</td>
-                <td>${person.aadhaarId}</td>
-                <td>${person.accountNo}</td>
-                <td>${person.uanNo}</td>
-            </tr>
-        </#list>
-    </table>
-
+          <tr>
+              <#list columns as col>
+                  <th>${col}</th>
+              </#list>
+          </tr>
+          <#list data as person>
+              <tr>
+                  <#list columns as col>
+                      <td>
+                          <#if col == "Name">
+                              ${person.firstName} ${person.lastName}
+                          <#elseif col == "EmployeeId">
+                              ${person.employeeId}
+                          <#elseif col == "Pan No">
+                              ${person.panNo}
+                          <#elseif col == "Aadhaar No">
+                              ${person.aadhaarId}
+                          <#elseif col == "Bank Account No">
+                              ${person.accountNo}
+                          <#elseif col == "Contact No">
+                              ${person.mobileNo}
+                          <#elseif col == "Date Of Birth">
+                              ${person.dateOfBirth}
+                          <#elseif col == "UAN No">
+                              ${person.uanNo}
+                          <#elseif col == "Department And Designation">
+                              ${person.departmentName}, ${person.designationName}
+                          <#else>
+                              -
+                          </#if>
+                      </td>
+                  </#list>
+              </tr>
+          </#list>
+      </table>
 </body>
 </html>

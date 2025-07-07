@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Employee Details</title>
-    <style>
+    <title>Employee Bank Details</title>
 
+    <style>
       .logo {
             text-align: right;
       }
-
-      .logo img {
+            .logo img {
             max-width: 60px;
             height: 100px;
             margin-right: 5px;
@@ -18,29 +17,27 @@
             margin-top: -10px;
       }
 
-      /* Table Styling */
       table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             font-family: Arial, sans-serif;
       }
-
       th, td {
             padding: 3px;
             text-align: left;
             border: 1px solid #ddd;
-            word-wrap: break-word; /* Ensure content breaks properly */
+            word-wrap: break-word;
             font-size: 10px;
-            white-space: nowrap; /* Prevent text from wrapping */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
       }
-
       th {
             background-color: #f2f2f2;
             font-weight: bold;
       }
 
-      /* Watermark styling */
       .watermark {
             position: fixed;
             top: 40%;
@@ -51,53 +48,59 @@
             height: auto;
             text-align: center;
       }
-
       .watermark img {
             width: 100%;
             height: auto;
             opacity: 0.05;
       }
-
-      /* Improve table column width */
-      th, td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-      }
-
-    </style>
+      </style>
 </head>
 <body>
-    <img src="${blurredImage}" alt="Company Logo" class="watermark" />
+<img src="${blurredImage}" alt="Company Logo" class="watermark" />
 
     <div class="logo">
         <img src="${company.imageFile}" alt="Company Logo" />
     </div>
 
-    <h4>Company Employees Bank Details</h4>
+    <h4>Company Employees&nbsp;&ndash;&nbsp;Bank Details</h4>
 
     <table>
         <tr>
-            <th>Name</th>
-            <th>EmployeeId</th>
-            <th>Bank Name</th>
-            <th>Bank Account No</th>
-            <th>BankIFCCode</th>
-            <th>Pan Number</th>
-            <th>PF Number</th>
+            <#-- Dynamically render the headers -->
+            <#list columns as col>
+                <th>${col}</th>
+            </#list>
         </tr>
 
+        <#-- Render each employee row -->
         <#list data as person>
             <tr>
-                <td>${person.firstName} ${person.lastName}</td>
-                <td>${person.employeeId}</td>
-                <td>${person.bankName}</td>
-                <td>${person.accountNo}</td>
-                <td>${person.ifscCode}</td>
-                <td>${person.panNo}</td>
-                <td><#if person.pfNo??>${person.pfNo}<#else> - </#if></td>
+                <#list columns as col>
+                    <td>
+                        <#-- Map each selectable column to its corresponding field -->
+                        <#if        col == "Name">
+                            ${person.firstName} ${person.lastName}
+                        <#elseif    col == "EmployeeId">
+                            ${person.employeeId}
+                        <#elseif    col == "Bank Name">
+                            ${person.bankName}
+                        <#elseif    col == "Bank Account No">
+                            ${person.accountNo}
+                        <#elseif    col == "Bank IFSCOde">
+                            ${person.ifscCode}
+                        <#elseif    col == "Pan No">
+                            ${person.panNo}
+                        <#elseif    col == "PF Number">
+                            <#if person.pfNo??>${person.pfNo}<#else> - </#if>
+                        <#elseif    col == "UAN No">
+                            <#if person.uanNo??>${person.uanNo}<#else> - </#if>
+                        <#else>
+                            -
+                        </#if>
+                    </td>
+                </#list>
             </tr>
         </#list>
     </table>
-
 </body>
 </html>

@@ -17,9 +17,9 @@ public interface EmployeeService {
     ResponseEntity<?> updateEmployeeById(String employeeId, EmployeeUpdateRequest employeeUpdateRequest) throws IOException, EmployeeException;
     ResponseEntity<?> deleteEmployeeById( String companyName,String employeeId) throws EmployeeException;
 
-    ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, HttpServletRequest request) throws Exception;
+    ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format,EmployeeDownloadRequest employeedownloadRequest,HttpServletRequest request) throws Exception;
 
-    ResponseEntity<byte[]> downloadEmployeeBankDetails(String companyName, String format, HttpServletRequest request) throws Exception;
+    ResponseEntity<byte[]> downloadEmployeeBankDetails(String companyName, String format,EmployeeDownloadRequest employeedownloadRequest,HttpServletRequest request) throws Exception;
 
     ResponseEntity<?> getEmployeeWithoutAttendance(String companyName,String month,String year)throws IOException,EmployeeException;
 
