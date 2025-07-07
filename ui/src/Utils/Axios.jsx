@@ -388,14 +388,18 @@ export const EmployeePatchApiById = (employeeId, data) => {
   return axiosInstance.patch(`/employee/${employeeId}`, data)
 };
 
-export const downloadEmployeesFileAPI = async (format, showToast) => {
-  const company = localStorage.getItem("companyName")
+export const downloadEmployeesFileAPI = async (format, selectedFields, showToast) => {
+  const company = localStorage.getItem("companyName");
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employees/download?format=${format}`, {
-      responseType: "blob",
-    });
+    const response = await axiosInstance.post(
+      `${company}/employees/download?format=${format}`,
+      { selectedFields },
+      {
+        responseType: "blob",
+      }
+    );
 
     // Check if response is an error by trying to parse JSON from Blob
     const contentType = response.headers["content-type"];

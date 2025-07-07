@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PencilSquare, Wallet, FileEarmarkText, Download } from "react-bootstrap-icons";
+import { PencilSquare, Wallet, FileEarmarkText } from "react-bootstrap-icons";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
 import { useAuth } from "../../Context/AuthContext";
-import { FileEarmarkPdf, FileEarmarkWord, FileEarmarkImage } from "react-bootstrap-icons";
+import { FileEarmarkPdf, FileEarmarkWord, FileEarmarkImage, Download } from "react-bootstrap-icons";
 
 const EmployeeView = () => {
   const [search, setSearch] = useState("");
@@ -17,20 +17,54 @@ const EmployeeView = () => {
   const [selectedYear, setSelectedYear] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedEmployeeDownloadFormat, setSelectedEmployeeDownloadFormat] = useState("");
+  const [selectedBankDownloadFormat, setSelectedBankDownloadFormat] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
-  
-  // Download related states
-  const [selectedEmployeeDownloadFormat, setSelectedEmployeeDownloadFormat] = useState("");
-  const [selectedBankDownloadFormat, setSelectedBankDownloadFormat] = useState("");
+  const allColumns = [
+    { name: 'Name', selector: 'Name' }, // You may need to combine firstName + lastName in backend or API
+    { name: 'EmployeeId', selector: 'EmployeeId' },
+    { name: 'Pan No', selector: 'Pan No' },
+    { name: 'Aadhaar No', selector: 'Aadhaar No' },
+    { name: 'Bank Account No', selector: 'Bank Account No' },
+    { name: 'Contact No', selector: 'Contact No' },
+    { name: 'Date Of Birth', selector: 'Date Of Birth' },
+    { name: 'UAN No', selector: 'UAN No' },
+    { name: 'Department And Designation', selector: 'Department And Designation' },
+  ];
+  const excelColumns = [
+    "Name",
+    "EmployeeId",
+    "Pan No",
+    "Aadhaar No",
+    "Bank Account No",
+    "Contact No",
+    "Date Of Birth",
+    "UAN No",
+    "Department And Designation"
+  ];
+
+  const pdfColumns = [
+    "Name",
+    "EmployeeId",
+    "Aadhaar No",
+    "Bank Account No",
+    "Contact No",
+    "Date Of Birth",
+    "UAN No",
+    "Department And Designation"
+  ];
   const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [selectedColumns, setSelectedColumns] = useState([]);
-  const [downloadType, setDownloadType] = useState(''); // 'employee' or 'bank'
-  
+  const [selectedColumns, setSelectedColumns] = useState(allColumns.map(col => col.name));
+  const columnsToShow = selectedEmployeeDownloadFormat === "excel"
+    ? allColumns.filter(col => excelColumns.includes(col.name))
+    : allColumns.filter(col => pdfColumns.includes(col.name));
+
+
   const { employee } = useAuth();
   const companyId = employee?.companyId;
   const navigate = useNavigate();
@@ -39,26 +73,6 @@ const EmployeeView = () => {
   const { data: employees, status, error, loading } = useSelector(
     (state) => state.employees
   );
-
-  // Define all possible columns (including those not shown in the table)
-  const allColumns = [
-    { name: 'Employee ID', selector: 'employeeId' },
-    { name: 'First Name', selector: 'firstName' },
-    { name: 'Last Name', selector: 'lastName' },
-    { name: 'Email', selector: 'emailId' },
-    { name: 'Department', selector: 'departmentName' },
-    { name: 'Designation', selector: 'designationName' },
-    { name: 'Date of Hiring', selector: 'dateOfHiring' },
-    { name: 'Status', selector: 'status' },
-    { name: 'Mobile Number', selector: 'mobileNo' },
-    { name: 'Aadhar Number', selector: 'aadhaarId' },
-    { name: 'PAN Number', selector: 'panNo' },
-    { name: 'UAN Number', selector: 'uanNo' },
-    { name: 'Bank Name', selector: 'bankName' },
-    { name: 'Account Number', selector: 'accountNo' },
-    { name: 'IFSC Code', selector: 'ifscCode' },
-    { name: 'Branch', selector: 'bankBranch' },
-  ];
 
   useEffect(() => {
     if (companyId) {
@@ -70,6 +84,174 @@ const EmployeeView = () => {
       return () => clearTimeout(timer);
     }
   }, [dispatch, companyId]);
+
+  const getMonthNames = () => {
+    return Array.from({ length: 12 }, (_, i) =>
+      new Date(0, i).toLocaleString("en-US", { month: "long" })
+    );
+  };
+
+  const getRecentYears = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear; i >= currentYear - 10; i--) {
+      years.push(i.toString());
+    }
+    return years;
+  };
+
+  const handleSalary = (id) => {
+    navigate(`/employeeSalaryList?id=${id}`);
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/employeeRegister`, { state: { id } });
+  };
+
+  const handleViewDocuments = async (employee) => {
+    try {
+      setSelectedEmployee(employee);
+      setDocumentsLoading(true);
+
+      // First try with employeeId parameter only
+      let response = await getDocumentByIdAPI('', employee.id); // empty candidateId
+
+      // If no documents found with employeeId, try with candidateId as fallback
+      if ((!response?.data?.documentEntities || response.error?.message === "No Documents Found.")) {
+        response = await getDocumentByIdAPI(employee.id, ''); // empty employeeId
+      }
+
+      if (response?.data?.documentEntities) {
+        // Transform the documents data
+        const transformedDocs = response.data.documentEntities.map(doc => ({
+          name: doc.docName,
+          url: doc.filePath,
+          status: 'uploaded',
+          type: doc.filePath?.toLowerCase().endsWith('.pdf') ? 'application/pdf' :
+            doc.filePath?.toLowerCase().match(/\.(doc|docx)$/) ? 'application/msword' :
+              doc.filePath?.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/) ? 'image/*' :
+                'application/octet-stream',
+          size: 0
+        }));
+
+        setDocuments(transformedDocs);
+      } else {
+        setDocuments([]);
+        toast.info(response?.error?.message || 'No documents found for this employee');
+      }
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      toast.error(error.response?.data?.error?.message || 'Failed to load documents. Please try again later.');
+    } finally {
+      setDocumentsLoading(false);
+      setShowDocumentsModal(true);
+    }
+  };
+
+
+  const getFileIcon = (type, name) => {
+    if (type?.includes('pdf') || name?.toLowerCase().endsWith('.pdf')) {
+      return <FileEarmarkPdf className="text-danger" size={24} />;
+    } else if (type?.includes('word') || name?.toLowerCase().endsWith('.doc') || name?.toLowerCase().endsWith('.docx')) {
+      return <FileEarmarkWord className="text-primary" size={24} />;
+    } else if (type?.includes('image') || ['.jpg', '.jpeg', '.png', '.gif'].some(ext => name?.toLowerCase().endsWith(ext))) {
+      return <FileEarmarkImage className="text-success" size={24} />;
+    }
+    return <FileEarmarkPdf className="text-secondary" size={24} />;
+  };
+
+  const handleEmployeeDownload = async (format) => {
+    if (!format) {
+      toast.warning("Please select a file format!");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      await downloadEmployeesFileAPI(format, toast);
+    } catch (error) {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setSelectedEmployeeDownloadFormat("");
+    }
+  };
+
+  const handleBankDownload = async (format) => {
+    if (!format) {
+      toast.warning("Please select a file format!");
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      await downloadEmployeeBankDataAPI(format, toast);
+    } catch (error) {
+      toast.error("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+      setSelectedBankDownloadFormat("");
+    }
+  };
+
+  const statusMappings = {
+    Active: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+            background: "green"
+          }}
+        >
+          Active
+        </b>
+      ),
+    },
+    NoticePeriod: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+          }}
+          className="bg-warning"
+        >
+          Notice Period
+        </b>
+      ),
+    },
+    relieved: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+          }}
+          className="bg-danger"
+        >
+          Relieved
+        </b>
+      ),
+    },
+    OnBoard: {
+      label: (
+        <b
+          style={{
+            borderRadius: "5px",
+            padding: "3px 6px",
+            color: "#fff",
+          }}
+          className="bg-info"
+        >
+          OnBoard
+        </b>
+      ),
+    },
+  };
 
   const columns = [
     {
@@ -163,206 +345,6 @@ const EmployeeView = () => {
     }
   ];
 
-  // Initialize selected columns with visible columns by default
-  useEffect(() => {
-    const visibleColumns = columns.map(col => 
-      typeof col.name === 'string' ? col.name : col.name.props.children
-    );
-    setSelectedColumns(visibleColumns.filter(Boolean));
-  }, [columns]);
-
-  const getMonthNames = () => {
-    return Array.from({ length: 12 }, (_, i) =>
-      new Date(0, i).toLocaleString("en-US", { month: "long" })
-    );
-  };
-
-  const getRecentYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 10; i--) {
-      years.push(i.toString());
-    }
-    return years;
-  };
-
-  const handleSalary = (id) => {
-    navigate(`/employeeSalaryList?id=${id}`);
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/employeeRegister`, { state: { id } });
-  };
-
-  const handleViewDocuments = async (employee) => {
-    try {
-      setSelectedEmployee(employee);
-      setDocumentsLoading(true);
-      
-      let response = await getDocumentByIdAPI('', employee.id); // empty candidateId
-      
-      if ((!response?.data?.documentEntities || response.error?.message === "No Documents Found.")) {
-        response = await getDocumentByIdAPI(employee.id, ''); // empty employeeId
-      }
-
-      if (response?.data?.documentEntities) {
-        const transformedDocs = response.data.documentEntities.map(doc => ({
-          name: doc.docName,
-          url: doc.filePath,
-          status: 'uploaded',
-          type: doc.filePath?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 
-                doc.filePath?.toLowerCase().match(/\.(doc|docx)$/) ? 'application/msword' :
-                doc.filePath?.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/) ? 'image/*' :
-                'application/octet-stream',
-          size: 0
-        }));
-        
-        setDocuments(transformedDocs);
-      } else {
-        setDocuments([]);
-        toast.info(response?.error?.message || 'No documents found for this employee');
-      }
-    } catch (error) {
-      console.error('Error fetching documents:', error);
-      toast.error(error.response?.data?.error?.message || 'Failed to load documents. Please try again later.');
-    } finally {
-      setDocumentsLoading(false);
-      setShowDocumentsModal(true);
-    }
-  };
-
-  const handleEmployeeDownloadFormatChange = (format) => {
-    setSelectedEmployeeDownloadFormat(format);
-    setDownloadType('employee');
-    
-    // Set default columns for employee download
-    setSelectedColumns([
-      'Employee ID',
-      'First Name',
-      'Last Name',
-      'Email',
-      'Department',
-      'Designation',
-      'Date of Hiring',
-      'Status'
-    ]);
-    
-    setShowDownloadModal(true);
-  };
-
-  const handleBankDownloadFormatChange = (format) => {
-    setSelectedBankDownloadFormat(format);
-    setDownloadType('bank');
-    
-    // Set default columns for bank download
-    setSelectedColumns([
-      'Employee ID',
-      'First Name',
-      'Last Name',
-      'Bank Name',
-      'Account Number',
-      'IFSC Code',
-      'Branch'
-    ]);
-    
-    setShowDownloadModal(true);
-  };
-
-  const handleDownloadConfirm = async () => {
-    setShowDownloadModal(false);
-    setIsDownloading(true);
-    
-    try {
-      // Prepare the selected fields for the API
-      const selectedFields = allColumns
-        .filter(col => selectedColumns.includes(col.name))
-        .map(col => col.selector);
-
-      if (downloadType === 'employee') {
-        await downloadEmployeesFileAPI(selectedEmployeeDownloadFormat, selectedFields, toast);
-        setSelectedEmployeeDownloadFormat("");
-      } else {
-        await downloadEmployeeBankDataAPI(selectedBankDownloadFormat, selectedFields, toast);
-        setSelectedBankDownloadFormat("");
-      }
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
-  const getFileIcon = (type, name) => {
-    if (type?.includes('pdf') || name?.toLowerCase().endsWith('.pdf')) {
-      return <FileEarmarkPdf className="text-danger" size={24} />;
-    } else if (type?.includes('word') || name?.toLowerCase().endsWith('.doc') || name?.toLowerCase().endsWith('.docx')) {
-      return <FileEarmarkWord className="text-primary" size={24} />;
-    } else if (type?.includes('image') || ['.jpg', '.jpeg', '.png', '.gif'].some(ext => name?.toLowerCase().endsWith(ext))) {
-      return <FileEarmarkImage className="text-success" size={24} />;
-    }
-    return <FileEarmarkPdf className="text-secondary" size={24} />;
-  };
-
-  const statusMappings = {
-    Active: {
-      label: (
-        <b
-          style={{
-            borderRadius: "5px",
-            padding: "3px 6px",
-            color: "#fff",
-            background: "green"
-          }}
-        >
-          Active
-        </b>
-      ),
-    },
-    NoticePeriod: {
-      label: (
-        <b
-          style={{
-            borderRadius: "5px",
-            padding: "3px 6px",
-            color: "#fff",
-          }}
-          className="bg-warning"
-        >
-          Notice Period
-        </b>
-      ),
-    },
-    relieved: {
-      label: (
-        <b
-          style={{
-            borderRadius: "5px",
-            padding: "3px 6px",
-            color: "#fff",
-          }}
-          className="bg-danger"
-        >
-          Relieved
-        </b>
-      ),
-    },
-    OnBoard: {
-      label: (
-        <b
-          style={{
-            borderRadius: "5px",
-            padding: "3px 6px",
-            color: "#fff",
-          }}
-          className="bg-info"
-        >
-          OnBoard
-        </b>
-      ),
-    },
-  };
-
-
   const filteredEmployees = employees?.filter((employee) => {
     const nameMatch =
       (employee.firstName?.toLowerCase().includes(search.toLowerCase()) || "") ||
@@ -440,7 +422,38 @@ const EmployeeView = () => {
                           <select
                             className="form-select bg-primary border-0 text-white"
                             value={selectedEmployeeDownloadFormat}
-                            onChange={(e) => handleEmployeeDownloadFormatChange(e.target.value)}
+                            onChange={e => {
+                              const format = e.target.value;
+                              if (!format) return;
+                              setSelectedEmployeeDownloadFormat(format);
+
+                              // Set default columns based on format
+                              if (format === "excel") {
+                                setSelectedColumns([
+                                  "Name",
+                                  "EmployeeId",
+                                  "Pan No",
+                                  "Aadhaar No",
+                                  "Bank Account No",
+                                  "Contact No",
+                                  "Date Of Birth",
+                                  "UAN No",
+                                  "Department And Designation"
+                                ]);
+                              } else if (format === "pdf") {
+                                setSelectedColumns([
+                                  "Name",
+                                  "EmployeeId",
+                                  "Aadhaar No",
+                                  "Bank Account No",
+                                  "Contact No",
+                                  "Date Of Birth",
+                                  "UAN No",
+                                  "Department And Designation"
+                                ]);
+                              }
+                              setShowDownloadModal(true);
+                            }}
                             disabled={isDownloading}
                           >
                             <option value="">Download Employees List</option>
@@ -452,7 +465,10 @@ const EmployeeView = () => {
                           <select
                             className="form-select bg-primary border-0 text-white"
                             value={selectedBankDownloadFormat}
-                            onChange={(e) => handleBankDownloadFormatChange(e.target.value)}
+                            onChange={(e) => {
+                              setSelectedBankDownloadFormat(e.target.value);
+                              handleBankDownload(e.target.value);
+                            }}
                             disabled={isDownloading}
                           >
                             <option value="">Download Bank List</option>
@@ -605,33 +621,31 @@ const EmployeeView = () => {
           </div>
         )}
 
-        {/* Download Options Modal */}
         {showDownloadModal && (
           <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="modal-dialog modal-lg">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Select Columns to Download</h5>
-                  <button 
-                    type="button" 
-                    className="btn-close" 
+                  <button
+                    type="button"
+                    className="btn-close"
                     onClick={() => {
                       setShowDownloadModal(false);
                       setSelectedEmployeeDownloadFormat("");
-                      setSelectedBankDownloadFormat("");
                     }}
                   ></button>
                 </div>
                 <div className="modal-body">
                   <div className="form-group">
                     <div className="d-flex justify-content-between mb-3">
-                      <button 
+                      <button
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => setSelectedColumns(allColumns.map(col => col.name))}
                       >
                         Select All
                       </button>
-                      <button 
+                      <button
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() => setSelectedColumns([])}
                       >
@@ -639,7 +653,7 @@ const EmployeeView = () => {
                       </button>
                     </div>
                     <div className="row">
-                      {allColumns.map((column, index) => (
+                      {columnsToShow.map((column, index) => (
                         <div className="col-md-4" key={index}>
                           <div className="form-check">
                             <input
@@ -665,21 +679,34 @@ const EmployeeView = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
                     onClick={() => {
                       setShowDownloadModal(false);
                       setSelectedEmployeeDownloadFormat("");
-                      setSelectedBankDownloadFormat("");
                     }}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="button" 
-                    className="btn btn-primary" 
-                    onClick={handleDownloadConfirm}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={async () => {
+                      setShowDownloadModal(false);
+                      setIsDownloading(true);
+                      try {
+                        const selectedFields = allColumns
+                          .filter(col => selectedColumns.includes(col.name))
+                          .map(col => col.selector);
+                        await downloadEmployeesFileAPI(selectedEmployeeDownloadFormat, selectedFields, toast);
+                      } catch {
+                        toast.error("Download failed. Please try again.");
+                      } finally {
+                        setIsDownloading(false);
+                        setSelectedEmployeeDownloadFormat("");
+                      }
+                    }}
                     disabled={selectedColumns.length === 0}
                   >
                     Download
