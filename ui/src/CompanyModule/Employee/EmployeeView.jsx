@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import {downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
+import { downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
@@ -34,19 +34,19 @@ const EmployeeView = () => {
     { name: 'Department And Designation', selector: 'Department And Designation' },
     { name: 'Date Of Hiring', selector: 'Date Of Hiring' },
     { name: 'Date Of Birth', selector: 'Date Of Birth' },
-    { name: 'Marital Status', selector: 'maritalStatus' },
-    { name: 'Pan No', selector: 'panNo' },
-    { name: 'Aadhaar No', selector: 'aadhaarNo' },
-    { name: 'UAN No', selector: 'uanNo' },
-    { name: 'PF No', selector: 'pfNo' },
-    { name: 'Bank Account No', selector: 'bankAccountNo' },
-    { name: 'IFSC Code', selector: 'ifscCode' },
-    { name: 'Bank Name', selector: 'bankName' },
-    { name: 'Bank Branch', selector: 'bankBranch' },
-    { name: 'Current Gross', selector: 'currentGross' },
-    { name: 'Location', selector: 'location' },
-    { name: 'Temporary Address', selector: 'temporaryAddress' },
-    { name: 'Permanent Address', selector: 'permanentAddress' },
+    { name: 'Marital Status', selector: 'Marital Status' },
+    { name: 'Pan No', selector: 'Pan No' },
+    { name: 'Aadhaar No', selector: 'Aadhaar No' },
+    { name: 'UAN No', selector: 'UAN No' },
+    { name: 'PF No', selector: 'PF No' },
+    { name: 'Bank Account No', selector: 'Bank Account No' },
+    { name: 'IFSC Code', selector: 'IFSC Code' },
+    { name: 'Bank Name', selector: 'Bank Name' },
+    { name: 'Bank Branch', selector: 'Bank Branch' },
+    { name: 'Current Gross', selector: 'Current Gross' },
+    { name: 'Location', selector: 'Location' },
+    { name: 'Temporary Address', selector: 'Temporary Address' },
+    { name: 'Permanent Address', selector: 'Permanent Address' },
   ];
   const bankColumns = [
     "Name",
@@ -61,33 +61,10 @@ const EmployeeView = () => {
     "PF No",
     "Contact No"
   ];
-  // const excelColumns = [
-  //   "Name",
-  //   "EmployeeId",
-  //   "Pan No",
-  //   "Aadhaar No",
-  //   "Bank Account No",
-  //   "Contact No",
-  //   "Date Of Birth",
-  //   "UAN No",
-  //   "Department And Designation"
-  // ];
-
-  // const pdfColumns = [
-  //   "Name",
-  //   "EmployeeId",
-  //   "Aadhaar No",
-  //   "Bank Account No",
-  //   "Contact No",
-  //   "Date Of Birth",
-  //   "UAN No",
-  //   "Department And Designation"
-  // ];
+  const isPDF = (selectedEmployeeDownloadFormat === "pdf" || selectedBankDownloadFormat === "pdf");
+  const maxFields = 8;
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState(allColumns.map(col => col.name));
-  // const columnsToShow = selectedEmployeeDownloadFormat === "excel"
-  //   ? allColumns.filter(col => excelColumns.includes(col.name))
-  //   : allColumns.filter(col => pdfColumns.includes(col.name));
 
 
   const { employee } = useAuth();
@@ -185,39 +162,6 @@ const EmployeeView = () => {
     return <FileEarmarkPdf className="text-secondary" size={24} />;
   };
 
-  const handleEmployeeDownload = async (format) => {
-    if (!format) {
-      toast.warning("Please select a file format!");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      await downloadEmployeesFileAPI(format, toast);
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-      setSelectedEmployeeDownloadFormat("");
-    }
-  };
-
-  // const handleBankDownload = async (format) => {
-  //   if (!format) {
-  //     toast.warning("Please select a file format!");
-  //     return;
-  //   }
-
-  //   setIsDownloading(true);
-  //   try {
-  //     await downloadEmployeeBankDataAPI(format, toast);
-  //   } catch (error) {
-  //     toast.error("Download failed. Please try again.");
-  //   } finally {
-  //     setIsDownloading(false);
-  //     setSelectedBankDownloadFormat("");
-  //   }
-  // };
 
   const statusMappings = {
     Active: {
@@ -657,32 +601,42 @@ const EmployeeView = () => {
                         Deselect All
                       </button>
                     </div>
+                    {isPDF && (
+                      <div className="text-info mb-2">
+                        You can select a maximum of 8 fields for PDF download.
+                      </div>
+                    )}
                     <div className="row">
                       {((selectedEmployeeDownloadFormat && !selectedBankDownloadFormat)
                         ? allColumns
                         : allColumns.filter(col => bankColumns.includes(col.name))
-                      ).map((column, index) => (
-                        <div className="col-md-4" key={index}>
-                          <div className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`column-${index}`}
-                              checked={selectedColumns.includes(column.name)}
-                              onChange={() => {
-                                if (selectedColumns.includes(column.name)) {
-                                  setSelectedColumns(selectedColumns.filter(c => c !== column.name));
-                                } else {
-                                  setSelectedColumns([...selectedColumns, column.name]);
-                                }
-                              }}
-                            />
-                            <label className="form-check-label" htmlFor={`column-${index}`}>
-                              {column.name}
-                            </label>
+                      ).map((column, index) => {
+                        const checked = selectedColumns.includes(column.name);
+                        const disableCheckbox = isPDF && !checked && selectedColumns.length >= maxFields;
+                        return (
+                          <div className="col-md-4" key={index}>
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`column-${index}`}
+                                checked={checked}
+                                disabled={disableCheckbox}
+                                onChange={() => {
+                                  if (checked) {
+                                    setSelectedColumns(selectedColumns.filter(c => c !== column.name));
+                                  } else if (!disableCheckbox) {
+                                    setSelectedColumns([...selectedColumns, column.name]);
+                                  }
+                                }}
+                              />
+                              <label className="form-check-label" htmlFor={`column-${index}`}>
+                                {column.name}
+                              </label>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
