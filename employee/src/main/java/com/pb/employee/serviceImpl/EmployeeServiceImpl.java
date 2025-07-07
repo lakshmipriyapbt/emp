@@ -436,7 +436,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                         HttpStatus.BAD_REQUEST);
             }
 
-            if(Constants.PDF_TYPE.equalsIgnoreCase(format) && fields.size()>8){
+            if(Constants.PDF_TYPE.equalsIgnoreCase(format) && (fields.size() < 1 || fields.size() > 8)){
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FIELD_SIZE),
                         HttpStatus.BAD_REQUEST);
             }
@@ -464,43 +464,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
     }
 
-    @Override
-    public ResponseEntity<byte[]> downloadEmployeeBankDetails(String companyName, String format, HttpServletRequest request) throws Exception {
-        byte[] fileBytes = null;
-        HttpHeaders headers = new HttpHeaders();
-        try {
-
-            CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName,  Constants.INDEX_EMS);
-            if (companyEntity == null){
-                log.error("Company is not found");
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
-            }
-            SSLUtil.disableSSLVerification();
-            CompanyUtils.unmaskCompanyProperties(companyEntity, request);
-            List<EmployeeEntity> employeeEntities = validateEmployee(companyEntity);
-
-            if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateExcelFromEmployeeBank(employeeEntities);
-                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
-                headers.setContentDisposition(ContentDisposition.builder("attachment")
-                        .filename("EmployeeBankDetails.xlsx")
-                        .build());
-            } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-//                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, "bank");
-                headers.setContentType(MediaType.APPLICATION_PDF);
-                headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeBankDetails.pdf").build());
-            }
-
-        } catch (EmployeeException e) {
-            log.error("Exception while downloading the Employee details: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            log.error("Unexpected error while processing the employee details: {}", e.getMessage());
-            throw new IOException("Error generating certificate", e);
-        }
-
-        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
-    }
 
     @Override
     public ResponseEntity<?> getEmployeeWithoutAttendance(String companyName, String month, String year) throws IOException, EmployeeException {
@@ -579,43 +542,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    private byte[] generateExcelFromEmployeeBank(List<EmployeeEntity> employees) throws IOException {
-
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             Workbook workbook = new XSSFWorkbook()) {
-
-            Sheet sheet = workbook.createSheet("Employees");
-            Row headerRow = sheet.createRow(0);
-            String[] headers = {"Name", "EmployeeId", "Bank Name", "Bank Account No", "Bank IFSCOde", "Pan No", "PF Number"};
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                Font headerFont = workbook.createFont();
-                headerFont.setBold(true);
-                CellStyle headerCellStyle = workbook.createCellStyle();
-                headerCellStyle.setFont(headerFont);
-                cell.setCellStyle(headerCellStyle);
-            }
-            int rowNum = 1;
-            for (EmployeeEntity employee : employees) {
-                Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(employee.getFirstName() + " " + employee.getLastName());
-                row.createCell(1).setCellValue(employee.getEmployeeId());
-                row.createCell(2).setCellValue(employee.getBankName());
-                row.createCell(3).setCellValue(employee.getAccountNo());
-                row.createCell(4).setCellValue(employee.getIfscCode());
-                row.createCell(5).setCellValue(employee.getPanNo());
-                row.createCell(6).setCellValue(employee.getPfNo());
-            }
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-                sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 2); // Adjust the multiplier as needed
-            }
-
-            workbook.write(baos);
-            return baos.toByteArray();
-        }
-    }
 
     private byte[] generateExcelFromEmployees(List<EmployeeEntity> employees,List<String> selectedFields) throws IOException {
 
@@ -683,11 +609,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 throw new IOException("Template file not found: " + Constants.EMPLOYEE_DETAILS);
             }
             Template template = null;
-            if (detailType.equalsIgnoreCase("employee")){
-                template = freemarkerConfig.getTemplate(Constants.EMPLOYEE_DETAILS);
-            }else if (detailType.equalsIgnoreCase("bank")){
-                template = freemarkerConfig.getTemplate(Constants.EMPLOYEE_BANK_DETAILS);
-            }
+            template = freemarkerConfig.getTemplate(Constants.EMPLOYEE_DETAILS);
             Map<String, Object> dataModel = new HashMap<>();
             dataModel.put("data", employeeEntities);
             dataModel.put("company", companyEntity);
