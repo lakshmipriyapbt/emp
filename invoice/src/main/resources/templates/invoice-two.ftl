@@ -5,233 +5,236 @@
     <title>Invoice</title>
     <style>
 
+@media print {
             body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0; /* Remove body padding as @page margin will handle it */
-        font-size: 10pt;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0; /* Remove body padding as @page margin will handle it */
+    font-size: 10pt;
     }
-    .logo{
-        position: absolute;
-        top: 10px;
-        left: 40%;
-        width: 150px; /* Set a specific width for the logo */
-        height: 80px; /* Set a specific height for the logo */
-        display: flex;
-    }
-    .container  {
-        max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-        height: 1025px;
-        margin: 0 auto;
-        border: 1px solid #eee;
-        padding: 20px; /* Slightly reduced padding for tighter fit */
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Keep for screen view */
-        box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    }
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .company-info {
-        flex: 0 0 auto; /* prevent it from growing or shrinking */
-        width: 250px;   /* set a specific width */
-        text-align: left; /* align text to the left */
-    }
-        .invoice-heading {
-        text-align: left;
-    }
-    .invoice-info {
-        position: absolute;
-        top: 10px;
-        right: 30px;
-        text-align: left;
-    }
-    .header h1 {
-        margin: 0;
-        font-size: 22pt; /* Slightly reduced font size for header */
-        color: #333;
-    }
-    .header p {
-        margin: 2px 0;
-    }
-    .bill-ship-section {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .billed-to {
-        flex: 1;
-        padding-right: 15px; /* Slightly reduced padding */
-        width: 250px;
-    }
-    .ship-to {
-        top: 16%;
-        position: absolute;
-        right: 10px;
-        padding-right: 15px; /* Slightly reduced padding */
-        width: 250px;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    table th, table td {
-        border: 1px solid #eee;
-        padding: 7px; /* Slightly reduced padding */
-        text-align: left;
-        word-wrap: break-word; /* Ensure long content breaks within cells */
-    }
-    table th {
-        background-color: #f2f2f2;
-    }
-    .total-section {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 25px; /* Slightly reduced margin */
-    }
-    .notes {
-        flex: 1;
-        position: absolute;
-        top: 60%;
-        left: 20px;
-        right: 15px;
-        background-color: #f2f2f2; /* Light grey */
-        height: 100px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 10px;
-        width: 300px; /* Set a specific width */
-    }
+}
+ .logo{
+   position: absolute;
+   top: 10px;
+   left: 40%;
+   width: 150px; /* Set a specific width for the logo */
+   height: 80px; /* Set a specific height for the logo */
+   display: flex;
+   }
+ .container  {
+   margin: 0 auto;
+   }
+  .header {
+    display: flex;
+    border: none;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+  }
+  .company-info {
+    width: 250px;
+    text-align: left;
+  }
+  .invoice-info {
+    text-align: right;
+  }
+  .header h1 {
+    margin: 0;
+    font-size: 22pt; /* Slightly reduced font size for header */
+    color: #333;
+  }
+  .header p {
+    margin: 2px 0;
+  }
+  .bill-ship-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px; /* Slightly reduced margin */
+  }
+  .billed-to {
+    width: 250px;
+  }
+  .ship-to {
+    text-align: right;
+    right: 10px;
+  }
+  .bill-ship-section p {
+    margin: 2px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px; /* Slightly reduced margin */
+  }
 
-    .section-title {
-        background-color:  #8c8c8c; /* Cement-like color */
-        color: #ffffff;            /* White font */
-        padding: 5px;
-        font-weight: bold;
-        border-radius: 4px;
-        margin-bottom: 8px;
-    }
+ .section-title {
+   background-color: #8c8c8c;
+   color: #ffffff;
+   padding: 2px 6px;
+   font-weight: bold;
+   border-radius: 4px;
+   display: inline-block;
+ }
+  table th, table td {
+    border: 1px solid #eee;
+    padding: 7px; /* Slightly reduced padding */
+    text-align: left;
+    word-wrap: break-word; /* Ensure long content breaks within cells */
+  }
+  table th {
+    background-color: #f2f2f2;
+  }
+  .total-section {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px; /* Slightly reduced margin */
+  }
+ .amounts {
+    text-align: right;
+    display: inline-block;
+    margin-top: 20px; /* Slightly reduced margin */
+    margin-left: 80%; /* Slightly reduced margin */
+    min-width: 180px; /* optional: set a min width for alignment */
+ }
+ .amounts p {
+    margin: 2px 0;
+    text-align: left;
+    display: block;
+ }
+ .amounts .total {
+    font-weight: bold;
+    font-size: 12pt;
+    border-top: 1px solid #eee;
+    padding-top: 5px;
+    margin-top: 10px;
+ }
+.notes {
+  flex: 1;
+  padding: 3px;
+  background: none;
+  background-color: #f2f2f2; /* Light grey */
+  border: none;
+  border-radius: 2px;
+  position: static;
+  height: auto;
+}
 
-    .notes_instructions {
-        position: absolute;
-        top: 70%;
-        left: 20px;
-        padding: 15px;
-        font-size: 8pt;
-    }
-    .amounts {
-        position: absolute;
-        top: 60%;
-        right: 10px;
-    }
-    .amounts p {
-        display: flex;
-        justify-content: space-between;
-        margin: 2px 0;
-    }
-    .amounts .total {
-        font-weight: bold;
-        font-size: 12pt; /* Slightly reduced font size for total */
-        border-top: 1px solid #eee;
-        padding-top: 5px;
-        margin-top: 10px;
-    }
-    .bank-details {
-        margin-top: 25px; /* Slightly reduced margin */
-        position: absolute;
-        top: 70%;
-        Right: 20px;
-    }
-    .bank-details p {
-     margin: 2px 0;
-    }
-    .footer {
-        position: fixed;
-        bottom: 0px;
-        text-align: center;
-        margin-top: 40px; /* Slightly reduced margin */
-        font-size: 8pt; /* Slightly reduced font size for footer */
-        color: #666;
-    }
-    .stamp {
-        position: absolute;
-        top: 75%;
-        left: 60px;
-        width: 100px; /* Set a specific width for the stamp */
-        height: 100px; /* Set a specific height for the stamp */
-        display: flex;
-    }
-    .thank-you {
-        position: absolute;
-        top: 82%;
-        font-size: 8pt;
-        margin-top: 25px; /* Slightly reduced margin */
-        left: 20px;
-        padding: 5px
-    }
+ .notes_instructions {
+   left: 20px;
+   font-size: 8pt;
+ }
+ .bank-details {
+   text-align: right;
+   background: none;
+   border: none;
+   border-radius: 0;
+   position: static;
+ }
+ .bank-details p {
+  margin: 2px 0;
+ }
+.stamp {
+  width: 100px;
+  height: 100px;
+  margin-right: 20px;
+}
 
-    /* Specific alignment for table content based on keys */
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
+.thank-you {
+  font-size: 8pt;
+  padding: 5px;
+  margin-top: 25px;
+}
+.end-section {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  z-index: 1;
+  page-break-inside: avoid;
+  margin-top: 40px;
+}
+ .footer {
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   width: 100%;
+   text-align: center;
+   font-size: 8pt;
+   color: #666;
+   background: #fff;
+ }
+/* Specific alignment for table content based on keys */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
 
-    /* Ensure content doesn't break across pages awkwardly */
-    .header, .bill-ship-section, table, .total-section, .bank-details, .thank-you, .footer {
-    page-break-inside: avoid;
-    }
+/* Ensure content doesn't break across pages awkwardly */
+.header, .bill-ship-section, table, .total-section, .bank-details, .thank-you, .footer {
+page-break-inside: avoid;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <div class="logo">
+<div class="logo">
             <#if company.imageFile?? && company.imageFile?has_content>
                  <img src="${company.imageFile}" alt="Company Logo" width="150" height="80" />
             <#else>
                    <img src="Image" alt="Company Logo" />
             </#if>
         </div>
-        <div class="company-info">
-            <h3>${company.companyName}</h3>
-            <p>Building name: ${company.companyAddress}</p>
-            <p>${company.emailId}</p>
-            <p>${company.mobileNo}</p>
-        </div>
-        <div class="invoice-info">
-            <h3 class="invoice-heading">Invoice</h3>
-            <p>Date: ${invoice.invoiceDate}</p>
-            <p>Invoice No: ${invoice.invoiceNo!''}</p>
-            <p>Purchase order No: ${invoice.purchaseOrder}</p>
-            <p>Payment due by: ${invoice.dueDate}</p>
-        </div>
-    </div>
-
-    <div class="bill-ship-section">
-        <div class="billed-to">
-            <div class="section-title">Billed to</div>
-            <p>Client name: ${customer.customerName}</p>
-            <p>${customer.address}</p>
-            <p>Phone: ${customer.mobileNumber}</p>
-        </div>
-        <div class="ship-to">
-            <#if invoice.shippedPayload?has_content>
-                  <#assign shipped = invoice.shippedPayload />
-                    <div class="section-title">Ship to</div>
-                    <p>Recievers name: ${shipped.customerName!'-'}</p>
-                    <p>${shipped.address!'-'}</p>
-                    <p>Phone: ${shipped.mobileNumber!'-'}</p>
-            <#else>
-                <div class="section-title">Ship to (if different)</div>
-                <p>Client name: ${customer.customerName!'-'}</p>
-                <p>${customer.address!'-'}</p>
-                <p>Phone: ${customer.mobileNumber!'-'}</p>
-            </#if>
+   <table class="header" style="width:100%; border:none; border-collapse:separate;">
+     <tr>
+       <td style="border:none;">
+         <div class="company-info">
+           <h3>${company.companyName}</h3>
+           <p>${company.emailId}</p>
+           <p>${company.mobileNo}</p>
          </div>
-    </div>
+       </td>
+       <td style="border:none;">
+         <div class="invoice-info">
+           <h3 class="invoice-heading">Invoice</h3>
+           <p>Date: ${invoice.invoiceDate}</p>
+           <p>Invoice No: ${invoice.invoiceNo!''}</p>
+           <p>Purchase order No: ${invoice.purchaseOrder}</p>
+           <p>Payment due by: ${invoice.dueDate}</p>
+         </div>
+       </td>
+     </tr>
+   </table>
+
+       <table class="bill-ship-section" style="width:100%; border:none; border-collapse:separate;">
+     <tr>
+       <td style="border:none; width:50%;">
+         <div class="billed-to">
+           <div class="section-title">Billed to</div>
+           <p>Client name: ${customer.customerName}</p>
+           <p>${customer.address}</p>
+           <p>Phone: ${customer.mobileNumber}</p>
+           <p>Email: ${customer.email!''}</p>
+           <p>GST No: ${customer.customerGstNo!''}</p>
+         </div>
+       </td>
+       <td style="border:none; width:50%;">
+         <div class="ship-to">
+           <#if invoice.shippedPayload?has_content>
+             <#assign shipped = invoice.shippedPayload />
+             <div class="section-title">Ship to</div>
+             <p>Receivers name: ${shipped.customerName!'-'}</p>
+             <p>${shipped.address!'-'}</p>
+             <p>Phone: ${shipped.mobileNumber!'-'}</p>
+           <#else>
+             <div class="section-title">Ship to (if different)</div>
+             <p>Client name: ${customer.customerName!'-'}</p>
+             <p>${customer.address!'-'}</p>
+             <p>Phone: ${customer.mobileNumber!'-'}</p>
+           </#if>
+         </div>
+       </td>
+     </tr>
+   </table>
 
     <table>
         <thead>
@@ -267,14 +270,8 @@
            </#if>
     </tbody>
 </table>
-    <div class="total-section">
-        <div class="notes">
-            <div class="section-title">Special notes and instructions</div>
-            <p>${invoice.notes!''}</p>
-        </div>
-
-        <div class="amounts">
-            <p><span>Subtotal</span><span>:${invoice.subTotal}</span></p>
+      <div class="amounts">
+            <p><span style= "font-weight: bold;">Subtotal</span><span>:${invoice.subTotal}</span></p>
 
                <#assign iGstValue = (iGst??)?then(iGst?number, 0.00) />
                <#assign cGstValue = (cGst??)?then(cGst?number, 0.00) />
@@ -291,34 +288,49 @@
                        <p>SGST:${sGstValue?string("0.00")}</p>
                </#if>
             <p class="total"><span>Total</span><span>:${invoice.grandTotal}</span></p>
-        </div>
-    </div>
-
-    <div class="notes_instructions">
-        <p>Kindly issue all cheques in the name of the company</p>
-    </div>
-    <div class= "stamp">
-       <#if company.stampImage?? && company.stampImage?has_content>
+     </div>
+    <table style="width:100%; border:none; border-collapse:separate; margin-bottom:25px;">
+      <tr>
+        <td style="vertical-align:top; border:none; width:50%;">
+          <div class="notes">
+            <div class="section-title">Special notes and instructions</div>
+            <p>${invoice.notes!''}</p>
+          </div>
+          <div class="notes_instructions">
+            <p>Kindly issue all cheques in the name of the company</p>
+          </div>
+        </td>
+        <td style="vertical-align:top; border:none; width:50%;">
+          <div class="bank-details">
+            <div class="section-title">BANK ACCOUNT DETAILS</div>
+              <p>Account Holder: ${company.companyName!''}</p>
+              <p>Bank Name: ${bank.bankName!''}</p>
+              <p>Account Number: ${bank.accountNumber!''}</p>
+              <p>Account Type: ${bank.accountType!''}</p>
+              <p>Branch: ${bank.branch!''}</p>
+              <p>IFSC Code: ${bank.ifscCode!''}</p>
+              <p>Bank Address: ${bank.address!''}</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+  <div class="end-section">
+    <div class="stamp">
+      <#if company.stampImage?? && company.stampImage?has_content>
         <img style="width: 100px; height: 100px; margin: 3px 0;" src="${company.stampImage}" alt="Seal" />
-    </#if>
+      </#if>
     </div>
     <div class="thank-you">
-        <h3>Thank you for your business!</h3>
-        <p>Should you have any enquiries concerning this invoice, please contact us.</p>
+      <h3>Thank you for your business!</h3>
+      <p>Should you have any enquiries concerning this invoice, please contact us.</p>
     </div>
-
-    <div class="bank-details">
-        <div class="section-title">BANK ACCOUNT DETAILS</div>
-        <p>Account Holder: ${bank.bankName!''}</p>
-        <p>Account number: ${bank.accountNumber!''}</p>
-        <p>ABA rtn: ${bank.bankName!''}</p>
-        <p>Wire rtn: ${bank.ifscCode!''}</p>
-    </div>
+  </div>
 
     <div class="footer">
-        <p>${company.companyAddress},${company.mobileNo},${company.emailId}</p>
+      <hr/>
+      <p>${company.companyAddress},${company.mobileNo},${company.emailId}</p>
     </div>
-</div>
+ </div>
 
 </body>
 </html>

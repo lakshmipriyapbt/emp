@@ -185,7 +185,8 @@ public enum EmployeeErrorMessageKey {
     OFFER_LETTER_REF_EXIST("offer.letter.ref.exist"),
     USED_PASSWORD("used.password"),
     INVALID_FIELD("invalid.field"),
-    INVALID_FILE_FORMAT("invalid.file.format");
+    INVALID_FILE_FORMAT("invalid.file.format"),
+    EMAIL_ALREADY_USED_BY_USER("email.already.used.by.user"),;
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {

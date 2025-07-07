@@ -46,19 +46,14 @@ public class CustomerServiceImpl implements CustomerService {
         }
         try {
             // Step 4.1: Generate a unique resource ID for the customer using companyId and customer details
-            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getEmail(),companyId, String.valueOf(System.currentTimeMillis()));
+            String customerId = ResourceIdUtils.generateCustomerResourceId(customerRequest.getEmail(),companyId);
 
             // Step 2: Fetch all customers for the given companyId
             List<CustomerModel> customers = repository.findByCompanyId(companyId); // Assuming you have a method to fetch all customers for a company
 
-            // Encode the mobile number from the request into Base64 format
-            String encodedMobileNumber = Base64.getEncoder().encodeToString(customerRequest.getMobileNumber().getBytes());
-
             // Step 3: Search for the customer with the provided customerId
             Optional<CustomerModel> existingCustomer = customers.stream()
-                    .filter(customer -> customer.getCustomerId().equals(customerId) ||
-                            customer.getMobileNumber().equals(encodedMobileNumber))
-                    .findFirst();
+                    .filter(customer -> customer.getCustomerId().equals(customerId)).findFirst();
 
             if (existingCustomer.isPresent()) {
                 log.error("Customer already exists with ID: {}", customerId);
@@ -68,6 +63,21 @@ public class CustomerServiceImpl implements CustomerService {
                                 (InvoiceErrorMessageKey.CUSTOMER_ALREADY_EXISTS)))),
                         HttpStatus.CONFLICT);
             }
+            // Encode the mobile number from the request into Base64 format
+            String encodedMobileNumber = Base64.getEncoder().encodeToString(customerRequest.getMobileNumber().getBytes());
+
+            Optional<CustomerModel> existingCustomerByMobile = customers.stream()
+                    .filter(customer -> customer.getMobileNumber().equals(encodedMobileNumber))
+                    .findFirst();
+            if (existingCustomerByMobile.isPresent()) {
+                log.error("Customer already exists with mobile number: {}", customerRequest.getMobileNumber());
+                // Return a response indicating that the customer already exists
+                return new ResponseEntity<>(ResponseBuilder.builder().build().
+                        createFailureResponse(new Exception(String.valueOf(InvoiceErrorMessageHandler.getMessage
+                                (InvoiceErrorMessageKey.CUSTOMER_MOBILE_ALREADY_EXISTS)))),
+                        HttpStatus.CONFLICT);
+            }
+
             // If customer does not exist, proceed to create a new customer
             CustomerModel customer = CustomerUtils.maskCustomerProperties(customerRequest, companyId, customerId);
             log.debug("Customer to save: {}", customer);

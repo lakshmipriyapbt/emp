@@ -14,7 +14,8 @@ const EmployeeProfile = () => {
     const { authUser } = useAuth();
     const dispatch = useDispatch();
     const [isUploading, setIsUploading] = useState(false);
-    
+    const [imageError, setImageError] = useState(false);
+
     // Get profile image from Redux store
     const { imageUrl } = useSelector((state) => state.profile);
 
@@ -67,39 +68,40 @@ const EmployeeProfile = () => {
         reader.readAsDataURL(file);
     };
 
-   const handleUpload = async () => {
-    if (!selectedFile) {
-        toast.warning("Please select a file first");
-        return;
-    }
+    const handleUpload = async () => {
+  if (!selectedFile) {
+    toast.warning("Please select a file first");
+    return;
+  }
 
-    setIsUploading(true);
-    try {
-        // Just pass the file directly - the API function will create FormData
-        const response = await uploadEmployeeImage(authUser.userId, selectedFile);
-        
-        if (response.data.path) {
-            dispatch(setProfileImage(response.data.path));
-            const employeeResponse = await EmployeeGetApiById(authUser?.userId);
-            setEmployeeData(employeeResponse.data.data);
-            toast.success("Profile photo uploaded successfully!");
-        }
-    } catch (error) {
-        console.error("Error uploading photo:", error);
-        toast.error(error.response?.data?.message || "Failed to upload photo. Please try again.");
-    } finally {
-        setIsUploading(false);
-        setSelectedFile(null);
-        setLocalPreview("");
+  setIsUploading(true);
+  setImageError(false); 
+  try {
+    const response = await uploadEmployeeImage(authUser.userId, selectedFile);
+    
+    if (response.data.path) {
+      // Add cache-busting parameter when dispatching
+       const newImageUrl = `${response.data.path}?t=${Date.now()}`;
+      dispatch(setProfileImage(newImageUrl));
+      const employeeResponse = await EmployeeGetApiById(authUser?.userId);
+      setEmployeeData(employeeResponse.data.data);
+      toast.success("Profile photo uploaded successfully!");
     }
+  } catch (error) {
+    console.error("Error uploading photo:", error);
+    toast.error(error.response?.data?.message || "Failed to upload photo. Please try again.");
+  } finally {
+    setIsUploading(false);
+    setSelectedFile(null);
+    setLocalPreview("");
+  }
 };
 
     // Determine which image to display
-    const displayImage = localPreview || imageUrl || "";
-
+    const displayImage = !imageError && (localPreview || (imageUrl ? `${imageUrl.split('?')[0]}?t=${Date.now()}` : ""));
     // Fallback image component
     const renderFallbackImage = () => (
-        <div 
+        <div
             className="rounded-circle bg-light d-flex align-items-center justify-content-center shadow-sm"
             style={{
                 width: "150px",
@@ -143,9 +145,9 @@ const EmployeeProfile = () => {
                                     <div className="col-12 text-start">
                                         <div className="position-relative d-inline-block">
                                             {displayImage ? (
-                                                <img 
-                                                    src={displayImage} 
-                                                    alt="Profile" 
+                                                <img
+                                                    src={displayImage}
+                                                    alt="Profile"
                                                     className="rounded-circle"
                                                     style={{
                                                         width: "150px",
@@ -153,26 +155,27 @@ const EmployeeProfile = () => {
                                                         objectFit: "cover",
                                                         border: "3px solid #dee2e6"
                                                     }}
+                                                    onError={() => setImageError(true)}
                                                 />
                                             ) : renderFallbackImage()}
-                                            
+
                                             <div className="mt-3">
-                                                <input 
-                                                    type="file" 
-                                                    id="profilePhoto" 
-                                                    accept="image/*" 
+                                                <input
+                                                    type="file"
+                                                    id="profilePhoto"
+                                                    accept="image/*"
                                                     onChange={handleFileChange}
                                                     className="d-none"
                                                 />
-                                                <label 
-                                                    htmlFor="profilePhoto" 
+                                                <label
+                                                    htmlFor="profilePhoto"
                                                     className="btn btn-sm btn-primary me-2"
                                                 >
-                                                    <i className="bi bi-upload me-1"></i> 
+                                                    <i className="bi bi-upload me-1"></i>
                                                     {imageUrl ? "Change Photo" : "Upload Photo"}
                                                 </label>
                                                 {selectedFile && (
-                                                    <button 
+                                                    <button
                                                         onClick={handleUpload}
                                                         className="btn btn-sm btn-success"
                                                         disabled={isUploading}
@@ -396,7 +399,7 @@ const EmployeeProfile = () => {
                                             readOnly
                                         />
                                     </div>
-                                </div>                                
+                                </div>
                             </div>
                         </div>
                     </div>

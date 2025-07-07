@@ -43,12 +43,6 @@ const Header = ({ toggleSidebar }) => {
     }
   }, [token]);
 
-  // useEffect(() => {
-  //   if (authUser?.userId && roles.includes("employee")) {
-  //     dispatch(fetchProfileImage(authUser.userId));
-  //   }
-  // }, [authUser?.userId, dispatch, roles,isProfileOpen]);
-
   const toggleProfile = () => {
     setIsProfileOpen(!isProfileOpen);
     setIsNotificationOpen(false);
@@ -69,6 +63,10 @@ const Header = ({ toggleSidebar }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+   useEffect(() => {
+    // This will force a re-render when imageUrl changes
+  }, [imageUrl]);
 
   const handleLogOut = () => {
     const role = userRole?.[0];
