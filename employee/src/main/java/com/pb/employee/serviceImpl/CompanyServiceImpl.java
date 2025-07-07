@@ -467,7 +467,7 @@ public class CompanyServiceImpl implements CompanyService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USED_PASSWORD),
                         HttpStatus.NOT_FOUND);
             }
-            user = userDao.getUsers(employeePasswordReset.getCompanyName(), id, null);
+            user = userDao.getUsers(employeePasswordReset.getCompanyName(), id, null, null);
             if (user.isEmpty()) {
                 employee = openSearchOperations.getEmployeeById(id, null, index);
                 if (employee == null) {
