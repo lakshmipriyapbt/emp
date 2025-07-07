@@ -100,15 +100,15 @@ public class SalaryController {
         return salaryService.deleteEmployeeSalaryById(companyName,employeeId,salaryId);
     }
 
-    @RequestMapping(value = "/{companyName}/employee/salaries/download", method = RequestMethod.GET)
+    @RequestMapping(value = "/{companyName}/employee/salaries/download", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.downloadEmployeeSalaries.tag}", description = "${api.downloadEmployeeSalaries.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> EmployeeSalariesDownload(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                      @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return salaryService.downloadEmployeesSalaries(companyName, format, request);
+                                                      @PathVariable String companyName, @RequestParam String format,@RequestBody EmployeeDetailsDownloadRequest detailsDownloadRequest,HttpServletRequest request) throws Exception {
+        return salaryService.downloadEmployeesSalaries(companyName, format,detailsDownloadRequest,request);
     }
 
 }
