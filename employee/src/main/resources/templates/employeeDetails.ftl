@@ -106,6 +106,30 @@
                                    ${person.uanNo!}
                                <#elseif field == "Department and Designation">
                                    ${person.departmentName!} ${person.designationName!}
+                               <#elseif field == "Alternate No">
+                                   ${person.alternateNo!}
+                               <#elseif field == "Email Id">
+                                   ${person.emailId!}
+                               <#elseif field == "Date Of Hiring">
+                                   ${person.dateOfHiring!}
+                               <#elseif field == "Marital Status">
+                                   ${person.maritalStatus!}
+                               <#elseif field == "PF No">
+                                   ${person.pfNo!}
+                               <#elseif field == "IFSC Code">
+                                   ${person.ifscCode!}
+                               <#elseif field == "Bank Name">
+                                   ${person.bankName!}
+                               <#elseif field == "Bank Branch">
+                                   ${person.bankBranch!}
+                               <#elseif field == "Current Gross">
+                                   ${person.currentGross!}
+                               <#elseif field == "Location">
+                                   ${person.location!}
+                               <#elseif field == "Temporary Address">
+                                   ${person.tempAddress!}
+                               <#elseif field == "Permanent Address">
+                                   ${person.permanentAddress!}
                                </#if>
                            </td>
                        </#list>
