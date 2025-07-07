@@ -187,14 +187,14 @@ const CandidateDocumentsView = () => {
                     >
                       <FiArrowLeft className="me-1" /> Back
                     </button>
-                    {documents.length > 0 && (
+                    {/* {documents.length > 0 && (
                       <button
                         onClick={handleEdit}
                         className="btn btn-primary btn-sm"
                       >
                         <PencilSquare className="me-1" /> Edit Documents
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
