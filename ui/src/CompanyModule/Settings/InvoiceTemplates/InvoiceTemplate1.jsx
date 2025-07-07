@@ -209,8 +209,8 @@ const InvoiceTemplate1 = ({
       <h5 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px" }}>Bank Details</h5>
       {/* ...bank details fields... */}
       <div style={{ display: "flex", marginBottom: "5px" }}>
-        <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Address :</div>
-        <div style={{ fontSize: "14px" }}>{bankDetails?.address}</div>
+        <div style={{ width: "170px", fontSize: "14px", fontWeight: "600" }}>Bank Name :</div>
+        <div style={{ fontSize: "14px" }}>{bankDetails?.bankName}</div>
       </div>
       <div style={{ display: "flex", marginBottom: "5px" }}>
                   <div style={{ width: "150px", fontSize: "14px", fontWeight: "600" }}>Account Number :</div>
@@ -266,7 +266,7 @@ const InvoiceTemplate1 = ({
               {companyData?.companyName},
             </p>
             <p style={{ textAlign: "center", margin: "0 0 5px 0", fontSize: "14px" }}>
-              {companyData?.address}
+              {companyData?.companyAddress}
             </p>
             <p style={{ textAlign: "center", margin: "0", fontSize: "14px" }}>
               {companyData?.emailId}, {companyData?.mobileNo}

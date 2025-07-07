@@ -337,6 +337,10 @@
                         <span style="color: #555;">${bank.ifscCode!''}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; max-width: 400px;">
+                        <strong style="color: #333;">Branch :</strong>
+                        <span style="color: #555;">${bank.branch!''}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; max-width: 400px;">
                         <strong style="color: #333;">Bank Address :</strong>
                         <span style="color: #555;">${bank.address!''}</span>
                     </div>
