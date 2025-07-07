@@ -86,9 +86,8 @@ public class CandidateServiceImpl implements CandidateService {
                         HttpStatus.CONFLICT);
             }
 
-            Collection<UserEntity> existingUser = userDao.getUsers(candidateRequest.getCompanyName(),null, companyEntity.getId());
-            UserEntity user = existingUser.iterator().next();
-            if (Objects.equals(user.getEmailId(), candidateRequest.getEmailId())) {
+            Collection<UserEntity> existingUser = userDao.getUsers(candidateRequest.getCompanyName(),null, companyEntity.getId(), candidateRequest.getEmailId());
+            if (existingUser.isEmpty()) {
                 log.error("User with email {} already exists", candidateRequest.getEmailId());
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ALREADY_USED_BY_USER),
                         HttpStatus.CONFLICT);

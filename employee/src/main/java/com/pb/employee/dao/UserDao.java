@@ -11,6 +11,6 @@ public interface UserDao extends Dao<UserEntity>{
         return UserEntity.class;
     }
 
-    Collection<UserEntity> getUsers(String companyName, String userId, String companyId) throws EmployeeException;
+    Collection<UserEntity> getUsers(String companyName, String userId, String companyId, String emailId) throws EmployeeException;
 
 }
