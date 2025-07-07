@@ -10,7 +10,7 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.CandidatePayload.CandidateRequest;
+import com.pb.employee.request.EmployeeDetailsDownloadRequest;
 import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
@@ -43,6 +43,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -405,7 +406,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, HttpServletRequest request) throws Exception {
+    public ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, EmployeeDetailsDownloadRequest detailsRequest, HttpServletRequest request) throws Exception {
         byte[] fileBytes = null;
         HttpHeaders headers = new HttpHeaders();
         try {
@@ -419,14 +420,35 @@ public class EmployeeServiceImpl implements EmployeeService {
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
             List<EmployeeEntity> employeeEntities = validateEmployee(companyEntity);
 
+            List<String> allowedFields;
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateExcelFromEmployees(employeeEntities);
+                allowedFields = List.of("Name", "EmployeeId", "Pan No", "Aadhaar No", "Bank Account No", "Contact No", "Date Of Birth", "UAN No", "Department And Designation");
+            }else if(Constants.PDF_TYPE.equalsIgnoreCase(format)){
+                allowedFields=List.of("Name", "EmployeeId", "Aadhaar No", "Bank Account No", "Contact No", "Date Of Birth", "UAN No", "Department and Designation");
+            }else{
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_FORMAT),HttpStatus.BAD_REQUEST);
+            }
+
+            List<String> fields = ( detailsRequest.getSelectedFields() == null || detailsRequest.getSelectedFields().isEmpty())
+                    ? allowedFields : detailsRequest.getSelectedFields();
+
+            List<String> invalidFields = fields.stream()
+                    .filter(f -> !allowedFields.contains(f))
+                    .toList();
+
+            if (!invalidFields.isEmpty()) {
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FIELD),
+                        HttpStatus.BAD_REQUEST);
+            }
+
+            if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
+                fileBytes = generateExcelFromEmployees(employeeEntities,fields);
                 headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                 headers.setContentDisposition(ContentDisposition.builder("attachment")
                         .filename("EmployeeDetails.xlsx")
                         .build());
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, "employee");
+                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, fields, "employee");
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeDetails.pdf").build());
             }
@@ -464,7 +486,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                         .filename("EmployeeBankDetails.xlsx")
                         .build());
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, "bank");
+//                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, "bank");
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeBankDetails.pdf").build());
             }
@@ -595,38 +617,45 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    private byte[] generateExcelFromEmployees(List<EmployeeEntity> employees) throws IOException {
+    private byte[] generateExcelFromEmployees(List<EmployeeEntity> employees,List<String> selectedFields) throws IOException {
+
+            Map<String, Function<EmployeeEntity, String>> employeeMap = Map.of(
+                "Name", e -> e.getFirstName() + " " + e.getLastName(),
+                "EmployeeId", EmployeeEntity::getEmployeeId,
+                "Pan No", EmployeeEntity::getPanNo,
+                "Aadhaar No", EmployeeEntity::getAadhaarId,
+                "Bank Account No", EmployeeEntity::getAccountNo,
+                "Contact No", EmployeeEntity::getMobileNo,
+                "Date Of Birth", EmployeeEntity::getDateOfBirth,
+                "UAN No", EmployeeEntity::getUanNo,
+                "Department And Designation", e -> e.getDepartmentName() + ", " + e.getDesignationName());
+
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              Workbook workbook = new XSSFWorkbook()) {
 
             Sheet sheet = workbook.createSheet("Employees");
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            CellStyle headerCellStyle = workbook.createCellStyle();
+            headerCellStyle.setFont(headerFont);
+
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"Name", "EmployeeId", "Pan No", "Aadhaar No", "Bank Account No", "Contact No", "Date Of Birth", "UAN No", "Department And Designation"};
-            for (int i = 0; i < headers.length; i++) {
+            for (int i=0;i<selectedFields.size();i++) {
                 Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                Font headerFont = workbook.createFont();
-                headerFont.setBold(true);
-                CellStyle headerCellStyle = workbook.createCellStyle();
-                headerCellStyle.setFont(headerFont);
+                cell.setCellValue(selectedFields.get(i));
                 cell.setCellStyle(headerCellStyle);
             }
             int rowNum = 1;
             for (EmployeeEntity employee : employees) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(employee.getFirstName() + " " + employee.getLastName());
-                row.createCell(1).setCellValue(employee.getEmployeeId());
-                row.createCell(2).setCellValue(employee.getPanNo());
-                row.createCell(3).setCellValue(employee.getAadhaarId());
-                row.createCell(4).setCellValue(employee.getAccountNo());
-                row.createCell(5).setCellValue(employee.getMobileNo());
-                row.createCell(6).setCellValue(employee.getDateOfBirth());
-                row.createCell(7).setCellValue(employee.getUanNo());
-                row.createCell(8).setCellValue(employee.getDepartmentName() + ", " + employee.getDesignationName());
+                for (int i=0;i<selectedFields.size();i++) {
+                    String field = selectedFields.get(i);
+                    String value = employeeMap.getOrDefault(field,e->"").apply(employee);
+                    row.createCell(i).setCellValue(value != null ? value : "");
+                }
             }
-            for (int i = 0; i < headers.length; i++) {
+            for (int i = 0; i < selectedFields.size(); i++) {
                 sheet.autoSizeColumn(i);
-                sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 2); // Adjust the multiplier as needed
             }
 
             workbook.write(baos);
@@ -634,7 +663,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    private byte[] generateEmployeePdf(List<EmployeeEntity> employeeEntities, CompanyEntity companyEntity, String detailType) throws IOException, DocumentException {
+    private byte[] generateEmployeePdf(List<EmployeeEntity> employeeEntities, CompanyEntity companyEntity,List<String> selectedFields, String detailType) throws IOException, DocumentException {
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + Constants.EMPLOYEE_DETAILS);
             if (inputStream == null) {
@@ -649,6 +678,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             Map<String, Object> dataModel = new HashMap<>();
             dataModel.put("data", employeeEntities);
             dataModel.put("company", companyEntity);
+            dataModel.put("selectedFields",selectedFields);
 
             addWatermarkToDataModel(dataModel, companyEntity);
 
@@ -670,7 +700,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPTY_FILE), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        float opacity = 0.5f;
+        float opacity = 0.1f;
         double scaleFactor = 1.6d;
         BufferedImage watermarkedImage = CompanyUtils.applyOpacity(originalImage, opacity, scaleFactor, 30);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

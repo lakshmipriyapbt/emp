@@ -160,7 +160,7 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            Collection<UserEntity> users = dao.getUsers(companyName, Id, companyEntity.getId());
+            Collection<UserEntity> users = dao.getUsers(companyName, Id, companyEntity.getId(), null);
             List<UserResponse> userResponses = new ArrayList<>();
             for (UserEntity user : users) {
                 UserResponse userResponse = objectMapper.convertValue(user, UserResponse.class);
@@ -206,7 +206,7 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            Collection<UserEntity> existingUsers = dao.getUsers(companyName, Id, companyEntity.getId());
+            Collection<UserEntity> existingUsers = dao.getUsers(companyName, Id, companyEntity.getId(), null);
             if (existingUsers == null) {
                 log.error("User not found in this company {}", companyName);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);

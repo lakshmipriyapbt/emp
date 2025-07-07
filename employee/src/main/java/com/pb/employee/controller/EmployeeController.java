@@ -3,6 +3,7 @@ package com.pb.employee.controller;
 
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeException;
+import com.pb.employee.request.EmployeeDetailsDownloadRequest;
 import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
@@ -97,15 +98,17 @@ public class EmployeeController {
         return employeeService.deleteEmployeeById(companyName,employeeId);
     }
 
-    @RequestMapping(value = "{companyName}/employees/download", method = RequestMethod.GET)
+    @RequestMapping(value = "{companyName}/employees/download", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.downloadEmployeesDetails.tag}", description = "${api.downloadEmployeesDetails.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> downloadEmployeesDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                       @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                      @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return employeeService.downloadEmployeeDetails(companyName, format, request);
+                                                      @PathVariable String companyName,
+                                                      @RequestBody EmployeeDetailsDownloadRequest detailsRequest,
+                                                      @RequestParam String format, HttpServletRequest request) throws Exception {
+        return employeeService.downloadEmployeeDetails(companyName, format, detailsRequest,request);
     }
 
     @RequestMapping(value = "{companyName}/employees/bank", method = RequestMethod.GET)
