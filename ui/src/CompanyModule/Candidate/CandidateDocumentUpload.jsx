@@ -310,28 +310,45 @@ const CandidateDocumentUpload = () => {
         }
     };
 
-    // const isAtLeastOneFieldChanged = () => {
-    //     if (!isEditMode) return true;
-
-    //     const currentValues = getValues();
-    //     const hasNewFiles =
-    //         (currentValues.resume instanceof File) ||
-    //         (currentValues.idProof instanceof File) ||
-    //         educationQualifications.some(qual =>
-    //             currentValues.education[qual.id]?.file instanceof File
-    //         ) ||
-    //         (currentValues.experience?.some(exp =>
-    //             exp.file instanceof File
-    //         ));
-
-    //     return hasNewFiles;
-    // };
 
     const onSubmit = async (data) => {
         if (!userId || !company) {
             toast.error('Authentication required. Please login again.');
             return;
         }
+
+        // Mark all fields as touched before validation
+        setTouchedFields({
+            resume: true,
+            idProof: true,
+            education: {
+                tenth: true,
+                twelfth: true,
+                ug: true,
+                pg: true,
+                others: true
+            },
+            experience: formValues.experience?.map(() => true) || []
+        });
+
+        // Trigger validation for all fields
+        const isValid = await trigger();
+
+        // Additional manual validation for required education documents
+        const educationValid = educationQualifications.every(qual => {
+            if (!qual.required) return true;
+            return !!data.education[qual.id]?.file;
+        });
+
+        if (!isValid || !educationValid) {
+            if (!educationValid) {
+                toast.error('Please upload all required education documents');
+            } else {
+                toast.error('Please complete all required fields');
+            }
+            return;
+        }
+
 
         let currentDocumentId = documentId;
         if (isEditMode && !currentDocumentId) {
