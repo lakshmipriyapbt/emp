@@ -420,14 +420,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
             List<EmployeeEntity> employeeEntities = validateEmployee(companyEntity);
 
-            List<String> allowedFields;
-            if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                allowedFields = List.of("Name", "EmployeeId", "Pan No", "Aadhaar No", "Bank Account No", "Contact No", "Date Of Birth", "UAN No", "Department And Designation");
-            }else if(Constants.PDF_TYPE.equalsIgnoreCase(format)){
-                allowedFields=List.of("Name", "EmployeeId", "Aadhaar No", "Bank Account No", "Contact No", "Date Of Birth", "UAN No", "Department and Designation");
-            }else{
-                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FILE_FORMAT),HttpStatus.BAD_REQUEST);
-            }
+            List<String> allowedFields=List.of("Name", "EmployeeId", "Email Id", "Contact No", "Alternate No", "Department And Designation",
+                    "Date Of Hiring", "Date Of Birth", "Marital Status", "Pan No", "Aadhaar No", "UAN No", "PF No", "Bank Account No", "IFSC Code", "Bank Name",
+                    "Bank Branch", "Current Gross", "Location", "Temporary Address", "Permanent Address");
 
             List<String> fields = ( detailsRequest.getSelectedFields() == null || detailsRequest.getSelectedFields().isEmpty())
                     ? allowedFields : detailsRequest.getSelectedFields();
@@ -438,6 +433,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             if (!invalidFields.isEmpty()) {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FIELD),
+                        HttpStatus.BAD_REQUEST);
+            }
+
+            if(Constants.PDF_TYPE.equalsIgnoreCase(format) && fields.size()>8){
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_FIELD_SIZE),
                         HttpStatus.BAD_REQUEST);
             }
 
@@ -619,16 +619,29 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private byte[] generateExcelFromEmployees(List<EmployeeEntity> employees,List<String> selectedFields) throws IOException {
 
-            Map<String, Function<EmployeeEntity, String>> employeeMap = Map.of(
-                "Name", e -> e.getFirstName() + " " + e.getLastName(),
-                "EmployeeId", EmployeeEntity::getEmployeeId,
-                "Pan No", EmployeeEntity::getPanNo,
-                "Aadhaar No", EmployeeEntity::getAadhaarId,
-                "Bank Account No", EmployeeEntity::getAccountNo,
-                "Contact No", EmployeeEntity::getMobileNo,
-                "Date Of Birth", EmployeeEntity::getDateOfBirth,
-                "UAN No", EmployeeEntity::getUanNo,
-                "Department And Designation", e -> e.getDepartmentName() + ", " + e.getDesignationName());
+        Map<String, Function<EmployeeEntity, String>> employeeMap = new HashMap<>();
+        employeeMap.put("Name", e -> e.getFirstName() + " " + e.getLastName());
+        employeeMap.put("EmployeeId", EmployeeEntity::getEmployeeId);
+        employeeMap.put("Pan No", EmployeeEntity::getPanNo);
+        employeeMap.put("Aadhaar No", EmployeeEntity::getAadhaarId);
+        employeeMap.put("Bank Account No", EmployeeEntity::getAccountNo);
+        employeeMap.put("Contact No", EmployeeEntity::getMobileNo);
+        employeeMap.put("Date Of Birth", EmployeeEntity::getDateOfBirth);
+        employeeMap.put("UAN No", EmployeeEntity::getUanNo);
+        employeeMap.put("Department and Designation", e -> e.getDepartmentName() + ", " + e.getDesignationName());
+        employeeMap.put("Email Id", EmployeeEntity::getEmailId);
+        employeeMap.put("Alternate No", EmployeeEntity::getAlternateNo);
+        employeeMap.put("Date Of Hiring", EmployeeEntity::getDateOfHiring);
+        employeeMap.put("Marital Status", EmployeeEntity::getMaritalStatus);
+        employeeMap.put("PF No", EmployeeEntity::getPfNo);
+        employeeMap.put("IFSC Code", EmployeeEntity::getIfscCode);
+        employeeMap.put("Bank Name", EmployeeEntity::getBankName);
+        employeeMap.put("Bank Branch", EmployeeEntity::getBankBranch);
+        employeeMap.put("Current Gross", EmployeeEntity::getCurrentGross);
+        employeeMap.put("Location", EmployeeEntity::getLocation);
+        employeeMap.put("Temporary Address", EmployeeEntity::getTempAddress);
+        employeeMap.put("Permanent Address", EmployeeEntity::getPermanentAddress);
+
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              Workbook workbook = new XSSFWorkbook()) {
