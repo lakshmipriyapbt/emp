@@ -19,8 +19,6 @@ public interface EmployeeService {
 
     ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, EmployeeDetailsDownloadRequest detailsRequest, HttpServletRequest request) throws Exception;
 
-    ResponseEntity<byte[]> downloadEmployeeBankDetails(String companyName, String format, HttpServletRequest request) throws Exception;
-
     ResponseEntity<?> getEmployeeWithoutAttendance(String companyName,String month,String year)throws IOException,EmployeeException;
 
     ResponseEntity<?> getEmployeeId(String companyName, EmployeeIdRequest employeeIdRequest) throws IOException, EmployeeException;
