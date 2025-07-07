@@ -22,8 +22,6 @@
    display: flex;
    }
  .container  {
-   max-width: 794px;/* Adjust max-width if needed for better fit on A4 */
-   height: 1000px;
    margin: 0 auto;
    }
   .header {
@@ -215,6 +213,8 @@ page-break-inside: avoid;
            <p>Client name: ${customer.customerName}</p>
            <p>${customer.address}</p>
            <p>Phone: ${customer.mobileNumber}</p>
+           <p>Email: ${customer.email!''}</p>
+           <p>GST No: ${customer.customerGstNo!''}</p>
          </div>
        </td>
        <td style="border:none; width:50%;">
