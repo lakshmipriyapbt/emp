@@ -3,97 +3,99 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Employee Details</title>
-    <style>
+    <title>Employee Salaries Details</title>
 
-      .logo {
-            text-align: right;
-      }
+        <style>
+            .logo{ text-align:right; }
+            .logo img{
+                max-width:60px;
+                height:100px;
+                margin-right:5px;
+                margin-bottom:20px;
+                margin-top:-10px;
+            }
 
-      .logo img {
-            max-width: 60px;
-            height: 100px;
-            margin-right: 5px;
-            margin-bottom: 20px;
-            margin-top: -10px;
-      }
+            table{
+                width:100%;
+                border-collapse:collapse;
+                margin-top:20px;
+                font-family:Arial, sans-serif;
+            }
+            th, td{
+                padding:3px;
+                text-align:left;
+                border:1px solid #ddd;
+                word-wrap:break-word;
+                font-size:10px;
+                white-space:nowrap;
+                overflow:hidden;
+                text-overflow:ellipsis;
+            }
+            th{
+                background-color:#f2f2f2;
+                font-weight:bold;
+            }
 
-      /* Table Styling */
-      table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-family: Arial, sans-serif;
-      }
-
-      th, td {
-            padding: 3px;
-            text-align: left;
-            border: 1px solid #ddd;
-            word-wrap: break-word; /* Ensure content breaks properly */
-            font-size: 10px;
-            white-space: nowrap; /* Prevent text from wrapping */
-      }
-
-      th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-      }
-
-      /* Watermark styling */
-      .watermark {
-            position: fixed;
-            top: 40%;
-            left: 20%;
-            transform: translate(-50%, -50%) rotate(30deg);
-            z-index: -1;
-            width: 400px;
-            height: auto;
-            text-align: center;
-      }
-
-      .watermark img {
-            width: 100%;
-            height: auto;
-            opacity: 0.05;
-      }
-
-      /* Improve table column width */
-      th, td {
-            overflow: hidden;
-            text-overflow: ellipsis;
-      }
-
-    </style>
+            /* watermark */
+            .watermark{
+                position:fixed;
+                top:40%;
+                left:20%;
+                transform:translate(-50%,-50%) rotate(30deg);
+                z-index:-1;
+                width:400px;
+                height:auto;
+                text-align:center;
+            }
+            .watermark img{
+                width:100%;
+                height:auto;
+                opacity:0.05;
+            }
+        </style>
 </head>
 <body>
-    <img src="${blurredImage}" alt="Company Logo" class="watermark" />
 
-    <div class="logo">
-        <img src="${company.imageFile}" alt="Company Logo" />
-    </div>
+<img src="${blurredImage}" alt="Company Logo" class="watermark"/>
 
-    <h4>Employees Salaries Details</h4>
+<div class="logo">
+    <img src="${company.imageFile}" alt="Company Logo"/>
+</div>
 
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>EmployeeId</th>
-            <th>Gross Amount</th>
-            <th>Income Tax</th>
-            <th>Net Salary</th>
-        </tr>
+<h4>Company&nbsp;Employees&nbsp;&ndash;&nbsp;Salaries Details</h4>
 
-        <#list data as person>
-            <tr>
-                <td>${person.employeeName}</td>
-                <td>${person.employeeCreatedId}</td>
-                <td>${person.grossAmount}</td>
-                <td>${person.incomeTax}</td>
-                <td>${person.netSalary}</td>
-            </tr>
+<table>
+    <tr>
+        <!-- dynamic headers -->
+        <#list columns as col>
+            <th>${col}</th>
         </#list>
-    </table>
+    </tr>
+
+    <!-- rows -->
+    <#list data as person>
+        <tr>
+            <#list columns as col>
+                <td>
+                    <#-- map selectable column to field -->
+                    <#if        col == "Name">
+                        ${person.employeeName}
+                    <#elseif    col == "EmployeeId">
+                        ${person.employeeCreatedId}
+                    <#elseif    col == "Gross Amount">
+                        ${person.grossAmount}
+                    <#elseif    col == "Income Tax">
+                        ${person.incomeTax}
+                    <#elseif    col == "Net Salary">
+                        ${person.netSalary}
+                    <#else>
+                        -
+                    </#if>
+                </td>
+            </#list>
+        </tr>
+    </#list>
+</table>
 
 </body>
 </html>

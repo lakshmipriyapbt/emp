@@ -250,7 +250,7 @@ public class SalaryServiceImpl implements SalaryService {
     }
 
     @Override
-    public ResponseEntity<byte[]> downloadEmployeesSalaries(String companyName, String format, HttpServletRequest request) throws Exception {
+    public ResponseEntity<byte[]> downloadEmployeesSalaries(String companyName, String format,EmployeeDetailsDownloadRequest detailsDownloadRequest,HttpServletRequest request) throws Exception {
         byte[] fileBytes = null;
         HttpHeaders headers = new HttpHeaders();
         try {
@@ -267,13 +267,13 @@ public class SalaryServiceImpl implements SalaryService {
                     .filter(employee -> "active".equalsIgnoreCase(employee.getStatus()))
                     .collect(Collectors.toList());
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateExcelFromEmployeesSalaries(activeEmployeeSalaryResPayloads);
+                fileBytes = generateExcelFromEmployeesSalaries(activeEmployeeSalaryResPayloads,detailsDownloadRequest.getSelectedFields());
                 headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                 headers.setContentDisposition(ContentDisposition.builder("attachment")
                         .filename("EmployeesSalaries.xlsx")
                         .build());
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateEmployeesSalariesPdf(activeEmployeeSalaryResPayloads, companyEntity);
+                fileBytes = generateEmployeesSalariesPdf(activeEmployeeSalaryResPayloads, companyEntity,detailsDownloadRequest.getSelectedFields());
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeBankDetails.pdf").build());
             }
@@ -290,7 +290,7 @@ public class SalaryServiceImpl implements SalaryService {
     }
 
 
-    private byte[] generateExcelFromEmployeesSalaries(List<EmployeeSalaryResPayload> salaryResPayloads) throws IOException {
+    private byte[] generateExcelFromEmployeesSalaries(List<EmployeeSalaryResPayload> salaryResPayloads, List<String> selectedColumns) throws IOException {
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              Workbook workbook = new XSSFWorkbook()) {
@@ -298,9 +298,9 @@ public class SalaryServiceImpl implements SalaryService {
             Sheet sheet = workbook.createSheet("Employees");
             Row headerRow = sheet.createRow(0);
             String[] headers = {"Name", "EmployeeId", "Gross Amount", "TDS", "Net Salary"};
-            for (int i = 0; i < headers.length; i++) {
+            for (int i = 0; i < selectedColumns.size(); i++) {
                 Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
+                cell.setCellValue(selectedColumns.get(i));
                 Font headerFont = workbook.createFont();
                 headerFont.setBold(true);
                 CellStyle headerCellStyle = workbook.createCellStyle();
@@ -310,11 +310,17 @@ public class SalaryServiceImpl implements SalaryService {
             int rowNum = 1;
             for (EmployeeSalaryResPayload salaryResPayload : salaryResPayloads) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(salaryResPayload.getEmployeeName());
-                row.createCell(1).setCellValue(salaryResPayload.getEmployeeCreatedId());
-                row.createCell(2).setCellValue(salaryResPayload.getGrossAmount());
-                row.createCell(3).setCellValue(salaryResPayload.getIncomeTax());
-                row.createCell(4).setCellValue(salaryResPayload.getNetSalary());
+                int colIndex = 0;
+                for (String column : selectedColumns) {
+                    Cell cell = row.createCell(colIndex++);
+                    switch (column.toLowerCase()) {
+                        case "name" -> cell.setCellValue(salaryResPayload.getEmployeeName());
+                        case "employeeid" -> cell.setCellValue(salaryResPayload.getEmployeeCreatedId());
+                        case "gross amount" -> cell.setCellValue(salaryResPayload.getGrossAmount());
+                        case "tds" -> cell.setCellValue(salaryResPayload.getIncomeTax());
+                        case "net salary" -> cell.setCellValue(salaryResPayload.getNetSalary());
+                    }
+                }
             }
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
@@ -412,7 +418,7 @@ public class SalaryServiceImpl implements SalaryService {
         }
     }
 
-    private byte[] generateEmployeesSalariesPdf(List<EmployeeSalaryResPayload> employeeEntities, CompanyEntity companyEntity) throws IOException, DocumentException {
+    private byte[] generateEmployeesSalariesPdf(List<EmployeeSalaryResPayload> employeeEntities, CompanyEntity companyEntity,List<String> selectedColumns) throws IOException, DocumentException {
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + Constants.EMPLOYEE_DETAILS);
             if (inputStream == null) {
@@ -423,6 +429,7 @@ public class SalaryServiceImpl implements SalaryService {
             Map<String, Object> dataModel = new HashMap<>();
             dataModel.put("data", employeeEntities);
             dataModel.put("company", companyEntity);
+            dataModel.put("columns", selectedColumns);
 
             addWatermarkToDataModel(dataModel, companyEntity);
 
