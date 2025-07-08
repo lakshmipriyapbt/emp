@@ -3,6 +3,8 @@ package com.pb.employee.serviceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.dao.CandidateDao;
+import com.pb.employee.dao.UserDao;
+import com.pb.employee.daoImpl.UserDaoImpl;
 import com.pb.employee.exception.EmployeeErrorMessageKey;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
@@ -49,6 +51,9 @@ public class CandidateServiceImpl implements CandidateService {
     private CandidateDao candidateDao;
 
     @Autowired
+    private UserDao userDao;
+
+    @Autowired
     private OpenSearchOperations openSearchOperations;
 
     @Autowired
@@ -56,13 +61,11 @@ public class CandidateServiceImpl implements CandidateService {
 
     @Override
     public ResponseEntity<?> registerCandidate(CandidateRequest candidateRequest, HttpServletRequest request) throws EmployeeException , IOException{
-        String defaultPassword;
         log.debug("validating name {} existed ", candidateRequest.getLastName());
         String resourceId = ResourceIdUtils.generateCandidateResourceId(candidateRequest.getEmailId());
-        Object entity = null;
         CompanyEntity companyEntity;
         EmployeeEntity employee;
-        String index = ResourceIdUtils.generateCompanyIndex(candidateRequest.getCompanyName());
+        CandidateEntity candidate;
         try {
             companyEntity = openSearchOperations.getCompanyByCompanyName(candidateRequest.getCompanyName(), Constants.INDEX_EMS);
             if (companyEntity == null) {
@@ -76,43 +79,47 @@ public class CandidateServiceImpl implements CandidateService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_EMAILID_ALREADY_EXISTS),
                         HttpStatus.CONFLICT);
             }
+            Collection<CandidateEntity> existingCandidate = candidateDao.getCandidates(candidateRequest.getCompanyName(), resourceId, companyEntity.getId());
+            if (!existingCandidate.isEmpty()) {
+                log.error("Candidate with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_EMAILID_ALREADY_EXISTS),
+                        HttpStatus.CONFLICT);
+            }
 
-            LocalDate hiringDate = LocalDate.parse(candidateRequest.getDateOfHiring());
-            LocalDate expiryDate = hiringDate.plusDays(3);
-
-            CandidateEntity candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
+            Collection<UserEntity> existingUser = userDao.getUsers(candidateRequest.getCompanyName(),null, companyEntity.getId(), candidateRequest.getEmailId());
+            if (!existingUser.isEmpty()) {
+                log.error("User with email {} already exists", candidateRequest.getEmailId());
+                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMAIL_ALREADY_USED_BY_USER),
+                        HttpStatus.CONFLICT);
+            }
+            
+            candidate = objectMapper.convertValue(candidateRequest, CandidateEntity.class);
             candidate.setId(resourceId);
             candidate.setCompanyId(companyEntity.getId());
             candidate.setExpiryDate(String.valueOf(LocalDate.now().plusDays(3)));
             candidate.setType(Constants.CANDIDATE);
-            candidateDao.save(candidate, candidateRequest.getCompanyName());
-
         } catch (EmployeeException employeeException) {
             log.error("Error while saving candidate details: {}", employeeException.getMessage());
             throw employeeException;
-        } catch (Exception exception) {
-            log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(),exception.getMessage());
-            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        String candidateFolderPath = folderPath+ candidateRequest.getCompanyName()+"/" + resourceId +"/";
-        File folder = new File(candidateFolderPath);
-        if (!folder.exists()) {
-            folder.mkdirs();
-            log.info("Candidate folder created successfully at {}", candidateFolderPath);
-        } else {
-            log.warn("Candidate folder already exists or failed to create at {}", candidateFolderPath);
         }
         CompletableFuture.runAsync(() -> {
             try {
-                String companyUrl = " " ;
+                String companyUrl = EmailUtils.getBaseUrl(request) + candidateRequest.getCompanyName() + Constants.SLASH + Constants.CANDIDATE_LOGIN ;
                 log.info("The company url : "+companyUrl);
-                emailUtils.sendRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE,null);
+                emailUtils.sendCandidateRegistrationEmail(candidateRequest.getEmailId(), companyUrl,Constants.CANDIDATE);
             } catch (Exception e) {
                 log.error("Error sending email to candidate: {}", candidateRequest.getEmailId());
                 throw new RuntimeException(e);
             }
         });
+
+        try {
+            candidateDao.save(candidate, candidateRequest.getCompanyName());
+        } catch (Exception e) {
+            log.error("Unable to save the candidate details {} {}", candidateRequest.getEmailId(), e.getMessage());
+            throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_SAVE_CANDIDATE),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         return new ResponseEntity<>(
                 ResponseBuilder.builder().build().createSuccessResponse(Constants.SUCCESS), HttpStatus.CREATED);
@@ -128,7 +135,10 @@ public class CandidateServiceImpl implements CandidateService {
                throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
            }
            log.debug("Getting Company Calendar by companyName: {}", companyName);
-           return candidateDao.getCandidates(companyName, candidateId, companyEntity.getId());
+           Collection<CandidateEntity> candidateEntities = candidateDao.getCandidates(companyName, candidateId, companyEntity.getId());
+           return candidateEntities.stream()
+                   .filter(c -> !Constants.CONVERTED.equalsIgnoreCase(c.getStatus()))
+                   .toList();
        } catch (Exception e) {
            throw new RuntimeException(e);
        }

@@ -3,6 +3,7 @@ package com.pb.employee.controller;
 
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeException;
+import com.pb.employee.request.EmployeeDetailsDownloadRequest;
 import com.pb.employee.request.EmployeeIdRequest;
 import com.pb.employee.request.EmployeeRequest;
 import com.pb.employee.request.EmployeeUpdateRequest;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -46,8 +48,8 @@ public class EmployeeController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getEmployee(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                         @PathVariable String companyName) throws IOException, EmployeeException {
-        return employeeService.getEmployees(companyName);
+                                         @PathVariable String companyName, HttpServletRequest request) throws IOException, EmployeeException {
+        return employeeService.getEmployees(companyName, request);
     }
 
     @RequestMapping(value = "/{companyName}/withoutAttendance", method = RequestMethod.GET)
@@ -68,10 +70,10 @@ public class EmployeeController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> getEmployeeById(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                             @PathVariable String companyName, @PathVariable String employeeId) throws IOException, EmployeeException {
+                                             @PathVariable String companyName, @PathVariable String employeeId, HttpServletRequest request) throws IOException, EmployeeException {
 
         return new ResponseEntity<>(
-                ResponseBuilder.builder().build().createSuccessResponse(employeeService.getEmployeeById(companyName, employeeId)), HttpStatus.OK);
+                ResponseBuilder.builder().build().createSuccessResponse(employeeService.getEmployeeById(companyName, employeeId, request)), HttpStatus.OK);
     }
 
     @RequestMapping(value = "employee/{employeeId}", method = RequestMethod.PATCH,consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -96,27 +98,20 @@ public class EmployeeController {
         return employeeService.deleteEmployeeById(companyName,employeeId);
     }
 
-    @RequestMapping(value = "{companyName}/employees/download", method = RequestMethod.GET)
+    @RequestMapping(value = "{companyName}/employees/download", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
             summary = "${api.downloadEmployeesDetails.tag}", description = "${api.downloadEmployeesDetails.description}")
     @ResponseStatus(HttpStatus.OK)
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
     public ResponseEntity<?> downloadEmployeesDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                       @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                      @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return employeeService.downloadEmployeeDetails(companyName, format, request);
+                                                      @PathVariable String companyName,
+                                                      @RequestBody EmployeeDetailsDownloadRequest detailsRequest,
+                                                      @RequestParam String format, HttpServletRequest request) throws Exception {
+        return employeeService.downloadEmployeeDetails(companyName, format, detailsRequest,request);
     }
 
-    @RequestMapping(value = "{companyName}/employees/bank", method = RequestMethod.GET)
-    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
-            summary = "${api.downloadEmployeesBank.tag}", description = "${api.downloadEmployeesBank.description}")
-    @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
-    public ResponseEntity<?> downloadEmployeesBankDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                          @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return employeeService.downloadEmployeeBankDetails(companyName, format, request);
-    }
+
 
     @RequestMapping(value = "{companyName}/employee/error", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
@@ -128,5 +123,45 @@ public class EmployeeController {
 
         return employeeService.getEmployeeId(companyName, employeeIdRequest);
     }
+
+    @RequestMapping(value = "candidate/{candidateId}", method = RequestMethod.POST)
+    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
+            summary = "${api.registerEmployeeWithCandidate.tag}", description = "${api.registerEmployeeWithCandidate.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "CREATED")
+    public ResponseEntity<?> registerEmployeeWithCandidate(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
+                                                           @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                           @PathVariable String candidateId,
+                                                           @RequestBody @Valid EmployeeRequest employeeRequest, HttpServletRequest request) throws EmployeeException {
+
+        return employeeService.registerEmployeeWithCandidate(employeeRequest,candidateId, request);
+    }
+
+    @RequestMapping(value = "{companyName}/employee/{employeeId}/image", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.uploadEmployeeImage.tag}", description = "${api.uploadEmployeeImage.description}")
+    @ResponseStatus(HttpStatus.CREATED)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Employee Image Uploaded Successfully")
+    public ResponseEntity<?> uploadEmployeeImage(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef}")
+                                                 @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                                 @PathVariable String companyName,
+                                                 @PathVariable String employeeId,
+                                                 @RequestParam MultipartFile file) throws EmployeeException, IOException {
+        return employeeService.uploadEmployeeImage(companyName, employeeId, file);
+    }
+
+    @RequestMapping(value = "{companyName}/employee/{employeeId}/image", method = RequestMethod.GET)
+    @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
+            summary = "${api.getEmployeeImage.tag}", description = "${api.getEmployeeImage.description}")
+    @ResponseStatus(HttpStatus.OK)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Employee Image fetched Successfully")
+    public ResponseEntity<?> getEmployeeImage(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef}")
+                                              @RequestHeader(Constants.AUTH_KEY) String authToken,
+                                              @PathVariable String companyName,
+                                              @PathVariable String employeeId,
+                                              HttpServletRequest request) throws EmployeeException, IOException {
+        return employeeService.getEmployeeImage(companyName, employeeId, request);
+    }
+
 
 }

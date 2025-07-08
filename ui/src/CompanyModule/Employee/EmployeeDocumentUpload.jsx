@@ -617,7 +617,7 @@ const EmployeeDocumentUpload = () => {
                         >
                             <FiUpload className="upload-icon mb-2" size={24} />
                             <p className="mb-1">
-                                <span className="text-primary">Click to upload</span> or drag and drop
+                                <span className="text-primary">Click to upload</span>
                             </p>
                             <small className="text-muted">
                                 {accept.includes('.pdf') ? 'PDF, DOC, DOCX, PNG, JPG (Max 1MB)' : 'PNG, JPG (Max 1MB)'}
@@ -683,192 +683,219 @@ const EmployeeDocumentUpload = () => {
     };
 
     const ExperienceFileUpload = ({ index }) => {
-        const fileInputRef = useRef(null);
-        const file = getValues(`experience.${index}.file`);
+    const fileInputRef = useRef(null);
+    const file = getValues(`experience.${index}.file`);
 
-        const handleClick = () => {
+    const handleClick = () => {
+        if (fileInputRef.current) {
             fileInputRef.current.click();
-        };
-
-        return (
-            <div className="row g-3 align-items-center">
-                <div className="col-md-4">
-                    <div className="mb-2">
-                        <label className="form-label">Experience Letter</label>
-                    </div>
-                    <Controller
-                        name={`experience.${index}.file`}
-                        control={control}
-                        rules={{
-                            validate: (file) => {
-                                const company = getValues(`experience.${index}.company`)?.trim();
-                                if (file && !company) return true;
-                                if (company && !file) return 'Experience certificate is required when company name is provided';
-                                return validateFile(file, false, 'Experience Certificate');
-                            }
-                        }}
-                        render={({ field }) => (
-                            <div
-                                className={`drag-drop-area small ${errors.experience?.[index]?.file && touchedFields.experience?.[index] ? 'is-invalid' : ''}`}
-                                onClick={handleClick}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                {!file ? (
-                                    <>
-                                        <FiUpload className="upload-icon mb-2" size={18} />
-                                        <p className="mb-1">
-                                            <span className="text-primary">Click to upload</span> or drag and drop
-                                        </p>
-                                        <small className="text-muted">
-                                            PDF, DOC, DOCX (Max 1MB)
-                                        </small>
-                                        <input
-                                            type="file"
-                                            className="d-none"
-                                            ref={fileInputRef}
-                                            accept=".pdf,.doc,.docx"
-                                            onChange={(e) => {
-                                                field.onChange(e.target.files[0]);
-                                                handleExperienceChange(index, 'file', e.target.files[0]);
-                                                setTouchedFields(prev => {
-                                                    const newExperience = [...prev.experience];
-                                                    newExperience[index] = true;
-                                                    return { ...prev, experience: newExperience };
-                                                });
-                                            }}
-                                            aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
-                                        />
-                                    </>
-                                ) : (
-                                    <div className="text-center py-2">
-                                        <FiUpload className="upload-icon mb-1" size={18} />
-                                        <p className="mb-0 text-primary">Replace file</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    />
-                    {errors.experience?.[index]?.file && touchedFields.experience?.[index] && (
-                        <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
-                    )}
-                </div>
-                <div className="col-md-4">
-                    {file && (
-                        <div className="d-flex justify-content-center">
-                            <FilePreview
-                                file={file}
-                                fieldName={`experience.${index}.file`}
-                                onRemove={() => handleExperienceChange(index, 'file', null)}
-                                thumbnail={true}
-                            />
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
+        }
     };
 
-    const EducationFileUpload = ({ qualification }) => {
-        const fileInputRef = useRef(null);
-        const file = getValues(`education.${qualification.id}.file`);
-
-        const handleClick = () => {
-            fileInputRef.current.click();
-        };
-
-        return (
-            <div className="row g-3 align-items-center">
-                <div className="col-md-4">
-                    <label className="form-label d-block fw-medium">
-                        {qualification.name} {qualification.required && <span className="text-danger">*</span>}
-                    </label>
-                    {qualification.description && <p className="text-muted small mb-2">{qualification.description}</p>}
-                    {!file ? (
+    return (
+        <div className="row g-3 align-items-center">
+            <div className="col-md-4">
+                <div className="mb-2">
+                    <label className="form-label">Experience Letter</label>
+                </div>
+                <Controller
+                    name={`experience.${index}.file`}
+                    control={control}
+                    rules={{
+                        validate: (file) => {
+                            const company = getValues(`experience.${index}.company`)?.trim();
+                            if (file && !company) return true;
+                            if (company && !file) return 'Experience certificate is required when company name is provided';
+                            return validateFile(file, false, 'Experience Certificate');
+                        }
+                    }}
+                    render={({ field }) => (
                         <div
-                            className={`drag-drop-area small ${errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] ? 'is-invalid' : ''}`}
+                            className={`drag-drop-area small ${errors.experience?.[index]?.file && touchedFields.experience?.[index] ? 'is-invalid' : ''}`}
                             onClick={handleClick}
                             style={{ cursor: 'pointer' }}
-                            aria-describedby={`education-${qualification.id}-help`}
                         >
-                            <FiUpload className="upload-icon mb-2" size={18} />
-                            <p className="mb-1">
-                                <span className="text-primary">Click to upload</span> or drag and drop
-                            </p>
-                            <small className="text-muted">
-                                PDF, DOC, DOCX, PNG, JPG (Max 1MB)
-                            </small>
-                            <input
-                                type="file"
-                                className="d-none"
-                                ref={fileInputRef}
-                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                onChange={(e) => {
-                                    setValue(`education.${qualification.id}.file`, e.target.files[0]);
-                                    setTouchedFields(prev => ({
-                                        ...prev,
-                                        education: {
-                                            ...prev.education,
-                                            [qualification.id]: true
-                                        }
-                                    }));
-                                    trigger(`education.${qualification.id}.file`);
-                                }}
-                                aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
-                            />
-                        </div>
-                    ) : (
-                        <div className="text-center">
-                            <input
-                                type="file"
-                                className="d-none"
-                                ref={fileInputRef}
-                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                                onChange={(e) => {
-                                    setValue(`education.${qualification.id}.file`, e.target.files[0]);
-                                    trigger(`education.${qualification.id}.file`);
-                                }}
-                            />
-                            <label
-                                htmlFor={fileInputRef}
-                                className="btn btn-sm btn-outline-primary me-2"
-                            >
-                                <FiUpload className="me-1" /> Change File
-                            </label>
-                            <button
-                                onClick={() => {
-                                    setValue(`education.${qualification.id}.file`, null);
-                                    trigger(`education.${qualification.id}.file`);
-                                }}
-                                className="btn btn-sm btn-outline-danger"
-                            >
-                                <FiX className="me-1" /> Remove
-                            </button>
-                        </div>
-                    )}
-                    {errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] && (
-                        <div className="invalid-feedback d-block">
-                            {errors.education[qualification.id].file.message}
+                            {!file ? (
+                                <>
+                                    <FiUpload className="upload-icon mb-2" size={18} />
+                                    <p className="mb-1">
+                                        <span className="text-primary">Click to upload</span>
+                                    </p>
+                                    <small className="text-muted">
+                                        PDF, DOC, DOCX (Max 1MB)
+                                    </small>
+                                    <input
+                                        type="file"
+                                        className="d-none"
+                                        ref={fileInputRef}
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={(e) => {
+                                            field.onChange(e.target.files[0]);
+                                            handleExperienceChange(index, 'file', e.target.files[0]);
+                                            setTouchedFields(prev => {
+                                                const newExperience = [...prev.experience];
+                                                newExperience[index] = true;
+                                                return { ...prev, experience: newExperience };
+                                            });
+                                            // Reset input value to allow selecting same file again
+                                            e.target.value = null;
+                                        }}
+                                        aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
+                                    />
+                                </>
+                            ) : (
+                                <div className="text-center py-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleClick}
+                                        className="btn btn-sm btn-link text-primary p-0"
+                                    >
+                                        <FiUpload className="me-1" size={18} />
+                                        Replace file
+                                    </button>
+                                    <input
+                                        type="file"
+                                        className="d-none"
+                                        ref={fileInputRef}
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={(e) => {
+                                            field.onChange(e.target.files[0]);
+                                            handleExperienceChange(index, 'file', e.target.files[0]);
+                                            // Reset input value to allow selecting same file again
+                                            e.target.value = null;
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
-                <div className="col-md-4">
-                    {file && (
-                        <div className="d-flex justify-content-center">
-                            <FilePreview
-                                file={file}
-                                fieldName={`education.${qualification.id}.file`}
-                                onRemove={() => {
-                                    setValue(`education.${qualification.id}.file`, null);
-                                    trigger(`education.${qualification.id}.file`);
-                                }}
-                                thumbnail={true}
-                            />
-                        </div>
-                    )}
-                </div>
+                />
+                {errors.experience?.[index]?.file && touchedFields.experience?.[index] && (
+                    <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
+                )}
             </div>
-        );
+            <div className="col-md-4">
+                {file && (
+                    <div className="d-flex justify-content-center">
+                        <FilePreview
+                            file={file}
+                            fieldName={`experience.${index}.file`}
+                            onRemove={() => handleExperienceChange(index, 'file', null)}
+                            thumbnail={true}
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+    const EducationFileUpload = ({ qualification }) => {
+    const fileInputRef = useRef(null);
+    const file = getValues(`education.${qualification.id}.file`);
+
+    const handleClick = () => {
+        fileInputRef.current.click();
     };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setValue(`education.${qualification.id}.file`, file);
+            setTouchedFields(prev => ({
+                ...prev,
+                education: {
+                    ...prev.education,
+                    [qualification.id]: true
+                }
+            }));
+            trigger(`education.${qualification.id}.file`);
+        }
+        // Reset input value to allow selecting same file again
+        e.target.value = null;
+    };
+
+    return (
+        <div className="row g-3 align-items-center">
+            <div className="col-md-4">
+                <label className="form-label d-block fw-medium">
+                    {qualification.name} {qualification.required && <span className="text-danger">*</span>}
+                </label>
+                {qualification.description && <p className="text-muted small mb-2">{qualification.description}</p>}
+                {!file ? (
+                    <div
+                        className={`drag-drop-area small ${errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] ? 'is-invalid' : ''}`}
+                        onClick={handleClick}
+                        style={{ cursor: 'pointer' }}
+                        aria-describedby={`education-${qualification.id}-help`}
+                    >
+                        <FiUpload className="upload-icon mb-2" size={18} />
+                        <p className="mb-1">
+                            <span className="text-primary">Click to upload</span>
+                        </p>
+                        <small className="text-muted">
+                            PDF, DOC, DOCX, PNG, JPG (Max 1MB)
+                        </small>
+                        <input
+                            type="file"
+                            className="d-none"
+                            ref={fileInputRef}
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                            onChange={handleFileChange}
+                            aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
+                        />
+                    </div>
+                ) : (
+                    <div className="text-center">
+                        <input
+                            type="file"
+                            className="d-none"
+                            ref={fileInputRef}
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            type="button"
+                            onClick={handleClick}
+                            className="btn btn-sm btn-outline-primary me-2"
+                        >
+                            <FiUpload className="me-1" /> Change File
+                        </button>
+                        <button
+                            onClick={() => {
+                                setValue(`education.${qualification.id}.file`, null);
+                                trigger(`education.${qualification.id}.file`);
+                            }}
+                            className="btn btn-sm btn-outline-danger"
+                        >
+                            <FiX className="me-1" /> Remove
+                        </button>
+                    </div>
+                )}
+                {errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] && (
+                    <div className="invalid-feedback d-block">
+                        {errors.education[qualification.id].file.message}
+                    </div>
+                )}
+            </div>
+            <div className="col-md-4">
+                {file && (
+                    <div className="d-flex justify-content-center">
+                        <FilePreview
+                            file={file}
+                            fieldName={`education.${qualification.id}.file`}
+                            onRemove={() => {
+                                setValue(`education.${qualification.id}.file`, null);
+                                trigger(`education.${qualification.id}.file`);
+                            }}
+                            thumbnail={true}
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
     const toggleQualification = (id) => {
         if (expandedQualification === id) {

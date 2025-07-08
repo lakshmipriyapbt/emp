@@ -6,21 +6,24 @@ import { useAuth } from "../Context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 const Header = ({ toggleSidebar }) => {
-  const [profilePhoto, setProfilePhoto] = useState(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const {company,employee,authUser} = useAuth();
+  const { company, employee, authUser } = useAuth();
   const { userId } = authUser || {};
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const profileDropdownRef = useRef(null);
   const navigate = useNavigate();
   const { userRole } = useSelector((state) => state.auth);
+  const { imageUrl } = useSelector((state) => state.profile);
+  const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-  const companyName = localStorage.getItem("companyName")
+  const companyName = localStorage.getItem("companyName");
+
   useEffect(() => {
     if (token) {
       const decodedToken = jwtDecode(token);
@@ -61,11 +64,9 @@ const Header = ({ toggleSidebar }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (employee?.photoUrl) {
-      setProfilePhoto(employee.photoUrl);
-    }
-  }, [employee]);
+   useEffect(() => {
+    // This will force a re-render when imageUrl changes
+  }, [imageUrl]);
 
   const handleLogOut = () => {
     const role = userRole?.[0];
@@ -73,7 +74,7 @@ const Header = ({ toggleSidebar }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     if (role === "ems_admin") {
-      navigate("/login", { replace: true }); // Prevents going back
+      navigate("/login", { replace: true });
     } else if (role === "company_admin" || role === "Accountant" || role === "HR" || role === "Admin" || companyName) {
       navigate(`/${companyName}/login`, { replace: true });
     } else if (role === "candidate") {
@@ -82,6 +83,7 @@ const Header = ({ toggleSidebar }) => {
       navigate("/", { replace: true });
     }
   };
+
   const closeModal = () => {
     setShowErrorModal(false);
     navigate("/");
@@ -93,23 +95,27 @@ const Header = ({ toggleSidebar }) => {
 
   // Function to render profile icon or photo
   const renderProfileImage = () => {
-    if (profilePhoto) {
-      return (
-        <img
-          src={profilePhoto}
-          alt="Profile"
-          className="rounded-circle"
-          style={{
-            width: "30px",
-            height: "30px",
-            objectFit: "cover",
-            border: "1px solid #dee2e6"
-          }}
-        />
-      );
-    }
-    return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
-  };
+  if (imageUrl) {
+    return (
+      <img
+        src={`${imageUrl.split('?')[0]}?t=${Date.now()}`}
+        alt="Profile"
+        className="rounded-circle"
+        style={{
+          width: "30px",
+          height: "30px",
+          objectFit: "cover",
+          border: "1px solid #dee2e6"
+        }}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = ''; // Fallback to icon if image fails to load
+        }}
+      />
+    );
+  }
+  return <i className="bi bi-person-circle" style={{ fontSize: "22px" }}></i>;
+};
 
   return (
     <nav className="navbar navbar-expand navbar-light navbar-bg">
@@ -134,6 +140,7 @@ const Header = ({ toggleSidebar }) => {
                     className="dropdown-menu dropdown-menu-end py-0 show"
                     aria-labelledby="profileDropdown"
                     style={{ left: "auto", right: "3%" }}
+                    ref={profileDropdownRef}
                   >
                     <a className="dropdown-item" href onClick={handleLogOut}>
                       <i className="align-middle bi bi-arrow-left-circle" style={{ paddingRight: "10px" }}></i>
@@ -159,6 +166,7 @@ const Header = ({ toggleSidebar }) => {
                   className="dropdown-menu dropdown-menu-end py-0 show"
                   aria-labelledby="profileDropdown"
                   style={{ left: "auto", right: "10%" }}
+                  ref={profileDropdownRef}
                 >
                   <a className="dropdown-item" href="/profile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
@@ -177,19 +185,24 @@ const Header = ({ toggleSidebar }) => {
           )}
           {roles.includes("employee") && (
             <li className="nav-item dropdown position-relative">
-              <a
-                className="nav-link dropdown-toggle d-none d-sm-inline-block text-center"
-                href
-                onClick={toggleProfile}
-              >
-                <span className="text-dark p-2 mb-3">{employee?.firstName} {employee?.lastName}</span>
-                {renderProfileImage()}
-              </a>
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-dark" style={{ whiteSpace: 'nowrap' }}>
+                  {employee?.firstName} {employee?.lastName}
+                </span>
+                <div
+                  className="nav-link p-0"
+                  onClick={toggleProfile}
+                  style={{ cursor: "pointer", lineHeight: 0 }}
+                >
+                  {renderProfileImage()}
+                </div>
+              </div>
               {isProfileOpen && (
                 <div
                   className="dropdown-menu dropdown-menu-end py-0 show"
                   aria-labelledby="profileDropdown"
-                  style={{ left: "auto", right: "20%" }}
+                  style={{ left: "auto", right: 0 }}
+                  ref={profileDropdownRef}
                 >
                   <a className="dropdown-item" href="/employeeProfile">
                     <i className="align-middle me-1 bi bi-person"></i> Profile
@@ -221,6 +234,7 @@ const Header = ({ toggleSidebar }) => {
                   className="dropdown-menu dropdown-menu-end py-0 show"
                   aria-labelledby="profileDropdown"
                   style={{ left: "auto", right: "20%" }}
+                  ref={profileDropdownRef}
                 >
                   <a className="dropdown-item" href={`editUser/${userId}`}>
                     <i className="align-middle me-1 bi bi-person"></i> Profile
@@ -265,9 +279,9 @@ const Header = ({ toggleSidebar }) => {
           <ModalTitle className="text-center">Error</ModalTitle>
           <button
             type="button"
-            className="btn-close text-dark" // Bootstrap's close button class
+            className="btn-close text-dark"
             aria-label="Close"
-            onClick={closeModal} // Function to close the modal
+            onClick={closeModal}
           >X</button>
         </ModalHeader>
         <ModalBody className="text-center fs-bold">

@@ -25,7 +25,7 @@ public class InvoiceRequest {
     private List<ProductColumnsRequest> productColumns;
 
     @Valid
-    private List<ShippedPayload> shippedPayload;
+    private ShippedPayload shippedPayload;
 
     private String vendorCode;
     private String purchaseOrder;
@@ -40,5 +40,8 @@ public class InvoiceRequest {
     private String shippingTerms;
     private String paymentTerms;
     private String deliveryDate;
-}
 
+    @Pattern(regexp = "^[12]{1}$", message = "{invoice.template.message}")
+    private String invoiceTemplateNo;
+
+}

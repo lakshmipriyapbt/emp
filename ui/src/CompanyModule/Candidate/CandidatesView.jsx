@@ -99,25 +99,48 @@ const CandidatesView = () => {
     };
 
     const handleViewDocuments = async (candidate) => {
-        try {
-            setSelectedCandidate(candidate);
-            setDocumentsLoading(true);
-            const response = await getDocumentByIdAPI(candidate.id);
-            
-            if (response && response.data && response.data.documentEntities) {
-                setDocuments(transformApiResponse(response.data));
-            } else {
-                setDocuments([]);
-                toast.info('No documents found for this candidate');
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error);
-            toast.error('Failed to load documents. Please try again later.');
-        } finally {
-            setDocumentsLoading(false);
-            setShowDocumentsModal(true);
+    try {
+        setSelectedCandidate(candidate);
+        setDocumentsLoading(true);
+
+        const response = await getDocumentByIdAPI(candidate.id);
+
+        if (response?.data?.documentEntities) {
+            setDocuments(transformApiResponse(response.data));
+        } else {
+            setDocuments([]);
+            toast.info('No documents found for this candidate');
         }
-    };
+    } catch (error) {
+        console.error('Error fetching documents:', error);
+
+        if (error.response) {
+            const status = error.response.status;
+
+            switch (status) {
+                case 404:
+                    toast.warning('Documents not found for this candidate.');
+                    break;
+                case 401:
+                    toast.error('Unauthorized access. Please log in again.');
+                    break;
+                case 500:
+                    toast.error('Server error. Please try again later.');
+                    break;
+                default:
+                    toast.error(`Unexpected error (${status}). Please try again.`);
+            }
+        } else {
+            toast.error('Network error or server not reachable.');
+        }
+
+        setDocuments([]);
+    } finally {
+        setDocumentsLoading(false);
+        setShowDocumentsModal(true);
+    }
+};
+
 
     const transformApiResponse = (apiData) => {
         if (!apiData || !apiData.documentEntities) return [];
@@ -227,6 +250,18 @@ const CandidatesView = () => {
                         title="View Documents"
                     >
                         <i className="bi bi-file-earmark-text" style={{ fontSize: "1.2rem", color: "#0d6efd" }}></i>
+                    </button>
+                    <button
+                        className="btn btn-sm me-2"
+                        style={{ backgroundColor: "transparent", border: "none" }}
+                        onClick={() => navigate(`/candidate-to-employee/${row.id}`, {
+                            state: {
+                                candidate: row
+                            }
+                        })}
+                        title="Register as Employee"
+                    >
+                        <i className="bi bi-person-plus" style={{ fontSize: "1.2rem", color: "#198754" }}></i>
                     </button>
                     <button
                         className="btn btn-sm"

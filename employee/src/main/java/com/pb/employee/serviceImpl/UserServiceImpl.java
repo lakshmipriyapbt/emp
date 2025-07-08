@@ -103,15 +103,16 @@ public class UserServiceImpl implements UserService {
                 log.error("User already exists in the company {}", companyName);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_ID_ALREADY_EXISTS)), HttpStatus.CONFLICT);
             }
-
-            DepartmentEntity departmentEntity = openSearchOperations.getDepartmentById(userRequest.getDepartment(), null, index);
-            if (departmentEntity == null) {
-                log.error("Department not found: {}", userRequest.getDepartment());
-                return new ResponseEntity<>(
-                        ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
-                        HttpStatus.CONFLICT);
+            DepartmentEntity departmentEntity = null;
+            if (userRequest.getDepartment() != null && !userRequest.getDepartment().isEmpty()) {
+                 departmentEntity = openSearchOperations.getDepartmentById(userRequest.getDepartment(), null, index);
+                if (departmentEntity == null) {
+                    log.error("Department not found: {}", userRequest.getDepartment());
+                    return new ResponseEntity<>(
+                            ResponseBuilder.builder().build().createFailureResponse(new Exception(String.valueOf(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_GET_DEPARTMENT)))),
+                            HttpStatus.CONFLICT);
+                }
             }
-
 
             // Convert UserRequest to EmployeeEntity and then override other fields
             UserEntity userEntity = objectMapper.convertValue(userRequest, UserEntity.class);
@@ -119,7 +120,10 @@ public class UserServiceImpl implements UserService {
             userEntity.setPassword(password);
             userEntity.setType(Constants.USER);
             userEntity.setCompanyId(companyEntity.getId());
-            userEntity.setDepartment(departmentEntity.getId());
+            // Handle optional department
+            if (departmentEntity != null && departmentEntity.getId() != null) {
+                userEntity.setDepartment(departmentEntity.getId());
+            }
 
             dao.save(userEntity, companyName);
 
@@ -156,7 +160,7 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            Collection<UserEntity> users = dao.getUsers(companyName, Id, companyEntity.getId());
+            Collection<UserEntity> users = dao.getUsers(companyName, Id, companyEntity.getId(), null);
             List<UserResponse> userResponses = new ArrayList<>();
             for (UserEntity user : users) {
                 UserResponse userResponse = objectMapper.convertValue(user, UserResponse.class);
@@ -167,7 +171,7 @@ public class UserServiceImpl implements UserService {
                     }
                 }
                 if (user.getEmployeeId() != null && !user.getEmployeeId().isEmpty()) {
-                    EmployeeResponse employee = employeeService.getEmployeeById(companyName, user.getEmployeeId());
+                    EmployeeResponse employee = employeeService.getEmployeeById(companyName, user.getEmployeeId(), null);
                     if (employee != null) {
                         userResponse.setEmployee(employee);
                     }
@@ -202,7 +206,7 @@ public class UserServiceImpl implements UserService {
                 throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.COMPANY_NOT_EXIST), HttpStatus.NOT_FOUND);
             }
 
-            Collection<UserEntity> existingUsers = dao.getUsers(companyName, Id, companyEntity.getId());
+            Collection<UserEntity> existingUsers = dao.getUsers(companyName, Id, companyEntity.getId(), null);
             if (existingUsers == null) {
                 log.error("User not found in this company {}", companyName);
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.USER_NOT_FOUND),companyName), HttpStatus.NOT_FOUND);

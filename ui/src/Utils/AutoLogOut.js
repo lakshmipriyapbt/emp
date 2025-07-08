@@ -9,26 +9,30 @@ const AutoLogout = ({
 }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [showFinalPopup, setShowFinalPopup] = useState(false);
-  const { userRole } = useSelector((state) => state.auth);
+  const { userRole, company } = useSelector((state) => state.auth);
   const warningTimerRef = useRef(null);
   const logoutTimerRef = useRef(null);
   const navigate = useNavigate();
 
   const logout = useCallback(() => {
-    const companyName = localStorage.getItem("companyName");
+    // Clear any existing timers
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
 
-    if (userRole === 'ems_admin') {
+    // Determine the correct logout path based on user role and company
+    if (userRole?.includes('ems_admin')) {
       navigate("/login", { replace: true });
     } else if (
-      ['company_admin', 'Accountant', 'HR', 'Admin'].includes(userRole) &&
-      companyName
+      userRole?.some(role => ['company_admin', 'Accountant', 'HR', 'Admin'].includes(role)) &&
+      company
     ) {
-      navigate(`/${companyName}/login`, { replace: true });
+      navigate(`/${company.toLowerCase()}/login`, { replace: true });
     } else {
       navigate("/", { replace: true });
     }
+    
     toast.error("You have been logged out due to inactivity.");
-  }, [navigate, userRole]);
+  }, [navigate, userRole, company]);
 
   const resetTimers = useCallback(() => {
     // Clear existing timers
@@ -69,14 +73,14 @@ const AutoLogout = ({
     <>
       {showWarning && !showFinalPopup && (
         <div style={styles.warningBanner}>
-          <p>You've been inactive for 14 minutes. You'll be logged out in 1 minute.</p>
+          <p>session will expire soon...</p>
         </div>
       )}
       
       {showFinalPopup && (
         <div style={styles.overlay}>
           <div style={styles.popup}>
-            <p>Logging out due to inactivity...</p>
+            <p>Logging out due to inactivity, please login again to continue.</p>
           </div>
         </div>
       )}

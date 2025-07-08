@@ -193,6 +193,11 @@ const CompanyLogin = () => {
       sendOtp(data);
     }
   };
+  const preventSpaces = (e) => {
+  if (e.key === ' ') {
+    e.preventDefault();
+  }
+};
 
   return (
     <div>
@@ -219,6 +224,7 @@ const CompanyLogin = () => {
                       placeholder="Email Id"
                       autoComplete="off"
                       readOnly={otpSent}
+                      onKeyDown={preventSpaces}
                       {...register("username", {
                         required: "Email Id is Required.",
                         pattern: {
@@ -242,6 +248,7 @@ const CompanyLogin = () => {
                           autoComplete="off"
                           type={passwordShown ? "text" : "password"}
                           maxLength={16}
+                          onKeyDown={preventSpaces}
                           {...register("password", {
                             required: "Password is Required",
                             minLength: {
@@ -271,6 +278,7 @@ const CompanyLogin = () => {
                         placeholder="Enter Your OTP"
                         autoComplete="off"
                         disabled={otpExpired}
+                        onKeyDown={preventSpaces}
                         {...register("otp", {
                           required: "OTP is Required.",
                           pattern: {

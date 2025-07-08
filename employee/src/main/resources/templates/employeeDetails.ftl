@@ -75,25 +75,68 @@
 
     <h4>Company Employees</h4>
 
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>EmployeeId</th>
-            <th>Aadhaar No</th>
-            <th>Bank Account No</th>
-            <th>UAN No</th>
-        </tr>
-
-        <#list data as person>
-            <tr>
-                <td>${person.firstName} ${person.lastName}</td>
-                <td>${person.employeeId}</td>
-                <td>${person.aadhaarId}</td>
-                <td>${person.accountNo}</td>
-                <td>${person.uanNo}</td>
-            </tr>
-        </#list>
-    </table>
+   <table>
+           <thead>
+               <tr>
+                   <#list selectedFields as field>
+                       <th>${field}</th>
+                   </#list>
+               </tr>
+           </thead>
+           <tbody>
+               <#list data as person>
+                   <tr>
+                       <#list selectedFields as field>
+                           <td>
+                               <#if field == "Name">
+                                   ${person.firstName} ${person.lastName}
+                               <#elseif field == "EmployeeId">
+                                   ${person.employeeId!}
+                               <#elseif field == "Pan No">
+                                   ${person.panNo!}
+                               <#elseif field == "Aadhaar No">
+                                   ${person.aadhaarId!}
+                               <#elseif field == "Bank Account No">
+                                   ${person.accountNo!}
+                               <#elseif field == "Contact No">
+                                   ${person.mobileNo!}
+                               <#elseif field == "Date Of Birth">
+                                   ${person.dateOfBirth!}
+                               <#elseif field == "UAN No">
+                                   ${person.uanNo!}
+                               <#elseif field == "Department and Designation">
+                                   ${person.departmentName!} ${person.designationName!}
+                               <#elseif field == "Alternate No">
+                                   ${person.alternateNo!}
+                               <#elseif field == "Email Id">
+                                   ${person.emailId!}
+                               <#elseif field == "Date Of Hiring">
+                                   ${person.dateOfHiring!}
+                               <#elseif field == "Marital Status">
+                                   ${person.maritalStatus!}
+                               <#elseif field == "PF No">
+                                   ${person.pfNo!}
+                               <#elseif field == "IFSC Code">
+                                   ${person.ifscCode!}
+                               <#elseif field == "Bank Name">
+                                   ${person.bankName!}
+                               <#elseif field == "Bank Branch">
+                                   ${person.bankBranch!}
+                               <#elseif field == "Current Gross">
+                                   ${person.currentGross!}
+                               <#elseif field == "Location">
+                                   ${person.location!}
+                               <#elseif field == "Temporary Address">
+                                   ${person.tempAddress!}
+                               <#elseif field == "Permanent Address">
+                                   ${person.permanentAddress!}
+                               </#if>
+                           </td>
+                       </#list>
+                   </tr>
+               </#list>
+           </tbody>
+   </table>
 
 </body>
 </html>
