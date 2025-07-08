@@ -175,7 +175,6 @@ public class Constants {
     public static final String PDF_TYPE = "pdf";
     public static final String EXCEL_TYPE = "excel";
     public static final String INTERNSHIP_OFFER_LETTER_TEMPLATE = "internOfferTemplate.ftl";
-    public static final String EMPLOYEE_BANK_DETAILS = "employeeBankDetails.ftl";
     public static final String EMPLOYEE_SALARIES_DETAILS = "employeeSalaries.ftl";
     public static final String EMPLOYEE_ATTENDANCE_DETAILS = "employeeAttendance.ftl";
     public static final String EMPLOYEE_PERSONNEL = "employee_personnel";

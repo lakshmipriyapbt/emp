@@ -111,16 +111,7 @@ public class EmployeeController {
         return employeeService.downloadEmployeeDetails(companyName, format, detailsRequest,request);
     }
 
-    @RequestMapping(value = "{companyName}/employees/bank", method = RequestMethod.GET)
-    @io.swagger.v3.oas.annotations.Operation(security = { @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY) },
-            summary = "${api.downloadEmployeesBank.tag}", description = "${api.downloadEmployeesBank.description}")
-    @ResponseStatus(HttpStatus.OK)
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description= "OK")
-    public ResponseEntity<?> downloadEmployeesBankDetails(@Parameter(hidden = true, required = true, description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
-                                                          @RequestHeader(Constants.AUTH_KEY) String authToken,
-                                                          @PathVariable String companyName, @RequestParam String format, HttpServletRequest request) throws Exception {
-        return employeeService.downloadEmployeeBankDetails(companyName, format, request);
-    }
+
 
     @RequestMapping(value = "{companyName}/employee/error", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
