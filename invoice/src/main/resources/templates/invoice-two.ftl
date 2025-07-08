@@ -303,6 +303,7 @@ page-break-inside: avoid;
         <td style="vertical-align:top; border:none; width:50%;">
           <div class="bank-details">
             <div class="section-title">BANK ACCOUNT DETAILS</div>
+            <p>Account Holder Name: ${company.companyName!''}</p>
             <p>Bank Name: ${bank.bankName!''}</p>
             <p>Account number: ${bank.accountNumber!''}</p>
             <p>Account Type: ${bank.accountType!''}</p>
