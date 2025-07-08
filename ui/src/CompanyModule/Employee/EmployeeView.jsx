@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
+import { downloadEmployeesFileAPI, getDocumentByIdAPI } from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 import Loader from "../../Utils/Loader";
@@ -25,7 +25,48 @@ const EmployeeView = () => {
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
-  
+  const allColumns = [
+    { name: 'Name', selector: 'Name' },
+    { name: 'EmployeeId', selector: 'EmployeeId' },
+    { name: 'Email Id', selector: 'Email Id' },
+    { name: 'Contact No', selector: 'Contact No' },
+    { name: 'Alternate No', selector: 'Alternate No' },
+    { name: 'Department And Designation', selector: 'Department And Designation' },
+    { name: 'Date Of Hiring', selector: 'Date Of Hiring' },
+    { name: 'Date Of Birth', selector: 'Date Of Birth' },
+    { name: 'Marital Status', selector: 'Marital Status' },
+    { name: 'Pan No', selector: 'Pan No' },
+    { name: 'Aadhaar No', selector: 'Aadhaar No' },
+    { name: 'UAN No', selector: 'UAN No' },
+    { name: 'PF No', selector: 'PF No' },
+    { name: 'Bank Account No', selector: 'Bank Account No' },
+    { name: 'IFSC Code', selector: 'IFSC Code' },
+    { name: 'Bank Name', selector: 'Bank Name' },
+    { name: 'Bank Branch', selector: 'Bank Branch' },
+    { name: 'Current Gross', selector: 'Current Gross' },
+    { name: 'Location', selector: 'Location' },
+    { name: 'Temporary Address', selector: 'Temporary Address' },
+    { name: 'Permanent Address', selector: 'Permanent Address' },
+  ];
+  const bankColumns = [
+    "Name",
+    "EmployeeId",
+    "Bank Account No",
+    "IFSC Code",
+    "Bank Name",
+    "Bank Branch",
+    "Pan No",
+    "Aadhaar No",
+    "UAN No",
+    "PF No",
+    "Contact No"
+  ];
+  const isPDF = (selectedEmployeeDownloadFormat === "pdf" || selectedBankDownloadFormat === "pdf");
+  const maxFields = 8;
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState(allColumns.map(col => col.name));
+
+
   const { employee } = useAuth();
   const companyId = employee?.companyId;
   const navigate = useNavigate();
@@ -70,44 +111,44 @@ const EmployeeView = () => {
   };
 
   const handleViewDocuments = async (employee) => {
-  try {
-    setSelectedEmployee(employee);
-    setDocumentsLoading(true);
-    
-    // First try with employeeId parameter only
-    let response = await getDocumentByIdAPI('', employee.id); // empty candidateId
-    
-    // If no documents found with employeeId, try with candidateId as fallback
-    if ((!response?.data?.documentEntities || response.error?.message === "No Documents Found.")) {
-      response = await getDocumentByIdAPI(employee.id, ''); // empty employeeId
-    }
+    try {
+      setSelectedEmployee(employee);
+      setDocumentsLoading(true);
 
-    if (response?.data?.documentEntities) {
-      // Transform the documents data
-      const transformedDocs = response.data.documentEntities.map(doc => ({
-        name: doc.docName,
-        url: doc.filePath,
-        status: 'uploaded',
-        type: doc.filePath?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 
-              doc.filePath?.toLowerCase().match(/\.(doc|docx)$/) ? 'application/msword' :
+      // First try with employeeId parameter only
+      let response = await getDocumentByIdAPI('', employee.id); // empty candidateId
+
+      // If no documents found with employeeId, try with candidateId as fallback
+      if ((!response?.data?.documentEntities || response.error?.message === "No Documents Found.")) {
+        response = await getDocumentByIdAPI(employee.id, ''); // empty employeeId
+      }
+
+      if (response?.data?.documentEntities) {
+        // Transform the documents data
+        const transformedDocs = response.data.documentEntities.map(doc => ({
+          name: doc.docName,
+          url: doc.filePath,
+          status: 'uploaded',
+          type: doc.filePath?.toLowerCase().endsWith('.pdf') ? 'application/pdf' :
+            doc.filePath?.toLowerCase().match(/\.(doc|docx)$/) ? 'application/msword' :
               doc.filePath?.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/) ? 'image/*' :
-              'application/octet-stream',
-        size: 0
-      }));
-      
-      setDocuments(transformedDocs);
-    } else {
-      setDocuments([]);
-      toast.info(response?.error?.message || 'No documents found for this employee');
+                'application/octet-stream',
+          size: 0
+        }));
+
+        setDocuments(transformedDocs);
+      } else {
+        setDocuments([]);
+        toast.info(response?.error?.message || 'No documents found for this employee');
+      }
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      toast.error(error.response?.data?.error?.message || 'Failed to load documents. Please try again later.');
+    } finally {
+      setDocumentsLoading(false);
+      setShowDocumentsModal(true);
     }
-  } catch (error) {
-    console.error('Error fetching documents:', error);
-    toast.error(error.response?.data?.error?.message || 'Failed to load documents. Please try again later.');
-  } finally {
-    setDocumentsLoading(false);
-    setShowDocumentsModal(true);
-  }
-};
+  };
 
 
   const getFileIcon = (type, name) => {
@@ -121,39 +162,6 @@ const EmployeeView = () => {
     return <FileEarmarkPdf className="text-secondary" size={24} />;
   };
 
-  const handleEmployeeDownload = async (format) => {
-    if (!format) {
-      toast.warning("Please select a file format!");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      await downloadEmployeesFileAPI(format, toast);
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-      setSelectedEmployeeDownloadFormat("");
-    }
-  };
-
-  const handleBankDownload = async (format) => {
-    if (!format) {
-      toast.warning("Please select a file format!");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      await downloadEmployeeBankDataAPI(format, toast);
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-      setSelectedBankDownloadFormat("");
-    }
-  };
 
   const statusMappings = {
     Active: {
@@ -383,9 +391,13 @@ const EmployeeView = () => {
                           <select
                             className="form-select bg-primary border-0 text-white"
                             value={selectedEmployeeDownloadFormat}
-                            onChange={(e) => {
-                              setSelectedEmployeeDownloadFormat(e.target.value);
-                              handleEmployeeDownload(e.target.value);
+                            onChange={e => {
+                              const format = e.target.value;
+                              if (!format) return;
+                              setSelectedEmployeeDownloadFormat(format);
+                              setSelectedBankDownloadFormat(""); // clear other
+                              setSelectedColumns(allColumns.map(col => col.name)); // default: all selected
+                              setShowDownloadModal(true);
                             }}
                             disabled={isDownloading}
                           >
@@ -398,9 +410,13 @@ const EmployeeView = () => {
                           <select
                             className="form-select bg-primary border-0 text-white"
                             value={selectedBankDownloadFormat}
-                            onChange={(e) => {
-                              setSelectedBankDownloadFormat(e.target.value);
-                              handleBankDownload(e.target.value);
+                            onChange={e => {
+                              const format = e.target.value;
+                              if (!format) return;
+                              setSelectedBankDownloadFormat(format);
+                              setSelectedEmployeeDownloadFormat(""); // clear other
+                              setSelectedColumns(bankColumns); // default: only bank columns selected
+                              setShowDownloadModal(true);
                             }}
                             disabled={isDownloading}
                           >
@@ -547,6 +563,118 @@ const EmployeeView = () => {
                     }}
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showDownloadModal && (
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Select Columns to Download</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setShowDownloadModal(false);
+                      setSelectedEmployeeDownloadFormat("");
+                    }}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="form-group">
+                    <div className="d-flex justify-content-between mb-3">
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setSelectedColumns(allColumns.map(col => col.name))}
+                      >
+                        Select All
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => setSelectedColumns([])}
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                    {isPDF && (
+                      <div className="text-info mb-2">
+                        You can select a maximum of 8 fields for PDF download.
+                      </div>
+                    )}
+                    <div className="row">
+                      {((selectedEmployeeDownloadFormat && !selectedBankDownloadFormat)
+                        ? allColumns
+                        : allColumns.filter(col => bankColumns.includes(col.name))
+                      ).map((column, index) => {
+                        const checked = selectedColumns.includes(column.name);
+                        const disableCheckbox = isPDF && !checked && selectedColumns.length >= maxFields;
+                        return (
+                          <div className="col-md-4" key={index}>
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`column-${index}`}
+                                checked={checked}
+                                disabled={disableCheckbox}
+                                onChange={() => {
+                                  if (checked) {
+                                    setSelectedColumns(selectedColumns.filter(c => c !== column.name));
+                                  } else if (!disableCheckbox) {
+                                    setSelectedColumns([...selectedColumns, column.name]);
+                                  }
+                                }}
+                              />
+                              <label className="form-check-label" htmlFor={`column-${index}`}>
+                                {column.name}
+                              </label>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowDownloadModal(false);
+                      setSelectedEmployeeDownloadFormat("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={async () => {
+                      setShowDownloadModal(false);
+                      setIsDownloading(true);
+                      try {
+                        const selectedFields = allColumns
+                          .filter(col => selectedColumns.includes(col.name))
+                          .map(col => col.selector);
+                        // Use selectedEmployeeDownloadFormat or selectedBankDownloadFormat
+                        const format = selectedEmployeeDownloadFormat || selectedBankDownloadFormat;
+                        await downloadEmployeesFileAPI(format, selectedFields, toast);
+                      } catch {
+                        toast.error("Download failed. Please try again.");
+                      } finally {
+                        setIsDownloading(false);
+                        setSelectedEmployeeDownloadFormat("");
+                        setSelectedBankDownloadFormat("");
+                      }
+                    }}
+                    disabled={selectedColumns.length === 0}
+                  >
+                    Download
                   </button>
                 </div>
               </div>
