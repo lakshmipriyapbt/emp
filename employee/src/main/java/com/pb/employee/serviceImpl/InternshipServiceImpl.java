@@ -54,7 +54,7 @@ public class InternshipServiceImpl implements InternshipService {
     private ObjectMapper objectMapper;
 
     @Override
-    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) {
+    public ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request) throws EmployeeException {
 
         CompanyEntity entity;
         Entity companyEntity;
@@ -93,6 +93,11 @@ public class InternshipServiceImpl implements InternshipService {
             if (!internshipRequest.isDraft()) {
                 // Load and watermark company image
                 String imageUrl = entity.getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
@@ -146,6 +151,10 @@ public class InternshipServiceImpl implements InternshipService {
 
             // Return the PDF as the HTTP response
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (EmployeeException exception) {
+            log.error("Exception occurred while generating appraisal letter{}", exception.getMessage());
+            throw exception;
 
         } catch (Exception e) {
             log.error("Error occurred while generating internship certificate: {}", e.getMessage(), e);

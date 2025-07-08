@@ -52,7 +52,7 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
     private AppraisalDao appraisalDao;
 
     @Override
-    public ResponseEntity<byte[]> downloadAppraisalLetter(AppraisalLetterRequest appraisalLetterRequest, HttpServletRequest request) {
+    public ResponseEntity<byte[]> downloadAppraisalLetter(AppraisalLetterRequest appraisalLetterRequest, HttpServletRequest request) throws EmployeeException {
         CompanyEntity entity;
         Entity companyEntity;
         SalaryConfigurationEntity salaryConfiguration;
@@ -73,8 +73,8 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
             }
             companyEntity = CompanyUtils.unmaskCompanyProperties(entity, request);
             String index = ResourceIdUtils.generateCompanyIndex(entity.getShortName());
-            templateNo=openSearchOperations.getCompanyTemplates(entity.getShortName());
-            if (templateNo ==null){
+            templateNo = openSearchOperations.getCompanyTemplates(entity.getShortName());
+            if (templateNo == null) {
                 log.error("company templates are not exist ");
                 throw new EmployeeException(String.format(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.UNABLE_TO_GET_TEMPLATE), entity.getShortName()),
                         HttpStatus.NOT_FOUND);
@@ -106,6 +106,11 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
             if (!appraisalLetterRequest.isDraft()) {
                 // Load and watermark company image
                 String imageUrl = entity.getImageFile();
+                if (imageUrl == null || imageUrl.isEmpty()) {
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
@@ -127,7 +132,8 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
             String templateName = switch (Integer.parseInt(templateNo.getAppraisalTemplateNo())) {
                 case 1 -> Constants.APPRAISAL_LETTER_TEMPLATE1;
                 case 2 -> Constants.APPRAISAL_LETTER_TEMPLATE2;
-                default -> throw new IllegalArgumentException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_TEMPLATE_NUMBER));
+                default ->
+                        throw new IllegalArgumentException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.INVALID_TEMPLATE_NUMBER));
             };
             // Process the FreeMarker template
             Template template = freeMarkerConfig.getTemplate(templateName);
@@ -155,6 +161,9 @@ public class AppraisalLetterServiceImpl implements AppraisalLetterService {
 
             // Return the PDF as the HTTP response
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        }catch (EmployeeException exception) {
+                log.error("Exception occurred while generating InternShip offer latter{}", exception.getMessage());
+                throw exception;
 
         } catch (Exception e) {
             log.error("Error occurred while generating appraisal letter: {}", e.getMessage(), e);

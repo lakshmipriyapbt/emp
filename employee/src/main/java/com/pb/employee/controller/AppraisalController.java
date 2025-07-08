@@ -36,7 +36,7 @@ public class AppraisalController {
             description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                   @RequestBody @Valid AppraisalLetterRequest appraisalLetterRequest,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request) throws EmployeeException {
         return appraisalLetterService.downloadAppraisalLetter(appraisalLetterRequest, request);
     }
 
