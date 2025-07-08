@@ -1,4 +1,8 @@
 FROM openjdk:21-jdk-slim
+RUN apt-get update && apt-get install -y \
+    libfreetype6 \
+    fontconfig \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY ./employee/gradle /app/gradle
 COPY ./employee/gradlew /app/
@@ -9,6 +13,7 @@ RUN chmod +x gradlew
 COPY ./employee/src /app/src
 RUN ./gradlew build --no-daemon
 RUN cp /app/build/libs/employee-1.0.0.jar /app/
-COPY ./certificates/ssl.jks /app/certificates/
-EXPOSE 8092
+COPY ./certificates/keystore.jks /app/certificates/
+EXPOSE 8012
 CMD ["java", "-jar", "/app/employee-1.0.0.jar"]
+

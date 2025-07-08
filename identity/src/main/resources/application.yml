@@ -4,7 +4,7 @@ server:
     contextPath: /ems
   ssl:
     enabled: true
-    key-store: /opt/EMS-demo/certificates/keystore.jks
+    key-store: certificates/keystore.jks
     key-store-password: pathbreaker
     key-alias: ems.pathbreakertech.in
     key-store-type: JKS
@@ -39,7 +39,7 @@ fixed:
   otp: 123456
 
 es:
-  esHost: localhost
+  esHost: 192.168.1.164
   esPort: 9201
 springdoc:
   swagger-ui:

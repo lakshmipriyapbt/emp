@@ -5,7 +5,7 @@ server:
     contextPath: /invoice
   ssl:
     enabled: true
-    key-store: /opt/EMS-demo/certificates/keystore.jks
+    key-store: certificates/keystore.jks
     key-store-password: pathbreaker
     key-alias: ems.pathbreakertech.in
     key-store-type: JKS
@@ -16,7 +16,7 @@ spring:
   main:
     allow-circular-references: true
   datasource:
-    url: jdbc:mysql://localhost:3306/invoice
+    url: jdbc:mysql://192.168.1.164:3306/invoice
     username: root
     password: Path@2014
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -30,7 +30,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 es:
-  esHost: localhost
+  esHost: 192.168.1.164
   esPort: 9201
 # Swagger API Documentation
 springdoc:
