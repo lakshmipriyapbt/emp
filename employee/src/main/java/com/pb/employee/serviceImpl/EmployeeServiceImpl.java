@@ -1,5 +1,6 @@
 package com.pb.employee.serviceImpl;
 
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
 import com.pb.employee.common.ResponseBuilder;
@@ -10,13 +11,12 @@ import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.exception.ErrorMessageHandler;
 import com.pb.employee.opensearch.OpenSearchOperations;
 import com.pb.employee.persistance.model.*;
-import com.pb.employee.request.EmployeeDetailsDownloadRequest;
-import com.pb.employee.request.EmployeeIdRequest;
-import com.pb.employee.request.EmployeeRequest;
-import com.pb.employee.request.EmployeeUpdateRequest;
+import com.pb.employee.request.*;
+import com.pb.employee.response.EmployeeDownloadResponse;
 import com.pb.employee.response.EmployeeResponse;
 import com.pb.employee.service.AttendanceService;
 import com.pb.employee.service.EmployeeService;
+import com.pb.employee.service.SalaryService;
 import com.pb.employee.util.*;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -67,6 +67,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private CandidateDao candidateDao;
+
+    @Autowired
+    private SalaryServiceImpl salaryService;
 
     @Autowired
     private EmployeeDocumentDao employeeDocumentDao;
@@ -409,6 +412,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     public ResponseEntity<byte[]> downloadEmployeeDetails(String companyName, String format, EmployeeDetailsDownloadRequest detailsRequest, HttpServletRequest request) throws Exception {
         byte[] fileBytes = null;
         HttpHeaders headers = new HttpHeaders();
+        List<EmployeeSalaryEntity> resPayloads = null;
+        List<EmployeeDownloadResponse> employeeDownloadResponses = new ArrayList<>();
+
         try {
 
             CompanyEntity companyEntity = openSearchOperations.getCompanyByCompanyName(companyName, Constants.INDEX_EMS);
@@ -419,10 +425,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             SSLUtil.disableSSLVerification();
             CompanyUtils.unmaskCompanyProperties(companyEntity, request);
             List<EmployeeEntity> employeeEntities = validateEmployee(companyEntity);
+            EmployeeDownloadResponse response = new EmployeeDownloadResponse();
+            for (EmployeeEntity employee : employeeEntities){
+                resPayloads = openSearchOperations.getEmployeeSalaries(companyName, employee.getId(),Constants.ACTIVE);
+                if (resPayloads != null && !resPayloads.isEmpty()) {
+                    for (EmployeeSalaryEntity salary : resPayloads) {
+                        EmployeeUtils.unMaskEmployeeSalaryProperties(salary);
+                        EmployeeSalaryEntity latestSalary = resPayloads.get(0); // assuming first is latest
+                        response.setResPayload(latestSalary);
+                    }
+                }
+                response.setEmployeeEntity(employee);
+                employeeDownloadResponses.add(response);
+                response = new EmployeeDownloadResponse(); // Reset for next employee
+                response.setResPayload(new EmployeeSalaryEntity()); // Reset salary payload
+            }
 
             List<String> allowedFields=List.of("Name", "EmployeeId", "Email Id", "Contact No", "Alternate No", "Department And Designation",
                     "Date Of Hiring", "Date Of Birth", "Marital Status", "Pan No", "Aadhaar No", "UAN No", "PF No", "Bank Account No", "IFSC Code", "Bank Name",
-                    "Bank Branch", "Current Gross", "Location", "Temporary Address", "Permanent Address");
+                    "Bank Branch", "Current Gross", "Location", "Temporary Address", "Permanent Address", "Fixed Amount", "Variable Amount","Gross Amount",
+                    "Total Earnings", "Net Salary", "Loss Of Pay", "Total Deductions", "Pf Tax", "Income Tax","Total Tax");
 
             List<String> fields = ( detailsRequest.getSelectedFields() == null || detailsRequest.getSelectedFields().isEmpty())
                     ? allowedFields : detailsRequest.getSelectedFields();
@@ -442,13 +464,13 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
 
             if (Constants.EXCEL_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateExcelFromEmployees(employeeEntities,fields);
+                fileBytes = generateExcelFromEmployees(employeeDownloadResponses,fields);
                 headers.setContentType(MediaType.APPLICATION_OCTET_STREAM); // For Excel download
                 headers.setContentDisposition(ContentDisposition.builder("attachment")
                         .filename("EmployeeDetails.xlsx")
                         .build());
             } else if (Constants.PDF_TYPE.equalsIgnoreCase(format)) {
-                fileBytes = generateEmployeePdf(employeeEntities, companyEntity, fields, "employee");
+                fileBytes = generateEmployeePdf(employeeDownloadResponses, companyEntity, fields);
                 headers.setContentType(MediaType.APPLICATION_PDF);
                 headers.setContentDisposition(ContentDisposition.builder("attachment").filename("employeeDetails.pdf").build());
             }
@@ -463,7 +485,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
     }
-
 
     @Override
     public ResponseEntity<?> getEmployeeWithoutAttendance(String companyName, String month, String year) throws IOException, EmployeeException {
@@ -542,32 +563,40 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
+    private byte[] generateExcelFromEmployees(List<EmployeeDownloadResponse> employees, List<String> selectedFields) throws IOException {
 
-    private byte[] generateExcelFromEmployees(List<EmployeeEntity> employees,List<String> selectedFields) throws IOException {
-
-        Map<String, Function<EmployeeEntity, String>> employeeMap = new HashMap<>();
-        employeeMap.put("Name", e -> e.getFirstName() + " " + e.getLastName());
-        employeeMap.put("EmployeeId", EmployeeEntity::getEmployeeId);
-        employeeMap.put("Pan No", EmployeeEntity::getPanNo);
-        employeeMap.put("Aadhaar No", EmployeeEntity::getAadhaarId);
-        employeeMap.put("Bank Account No", EmployeeEntity::getAccountNo);
-        employeeMap.put("Contact No", EmployeeEntity::getMobileNo);
-        employeeMap.put("Date Of Birth", EmployeeEntity::getDateOfBirth);
-        employeeMap.put("UAN No", EmployeeEntity::getUanNo);
-        employeeMap.put("Department and Designation", e -> e.getDepartmentName() + ", " + e.getDesignationName());
-        employeeMap.put("Email Id", EmployeeEntity::getEmailId);
-        employeeMap.put("Alternate No", EmployeeEntity::getAlternateNo);
-        employeeMap.put("Date Of Hiring", EmployeeEntity::getDateOfHiring);
-        employeeMap.put("Marital Status", EmployeeEntity::getMaritalStatus);
-        employeeMap.put("PF No", EmployeeEntity::getPfNo);
-        employeeMap.put("IFSC Code", EmployeeEntity::getIfscCode);
-        employeeMap.put("Bank Name", EmployeeEntity::getBankName);
-        employeeMap.put("Bank Branch", EmployeeEntity::getBankBranch);
-        employeeMap.put("Current Gross", EmployeeEntity::getCurrentGross);
-        employeeMap.put("Location", EmployeeEntity::getLocation);
-        employeeMap.put("Temporary Address", EmployeeEntity::getTempAddress);
-        employeeMap.put("Permanent Address", EmployeeEntity::getPermanentAddress);
-
+        Map<String, Function<EmployeeDownloadResponse, String>> employeeMap = new HashMap<>();
+        employeeMap.put("Name", e -> e.getEmployeeEntity().getFirstName() + " " + e.getEmployeeEntity().getLastName());
+        employeeMap.put("EmployeeId", e -> e.getEmployeeEntity().getEmployeeId());
+        employeeMap.put("Pan No", e -> e.getEmployeeEntity().getPanNo());
+        employeeMap.put("Aadhaar No", e -> e.getEmployeeEntity().getAadhaarId());
+        employeeMap.put("Bank Account No", e -> e.getEmployeeEntity().getAccountNo());
+        employeeMap.put("Contact No", e -> e.getEmployeeEntity().getMobileNo());
+        employeeMap.put("Date Of Birth", e -> e.getEmployeeEntity().getDateOfBirth());
+        employeeMap.put("UAN No", e -> e.getEmployeeEntity().getUanNo());
+        employeeMap.put("Department and Designation", e -> e.getEmployeeEntity().getDepartmentName() + ", " + e.getEmployeeEntity().getDesignationName());
+        employeeMap.put("Email Id", e -> e.getEmployeeEntity().getEmailId());
+        employeeMap.put("Alternate No", e -> e.getEmployeeEntity().getAlternateNo());
+        employeeMap.put("Date Of Hiring", e -> e.getEmployeeEntity().getDateOfHiring());
+        employeeMap.put("Marital Status", e -> e.getEmployeeEntity().getMaritalStatus());
+        employeeMap.put("PF No", e -> e.getEmployeeEntity().getPfNo());
+        employeeMap.put("IFSC Code", e -> e.getEmployeeEntity().getIfscCode());
+        employeeMap.put("Bank Name", e -> e.getEmployeeEntity().getBankName());
+        employeeMap.put("Bank Branch", e -> e.getEmployeeEntity().getBankBranch());
+        employeeMap.put("Current Gross", e -> e.getEmployeeEntity().getCurrentGross());
+        employeeMap.put("Location", e -> e.getEmployeeEntity().getLocation());
+        employeeMap.put("Temporary Address", e -> e.getEmployeeEntity().getTempAddress());
+        employeeMap.put("Permanent Address", e -> e.getEmployeeEntity().getPermanentAddress());
+        employeeMap.put("Fixed Amount", e -> e.getResPayload().getFixedAmount());
+        employeeMap.put("Variable Amount", e -> e.getResPayload().getVariableAmount());
+        employeeMap.put("Gross Amount", e -> e.getResPayload().getGrossAmount());
+        employeeMap.put("Total Earnings", e -> e.getResPayload().getTotalEarnings());
+        employeeMap.put("Net Salary", e -> e.getResPayload().getNetSalary());
+        employeeMap.put("Loss Of Pay", e -> e.getResPayload().getLop());
+        employeeMap.put("Total Deductions", e -> e.getResPayload().getTotalDeductions());
+        employeeMap.put("Pf Tax", e -> e.getResPayload().getPfTax());
+        employeeMap.put("Income Tax", e -> e.getResPayload().getIncomeTax());
+        employeeMap.put("Total Tax", e -> e.getResPayload().getTotalTax());
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              Workbook workbook = new XSSFWorkbook()) {
@@ -585,7 +614,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 cell.setCellStyle(headerCellStyle);
             }
             int rowNum = 1;
-            for (EmployeeEntity employee : employees) {
+            for (EmployeeDownloadResponse employee : employees) {
                 Row row = sheet.createRow(rowNum++);
                 for (int i=0;i<selectedFields.size();i++) {
                     String field = selectedFields.get(i);
@@ -602,7 +631,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
     }
 
-    private byte[] generateEmployeePdf(List<EmployeeEntity> employeeEntities, CompanyEntity companyEntity,List<String> selectedFields, String detailType) throws IOException, DocumentException {
+    private byte[] generateEmployeePdf(List<EmployeeDownloadResponse> employeeEntities, CompanyEntity companyEntity,List<String> selectedFields) throws IOException, DocumentException {
         try {
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + Constants.EMPLOYEE_DETAILS);
             if (inputStream == null) {
@@ -614,7 +643,6 @@ public class EmployeeServiceImpl implements EmployeeService {
             dataModel.put("data", employeeEntities);
             dataModel.put("company", companyEntity);
             dataModel.put("selectedFields",selectedFields);
-
             addWatermarkToDataModel(dataModel, companyEntity);
 
             StringWriter stringWriter = new StringWriter();
