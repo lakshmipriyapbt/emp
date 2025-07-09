@@ -1,6 +1,5 @@
 package com.pb.employee.controller;
 
-
 import com.pb.employee.common.ResponseBuilder;
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.EmployeeDetailsDownloadRequest;
@@ -111,8 +110,6 @@ public class EmployeeController {
         return employeeService.downloadEmployeeDetails(companyName, format, detailsRequest,request);
     }
 
-
-
     @RequestMapping(value = "{companyName}/employee/error", method = RequestMethod.POST)
     @io.swagger.v3.oas.annotations.Operation(security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = Constants.AUTH_KEY)},
             summary = "${api.getEmployee.tag}", description = "${api.getEmployee.description}")
@@ -162,6 +159,4 @@ public class EmployeeController {
                                               HttpServletRequest request) throws EmployeeException, IOException {
         return employeeService.getEmployeeImage(companyName, employeeId, request);
     }
-
-
 }
