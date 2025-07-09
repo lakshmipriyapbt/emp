@@ -115,7 +115,7 @@ public class CompanyServiceImpl implements CompanyService {
         }
         try{
             // defaultPassword = PasswordUtils.generateStrongPassword();
-             defaultPassword = "Passw0rd!"
+             defaultPassword = "Passw0rd!";
             password = Base64.getEncoder().encodeToString(defaultPassword.getBytes());
             Entity companyEntity = CompanyUtils.maskCompanyProperties(companyRequest, resourceId, password, status);
             Entity result = openSearchOperations.saveEntity(companyEntity, resourceId, Constants.INDEX_EMS);
