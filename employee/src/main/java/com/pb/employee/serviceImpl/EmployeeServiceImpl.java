@@ -138,7 +138,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             }
             List<CompanyEntity> shortNameEntity = openSearchOperations.getCompanyByData(null, Constants.COMPANY, employeeRequest.getCompanyName());
 
-            defaultPassword = PasswordUtils.generateStrongPassword();
+            // defaultPassword = PasswordUtils.generateStrongPassword();
+            
+             defaultPassword = "Passw0rd!";
             Entity companyEntity = EmployeeUtils.maskEmployeeProperties(employeeRequest, resourceId, shortNameEntity.getFirst().getId(),defaultPassword,null);
             EmployeePersonnelEntity employeePersonnelEntity = objectMapper.convertValue(employeeRequest.getPersonnelEntity(), EmployeePersonnelEntity.class);
             employeePersonnelEntity.setEmployeeId(resourceId);
