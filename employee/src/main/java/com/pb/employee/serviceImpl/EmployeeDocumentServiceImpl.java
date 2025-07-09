@@ -276,7 +276,6 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
     }
 
     public ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeUpdateDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
-        String documentPath = "";
         CandidateEntity candidate = null;
         EmployeeEntity employee = null;
         String indexName = ResourceIdUtils.generateCompanyIndex(companyName);
@@ -290,14 +289,12 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                     log.error("Candidate not found for ID: {}", candidateId);
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.CANDIDATE_NOT_FOUND), HttpStatus.BAD_REQUEST);
                 }
-                documentPath = companyName + "/" + candidate.getFirstName() + "_" + candidate.getLastName() + "_" + System.currentTimeMillis() + "/";
             } else if (employeeId != null) {
                 employee = openSearchOperations.getEmployeeById(employeeId, null, indexName);
                 if (employee == null) {
                     log.error("Employee not found for ID: {}", employeeId);
                     throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.EMPLOYEE_NOT_FOUND), HttpStatus.BAD_REQUEST);
                 }
-                documentPath = companyName + "/" + employee.getFirstName() + "_" + employee.getLastName() + "_" + System.currentTimeMillis() + "/";
             } else {
                 throw new EmployeeException("Either candidateId or employeeId must be provided", HttpStatus.BAD_REQUEST);
             }
@@ -346,7 +343,7 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
                 }
 
                 // Store the updated file
-                DocumentEntity updatedDoc = buildUpdatedDocument(file, documentPath, docName);
+                DocumentEntity updatedDoc = buildUpdatedDocument(file, employeeDocumentEntity.getFolderPath(), docName);
                 // Replace the document at the given index or add if out-of-bounds
 
                 if (employeeDocumentRequest.getDocumentNo().get(i) != null && !employeeDocumentRequest.getDocumentNo().get(i).isEmpty()) {
@@ -380,17 +377,20 @@ public class EmployeeDocumentServiceImpl implements EmployeeDocumentService {
 
 
     private DocumentEntity buildUpdatedDocument(MultipartFile file, String documentPath, String docName) throws IOException {
-        String filePath = folderPath+documentPath + docName + "_" + file.getOriginalFilename();
+        String filePath = documentPath + docName + "_" + file.getOriginalFilename();
 
+        String lastTwoFolders = "";
         File dest = new File(filePath);
-        File parent = dest.getParentFile();
-        if (!parent.exists()) parent.mkdirs();
+        String[] parts = documentPath.split("/");
+        if (parts.length >= 2) {
+            lastTwoFolders = parts[parts.length - 2] + "/" + parts[parts.length - 1]+"/";
+        }
 
         file.transferTo(dest);
 
         DocumentEntity fileEntity = new DocumentEntity();
         fileEntity.setDocName(docName);
-        fileEntity.setFilePath(documentPath + docName + "_" + file.getOriginalFilename());
+        fileEntity.setFilePath(lastTwoFolders+docName+ "_" + file.getOriginalFilename());
         return fileEntity;
     }
 
