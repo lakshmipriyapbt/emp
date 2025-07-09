@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LayOut from "../../LayOut/LayOut";
-import { downloadEmployeeBankDataAPI, downloadEmployeeSalaryDataAPI, downloadEmployeesFileAPI, EmployeesSalariesGetApi} from "../../Utils/Axios";
+import {downloadEmployeeSalaryDataAPI, EmployeesSalariesGetApi} from "../../Utils/Axios";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchEmployees } from "../../Redux/EmployeeSlice";
 
@@ -16,8 +16,8 @@ const EmployeeSalaryStructureView = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const Navigate = useNavigate();
-  const [selectedDownloadFormat, setSelectedDownloadFormat] = useState("");
-  const [isDownloading, setIsDownloading] = useState(false);
+  // const [selectedDownloadFormat, setSelectedDownloadFormat] = useState("");
+  // const [isDownloading, setIsDownloading] = useState(false);
 
         useEffect(() => {
         const fetchEmployeesSalaries = async () => {
@@ -52,22 +52,22 @@ const EmployeeSalaryStructureView = () => {
   const handleSalary = (id) => {
     Navigate(`/employeeSalaryList?id=${id}`);
   };
-  const handleDownload = async (format) => {
-    if (!format) {
-      toast.warning("Please select a file format!");
-      return;
-    }
+  // const handleDownload = async (format) => {
+  //   if (!format) {
+  //     toast.warning("Please select a file format!");
+  //     return;
+  //   }
 
-    setIsDownloading(true);
-    try {
-      await downloadEmployeeSalaryDataAPI(format, toast);
-    } catch (error) {
-      toast.error("Download failed. Please try again.");
-    } finally {
-      setIsDownloading(false);
-      setSelectedDownloadFormat(""); // Reset the dropdown
-    }
-  };
+  //   setIsDownloading(true);
+  //   try {
+  //     await downloadEmployeeSalaryDataAPI(format, toast);
+  //   } catch (error) {
+  //     toast.error("Download failed. Please try again.");
+  //   } finally {
+  //     setIsDownloading(false);
+  //     setSelectedDownloadFormat(""); // Reset the dropdown
+  //   }
+  // };
 
   const statusMappings = {
     Active: {
@@ -205,7 +205,7 @@ const EmployeeSalaryStructureView = () => {
                       <button className="btn btn-primary">Add Salary to Employee</button>
                     </Link>
                   </div>
-                  <div className="col-auto">
+                  {/* <div className="col-auto">
                   <select 
                       className="form-select bg-primary border-0 text-white" 
                       value={selectedDownloadFormat}
@@ -219,7 +219,7 @@ const EmployeeSalaryStructureView = () => {
                       <option value="excel">Excel (.xlsx)</option>
                       <option value="pdf">PDF (.pdf)</option>
                     </select>
-                  </div>
+                  </div> */}
                   <div className="col-md-4 align-items-end">
                     <input
                           type="search"
