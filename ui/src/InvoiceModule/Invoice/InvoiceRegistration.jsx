@@ -20,6 +20,7 @@ const InvoiceRegistration = () => {
     control,
     setValue,
     reset,
+    trigger,
     watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
@@ -423,6 +424,58 @@ const InvoiceRegistration = () => {
       toast.error(errorMsg);
     }
   };
+
+  const preventInvalidInput = (e, type) => {
+    const key = e.key;
+
+    // Alphanumeric check for customerName, state, city fields (no special characters allowed except spaces)
+    if (type === "alpha" && /[^a-zA-Z\s]/.test(key)) {
+      e.preventDefault();
+    }
+
+    if (type === "alphaNumeric" && /[^a-zA-Z0-9]/.test(key)) {
+      e.preventDefault();
+    }
+
+    // Address-specific special characters: only allow &, /, and ,
+    if (type === "address" && !/[a-zA-Z0-9\s!@#&()*/.,_+:;'"-]/.test(key)) {
+      e.preventDefault();
+    }
+    // Numeric check for fields that should only allow numbers
+    if (type === "numeric" && !/^[0-9]$/.test(key)) {
+      e.preventDefault();
+    }
+
+    // Prevent spaces (if any additional validation is needed)
+    if (type === "whitespace" && key === " ") {
+      e.preventDefault();
+    }
+  };
+
+  const handleInputChange = (e, fieldName) => {
+    let value = e.target.value.trimStart().replace(/ {2,}/g, " "); // Remove leading spaces and extra spaces
+
+    if (fieldName !== "email") {
+      value = value.replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize first letter after space
+    }
+
+    setValue(fieldName, value);
+    trigger(fieldName); // Trigger validation
+  };
+ 
+ const noTrailingSpaces = (value, fieldName) => { 
+  // Check if the value ends with a space
+   if (value.endsWith(' ')) { 
+    return "Spaces are not allowed at the end"; 
+  }
+  // Check if the value is less than 3 characters long
+  if (value.length < 3) {
+     return "Minimum 3 characters Required"; 
+    }
+    // If no error, return true
+    return true;
+  };
+  
   const handleError = (errors) => {
     if (errors.response) {
       const status = errors.response.status;
@@ -989,17 +1042,15 @@ const InvoiceRegistration = () => {
                             id="shipToName"
                             {...register("shipToName", {
                               required: "Ship To Name is required",
-                              minLength: {
-                                value: 3,
-                                message:
-                                  "Ship To Name must be at least 3 characters long",
-                              },
+                              validate: (value) => noTrailingSpaces(value, "shipToName"),
                               maxLength: {
                                 value: 100,
                                 message:
                                   "Ship To Name cannot exceed 100 characters",
                               },
                             })}
+                            onChange={(e) => handleInputChange(e, "shipToName")}
+                            onKeyPress={(e) => preventInvalidInput(e, "alpha")}
                           />
                           {errors.shipToName && (
                             <p
@@ -1026,10 +1077,10 @@ const InvoiceRegistration = () => {
                             placeholder="Enter Ship To Address"
                             {...register("shipToAddress", {
                               required: "Ship To Address is required",
-                              minLength: {
-                                value: 3,
-                                message:
-                                  "Ship To Address must be at least 3 characters long",
+                              validate: (value) => noTrailingSpaces(value, "shipToAddress"),
+                              pattern: {
+                                value: /^(?=.*[a-zA-Z])[a-zA-Z0-9\s!@#&()*/.,_+:;'"-]+$/,
+                                message: "Invalid Address Format. Only letters, numbers, spaces, and !@#&()*/.,_- \" ' : ; are allowed."
                               },
                               maxLength: {
                                 value: 250,
@@ -1037,6 +1088,8 @@ const InvoiceRegistration = () => {
                                   "Ship To Address cannot exceed 250 characters",
                               },
                             })}
+                            onChange={(e) => handleInputChange(e, "shipToAddress")}
+                            onKeyPress={(e) => preventInvalidInput(e, "address")}
                           />
                           {errors.shipToAddress && (
                             <p
@@ -1099,17 +1152,14 @@ const InvoiceRegistration = () => {
                           rows={3}
                           {...register("notes", {
                             required: "Special Notes are required",
-                            minLength: {
-                              value: 10,
-                              message:
-                                "Special Notes must be at least 10 characters long",
-                            },
+                            validate: (value) => noTrailingSpaces(value, "notes"),
                             maxLength: {
                               value: 500,
                               message:
                                 "Special Notes cannot exceed 500 characters",
                             },
                           })}
+                          onChange={(e) => handleInputChange(e, "notes")}
                         />
                         {errors.notes && (
                           <p

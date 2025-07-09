@@ -311,145 +311,157 @@ const CandidateDocumentUpload = () => {
     };
 
 
-    const onSubmit = async (data) => {
-        if (!userId || !company) {
-            toast.error('Authentication required. Please login again.');
-            return;
+const onSubmit = async (data) => {
+    if (!userId || !company) {
+        toast.error('Authentication required. Please login again.');
+        return;
+    }
+
+    setTouchedFields({
+        resume: true,
+        idProof: true,
+        education: {
+            tenth: true,
+            twelfth: true,
+            ug: true,
+            pg: true,
+            others: true
+        },
+        experience: formValues.experience?.map(() => true) || []
+    });
+
+    const isValid = await trigger();
+
+    const educationValid = educationQualifications.every(qual => {
+        if (!qual.required) return true;
+        return !!data.education[qual.id]?.file;
+    });
+
+    if (!isValid || !educationValid) {
+        if (!educationValid) {
+            toast.error('Please upload all required education documents');
+        } else {
+            toast.error('Please complete all required fields');
+        }
+        return;
+    }
+
+    setIsSubmitting(true);
+    let progressInterval;
+
+    try {
+        setUploadProgress(0);
+
+        // Prepare arrays for API
+        const documentNo = [];
+        const docNames = [];
+        const files = [];
+        let docIndex = 0;
+
+        // Resume
+        if (isEditMode && data.resume instanceof File) {
+            documentNo.push(docIndex);
+            docNames.push('Resume');
+            files.push(data.resume);
+            docIndex++;
         }
 
-        // Mark all fields as touched before validation
-        setTouchedFields({
-            resume: true,
-            idProof: true,
-            education: {
-                tenth: true,
-                twelfth: true,
-                ug: true,
-                pg: true,
-                others: true
-            },
-            experience: formValues.experience?.map(() => true) || []
+        // ID Proof
+        if (isEditMode && data.idProof instanceof File) {
+            documentNo.push(docIndex);
+            docNames.push('ID Proof');
+            files.push(data.idProof);
+            docIndex++;
+        }
+
+        // Education
+        educationQualifications.forEach((qual) => {
+            const doc = data.education[qual.id]?.file;
+            if (isEditMode && doc instanceof File) {
+                documentNo.push(docIndex);
+                docNames.push(qual.name);
+                files.push(doc);
+                docIndex++;
+            }
         });
 
-        // Trigger validation for all fields
-        const isValid = await trigger();
-
-        // Additional manual validation for required education documents
-        const educationValid = educationQualifications.every(qual => {
-            if (!qual.required) return true;
-            return !!data.education[qual.id]?.file;
+        // Experience
+        data.experience?.forEach((exp) => {
+            if (isEditMode && exp.file instanceof File) {
+                documentNo.push(docIndex);
+                docNames.push(`Experience_${exp.company || ''}`);
+                files.push(exp.file);
+                docIndex++;
+            }
         });
 
-        if (!isValid || !educationValid) {
-            if (!educationValid) {
-                toast.error('Please upload all required education documents');
-            } else {
-                toast.error('Please complete all required fields');
-            }
-            return;
-        }
-
-
-        let currentDocumentId = documentId;
-        if (isEditMode && !currentDocumentId) {
-            try {
-                const response = await getDocumentByIdAPI(userId, '');
-                currentDocumentId = response?.data?.id;
-                if (!currentDocumentId) throw new Error('No document ID found');
-                setDocumentId(currentDocumentId);
-            } catch (error) {
-                toast.error('Failed to verify document reference');
-                return;
-            }
-        }
-
-        setIsSubmitting(true);
-        let progressInterval;
-
-        try {
-            setUploadProgress(0);
-
-            // We'll need to download unchanged documents to re-upload them
-            const docNames = [];
-            const files = [];
-
-            // Process Resume
+        // For create mode, send all files as before
+        if (!isEditMode) {
+            // Reset docIndex for create
+            docIndex = 0;
             if (data.resume instanceof File) {
+                documentNo.push(docIndex);
                 docNames.push('Resume');
                 files.push(data.resume);
-            } else if (data.resume?.existing) {
-                docNames.push('Resume');
-                const resumeFile = await fetchExistingDocument(data.resume.url);
-                files.push(resumeFile);
+                docIndex++;
             }
-
-            // Process ID Proof
             if (data.idProof instanceof File) {
+                documentNo.push(docIndex);
                 docNames.push('ID Proof');
                 files.push(data.idProof);
-            } else if (data.idProof?.existing) {
-                docNames.push('ID Proof');
-                const idProofFile = await fetchExistingDocument(data.idProof.url);
-                files.push(idProofFile);
+                docIndex++;
             }
-
-            // Process Education Documents
-            for (const qual of educationQualifications) {
+            educationQualifications.forEach((qual) => {
                 const doc = data.education[qual.id]?.file;
                 if (doc instanceof File) {
+                    documentNo.push(docIndex);
                     docNames.push(qual.name);
                     files.push(doc);
-                } else if (doc?.existing) {
-                    docNames.push(qual.name);
-                    const eduFile = await fetchExistingDocument(doc.url);
-                    files.push(eduFile);
+                    docIndex++;
                 }
-            }
-
-            // Process Experience Documents
-            for (const [index, exp] of (data.experience || []).entries()) {
-                if (exp.file instanceof File) {
-                    docNames.push(`Experience_${exp.company || index}`);
-                    files.push(exp.file);
-                } else if (exp.file?.existing) {
-                    docNames.push(`Experience_${exp.company || index}`);
-                    const expFile = await fetchExistingDocument(exp.file.url);
-                    files.push(expFile);
-                }
-            }
-
-            console.log('Final submission:', {
-                docNames,
-                files: files.map(f => f.name)
             });
-
-            // Progress simulation
-            progressInterval = setInterval(() => {
-                setUploadProgress(prev => Math.min(prev + 10, 90));
-            }, 300);
-
-            // Make API call with all documents
-            const response = isEditMode
-                ? await updateCandidateDocument(userId, currentDocumentId, docNames, files)
-                : await uploadDocumentAPI(userId, docNames, files);
-
-            clearInterval(progressInterval);
-            setUploadProgress(100);
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            toast.success(isEditMode ? 'Documents updated successfully!' : 'Documents uploaded successfully!');
-            navigate('/candidateDocumentsView', { state: { documents: data } });
-
-        } catch (error) {
-            if (progressInterval) clearInterval(progressInterval);
-            setUploadProgress(0);
-
-            console.error('Submission error:', error.response?.data || error.message);
-            toast.error(error.response?.data?.message || 'Failed to update documents');
-        } finally {
-            setIsSubmitting(false);
+            data.experience?.forEach((exp) => {
+                if (exp.file instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push(`Experience_${exp.company || ''}`);
+                    files.push(exp.file);
+                    docIndex++;
+                }
+            });
         }
-    };
+
+        // Ensure all arrays are the same length
+        if (documentNo.length !== docNames.length || docNames.length !== files.length) {
+            throw new Error(`Mismatched counts: ${documentNo.length} documentNo, ${docNames.length} docNames vs ${files.length} files`);
+        }
+
+        progressInterval = setInterval(() => {
+            setUploadProgress(prev => Math.min(prev + 10, 90));
+        }, 300);
+
+        // Use new API
+        const response = isEditMode
+            ? await updateCandidateDocument(userId, documentId, documentNo, docNames, files)
+            : await uploadDocumentAPI(userId, docNames, files);
+
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        toast.success(isEditMode ? 'Documents updated successfully!' : 'Documents uploaded successfully!');
+        navigate('/candidateDocumentsView', { state: { documents: data } });
+
+    } catch (error) {
+        if (progressInterval) clearInterval(progressInterval);
+        setUploadProgress(0);
+
+        console.error('Submission error:', error.response?.data || error.message);
+        toast.error(error.response?.data?.message || 'Failed to update documents');
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
 
 
     const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false, editMode = false }) => {

@@ -136,22 +136,32 @@ const CandidateDocumentsView = () => {
     return <FiFilePdf className="text-secondary" size={24} />;
   };
 
-  const handleEdit = () => {
-    // Transform the documents to match the expected structure
-    const documentsToPass = documents.map(doc => ({
-      docName: doc.name,
-      filePath: doc.url,
-      documentId: doc.documentId
-    }));
+  // const handleEdit = () => {
+  //   // Transform the documents to match the expected structure
+  //   const documentsToPass = documents.map(doc => ({
+  //     docName: doc.name,
+  //     filePath: doc.url,
+  //     documentId: doc.documentId
+  //   }));
+
+  //   navigate('/documentUpload', {
+  //     state: {
+  //       isEditMode: true,
+  //       documents: documentsToPass
+  //     }
+  //   });
+  // };
+  const handleEditDocument = (documentId) => {
+    const documentToEdit = documents.find(doc => doc.documentId === documentId);
+    if (!documentToEdit) return;
 
     navigate('/documentUpload', {
       state: {
         isEditMode: true,
-        documents: documentsToPass
+        documentToEdit: documentToEdit
       }
     });
   };
-
   return (
     <LayOut>
       <div className="container-fluid p-0">
@@ -244,6 +254,12 @@ const CandidateDocumentsView = () => {
                               >
                                 <FiDownload className="me-1" /> View
                               </a>
+                              <button
+                                onClick={() => handleEditDocument(doc.documentId)}
+                                className="btn btn-sm btn-outline-secondary"
+                              >
+                                <PencilSquare className="me-1" /> Edit
+                              </button>
                             </td>
                           </tr>
                         ))}
