@@ -297,170 +297,184 @@ const CandidateDocumentUpload = () => {
         }
     };
 
-    const fetchExistingDocument = async (url) => {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Failed to fetch document');
-            const blob = await response.blob();
-            const filename = url.substring(url.lastIndexOf('/') + 1);
-            return new File([blob], filename, { type: blob.type || 'application/pdf' });
-        } catch (error) {
-            console.error('Error fetching existing document:', error);
-            throw new Error(`Could not retrieve document: ${url}`);
+    const isAnyFileReplaced = () => {
+        if (formValues.resume instanceof File) return true;
+        if (formValues.idProof instanceof File) return true;
+        for (const qual of educationQualifications) {
+            if (formValues.education?.[qual.id]?.file instanceof File) return true;
         }
+        if (Array.isArray(formValues.experience)) {
+            for (const exp of formValues.experience) {
+                if (exp?.file instanceof File) return true;
+            }
+        }
+        return false;
     };
 
+    // const fetchExistingDocument = async (url) => {
+    //     try {
+    //         const response = await fetch(url);
+    //         if (!response.ok) throw new Error('Failed to fetch document');
+    //         const blob = await response.blob();
+    //         const filename = url.substring(url.lastIndexOf('/') + 1);
+    //         return new File([blob], filename, { type: blob.type || 'application/pdf' });
+    //     } catch (error) {
+    //         console.error('Error fetching existing document:', error);
+    //         throw new Error(`Could not retrieve document: ${url}`);
+    //     }
+    // };
 
-const onSubmit = async (data) => {
-    if (!userId || !company) {
-        toast.error('Authentication required. Please login again.');
-        return;
-    }
 
-    setTouchedFields({
-        resume: true,
-        idProof: true,
-        education: {
-            tenth: true,
-            twelfth: true,
-            ug: true,
-            pg: true,
-            others: true
-        },
-        experience: formValues.experience?.map(() => true) || []
-    });
-
-    const isValid = await trigger();
-
-    const educationValid = educationQualifications.every(qual => {
-        if (!qual.required) return true;
-        return !!data.education[qual.id]?.file;
-    });
-
-    if (!isValid || !educationValid) {
-        if (!educationValid) {
-            toast.error('Please upload all required education documents');
-        } else {
-            toast.error('Please complete all required fields');
-        }
-        return;
-    }
-
-    setIsSubmitting(true);
-    let progressInterval;
-
-    try {
-        setUploadProgress(0);
-
-        // Prepare arrays for API
-        const documentNo = [];
-        const docNames = [];
-        const files = [];
-        let docIndex = 0;
-
-        // Resume
-        if (isEditMode && data.resume instanceof File) {
-            documentNo.push(docIndex);
-            docNames.push('Resume');
-            files.push(data.resume);
-            docIndex++;
+    const onSubmit = async (data) => {
+        if (!userId || !company) {
+            toast.error('Authentication required. Please login again.');
+            return;
         }
 
-        // ID Proof
-        if (isEditMode && data.idProof instanceof File) {
-            documentNo.push(docIndex);
-            docNames.push('ID Proof');
-            files.push(data.idProof);
-            docIndex++;
-        }
-
-        // Education
-        educationQualifications.forEach((qual) => {
-            const doc = data.education[qual.id]?.file;
-            if (isEditMode && doc instanceof File) {
-                documentNo.push(docIndex);
-                docNames.push(qual.name);
-                files.push(doc);
-                docIndex++;
-            }
+        setTouchedFields({
+            resume: true,
+            idProof: true,
+            education: {
+                tenth: true,
+                twelfth: true,
+                ug: true,
+                pg: true,
+                others: true
+            },
+            experience: formValues.experience?.map(() => true) || []
         });
 
-        // Experience
-        data.experience?.forEach((exp) => {
-            if (isEditMode && exp.file instanceof File) {
-                documentNo.push(docIndex);
-                docNames.push(`Experience_${exp.company || ''}`);
-                files.push(exp.file);
-                docIndex++;
-            }
+        const isValid = await trigger();
+
+        const educationValid = educationQualifications.every(qual => {
+            if (!qual.required) return true;
+            return !!data.education[qual.id]?.file;
         });
 
-        // For create mode, send all files as before
-        if (!isEditMode) {
-            // Reset docIndex for create
-            docIndex = 0;
-            if (data.resume instanceof File) {
+        if (!isValid || !educationValid) {
+            if (!educationValid) {
+                toast.error('Please upload all required education documents');
+            } else {
+                toast.error('Please complete all required fields');
+            }
+            return;
+        }
+
+        setIsSubmitting(true);
+        let progressInterval;
+
+        try {
+            setUploadProgress(0);
+
+            // Prepare arrays for API
+            const documentNo = [];
+            const docNames = [];
+            const files = [];
+            let docIndex = 0;
+
+            // Resume
+            if (isEditMode && data.resume instanceof File) {
                 documentNo.push(docIndex);
                 docNames.push('Resume');
                 files.push(data.resume);
                 docIndex++;
             }
-            if (data.idProof instanceof File) {
+
+            // ID Proof
+            if (isEditMode && data.idProof instanceof File) {
                 documentNo.push(docIndex);
                 docNames.push('ID Proof');
                 files.push(data.idProof);
                 docIndex++;
             }
+
+            // Education
             educationQualifications.forEach((qual) => {
                 const doc = data.education[qual.id]?.file;
-                if (doc instanceof File) {
+                if (isEditMode && doc instanceof File) {
                     documentNo.push(docIndex);
                     docNames.push(qual.name);
                     files.push(doc);
                     docIndex++;
                 }
             });
+
+            // Experience
             data.experience?.forEach((exp) => {
-                if (exp.file instanceof File) {
+                if (isEditMode && exp.file instanceof File) {
                     documentNo.push(docIndex);
                     docNames.push(`Experience_${exp.company || ''}`);
                     files.push(exp.file);
                     docIndex++;
                 }
             });
+
+            // For create mode, send all files as before
+            if (!isEditMode) {
+                // Reset docIndex for create
+                docIndex = 0;
+                if (data.resume instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push('Resume');
+                    files.push(data.resume);
+                    docIndex++;
+                }
+                if (data.idProof instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push('ID Proof');
+                    files.push(data.idProof);
+                    docIndex++;
+                }
+                educationQualifications.forEach((qual) => {
+                    const doc = data.education[qual.id]?.file;
+                    if (doc instanceof File) {
+                        documentNo.push(docIndex);
+                        docNames.push(qual.name);
+                        files.push(doc);
+                        docIndex++;
+                    }
+                });
+                data.experience?.forEach((exp) => {
+                    if (exp.file instanceof File) {
+                        documentNo.push(docIndex);
+                        docNames.push(`Experience_${exp.company || ''}`);
+                        files.push(exp.file);
+                        docIndex++;
+                    }
+                });
+            }
+
+            // Ensure all arrays are the same length
+            if (documentNo.length !== docNames.length || docNames.length !== files.length) {
+                throw new Error(`Mismatched counts: ${documentNo.length} documentNo, ${docNames.length} docNames vs ${files.length} files`);
+            }
+
+            progressInterval = setInterval(() => {
+                setUploadProgress(prev => Math.min(prev + 10, 90));
+            }, 300);
+
+            // Use new API
+            const response = isEditMode
+                ? await updateCandidateDocument(userId, documentId, documentNo, docNames, files)
+                : await uploadDocumentAPI(userId, docNames, files);
+
+            clearInterval(progressInterval);
+            setUploadProgress(100);
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            toast.success(isEditMode ? 'Documents updated successfully!' : 'Documents uploaded successfully!');
+            navigate('/candidateDocumentsView', { state: { documents: data } });
+
+        } catch (error) {
+            if (progressInterval) clearInterval(progressInterval);
+            setUploadProgress(0);
+
+            console.error('Submission error:', error.response?.data || error.message);
+            toast.error(error.response?.data?.message || 'Failed to update documents');
+        } finally {
+            setIsSubmitting(false);
         }
-
-        // Ensure all arrays are the same length
-        if (documentNo.length !== docNames.length || docNames.length !== files.length) {
-            throw new Error(`Mismatched counts: ${documentNo.length} documentNo, ${docNames.length} docNames vs ${files.length} files`);
-        }
-
-        progressInterval = setInterval(() => {
-            setUploadProgress(prev => Math.min(prev + 10, 90));
-        }, 300);
-
-        // Use new API
-        const response = isEditMode
-            ? await updateCandidateDocument(userId, documentId, documentNo, docNames, files)
-            : await uploadDocumentAPI(userId, docNames, files);
-
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        toast.success(isEditMode ? 'Documents updated successfully!' : 'Documents uploaded successfully!');
-        navigate('/candidateDocumentsView', { state: { documents: data } });
-
-    } catch (error) {
-        if (progressInterval) clearInterval(progressInterval);
-        setUploadProgress(0);
-
-        console.error('Submission error:', error.response?.data || error.message);
-        toast.error(error.response?.data?.message || 'Failed to update documents');
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+    };
 
 
 
@@ -1116,7 +1130,17 @@ const onSubmit = async (data) => {
                                                         name="resume"
                                                         control={control}
                                                         rules={{
-                                                            validate: (file) => validateFile(file, true, 'Resume/CV')
+                                                            validate: (file) => {
+                                                                if (isEditMode) {
+                                                                    // Only validate if file is being replaced
+                                                                    if (file instanceof File) {
+                                                                        return validateFile(file, true, 'Resume/CV');
+                                                                    }
+                                                                    return true; // Don't require in edit mode if not replaced
+                                                                }
+                                                                // In create mode, require file
+                                                                return validateFile(file, true, 'Resume/CV');
+                                                            }
                                                         }}
                                                         render={({ field }) => (
                                                             <DragDropArea
@@ -1134,7 +1158,17 @@ const onSubmit = async (data) => {
                                                         name="idProof"
                                                         control={control}
                                                         rules={{
-                                                            validate: (file) => validateFile(file, true, 'ID Proof')
+                                                            validate: (file) => {
+                                                                if (isEditMode) {
+                                                                    // Only validate if file is being replaced
+                                                                    if (file instanceof File) {
+                                                                        return validateFile(file, true, 'ID Proof');
+                                                                    }
+                                                                    return true; // Don't require in edit mode if not replaced
+                                                                }
+                                                                // In create mode, require file
+                                                                return validateFile(file, true, 'ID Proof');
+                                                            }
                                                         }}
                                                         render={({ field }) => (
                                                             <DragDropArea
@@ -1320,7 +1354,7 @@ const onSubmit = async (data) => {
                                                     <button
                                                         type="submit"
                                                         className="btn btn-primary px-4"
-                                                        disabled={isSubmitting || !isValid}
+                                                        disabled={isSubmitting || (isEditMode ? !isAnyFileReplaced() : !isValid)}
                                                     >
                                                         {isSubmitting ? (
                                                             <>
