@@ -19,6 +19,6 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmployeeDownloadResponse {
 
-    EmployeeEntity employeeEntity;
-    EmployeeSalaryEntity resPayload;
+    private EmployeeEntity employeeEntity;
+    private EmployeeSalaryEntity resPayload;
 }
