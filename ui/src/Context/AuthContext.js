@@ -54,25 +54,29 @@ useEffect(() => {
   }
 
   const fetchEmployeeOrUserOrCandidate = async (userId) => {
-    try {
+  const roles = authUser?.roles || [];
+
+  try {
+    if (roles.includes("employee")) {
       const empRes = await EmployeeGetApiById(userId);
       return empRes?.data?.data;
-    } catch {}
+    }
 
-    try {
-      const userRes = await getUserById(userId);
-      const userData = userRes?.data?.data;
-      return Array.isArray(userData) && userData.length > 0 ? userData[0] : userData;
-    } catch {}
-
-    try {
+    if (roles.includes("candidate")) {
       const candidateRes = await CandidateGetByIdApi(userId);
       return candidateRes?.data?.data;
-    } catch (err) {
-      console.error("Failed to fetch candidate details", err);
-      return null;
     }
-  };
+
+    // Fallback: try generic user API if role is unrecognized
+    const userRes = await getUserById(userId);
+    const userData = userRes?.data?.data;
+    return Array.isArray(userData) && userData.length > 0 ? userData[0] : userData;
+  } catch (err) {
+    console.error("Failed to fetch user details", err);
+    return null;
+  }
+};
+
 
   const fetchDetails = async () => {
     try {
