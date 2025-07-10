@@ -2,6 +2,7 @@ package com.pb.employee.controller;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.EmployeeDocumentRequest;
+import com.pb.employee.request.EmployeeUpdateDocumentRequest;
 import com.pb.employee.service.EmployeeDocumentService;
 import com.pb.employee.util.Constants;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -102,7 +103,7 @@ public class EmployeeDocumentController {
                                                      @PathVariable String companyName,
                                                      @PathVariable String candidateId,
                                                      @PathVariable String documentId,
-                                                     @ModelAttribute EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
+                                                     @ModelAttribute EmployeeUpdateDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
         return employeeDocumentService.updateDocumentByReferenceId(companyName, candidateId, null, documentId, employeeDocumentRequest);
     }
 
@@ -116,7 +117,7 @@ public class EmployeeDocumentController {
                                                      @PathVariable String companyName,
                                                      @PathVariable String employeeId,
                                                      @PathVariable String documentId,
-                                                     @ModelAttribute EmployeeDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
+                                                     @ModelAttribute EmployeeUpdateDocumentRequest employeeDocumentRequest) throws EmployeeException, IOException {
         return employeeDocumentService.updateDocumentByReferenceId(companyName, null, employeeId, documentId, employeeDocumentRequest);
     }
 

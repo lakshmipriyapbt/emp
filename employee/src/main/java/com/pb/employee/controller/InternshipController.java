@@ -36,7 +36,7 @@ public class InternshipController {
             description = "${apiAuthToken.description}", example = "Bearer abcdef12-1234-1234-1234-abcdefabcdef")
                                                   @RequestHeader(Constants.AUTH_KEY) String authToken,
                                                   @RequestBody @Valid InternshipRequest internshipRequest,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request) throws EmployeeException {
         return internshipService.downloadInternship(internshipRequest, request);
     }
 

@@ -8,7 +8,7 @@ export const fetchInvoices = createAsyncThunk('invoices/fetchInvoices', async (c
     return response.data; 
   } catch (error) {
     console.error('Error in fetchInvoices thunk:', error);
-    throw new Error(error.response?.data?.message || 'Failed to fetch invoices');
+    throw new Error(error.response?.data?.message);
   }
 });
 

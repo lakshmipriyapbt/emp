@@ -56,7 +56,7 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
 
     @Override
-    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) {
+    public ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request, ExperienceLetterFieldsRequest experienceLetterFieldsRequest) throws EmployeeException {
         List<CompanyEntity> companyEntity = null;
         EmployeeEntity employee = null;
         TemplateEntity templateNo ;
@@ -117,6 +117,11 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             if (!experienceLetterFieldsRequest.isDraft() && !companyEntity.getFirst().getImageFile().isEmpty()) {
                 String imageUrl = companyEntity.getFirst().getImageFile();
+                if(imageUrl==null || imageUrl.isEmpty()){
+                    log.error("Failed to load image from URL: {}", imageUrl);
+                    throw new EmployeeException(ErrorMessageHandler.getMessage(EmployeeErrorMessageKey.PLEASE_UPLOAD_LOGO_IMAGE),
+                            HttpStatus.NOT_FOUND);
+                }
                 BufferedImage originalImage = ImageIO.read(new URL(imageUrl));
                 if (originalImage == null) {
                     log.error("Failed to load image from URL: {}", imageUrl);
@@ -179,6 +184,10 @@ public class ExperienceLetterServiceImpl implements ExperienceLetterService {
 
             // Return response with PDF content
             return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (EmployeeException exception) {
+            log.error("Exception occurred while generating service letter{}", exception.getMessage());
+            throw exception;
 
         } catch (Exception e) {
             log.error("Error generating service letter: {}", e.getMessage(), e);

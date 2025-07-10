@@ -21,6 +21,4 @@ public interface SalaryService {
     ResponseEntity<?> updateEmployeeSalaryById(String employeeId, SalaryUpdateRequest salaryRequest, String salaryId) throws EmployeeException;
 
     ResponseEntity<?> deleteEmployeeSalaryById(String companyNae,String employeeId, String salaryId) throws EmployeeException;
-
-    ResponseEntity<byte[]> downloadEmployeesSalaries(String companyName, String format, HttpServletRequest request) throws Exception;
 }

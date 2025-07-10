@@ -388,14 +388,18 @@ export const EmployeePatchApiById = (employeeId, data) => {
   return axiosInstance.patch(`/employee/${employeeId}`, data)
 };
 
-export const downloadEmployeesFileAPI = async (format, showToast) => {
-  const company = localStorage.getItem("companyName")
+export const downloadEmployeesFileAPI = async (format, selectedFields, showToast) => {
+  const company = localStorage.getItem("companyName");
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(`${company}/employees/download?format=${format}`, {
-      responseType: "blob",
-    });
+    const response = await axiosInstance.post(
+      `${company}/employees/download?format=${format}`,
+      { selectedFields },
+      {
+        responseType: "blob",
+      }
+    );
 
     // Check if response is an error by trying to parse JSON from Blob
     const contentType = response.headers["content-type"];
@@ -597,34 +601,32 @@ export const EmployeeSalaryDeleteApiById = (employeeId, salaryId) => {
   return axiosInstance.delete(`/${company}/employee/${employeeId}/salary/${salaryId}`);
 }
 
-export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
+export const downloadEmployeeSalaryDataAPI = async (format, selectedFields, showToast) => {
   const company = localStorage.getItem("companyName");
 
   try {
     showToast("Downloading file...", "info"); // Show info toast before downloading
 
-    const response = await axiosInstance.get(
+    const response = await axiosInstance.post(
       `${company}/employee/salaries/download?format=${format}`,
-      { responseType: "blob" }
+      { selectedFields },
+      {
+        responseType: "blob",
+      }
     );
 
-    // Handle cases where API returns JSON with an error instead of a file
+    // Check if response is an error by trying to parse JSON from Blob
     const contentType = response.headers["content-type"];
     if (contentType && contentType.includes("application/json")) {
-      const reader = new FileReader();
-      reader.readAsText(response.data);
-      reader.onloadend = () => {
-        try {
-          const errorResponse = JSON.parse(reader.result);
-          throw new Error(errorResponse?.error?.message || "Unknown error occurred.");
-        } catch (err) {
-          showToast("Failed to parse error message.", "error");
-        }
-      };
-      return;
+      const errorText = await response.data.text();
+      const errorJson = JSON.parse(errorText);
+
+      if (errorJson?.error?.message) {
+        throw new Error(errorJson.error.message);
+      }
     }
 
-    // Proceed with file download if the response is valid
+    // Proceed with file download
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -636,7 +638,7 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    showToast("Download successful!", "success"); // Show success toast
+    showToast("Download successful!", "success");
   } catch (error) {
     let errorMessage = "Download failed. Please try again.";
 
@@ -656,6 +658,7 @@ export const downloadEmployeeSalaryDataAPI = async (format, showToast) => {
     showToast(`❌ ${errorMessage}`, "error");
   }
 };
+
 
 
   export const EmployeePayslipGenerationPostById = (employeeId, salaryId, data) => {
@@ -1511,27 +1514,29 @@ export const uploadEmployeeDocumentAPI = async (employeeId, docNames, files) => 
   }
 };
 
-export const updateCandidateDocument = (candidateId, documentId, docNames, files) => {
-  const companyName = localStorage.getItem("companyName");
-  const formData = new FormData();
-  
-  // Append each document name
-  docNames.forEach((name, index) => {
-    formData.append(`docNames[${index}]`, name);
-  });
-  
-  // Append each file
-  files.forEach((file, index) => {
-    formData.append(`files[${index}]`, file);
-  });
-
-  return axiosInstance.patch(
-    `/${companyName}/candidate/${candidateId}/document/${documentId}`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+export const updateCandidateDocument = (candidateId, documentId, documentNumbers, docNames, files) => {
+    const companyName = localStorage.getItem("companyName");
+    const formData = new FormData();
+    
+    // Verify counts match
+    if (docNames.length !== files.length || docNames.length !== documentNumbers.length) {
+        throw new Error(`Mismatched counts: ${documentNumbers.length} documentNumbers, ${docNames.length} docNames vs ${files.length} files`);
     }
-  );
+
+    // Append all documents
+    docNames.forEach((name, index) => {
+        formData.append(`documentNo[${index}]`, documentNumbers[index]);
+        formData.append(`docNames[${index}]`, name);
+        formData.append(`files[${index}]`, files[index]);
+    });
+
+    return axiosInstance.patch(
+        `/${companyName}/candidate/${candidateId}/document/${documentId}`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }
+    );
 };

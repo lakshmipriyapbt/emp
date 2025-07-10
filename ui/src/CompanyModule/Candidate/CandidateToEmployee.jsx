@@ -70,6 +70,8 @@ export default function CandidateToEmployee() {
     const [useCandidateEmail, setUseCandidateEmail] = useState(true);
     const [emailConfirmed, setEmailConfirmed] = useState(false);
     const [showEmailModal, setShowEmailModal] = useState(false);
+    const { employee } = useAuth();
+    const companyId = employee?.companyId;
 
     // Field arrays
     const { fields: educationFields, append: addEducation, remove: removeEducation } = useFieldArray({
@@ -201,7 +203,7 @@ export default function CandidateToEmployee() {
             const response = await CandidateToEmployeePostApi(candidateId, payload);
             toast.success("Candidate successfully converted to employee");
             // Dispatch action to refresh employee list
-            dispatch(fetchEmployees(authUser.company));
+            dispatch(fetchEmployees(authUser.companyId));
             navigate("/employeeView");
         } catch (error) {
             console.error("Error converting candidate:", error);

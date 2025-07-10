@@ -2,6 +2,7 @@ package com.pb.employee.service;
 
 import com.pb.employee.exception.EmployeeException;
 import com.pb.employee.request.EmployeeDocumentRequest;
+import com.pb.employee.request.EmployeeUpdateDocumentRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +17,7 @@ public interface EmployeeDocumentService {
 
     ResponseEntity<?> deleteDocumentsByReferenceId(String companyName, String candidateId, String employeeId, String documentId)throws EmployeeException;
 
-    ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeDocumentRequest employeeDocumentRequest)throws EmployeeException, IOException ;
+    ResponseEntity<?> updateDocumentByReferenceId(String companyName, String candidateId, String employeeId, String documentId, EmployeeUpdateDocumentRequest employeeDocumentRequest)throws EmployeeException, IOException ;
 
 
 }

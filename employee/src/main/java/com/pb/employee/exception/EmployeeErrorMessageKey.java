@@ -142,6 +142,7 @@ public enum EmployeeErrorMessageKey {
     INVALID_USER("invalid.user"),
     EMAIL_ALREADY_EXIST("email.already.exist"),
     EMPLOYEE_SALARY_NOT_FOUND("employee.salary.not.found"),
+    PLEASE_UPLOAD_LOGO_IMAGE("please.upload.logo.image"),
     UNABLE_UPDATE_STATUS("unable.update.status"),
     COMPANY_FOLDER_NOT_EXIST("company.folder.not.exist"),
     CANDIDATE_ALREADY_EXIST("candidate.already.exist"),
@@ -184,7 +185,10 @@ public enum EmployeeErrorMessageKey {
     No_UPDATE_DONE_IN_OFFER_LETTER("no.update.done.in.offer.letter"),
     OFFER_LETTER_REF_EXIST("offer.letter.ref.exist"),
     USED_PASSWORD("used.password"),
-    EMAIL_ALREADY_USED_BY_USER("email.already.used.by.user"),;
+    INVALID_FIELD("invalid.field"),
+    INVALID_FILE_FORMAT("invalid.file.format"),
+    EMAIL_ALREADY_USED_BY_USER("email.already.used.by.user"),
+    INVALID_FIELD_SIZE("invalid.field.size");
     private final String key;
 
     EmployeeErrorMessageKey(String keyVal) {

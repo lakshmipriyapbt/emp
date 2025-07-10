@@ -12,7 +12,7 @@ import java.util.Collection;
 
 public interface InternshipService {
 
-    ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request);
+    ResponseEntity<byte[]> downloadInternship(InternshipRequest internshipRequest, HttpServletRequest request)throws EmployeeException;
 
     Collection<InternshipCertificateEntity> getInternshipCertificates(String companyName, String internshipId) throws EmployeeException;
 

@@ -343,7 +343,7 @@ const CandidateRegistration = () => {
                                                 className="form-control"
                                                 name="dateOfHiring"
                                                 {...register("dateOfHiring", {
-                                                    required: "Date of Hiring is required"
+                                                    required: "Date of Registration is required"
                                                 })}
                                             />
                                             {errors.dateOfHiring && (

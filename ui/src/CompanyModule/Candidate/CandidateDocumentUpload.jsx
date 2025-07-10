@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useForm, Controller } from 'react-hook-form';
 import LayOut from '../../LayOut/LayOut';
 import { Link } from 'react-router-dom';
-import { uploadDocumentAPI } from '../../Utils/Axios';
+import { uploadDocumentAPI, updateCandidateDocument, getDocumentByIdAPI } from '../../Utils/Axios';
 import { useSelector } from 'react-redux';
 import {
     Upload as FiUpload,
@@ -20,12 +19,14 @@ import {
     ChevronUp,
     CheckCircleFill,
     InfoCircle,
-    ExclamationTriangle
+    ExclamationTriangle,
+    ArrowLeft
 } from 'react-bootstrap-icons';
 
 const CandidateDocumentUpload = () => {
     const { userId, company } = useSelector(state => state.auth);
     const navigate = useNavigate();
+    const location = useLocation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [dragActive, setDragActive] = useState(false);
@@ -47,6 +48,9 @@ const CandidateDocumentUpload = () => {
         },
         experience: []
     });
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [existingDocuments, setExistingDocuments] = useState([]);
+    const [documentId, setDocumentId] = useState('');
 
     const educationQualifications = [
         { id: 'tenth', name: '10th Marksheet', required: true, description: 'Upload your 10th standard marksheet or equivalent' },
@@ -81,6 +85,86 @@ const CandidateDocumentUpload = () => {
         },
         mode: "onChange"
     });
+
+    useEffect(() => {
+        const initializeDocuments = async () => {
+            if (location.state?.isEditMode) {
+                setIsEditMode(true);
+                // Always fetch documents in edit mode to get the documentId
+                const docId = await fetchExistingDocuments();
+
+                if (!docId && location.state?.documents) {
+                    // Fallback: If no documentId but we have documents, initialize form
+                    const initializedValues = initializeFormWithExistingDocuments(location.state.documents);
+                    reset(initializedValues);
+                }
+            }
+        };
+
+        initializeDocuments();
+    }, [location.state]);
+
+    const initializeFormWithExistingDocuments = (docs) => {
+        const initialValues = {
+            resume: null,
+            idProof: null,
+            education: {
+                tenth: { file: null, verified: false },
+                twelfth: { file: null, verified: false },
+                ug: { file: null, verified: false },
+                pg: { file: null, verified: false },
+                others: []
+            },
+            experience: []
+        };
+
+        if (!docs || !Array.isArray(docs)) return initialValues;
+
+        docs.forEach(doc => {
+            if (!doc?.docName || !doc?.filePath) return;
+
+            const fileObj = {
+                name: doc.docName,
+                url: doc.filePath,
+                existing: true, // Mark as existing document
+                documentId: doc.documentId || '' // Include documentId if available
+            };
+
+            // Map to correct form fields based on docName
+            const docNameLower = doc.docName.toLowerCase();
+            if (docNameLower.includes('resume') || docNameLower.includes('cv')) {
+                initialValues.resume = fileObj;
+            } else if (docNameLower.includes('id proof') || docNameLower.includes('id-proof')) {
+                initialValues.idProof = fileObj;
+            } else if (docNameLower.includes('10th') || docNameLower.includes('tenth')) {
+                initialValues.education.tenth = { file: fileObj, verified: false };
+            } else if (docNameLower.includes('12th') || docNameLower.includes('twelfth')) {
+                initialValues.education.twelfth = { file: fileObj, verified: false };
+            } else if (docNameLower.includes('undergraduate') || docNameLower.includes('ug') || docNameLower.includes('bachelor')) {
+                initialValues.education.ug = { file: fileObj, verified: false };
+            } else if (docNameLower.includes('postgraduate') || docNameLower.includes('pg') || docNameLower.includes('master')) {
+                initialValues.education.pg = { file: fileObj, verified: false };
+            }
+        });
+
+        return initialValues;
+    };
+
+    const fetchExistingDocuments = async () => {
+        try {
+            const response = await getDocumentByIdAPI(userId, '');
+            console.log('API Response:', response); // Debug log
+            if (response?.data?.id) {
+                setDocumentId(response.data.id); // Set the documentId from response
+                console.log('Document ID set:', response.data.id); // Debug log
+                const initializedValues = initializeFormWithExistingDocuments(response.data.documentEntities);
+                reset(initializedValues);
+            }
+        } catch (error) {
+            console.error('Error fetching documents:', error);
+            toast.error('Failed to load existing documents');
+        }
+    };
 
     const formValues = watch();
 
@@ -179,7 +263,6 @@ const CandidateDocumentUpload = () => {
         currentExperience[index][field] = value;
         setValue("experience", currentExperience);
 
-        // Mark the field as touched
         if (field === 'company') {
             setTouchedFields(prev => {
                 const newExperience = [...prev.experience];
@@ -206,15 +289,48 @@ const CandidateDocumentUpload = () => {
         });
     };
 
+    const toggleQualification = (id) => {
+        if (expandedQualification === id) {
+            setExpandedQualification(null);
+        } else {
+            setExpandedQualification(id);
+        }
+    };
+
+    const isAnyFileReplaced = () => {
+        if (formValues.resume instanceof File) return true;
+        if (formValues.idProof instanceof File) return true;
+        for (const qual of educationQualifications) {
+            if (formValues.education?.[qual.id]?.file instanceof File) return true;
+        }
+        if (Array.isArray(formValues.experience)) {
+            for (const exp of formValues.experience) {
+                if (exp?.file instanceof File) return true;
+            }
+        }
+        return false;
+    };
+
+    // const fetchExistingDocument = async (url) => {
+    //     try {
+    //         const response = await fetch(url);
+    //         if (!response.ok) throw new Error('Failed to fetch document');
+    //         const blob = await response.blob();
+    //         const filename = url.substring(url.lastIndexOf('/') + 1);
+    //         return new File([blob], filename, { type: blob.type || 'application/pdf' });
+    //     } catch (error) {
+    //         console.error('Error fetching existing document:', error);
+    //         throw new Error(`Could not retrieve document: ${url}`);
+    //     }
+    // };
+
 
     const onSubmit = async (data) => {
-        // Validate we have the required authentication data
         if (!userId || !company) {
             toast.error('Authentication required. Please login again.');
             return;
         }
 
-        // Mark all fields as touched before validation
         setTouchedFields({
             resume: true,
             idProof: true,
@@ -228,24 +344,21 @@ const CandidateDocumentUpload = () => {
             experience: formValues.experience?.map(() => true) || []
         });
 
-        // Trigger validation for all fields
-         // Trigger validation for all fields
-    const isValid = await trigger();
+        const isValid = await trigger();
 
-    // Additional manual validation for required education documents
-    const educationValid = educationQualifications.every(qual => {
-        if (!qual.required) return true;
-        return !!data.education[qual.id]?.file;
-    });
+        const educationValid = educationQualifications.every(qual => {
+            if (!qual.required) return true;
+            return !!data.education[qual.id]?.file;
+        });
 
-    if (!isValid || !educationValid) {
-        if (!educationValid) {
-            toast.error('Please upload all required education documents (10th, 12th, and UG)');
-        } else {
-            toast.error('Please complete all required fields');
+        if (!isValid || !educationValid) {
+            if (!educationValid) {
+                toast.error('Please upload all required education documents');
+            } else {
+                toast.error('Please complete all required fields');
+            }
+            return;
         }
-        return;
-    }
 
         setIsSubmitting(true);
         let progressInterval;
@@ -253,241 +366,279 @@ const CandidateDocumentUpload = () => {
         try {
             setUploadProgress(0);
 
-            // Prepare documents
+            // Prepare arrays for API
+            const documentNo = [];
             const docNames = [];
             const files = [];
+            let docIndex = 0;
 
-            // Basic documents
-            if (data.resume) {
+            // Resume
+            if (isEditMode && data.resume instanceof File) {
+                documentNo.push(docIndex);
                 docNames.push('Resume');
                 files.push(data.resume);
+                docIndex++;
             }
-            if (data.idProof) {
+
+            // ID Proof
+            if (isEditMode && data.idProof instanceof File) {
+                documentNo.push(docIndex);
                 docNames.push('ID Proof');
                 files.push(data.idProof);
+                docIndex++;
             }
 
-            // Education documents
-            educationQualifications.forEach(qual => {
-                if (data.education[qual.id]?.file) {
+            // Education
+            educationQualifications.forEach((qual) => {
+                const doc = data.education[qual.id]?.file;
+                if (isEditMode && doc instanceof File) {
+                    documentNo.push(docIndex);
                     docNames.push(qual.name);
-                    files.push(data.education[qual.id].file);
+                    files.push(doc);
+                    docIndex++;
                 }
             });
 
-            // Experience documents
-            data.experience?.forEach((exp, index) => {
-                if (exp.file) {
-                    docNames.push(`Experience_${exp.company || index}`);
+            // Experience
+            data.experience?.forEach((exp) => {
+                if (isEditMode && exp.file instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push(`Experience_${exp.company || ''}`);
                     files.push(exp.file);
+                    docIndex++;
                 }
             });
 
-            if (files.length === 0) {
-                throw new Error('No documents selected for upload');
+            // For create mode, send all files as before
+            if (!isEditMode) {
+                // Reset docIndex for create
+                docIndex = 0;
+                if (data.resume instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push('Resume');
+                    files.push(data.resume);
+                    docIndex++;
+                }
+                if (data.idProof instanceof File) {
+                    documentNo.push(docIndex);
+                    docNames.push('ID Proof');
+                    files.push(data.idProof);
+                    docIndex++;
+                }
+                educationQualifications.forEach((qual) => {
+                    const doc = data.education[qual.id]?.file;
+                    if (doc instanceof File) {
+                        documentNo.push(docIndex);
+                        docNames.push(qual.name);
+                        files.push(doc);
+                        docIndex++;
+                    }
+                });
+                data.experience?.forEach((exp) => {
+                    if (exp.file instanceof File) {
+                        documentNo.push(docIndex);
+                        docNames.push(`Experience_${exp.company || ''}`);
+                        files.push(exp.file);
+                        docIndex++;
+                    }
+                });
             }
 
-            // Progress simulation
+            // Ensure all arrays are the same length
+            if (documentNo.length !== docNames.length || docNames.length !== files.length) {
+                throw new Error(`Mismatched counts: ${documentNo.length} documentNo, ${docNames.length} docNames vs ${files.length} files`);
+            }
+
             progressInterval = setInterval(() => {
                 setUploadProgress(prev => Math.min(prev + 10, 90));
             }, 300);
 
-            // Actual upload using the full candidate ID (including 'candidate-' prefix)
-            const response = await uploadDocumentAPI(
-                userId, // Using the full userId from Redux (e.g., 'candidate-8612ab3933764d2c6e39fd0ff898a19a')
-                docNames,
-                files
-            );
+            // Use new API
+            const response = isEditMode
+                ? await updateCandidateDocument(userId, documentId, documentNo, docNames, files)
+                : await uploadDocumentAPI(userId, docNames, files);
 
-            // Complete progress
             clearInterval(progressInterval);
             setUploadProgress(100);
-            await new Promise(resolve => setTimeout(resolve, 500)); // Show 100% briefly
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            toast.success('Documents uploaded successfully!');
+            toast.success(isEditMode ? 'Documents updated successfully!' : 'Documents uploaded successfully!');
             navigate('/candidateDocumentsView', { state: { documents: data } });
 
         } catch (error) {
             if (progressInterval) clearInterval(progressInterval);
             setUploadProgress(0);
 
-            console.error('Upload error details:', {
-                candidateId: userId,
-                company,
-                error: error.response?.data || error.message
-            });
-
-            let errorMessage = 'Upload failed. Please try again.';
-
-            if (error.response) {
-                // Server responded with error status
-                errorMessage = error.response.data?.message ||
-                    `Server error: ${error.response.status}`;
-
-                // Specific handling for 500 errors
-                if (error.response.status === 500) {
-                    errorMessage = 'Server encountered an error. Please contact support.';
-                }
-            } else if (error.request) {
-                errorMessage = 'Network error - please check your connection';
-            } else if (error.message.includes('No documents')) {
-                errorMessage = error.message;
-            }
-
-            toast.error(errorMessage);
+            console.error('Submission error:', error.response?.data || error.message);
+            toast.error(error.response?.data?.message || 'Failed to update documents');
         } finally {
             setIsSubmitting(false);
         }
     };
-    const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false }) => {
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [showFullPreview, setShowFullPreview] = useState(false);
-    const isImage = file?.type?.startsWith('image/');
-    const isPDF = file?.name?.toLowerCase().endsWith('.pdf');
-     const modalRef = useRef(null);
 
-    useEffect(() => {
-        if (file && (isImage || isPDF)) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewUrl(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setPreviewUrl(null);
+
+
+    const FilePreview = ({ file, onRemove, fieldName, showRemove = true, thumbnail = false, editMode = false }) => {
+        const [previewUrl, setPreviewUrl] = useState(null);
+        const [showFullPreview, setShowFullPreview] = useState(false);
+        const isImage = file?.type?.startsWith('image/') ||
+            (file?.url && file.url.match(/\.(jpg|jpeg|png|gif)$/i));
+        const isPDF = file?.type?.includes('pdf') ||
+            (file?.url && file.url.match(/\.pdf$/i));
+        const modalRef = useRef(null);
+
+        useEffect(() => {
+            if (!file) return;
+
+            // Handle existing files (from API)
+            if (file.existing) {
+                setPreviewUrl(file.url);
+                return;
+            }
+
+            // Handle new files (from upload)
+            if (file instanceof File || file instanceof Blob) {
+                const reader = new FileReader();
+                reader.onload = (e) => setPreviewUrl(e.target.result);
+                reader.readAsDataURL(file);
+            } else if (file.url) {
+                setPreviewUrl(file.url);
+            }
+        }, [file]);
+
+        if (!file) return null;
+        if (editMode && !(file instanceof File) && file?.existing) {
+            return null;
         }
-    }, [file, isImage, isPDF]);
 
-    if (!file) return null;
-
-    if (thumbnail) {
-        return (
-            <div className="position-relative" style={{ width: "fit-content" }}>
-                <div
-                    className="thumbnail-preview"
-                    onClick={() => setShowFullPreview(true)}
-                    style={{ cursor: 'pointer' }}
-                >
-                    {isImage && previewUrl ? (
-                        <img
-                            src={previewUrl}
-                            alt="Thumbnail"
-                            className="img-thumbnail"
-                            style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover"
-                            }}
-                        />
-                    ) : (
-                        <div className="file-thumbnail d-flex flex-column align-items-center justify-content-center bg-light rounded p-1">
-                            {isPDF ? (
-                                <FiFilePdf size={24} className="text-danger" />
-                            ) : file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
-                                <FiFileWord size={24} className="text-primary" />
-                            ) : (
-                                <FiFile size={24} className="text-primary" />
-                            )}
-                            <small className="text-truncate mt-1" style={{ maxWidth: '60px' }}>
-                                {file.name.split('.')[0].substring(0, 6)}...
-                            </small>
-                        </div>
-                    )}
-                </div>
-                
-                {showRemove && (
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-danger position-absolute top-0 end-0 m-0 p-0 rounded-circle"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onRemove && onRemove();
-                        }}
-                        aria-label="Remove file"
-                        style={{ 
-                            width: '20px', 
-                            height: '20px',
-                            transform: 'translate(30%, -30%)'
-                        }}
+        if (thumbnail) {
+            return (
+                <div className="position-relative" style={{ width: "fit-content" }}>
+                    <div
+                        className="thumbnail-preview"
+                        onClick={() => setShowFullPreview(true)}
+                        style={{ cursor: 'pointer' }}
                     >
-                        <FiX size={12} />
-                    </button>
-                )}
-                
-                 {showFullPreview && (
-                    <div 
-                        className="modal-backdrop"
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                            zIndex: 1050,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onClick={() => setShowFullPreview(false)}
-                    >
-                        <div 
-                            ref={modalRef}
-                            className="modal-content"
-                            style={{
-                                backgroundColor: 'white',
-                                borderRadius: '8px',
-                                maxWidth: '90%',
-                                maxHeight: '90vh',
-                                overflow: 'auto',
-                                padding: '20px',
-                                position: 'relative'
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <button
-                                type="button"
-                                className="btn-close"
+                        {isImage && previewUrl ? (
+                            <img
+                                src={previewUrl}
+                                alt="Thumbnail"
+                                className="img-thumbnail"
                                 style={{
-                                    position: 'absolute',
-                                    top: '10px',
-                                    right: '10px',
-                                    zIndex: 1
+                                    width: "60px",
+                                    height: "60px",
+                                    objectFit: "cover"
                                 }}
-                                onClick={() => setShowFullPreview(false)}
-                                aria-label="Close"
-                            ></button>
-                            
-                            <div className="modal-body">
-                                {isImage ? (
-                                    <img
-                                        src={previewUrl}
-                                        alt="Full Preview"
-                                        style={{ 
-                                            maxWidth: '100%',
-                                            maxHeight: '80vh',
-                                            display: 'block',
-                                            margin: '0 auto'
-                                        }}
-                                    />
-                                ) : isPDF ? (
-                                    <embed
-                                        src={previewUrl}
-                                        type="application/pdf"
-                                        style={{
-                                            width: '100%',
-                                            height: '80vh',
-                                            border: 'none'
-                                        }}
-                                    />
+                            />
+                        ) : (
+                            <div className="file-thumbnail d-flex flex-column align-items-center justify-content-center bg-light rounded p-1">
+                                {isPDF ? (
+                                    <FiFilePdf size={24} className="text-danger" />
+                                ) : file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx') ? (
+                                    <FiFileWord size={24} className="text-primary" />
                                 ) : (
-                                    <div className="d-flex flex-column align-items-center justify-content-center p-5">
-                                        <FiFile size={48} className="text-muted mb-3" />
-                                        <p>No preview available for this file type</p>
-                                    </div>
+                                    <FiFile size={24} className="text-primary" />
                                 )}
+                                <small className="text-truncate mt-1" style={{ maxWidth: '60px' }}>
+                                    {file.name.split('.')[0].substring(0, 6)}...
+                                </small>
                             </div>
-                            <div className="modal-footer">
+                        )}
+                    </div>
+
+                    {showRemove && (
+                        <button
+                            type="button"
+                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-0 p-0 rounded-circle"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemove && onRemove();
+                            }}
+                            aria-label="Remove file"
+                            style={{
+                                width: '20px',
+                                height: '20px',
+                                transform: 'translate(30%, -30%)'
+                            }}
+                        >
+                            <FiX size={12} />
+                        </button>
+                    )}
+
+                    {showFullPreview && (
+                        <div
+                            className="modal-backdrop"
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                zIndex: 1050,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => setShowFullPreview(false)}
+                        >
+                            <div
+                                ref={modalRef}
+                                className="modal-content"
+                                style={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '8px',
+                                    maxWidth: '90%',
+                                    maxHeight: '90vh',
+                                    overflow: 'auto',
+                                    padding: '20px',
+                                    position: 'relative'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '10px',
+                                        right: '10px',
+                                        zIndex: 1
+                                    }}
+                                    onClick={() => setShowFullPreview(false)}
+                                    aria-label="Close"
+                                ></button>
+
+                                <div className="modal-body">
+                                    {isImage ? (
+                                        <img
+                                            src={previewUrl}
+                                            alt="Full Preview"
+                                            style={{
+                                                maxWidth: '100%',
+                                                maxHeight: '80vh',
+                                                display: 'block',
+                                                margin: '0 auto'
+                                            }}
+                                        />
+                                    ) : isPDF ? (
+                                        <embed
+                                            src={previewUrl}
+                                            type="application/pdf"
+                                            style={{
+                                                width: '100%',
+                                                height: '80vh',
+                                                border: 'none'
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="d-flex flex-column align-items-center justify-content-center p-5">
+                                            <FiFile size={48} className="text-muted mb-3" />
+                                            <p>No preview available for this file type</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="modal-footer">
                                     <button
                                         type="button"
                                         className="btn btn-secondary"
@@ -502,83 +653,83 @@ const CandidateDocumentUpload = () => {
                                     >
                                         Download
                                     </a>
-                                </div> 
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        return (
+            <div className="file-preview-container">
+                {isImage && previewUrl ? (
+                    <div className="image-preview-wrapper position-relative">
+                        <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="img-thumbnail"
+                            style={{
+                                width: "150px",
+                                height: "150px",
+                                objectFit: "cover"
+                            }}
+                        />
+                        <div className="file-info-overlay">
+                            <div className="d-flex justify-content-between align-items-center w-100">
+                                <span className="text-truncate" style={{ maxWidth: '120px' }}>{file.name}</span>
+                                <small className="text-white">{file.existing ? 'Existing' : `${(file.size / 1024 / 1024).toFixed(2)} MB`}</small>
+                            </div>
+                        </div>
+                        {showRemove && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                onClick={() => {
+                                    setValue(fieldName, null);
+                                    onRemove && onRemove();
+                                }}
+                                aria-label="Remove file"
+                                style={{ width: '24px', height: '24px', padding: '0' }}
+                            >
+                                <FiX size={12} />
+                            </button>
+                        )}
+                    </div>
+                ) : (
+                    <div className="file-preview d-flex align-items-center bg-light rounded p-3 position-relative">
+                        {showRemove && (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                onClick={() => {
+                                    setValue(fieldName, null);
+                                    onRemove && onRemove();
+                                }}
+                                aria-label="Remove file"
+                                style={{ width: '24px', height: '24px', padding: '0' }}
+                            >
+                                <FiX size={12} />
+                            </button>
+                        )}
+                        <div className="d-flex align-items-center w-100">
+                            <FiFile className="me-3 fs-4 text-primary" />
+                            <div className="flex-grow-1">
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <span className="fw-medium text-truncate me-2" style={{ maxWidth: '200px' }}>{file.name}</span>
+                                    <small className="text-muted">{file.existing ? 'Existing' : `${(file.size / 1024 / 1024).toFixed(2)} MB`}</small>
+                                </div>
+                                <div className="d-flex align-items-center mt-1">
+                                    <CheckCircleFill className="text-success me-1" size={12} />
+                                    <small className="text-success">{file.existing ? 'Existing' : 'Uploaded'}</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
         );
-    }
-
-    return (
-        <div className="file-preview-container">
-            {isImage && previewUrl ? (
-                <div className="image-preview-wrapper position-relative">
-                    <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="img-thumbnail"
-                        style={{
-                            width: "150px",
-                            height: "150px",
-                            objectFit: "cover"
-                        }}
-                    />
-                    <div className="file-info-overlay">
-                        <div className="d-flex justify-content-between align-items-center w-100">
-                            <span className="text-truncate" style={{ maxWidth: '120px' }}>{file.name}</span>
-                            <small className="text-white">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
-                        </div>
-                    </div>
-                    {showRemove && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
-                            onClick={() => {
-                                setValue(fieldName, null);
-                                onRemove && onRemove();
-                            }}
-                            aria-label="Remove file"
-                            style={{ width: '24px', height: '24px', padding: '0' }}
-                        >
-                            <FiX size={12} />
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="file-preview d-flex align-items-center bg-light rounded p-3 position-relative">
-                    {showRemove && (
-                        <button
-                            type="button"
-                            className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
-                            onClick={() => {
-                                setValue(fieldName, null);
-                                onRemove && onRemove();
-                            }}
-                            aria-label="Remove file"
-                            style={{ width: '24px', height: '24px', padding: '0' }}
-                        >
-                            <FiX size={12} />
-                        </button>
-                    )}
-                    <div className="d-flex align-items-center w-100">
-                        <FiFile className="me-3 fs-4 text-primary" />
-                        <div className="flex-grow-1">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <span className="fw-medium text-truncate me-2" style={{ maxWidth: '200px' }}>{file.name}</span>
-                                <small className="text-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</small>
-                            </div>
-                            <div className="d-flex align-items-center mt-1">
-                                <CheckCircleFill className="text-success me-1" size={12} />
-                                <small className="text-success">Uploaded</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
+    };
 
     const DragDropArea = ({ fieldName, label, required = false, accept = ".pdf,.doc,.docx,.png,.jpg,.jpeg", description }) => {
         const file = getValues(fieldName);
@@ -649,7 +800,7 @@ const CandidateDocumentUpload = () => {
                                 htmlFor={fieldName}
                                 className="btn btn-sm btn-outline-primary me-2"
                             >
-                                <FiUpload className="me-1" /> Change File
+                                <FiUpload className="me-1" /> {isEditMode ? 'Replace File' : 'Change File'}
                             </label>
                             <button
                                 onClick={() => {
@@ -677,6 +828,7 @@ const CandidateDocumentUpload = () => {
                                     trigger(fieldName);
                                 }}
                                 thumbnail={true}
+                                editMode={isEditMode}
                             />
                         </div>
                     )}
@@ -686,226 +838,217 @@ const CandidateDocumentUpload = () => {
     };
 
     const ExperienceFileUpload = ({ index }) => {
-    const fileInputRef = useRef(null);
-    const file = getValues(`experience.${index}.file`);
+        const fileInputRef = useRef(null);
+        const file = getValues(`experience.${index}.file`);
 
-    const handleClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
+        const handleClick = () => {
+            if (fileInputRef.current) {
+                fileInputRef.current.click();
+            }
+        };
 
-    return (
-        <div className="row g-3 align-items-center">
-            <div className="col-md-4">
-                <div className="mb-2">
-                    <label className="form-label">Experience Letter</label>
+        return (
+            <div className="row g-3 align-items-center">
+                <div className="col-md-4">
+                    <div className="mb-2">
+                        <label className="form-label">Experience Letter</label>
+                    </div>
+                    <Controller
+                        name={`experience.${index}.file`}
+                        control={control}
+                        rules={{
+                            validate: (file) => {
+                                const company = getValues(`experience.${index}.company`)?.trim();
+                                if (file && !company) return true;
+                                if (company && !file) return 'Experience certificate is required when company name is provided';
+                                return validateFile(file, false, 'Experience Certificate');
+                            }
+                        }}
+                        render={({ field }) => (
+                            <div
+                                className={`drag-drop-area small ${errors.experience?.[index]?.file && touchedFields.experience?.[index] ? 'is-invalid' : ''}`}
+                                onClick={handleClick}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                {!file ? (
+                                    <>
+                                        <FiUpload className="upload-icon mb-2" size={18} />
+                                        <p className="mb-1">
+                                            <span className="text-primary">Click to upload</span>
+                                        </p>
+                                        <small className="text-muted">
+                                            PDF, DOC, DOCX (Max 1MB)
+                                        </small>
+                                        <input
+                                            type="file"
+                                            className="d-none"
+                                            ref={fileInputRef}
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={(e) => {
+                                                field.onChange(e.target.files[0]);
+                                                handleExperienceChange(index, 'file', e.target.files[0]);
+                                                setTouchedFields(prev => {
+                                                    const newExperience = [...prev.experience];
+                                                    newExperience[index] = true;
+                                                    return { ...prev, experience: newExperience };
+                                                });
+                                                e.target.value = null;
+                                            }}
+                                            aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="text-center py-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleClick}
+                                            className="btn btn-sm btn-link text-primary p-0"
+                                        >
+                                            <FiUpload className="me-1" size={18} />
+                                            Replace file
+                                        </button>
+                                        <input
+                                            type="file"
+                                            className="d-none"
+                                            ref={fileInputRef}
+                                            accept=".pdf,.doc,.docx"
+                                            onChange={(e) => {
+                                                field.onChange(e.target.files[0]);
+                                                handleExperienceChange(index, 'file', e.target.files[0]);
+                                                e.target.value = null;
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    />
+                    {errors.experience?.[index]?.file && touchedFields.experience?.[index] && (
+                        <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
+                    )}
                 </div>
-                <Controller
-                    name={`experience.${index}.file`}
-                    control={control}
-                    rules={{
-                        validate: (file) => {
-                            const company = getValues(`experience.${index}.company`)?.trim();
-                            if (file && !company) return true;
-                            if (company && !file) return 'Experience certificate is required when company name is provided';
-                            return validateFile(file, false, 'Experience Certificate');
-                        }
-                    }}
-                    render={({ field }) => (
-                        <div
-                            className={`drag-drop-area small ${errors.experience?.[index]?.file && touchedFields.experience?.[index] ? 'is-invalid' : ''}`}
-                            onClick={handleClick}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            {!file ? (
-                                <>
-                                    <FiUpload className="upload-icon mb-2" size={18} />
-                                    <p className="mb-1">
-                                        <span className="text-primary">Click to upload</span>
-                                    </p>
-                                    <small className="text-muted">
-                                        PDF, DOC, DOCX (Max 1MB)
-                                    </small>
-                                    <input
-                                        type="file"
-                                        className="d-none"
-                                        ref={fileInputRef}
-                                        accept=".pdf,.doc,.docx"
-                                        onChange={(e) => {
-                                            field.onChange(e.target.files[0]);
-                                            handleExperienceChange(index, 'file', e.target.files[0]);
-                                            setTouchedFields(prev => {
-                                                const newExperience = [...prev.experience];
-                                                newExperience[index] = true;
-                                                return { ...prev, experience: newExperience };
-                                            });
-                                            // Reset input value to allow selecting same file again
-                                            e.target.value = null;
-                                        }}
-                                        aria-invalid={errors.experience?.[index]?.file ? "true" : "false"}
-                                    />
-                                </>
-                            ) : (
-                                <div className="text-center py-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleClick}
-                                        className="btn btn-sm btn-link text-primary p-0"
-                                    >
-                                        <FiUpload className="me-1" size={18} />
-                                        Replace file
-                                    </button>
-                                    <input
-                                        type="file"
-                                        className="d-none"
-                                        ref={fileInputRef}
-                                        accept=".pdf,.doc,.docx"
-                                        onChange={(e) => {
-                                            field.onChange(e.target.files[0]);
-                                            handleExperienceChange(index, 'file', e.target.files[0]);
-                                            // Reset input value to allow selecting same file again
-                                            e.target.value = null;
-                                        }}
-                                    />
-                                </div>
-                            )}
+                <div className="col-md-4">
+                    {file && (
+                        <div className="d-flex justify-content-center">
+                            <FilePreview
+                                file={file}
+                                fieldName={`experience.${index}.file`}
+                                onRemove={() => handleExperienceChange(index, 'file', null)}
+                                thumbnail={true}
+                                editMode={isEditMode}
+                            />
                         </div>
                     )}
-                />
-                {errors.experience?.[index]?.file && touchedFields.experience?.[index] && (
-                    <div className="invalid-feedback d-block">{errors.experience[index].file.message}</div>
-                )}
+                </div>
             </div>
-            <div className="col-md-4">
-                {file && (
-                    <div className="d-flex justify-content-center">
-                        <FilePreview
-                            file={file}
-                            fieldName={`experience.${index}.file`}
-                            onRemove={() => handleExperienceChange(index, 'file', null)}
-                            thumbnail={true}
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
+        );
+    };
 
     const EducationFileUpload = ({ qualification }) => {
-    const fileInputRef = useRef(null);
-    const file = getValues(`education.${qualification.id}.file`);
+        const fileInputRef = useRef(null);
+        const file = getValues(`education.${qualification.id}.file`);
 
-    const handleClick = () => {
-        fileInputRef.current.click();
-    };
+        const handleClick = () => {
+            fileInputRef.current.click();
+        };
 
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setValue(`education.${qualification.id}.file`, file);
-            setTouchedFields(prev => ({
-                ...prev,
-                education: {
-                    ...prev.education,
-                    [qualification.id]: true
-                }
-            }));
-            trigger(`education.${qualification.id}.file`);
-        }
-        // Reset input value to allow selecting same file again
-        e.target.value = null;
-    };
+        const handleFileChange = (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                setValue(`education.${qualification.id}.file`, file);
+                setTouchedFields(prev => ({
+                    ...prev,
+                    education: {
+                        ...prev.education,
+                        [qualification.id]: true
+                    }
+                }));
+                trigger(`education.${qualification.id}.file`);
+            }
+            e.target.value = null;
+        };
 
-    return (
-        <div className="row g-3 align-items-center">
-            <div className="col-md-4">
-                <label className="form-label d-block fw-medium">
-                    {qualification.name} {qualification.required && <span className="text-danger">*</span>}
-                </label>
-                {qualification.description && <p className="text-muted small mb-2">{qualification.description}</p>}
-                {!file ? (
-                    <div
-                        className={`drag-drop-area small ${errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] ? 'is-invalid' : ''}`}
-                        onClick={handleClick}
-                        style={{ cursor: 'pointer' }}
-                        aria-describedby={`education-${qualification.id}-help`}
-                    >
-                        <FiUpload className="upload-icon mb-2" size={18} />
-                        <p className="mb-1">
-                            <span className="text-primary">Click to upload</span>
-                        </p>
-                        <small className="text-muted">
-                            PDF, DOC, DOCX, PNG, JPG (Max 1MB)
-                        </small>
-                        <input
-                            type="file"
-                            className="d-none"
-                            ref={fileInputRef}
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                            onChange={handleFileChange}
-                            aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
-                        />
-                    </div>
-                ) : (
-                    <div className="text-center">
-                        <input
-                            type="file"
-                            className="d-none"
-                            ref={fileInputRef}
-                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                            onChange={handleFileChange}
-                        />
-                        <button
-                            type="button"
+        return (
+            <div className="row g-3 align-items-center">
+                <div className="col-md-4">
+                    <label className="form-label d-block fw-medium">
+                        {qualification.name} {qualification.required && <span className="text-danger">*</span>}
+                    </label>
+                    {qualification.description && <p className="text-muted small mb-2">{qualification.description}</p>}
+                    {!file ? (
+                        <div
+                            className={`drag-drop-area small ${errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] ? 'is-invalid' : ''}`}
                             onClick={handleClick}
-                            className="btn btn-sm btn-outline-primary me-2"
+                            style={{ cursor: 'pointer' }}
+                            aria-describedby={`education-${qualification.id}-help`}
                         >
-                            <FiUpload className="me-1" /> Change File
-                        </button>
-                        <button
-                            onClick={() => {
-                                setValue(`education.${qualification.id}.file`, null);
-                                trigger(`education.${qualification.id}.file`);
-                            }}
-                            className="btn btn-sm btn-outline-danger"
-                        >
-                            <FiX className="me-1" /> Remove
-                        </button>
-                    </div>
-                )}
-                {errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] && (
-                    <div className="invalid-feedback d-block">
-                        {errors.education[qualification.id].file.message}
-                    </div>
-                )}
+                            <FiUpload className="upload-icon mb-2" size={18} />
+                            <p className="mb-1">
+                                <span className="text-primary">Click to upload</span>
+                            </p>
+                            <small className="text-muted">
+                                PDF, DOC, DOCX, PNG, JPG (Max 1MB)
+                            </small>
+                            <input
+                                type="file"
+                                className="d-none"
+                                ref={fileInputRef}
+                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                onChange={handleFileChange}
+                                aria-invalid={errors.education?.[qualification.id]?.file ? "true" : "false"}
+                            />
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <input
+                                type="file"
+                                className="d-none"
+                                ref={fileInputRef}
+                                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                onChange={handleFileChange}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleClick}
+                                className="btn btn-sm btn-outline-primary me-2"
+                            >
+                                <FiUpload className="me-1" /> {isEditMode ? 'Replace File' : 'Change File'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setValue(`education.${qualification.id}.file`, null);
+                                    trigger(`education.${qualification.id}.file`);
+                                }}
+                                className="btn btn-sm btn-outline-danger"
+                            >
+                                <FiX className="me-1" /> Remove
+                            </button>
+                        </div>
+                    )}
+                    {errors.education?.[qualification.id]?.file && touchedFields.education?.[qualification.id] && (
+                        <div className="invalid-feedback d-block">
+                            {errors.education[qualification.id].file.message}
+                        </div>
+                    )}
+                </div>
+                <div className="col-md-4">
+                    {file && (
+                        <div className="d-flex justify-content-center">
+                            <FilePreview
+                                file={file}
+                                fieldName={`education.${qualification.id}.file`}
+                                onRemove={() => {
+                                    setValue(`education.${qualification.id}.file`, null);
+                                    trigger(`education.${qualification.id}.file`);
+                                }}
+                                thumbnail={true}
+                                editMode={isEditMode}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
-            <div className="col-md-4">
-                {file && (
-                    <div className="d-flex justify-content-center">
-                        <FilePreview
-                            file={file}
-                            fieldName={`education.${qualification.id}.file`}
-                            onRemove={() => {
-                                setValue(`education.${qualification.id}.file`, null);
-                                trigger(`education.${qualification.id}.file`);
-                            }}
-                            thumbnail={true}
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-    const toggleQualification = (id) => {
-        if (expandedQualification === id) {
-            setExpandedQualification(null);
-        } else {
-            setExpandedQualification(id);
-        }
+        );
     };
 
     return (
@@ -913,7 +1056,9 @@ const CandidateDocumentUpload = () => {
             <div className="container-fluid p-0">
                 <div className="row d-flex align-items-center justify-content-between mt-1 mb-2">
                     <div className="col">
-                        <h1 className="h3 mb-3"><strong>Upload Your Documents</strong></h1>
+                        <h1 className="h3 mb-3">
+                            <strong>{isEditMode ? 'Edit Your Documents' : 'Upload Your Documents'}</strong>
+                        </h1>
                     </div>
                     <div className="col-auto">
                         <nav aria-label="breadcrumb">
@@ -921,7 +1066,9 @@ const CandidateDocumentUpload = () => {
                                 <li className="breadcrumb-item">
                                     <Link to="/main" className="custom-link">Home</Link>
                                 </li>
-                                <li className="breadcrumb-item active">Document Upload</li>
+                                <li className="breadcrumb-item active">
+                                    {isEditMode ? 'Edit Documents' : 'Document Upload'}
+                                </li>
                             </ol>
                         </nav>
                     </div>
@@ -933,9 +1080,31 @@ const CandidateDocumentUpload = () => {
                             <div className="card-header bg-white border-0">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 className="card-title mb-0">Complete Your Profile</h5>
-                                        <p className="text-muted mb-0">Upload the required documents to proceed with your application</p>
+                                        <h5 className="card-title mb-0">
+                                            {isEditMode ? 'Update Your Documents' : 'Complete Your Profile'}
+                                        </h5>
+                                        <p className="text-muted mb-0">
+                                            {isEditMode
+                                                ? 'Update the documents below as needed'
+                                                : 'Upload the required documents to proceed with your application'}
+                                        </p>
+
+                                        {isEditMode && (
+                                            <div className="alert alert-info mt-3 mb-4">
+                                                <strong>Edit Mode:</strong> You're editing your existing documents.
+                                                Only upload new files for the documents you want to update.
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {isEditMode && (
+                                        <button
+                                            onClick={() => navigate('/candidateDocumentsView')}
+                                            className="btn btn-outline-secondary btn-sm"
+                                        >
+                                            <ArrowLeft className="me-1" /> Back to View
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -961,7 +1130,17 @@ const CandidateDocumentUpload = () => {
                                                         name="resume"
                                                         control={control}
                                                         rules={{
-                                                            validate: (file) => validateFile(file, true, 'Resume/CV')
+                                                            validate: (file) => {
+                                                                if (isEditMode) {
+                                                                    // Only validate if file is being replaced
+                                                                    if (file instanceof File) {
+                                                                        return validateFile(file, true, 'Resume/CV');
+                                                                    }
+                                                                    return true; // Don't require in edit mode if not replaced
+                                                                }
+                                                                // In create mode, require file
+                                                                return validateFile(file, true, 'Resume/CV');
+                                                            }
                                                         }}
                                                         render={({ field }) => (
                                                             <DragDropArea
@@ -979,7 +1158,17 @@ const CandidateDocumentUpload = () => {
                                                         name="idProof"
                                                         control={control}
                                                         rules={{
-                                                            validate: (file) => validateFile(file, true, 'ID Proof')
+                                                            validate: (file) => {
+                                                                if (isEditMode) {
+                                                                    // Only validate if file is being replaced
+                                                                    if (file instanceof File) {
+                                                                        return validateFile(file, true, 'ID Proof');
+                                                                    }
+                                                                    return true; // Don't require in edit mode if not replaced
+                                                                }
+                                                                // In create mode, require file
+                                                                return validateFile(file, true, 'ID Proof');
+                                                            }
                                                         }}
                                                         render={({ field }) => (
                                                             <DragDropArea
@@ -1165,16 +1354,17 @@ const CandidateDocumentUpload = () => {
                                                     <button
                                                         type="submit"
                                                         className="btn btn-primary px-4"
-                                                        disabled={isSubmitting || !isValid}
+                                                        disabled={isSubmitting || (isEditMode ? !isAnyFileReplaced() : !isValid)}
                                                     >
                                                         {isSubmitting ? (
                                                             <>
                                                                 <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                                                                Uploading...
+                                                                {isEditMode ? 'Updating...' : 'Uploading...'}
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <FiUpload className="me-1" /> Submit Documents
+                                                                <FiUpload className="me-1" />
+                                                                {isEditMode ? 'Update Documents' : 'Submit Documents'}
                                                             </>
                                                         )}
                                                     </button>
@@ -1237,62 +1427,62 @@ const CandidateDocumentUpload = () => {
                     background: rgba(0, 0, 0, 0.7);
                     color: white;
                     padding: 0.25rem 0.5rem;
-                    font-size: 0.8rem;
-                }
-                
-                .thumbnail-preview {
-                    width: 60px;
-                    height: 60px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 1px solid #dee2e6;
-                    border-radius: 4px;
-                    overflow: hidden;
-                    transition: all 0.2s ease;
-                }
-                
-                .thumbnail-preview:hover {
-                    border-color: #0d6efd;
-                    transform: scale(1.05);
-                }
-                
-                .file-thumbnail {
-                    width: 60px;
-                    height: 60px;
-                }
-                
-                .modal {
-                    z-index: 1050;
-                }
-                
-                .modal-backdrop {
-                    z-index: 1040;
-                }
-                
-                .experience-item {
-                    transition: all 0.3s ease;
-                }
-                
-                .experience-item:hover {
-                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-                }
-                
-                .section-header {
-                    padding-bottom: 0.5rem;
-                    border-bottom: 1px solid #dee2e6;
-                }
-                
-                .accordion-button:not(.collapsed) {
-                    background-color: rgba(13, 110, 253, 0.05);
-                    color: #0d6efd;
-                }
-                
-                .accordion-button:focus {
-                    box-shadow: none;
-                    border-color: rgba(13, 110, 253, 0.25);
-                }
-            `}</style>
+                                    font-size: 0.8rem;
+                                }
+                                
+                                .thumbnail-preview {
+                                    width: 60px;
+                                    height: 60px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    border: 1px solid #dee2e6;
+                                    border-radius: 4px;
+                                    overflow: hidden;
+                                    transition: all 0.2s ease;
+                                }
+                                
+                                .thumbnail-preview:hover {
+                                    border-color: #0d6efd;
+                                    transform: scale(1.05);
+                                }
+                                
+                                .file-thumbnail {
+                                    width: 60px;
+                                    height: 60px;
+                                }
+                                
+                                .modal {
+                                    z-index: 1050;
+                                }
+                                
+                                .modal-backdrop {
+                                    z-index: 1040;
+                                }
+                                
+                                .experience-item {
+                                    transition: all 0.3s ease;
+                                }
+                                
+                                .experience-item:hover {
+                                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+                                }
+                                
+                                .section-header {
+                                    padding-bottom: 0.5rem;
+                                    border-bottom: 1px solid #dee2e6;
+                                }
+                                
+                                .accordion-button:not(.collapsed) {
+                                    background-color: rgba(13, 110, 253, 0.05);
+                                    color: #0d6efd;
+                                }
+                                
+                                .accordion-button:focus {
+                                    box-shadow: none;
+                                    border-color: rgba(13, 110, 253, 0.25);
+                                }
+                            `}</style>
         </LayOut>
     );
 };

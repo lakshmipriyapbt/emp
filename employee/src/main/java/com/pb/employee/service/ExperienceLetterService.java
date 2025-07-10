@@ -11,7 +11,7 @@ import java.util.Collection;
 
 public interface ExperienceLetterService {
 
-    ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request,ExperienceLetterFieldsRequest experienceLetterFieldsRequest);
+    ResponseEntity<byte[]> downloadServiceLetter(HttpServletRequest request,ExperienceLetterFieldsRequest experienceLetterFieldsRequest)throws EmployeeException;
 
     ResponseEntity<byte[]> uploadExperienceLetter(ExperienceLetterRequest request);
 
