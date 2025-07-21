@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emp-deployment
+  namespace: ems
+  labels:
+    app: employee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee
+  template:
+    metadata:
+      labels:
+        app: employee
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: employee-demo-container
+        image: employee-demo:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8012
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://172.31.88.27:9201
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://172.31.88.27:3306/invoice
+        volumeMounts:
+        - name: keystore-volume
+          mountPath: /app/certificates/
+          readOnly: true
+        - name: prod-volume
+          mountPath: /home/ubuntu/ems_prod_imag_bkp
+      volumes:
+      - name: prod-volume
+        persistentVolumeClaim:
+          claimName: ems-pvc
+      - name: keystore-volume
+        secret:
+          secretName: employee-secret
+          items:
+            - key: keystore.jks
+              path: keystore.jks

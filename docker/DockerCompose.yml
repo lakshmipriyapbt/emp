@@ -12,13 +12,13 @@ services:
       - ems-demo-docker-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9201
-      - SPRING_DATASOURCE_URL=jdbc:mysql://192.168.1.164:3306/invoice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.88.27:3306/invoice
     volumes:
-      - /etc/letsencrypt/live/ems.pathbreakertech.in/fullchain.pem:/etc/ssl/certs/server.crt:ro
-      - /etc/letsencrypt/live/ems.pathbreakertech.in/privkey.pem:/etc/ssl/private/server.key:ro
+      - /etc/letsencrypt/live/emp.pathbreakertech.in/fullchain.pem:/etc/ssl/certs/server.crt:ro
+      - /etc/letsencrypt/live/emp.pathbreakertech.in/privkey.pem:/etc/ssl/private/server.key:ro
       # Add this if using dhparam
       - /etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/dhparam.pem:ro
-      - ems_produpload_files:/home/deploy_admin18/ems_prod_imag_bkp/
+      - ems_produpload_files:/home/ubuntu/ems_prod_imag_bkp/
 
   identity:
     build:
@@ -32,9 +32,9 @@ services:
       - ems-demo-docker-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9201
-      - SPRING_DATASOURCE_URL=jdbc:mysql://192.168.1.164:3306/invoice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.88.27:3306/invoice
     volumes:
-      - ems_produpload_files:/home/deploy_admin18/ems_prod_imag_bkp/
+      - ems_produpload_files:/home/ubuntu/ems_prod_imag_bkp/
 
   employee:
     build:
@@ -48,9 +48,9 @@ services:
       - ems-demo-docker-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9201
-      - SPRING_DATASOURCE_URL=jdbc:mysql://192.168.1.164:3306/invoice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.88.27:3306/invoice
     volumes:
-      - ems_produpload_files:/home/deploy_admin18/ems_prod_imag_bkp/
+      - ems_produpload_files:/home/ubuntu/ems_prod_imag_bkp/
 
   invoice:
     build:
@@ -64,9 +64,9 @@ services:
       - ems-demo-docker-network
     environment:
       - ELASTICSEARCH_URL=http://host.docker.internal:9201
-      - SPRING_DATASOURCE_URL=jdbc:mysql://192.168.1.164:3306/invoice
+      - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.88.27:3306/invoice
     volumes:
-      - ems_produpload_files:/home/deploy_admin18/ems_prod_imag_bkp/
+      - ems_produpload_files:/home/ubuntu/ems_prod_imag_bkp/
 
 networks:
   ems-demo-docker-network:

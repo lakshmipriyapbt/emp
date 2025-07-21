@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoice-deployment
+  namespace: ems
+  labels:
+    app: invoice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoice
+  template:
+    metadata:
+      labels:
+        app: invoice
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: invoice-demo-container
+        image: invoice-demo:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8002
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://172.31.88.27:9502
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://172.31.88.27:3306/invoice
+        volumeMounts:
+        - name: keystore-volume
+          mountPath: /app/certificates/
+          readOnly: true
+        - name: prod-volume
+          mountPath: /home/ubuntu/ems_prod_imag_bkp
+      volumes:
+      - name: prod-volume
+        persistentVolumeClaim:
+          claimName: ems-pvc
+      - name: keystore-volume
+        secret:
+          secretName: invoice-secret
+          items:
+            - key: keystore.jks
+              path: keystore.jks

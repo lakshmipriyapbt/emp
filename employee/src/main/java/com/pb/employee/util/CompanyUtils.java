@@ -134,12 +134,12 @@ public class CompanyUtils {
         }
         if (companyEntity.getImageFile() != null){
             String baseUrl = getBaseUrl(request);
-            String image = baseUrl + "home/deploy_admin18/ems_prod_imag_bkp/" + companyEntity.getImageFile();
+            String image = baseUrl + "home/ubuntu/ems_prod_imag_bkp/" + companyEntity.getImageFile();
             companyEntity.setImageFile(image);
         }
         if (companyEntity.getStampImage() != null){
             String baseUrl = getBaseUrl(request);
-            String image = baseUrl + "home/deploy_admin18/ems_prod_imag_bkp/" + companyEntity.getStampImage();
+            String image = baseUrl + "home/ubuntu/ems_prod_imag_bkp/" + companyEntity.getStampImage();
 
             companyEntity.setStampImage(image);
         }

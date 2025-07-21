@@ -1,0 +1,79 @@
+2025-07-16 07:40:04,303 INFO  [background-preinit] org.hibernate.validator.internal.util.Version.<clinit>:21 HV000001: Hibernate Validator 8.0.1.Final
+2025-07-16 07:40:04,531 INFO  [main] org.springframework.boot.StartupInfoLogger.logStarting:50 Starting InvoiceApplication v0.0.1-SNAPSHOT using Java 21.0.7 with PID 6891 (/opt/ems/invoice/build/libs/invoice-0.0.1-SNAPSHOT.jar started by root in /opt/ems/invoice/build/libs)
+2025-07-16 07:40:04,532 DEBUG [main] org.springframework.boot.StartupInfoLogger.logStarting:51 Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-07-16 07:40:04,534 INFO  [main] org.springframework.boot.SpringApplication.logStartupProfileInfo:654 No active profile set, falling back to 1 default profile: "default"
+2025-07-16 07:40:06,443 INFO  [main] org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn:143 Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-07-16 07:40:06,538 INFO  [main] org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn:211 Finished Spring Data repository scanning in 84 ms. Found 1 JPA repository interface.
+2025-07-16 07:40:07,513 INFO  [main] org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize:111 Tomcat initialized with port 8002 (https)
+2025-07-16 07:40:07,533 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Initializing ProtocolHandler ["https-jsse-nio-8002"]
+2025-07-16 07:40:07,545 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting service [Tomcat]
+2025-07-16 07:40:07,546 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-07-16 07:40:07,616 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Initializing Spring embedded WebApplicationContext
+2025-07-16 07:40:07,618 INFO  [main] org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.prepareWebApplicationContext:296 Root WebApplicationContext: initialization completed in 2971 ms
+2025-07-16 07:40:07,957 INFO  [main] org.hibernate.jpa.internal.util.LogHelper.logPersistenceUnitInformation:31 HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-07-16 07:40:08,060 INFO  [main] org.hibernate.Version.logVersion:44 HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-07-16 07:40:08,133 INFO  [main] org.hibernate.cache.internal.RegionFactoryInitiator.initiateService:50 HHH000026: Second-level cache disabled
+2025-07-16 07:40:08,683 INFO  [main] org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo.addTransformer:87 No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-07-16 07:40:08,732 INFO  [main] com.zaxxer.hikari.HikariDataSource.getConnection:109 HikariPool-1 - Starting...
+2025-07-16 07:40:09,249 INFO  [main] com.zaxxer.hikari.pool.HikariPool.checkFailFast:554 HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@26a9c6df
+2025-07-16 07:40:09,253 INFO  [main] com.zaxxer.hikari.HikariDataSource.getConnection:122 HikariPool-1 - Start completed.
+2025-07-16 07:40:09,333 WARN  [main] org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.constructDialect:153 HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-07-16 07:40:10,905 INFO  [main] org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator.initiateService:59 HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-07-16 07:40:10,992 INFO  [main] org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory:437 Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-07-16 07:40:11,054 DEBUG [main] com.invoice.opensearch.OpenSearchConfig.esClient:53 Intializing opensearch
+2025-07-16 07:40:13,000 WARN  [main] org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration$JpaWebConfiguration.openEntityManagerInViewInterceptor:236 spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-16 07:40:14,900 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting ProtocolHandler ["https-jsse-nio-8002"]
+2025-07-16 07:40:14,907 WARN  [main] org.springframework.context.support.AbstractApplicationContext.refresh:633 Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2025-07-16 07:40:14,911 INFO  [main] org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.destroy:650 Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-16 07:40:14,914 INFO  [main] com.zaxxer.hikari.HikariDataSource.close:349 HikariPool-1 - Shutdown initiated...
+2025-07-16 07:40:14,928 INFO  [main] com.zaxxer.hikari.HikariDataSource.close:351 HikariPool-1 - Shutdown completed.
+2025-07-16 07:40:14,953 INFO  [main] org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLogger.logMessage:82 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-07-16 07:40:14,997 ERROR [main] org.springframework.boot.diagnostics.LoggingFailureAnalysisReporter.report:40 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8002 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8002 or configure this application to listen on another port.
+
+2025-07-16 07:41:16,035 INFO  [background-preinit] org.hibernate.validator.internal.util.Version.<clinit>:21 HV000001: Hibernate Validator 8.0.1.Final
+2025-07-16 07:41:16,230 INFO  [main] org.springframework.boot.StartupInfoLogger.logStarting:50 Starting InvoiceApplication v0.0.1-SNAPSHOT using Java 21.0.7 with PID 7018 (/opt/ems/invoice/build/libs/invoice-0.0.1-SNAPSHOT.jar started by root in /opt/ems/invoice/build/libs)
+2025-07-16 07:41:16,232 DEBUG [main] org.springframework.boot.StartupInfoLogger.logStarting:51 Running with Spring Boot v3.3.4, Spring v6.1.13
+2025-07-16 07:41:16,233 INFO  [main] org.springframework.boot.SpringApplication.logStartupProfileInfo:654 No active profile set, falling back to 1 default profile: "default"
+2025-07-16 07:41:18,133 INFO  [main] org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn:143 Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-07-16 07:41:18,220 INFO  [main] org.springframework.data.repository.config.RepositoryConfigurationDelegate.registerRepositoriesIn:211 Finished Spring Data repository scanning in 76 ms. Found 1 JPA repository interface.
+2025-07-16 07:41:19,249 INFO  [main] org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize:111 Tomcat initialized with port 8002 (https)
+2025-07-16 07:41:19,267 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Initializing ProtocolHandler ["https-jsse-nio-8002"]
+2025-07-16 07:41:19,276 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting service [Tomcat]
+2025-07-16 07:41:19,276 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting Servlet engine: [Apache Tomcat/10.1.30]
+2025-07-16 07:41:19,375 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Initializing Spring embedded WebApplicationContext
+2025-07-16 07:41:19,376 INFO  [main] org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.prepareWebApplicationContext:296 Root WebApplicationContext: initialization completed in 3012 ms
+2025-07-16 07:41:19,669 INFO  [main] org.hibernate.jpa.internal.util.LogHelper.logPersistenceUnitInformation:31 HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-07-16 07:41:19,795 INFO  [main] org.hibernate.Version.logVersion:44 HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-07-16 07:41:19,857 INFO  [main] org.hibernate.cache.internal.RegionFactoryInitiator.initiateService:50 HHH000026: Second-level cache disabled
+2025-07-16 07:41:20,431 INFO  [main] org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo.addTransformer:87 No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-07-16 07:41:20,480 INFO  [main] com.zaxxer.hikari.HikariDataSource.getConnection:109 HikariPool-1 - Starting...
+2025-07-16 07:41:21,036 INFO  [main] com.zaxxer.hikari.pool.HikariPool.checkFailFast:554 HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@6fc7e828
+2025-07-16 07:41:21,041 INFO  [main] com.zaxxer.hikari.HikariDataSource.getConnection:122 HikariPool-1 - Start completed.
+2025-07-16 07:41:21,126 WARN  [main] org.hibernate.engine.jdbc.dialect.internal.DialectFactoryImpl.constructDialect:153 HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-07-16 07:41:22,746 INFO  [main] org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator.initiateService:59 HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-07-16 07:41:22,814 INFO  [main] org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory:437 Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-07-16 07:41:22,858 DEBUG [main] com.invoice.opensearch.OpenSearchConfig.esClient:53 Intializing opensearch
+2025-07-16 07:41:23,274 WARN  [main] com.invoice.opensearch.OpenSearchConfig.esClient:95 Not able to create index {} 
+2025-07-16 07:41:24,151 WARN  [main] org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration$JpaWebConfiguration.openEntityManagerInViewInterceptor:236 spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-07-16 07:41:26,080 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Starting ProtocolHandler ["https-jsse-nio-8002"]
+2025-07-16 07:41:26,130 INFO  [main] org.apache.juli.logging.DirectJDKLog.log:173 Connector [https-jsse-nio-8002], TLS virtual host [_default_], certificate type [UNDEFINED] configured from keystore [/root/.keystore] using alias [ems.pathbreakertech.in] with trust store [null]
+2025-07-16 07:41:26,146 INFO  [main] org.springframework.boot.web.embedded.tomcat.TomcatWebServer.start:243 Tomcat started on port 8002 (https) with context path '/invoice'
+2025-07-16 07:41:26,171 INFO  [main] org.springframework.boot.StartupInfoLogger.logStarted:56 Started InvoiceApplication in 11.241 seconds (process running for 12.363)
+2025-07-16 07:49:22,945 INFO  [SpringApplicationShutdownHook] org.apache.juli.logging.DirectJDKLog.log:173 Stopping ProtocolHandler ["https-jsse-nio-8002"]
+2025-07-16 07:49:23,065 INFO  [SpringApplicationShutdownHook] org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.destroy:650 Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-07-16 07:49:23,104 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource.close:349 HikariPool-1 - Shutdown initiated...
+2025-07-16 07:49:23,448 INFO  [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource.close:351 HikariPool-1 - Shutdown completed.

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+  namespace: ems
+    #annotations:
+    #metallb.universe.tf/allow-shared-ip: "true"
+spec:
+  selector:
+    app: identity
+  ports:
+  - protocol: TCP
+    port: 9002         # External port to expose
+    targetPort: 9002   # Internal container port
+  type: LoadBalancer   # Change from NodePort to LoadBalancer
+  externalIPs:
+  - 172.31.88.27
+  
+    # loadBalancerIP: 172.31.88.27

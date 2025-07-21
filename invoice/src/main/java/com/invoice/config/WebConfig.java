@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Maps "/assets/img/**" URL path to the "D:/ems/ui/public/assets/img/" directory
-        registry.addResourceHandler("/home/deploy_admin18/ems_prod_imag_bkp/**")
-                .addResourceLocations("file:/home/deploy_admin18/ems_prod_imag_bkp/");
+        registry.addResourceHandler("/home/ubuntu/ems_prod_imag_bkp/**")
+                .addResourceLocations("file:/home/ubuntu/ems_prod_imag_bkp/");
     }
 }

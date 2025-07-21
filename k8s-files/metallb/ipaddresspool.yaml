@@ -1,0 +1,8 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: public-ip-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 124.123.30.83/32

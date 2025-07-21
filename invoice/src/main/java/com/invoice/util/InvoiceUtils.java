@@ -182,9 +182,9 @@ public class InvoiceUtils {
             companyEntity.setMobileNo(unMaskValue(companyEntity.getMobileNo()));
             companyEntity.setCinNo(unMaskValue(companyEntity.getCinNo()));
             String baseUrl = getBaseUrl(request);
-            String image = baseUrl + "home/deploy_admin18/ems_prod_imag_bkp/" + companyEntity.getImageFile();
+            String image = baseUrl + "home/ubuntu/ems_prod_imag_bkp/" + companyEntity.getImageFile();
             companyEntity.setImageFile(image);
-            String stampImage = baseUrl + "home/deploy_admin18/ems_prod_imag_bkp/" + companyEntity.getStampImage();
+            String stampImage = baseUrl + "home/ubuntu/ems_prod_imag_bkp/" + companyEntity.getStampImage();
             companyEntity.setStampImage(stampImage);
         }
         return companyEntity;

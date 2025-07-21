@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: ems
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      containers:
+      - name: frontend-demo-container
+        image: frontend-demo:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 443
+        env:
+        - name: ELASTICSEARCH_URL
+          value: http://172.31.88.27:9201
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:mysql://172.31.88.27:3306/invoice
+        volumeMounts:
+        - name: prod-volume
+          mountPath: /home/ubuntu/ems_prod_imag_bkp
+        - name: tls-cert-volume
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        - name: tls-cert-volume-key
+          mountPath: /etc/ssl/private
+          readOnly: true
+        - name: dhparam-volume
+          mountPath: /etc/ssl/dhparam.pem
+          subPath: dhparam.pem  # Ensures it's mounted as a file, not as a directory
+          readOnly: true
+      volumes:
+      - name: prod-volume
+        persistentVolumeClaim:
+          claimName: ems-pvc
+      - name: tls-cert-volume
+        secret:
+          secretName: tls-cert
+          items:
+            - key: tls.crt
+              path: server.crt
+      - name: tls-cert-volume-key
+        secret:
+          secretName: tls-cert
+          items:
+            - key: tls.key
+              path: server.key
+      - name: dhparam-volume
+        secret:
+          secretName: dhparam-secret
+          items:
+            - key: dhparam.pem
+              path: dhparam.pem

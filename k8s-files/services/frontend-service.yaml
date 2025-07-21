@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: ems
+    #annotations:
+    #metallb.universe.tf/allow-shared-ip: "true"
+    #metallb.universe.tf/address-pool: public-ip-pool
+spec:
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 443
+  type: LoadBalancer
+  externalIPs:
+  - 172.31.88.27
+   #loadBalancerIP: 172.31.88.27

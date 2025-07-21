@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoice-service
+  namespace: ems
+    #annotations:
+    #metallb.universe.tf/allow-shared-ip: "true"
+spec:
+  selector:
+    app: invoice
+  ports:
+  - protocol: TCP
+    port: 8002         # External port to expose
+    targetPort: 8002   # Internal container port
+  type: LoadBalancer   # Change from NodePort to LoadBalancer
+  externalIPs:
+  - 172.31.88.27
+     #loadBalancerIP: 172.31.88.27

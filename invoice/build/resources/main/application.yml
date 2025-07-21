@@ -1,0 +1,40 @@
+server:
+  port: 8002
+
+  servlet:
+    contextPath: /invoice
+  ssl:
+    enabled: true
+    key-store: /opt/ems/certificates/keystore.jks
+    key-store-password: pathbreaker
+    key-alias: ems.pathbreakertech.in
+    key-store-type: JKS
+# MySQL Database Configuration
+spring:
+  aop:
+    proxy-target-class: true
+  main:
+    allow-circular-references: true
+  datasource:
+    url: jdbc:mysql://52.91.204.22:3306/invoice
+    username: root
+    password: Path@2014
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+es:
+  esHost: 172.31.88.27
+  esPort: 9201
+# Swagger API Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
