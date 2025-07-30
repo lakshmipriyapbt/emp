@@ -1,0 +1,69 @@
+name: PR Check
+on:
+  pull_request:
+    branches:
+      - main  # or your default branch
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      ######################################
+      # Backend Modules Build (Java)
+      ######################################
+      - name: Build employee service
+        working-directory: ./employee
+        run: |
+          if [ -f "pom.xml" ]; then
+            mvn clean install
+          elif [ -f "build.gradle" ]; then
+            chmod +x ./gradlew
+            ./gradlew build
+          else
+            echo "No build tool found"
+            exit 1
+          fi
+      - name: Build identity service
+        working-directory: ./identity
+        run: |
+          if [ -f "pom.xml" ]; then
+            mvn clean install
+          elif [ -f "build.gradle" ]; then
+            chmod +x ./gradlew
+            ./gradlew build
+          else
+            echo "No build tool found"
+            exit 1
+          fi
+      - name: Build invoice service
+        working-directory: ./invoice
+        run: |
+          if [ -f "pom.xml" ]; then
+            mvn clean install
+          elif [ -f "build.gradle" ]; then
+            chmod +x ./gradlew
+            ./gradlew build
+          else
+            echo "No build tool found"
+            exit 1
+          fi
+      ######################################
+      # Frontend (React) - Build & Test
+      ######################################
+      - name: Install frontend dependencies
+        working-directory: ./ui
+        run: npm install
+      - name: Run frontend tests (continue even if fail)
+        working-directory: ./ui
+        run: |
+          npm test || echo "UI tests failed, continuing..."
