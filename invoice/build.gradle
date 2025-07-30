@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
+        id "org.sonarqube" version "4.0.0.2929"
 }
 
 group = 'com.invoice'
@@ -76,3 +77,17 @@ tasks.compileJava {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+sonarqube {
+    properties {
+        property "sonar.projectKey", "ems-invoice"          // Unique key for this service
+        property "sonar.projectName", "EMS Invoice Service" // Friendly project name
+        property "sonar.projectVersion", "1.0"
+        property "sonar.host.url", "http://172.31.88.27:9000"
+        property "sonar.login", System.getenv("SONAR_TOKEN") // Jenkins token environment variable
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.sources", "src/main/java"            // Adjust if your source folder differs
+        property "sonar.tests", "src/test/java"
+        property "sonar.java.binaries", "build/classes/java/main"
+    }
+}
+
